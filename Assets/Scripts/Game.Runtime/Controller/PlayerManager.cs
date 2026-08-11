@@ -12,33 +12,12 @@ namespace Game.Runtime.Controller
 
 		[SerializeField] private NetworkObject _playerPrefab;
 
-		[SerializeField] private List<PlayerSpawnPoint> _sortedClockwiseSpawnPoints = new();
-		[SerializeField] private List<PlayerSpawnPoint> _sequentialSpawnPoints = new();
-
-		private readonly Dictionary<ulong, PlayerSpawnPoint> _playerSpawnPoints = new();
+		[SerializeField] private List<PlayerSpawnPoint> _spawnPoints = new();
 
 		public NetworkList<NetworkObjectReference> Players { get; } =
 			new(writePerm: NetworkVariableWritePermission.Server, readPerm: NetworkVariableReadPermission.Everyone);
 
 		private readonly Dictionary<ulong, NetworkObject> _playerObjects = new();
-
-		public List<NetworkObject> SortedPlayers
-		{
-			get
-			{
-				var sortedPlayers = new List<NetworkObject>();
-				foreach (var spawnPoint in _sortedClockwiseSpawnPoints)
-				{
-					if (spawnPoint.Player.TryGet(out var player))
-					{
-						sortedPlayers.Add(player);
-					}
-				}
-
-				return sortedPlayers;
-			}
-		}
-
 
 		public override void OnNetworkSpawn()
 		{
@@ -53,9 +32,9 @@ namespace Game.Runtime.Controller
 
 		protected override void OnNetworkPostSpawn()
 		{
-			if (_sortedClockwiseSpawnPoints.Count != _sequentialSpawnPoints.Count)
+			if (_spawnPoints.Count == 0)
 			{
-				Debug.LogWarning("The number of sorted spawn points does not match the number of sequential spawn points.");
+				Debug.LogWarning("No spawn points assigned — players will spawn at the origin.");
 			}
 
 			var clients = NetworkManager.Singleton.ConnectedClients.Values;
@@ -82,26 +61,20 @@ namespace Game.Runtime.Controller
 		{
 			if (!IsHost) return;
 
-			var spawnPoint = FindAvailableSpawnPoint();
+			var spawnPoint = GetRandomSpawnPoint();
 			var player = NetworkManager.SpawnManager.InstantiateAndSpawn(_playerPrefab,
 				ownerClientId: clientId,
 				isPlayerObject: true,
-				position: spawnPoint.transform.position,
-				rotation: spawnPoint.transform.rotation);
-
-			spawnPoint.SetPlayer(player);
+				position: spawnPoint ? spawnPoint.transform.position : Vector3.zero,
+				rotation: spawnPoint ? spawnPoint.transform.rotation : Quaternion.identity);
 
 			Players.Add(player);
 			_playerObjects[clientId] = player;
-			_playerSpawnPoints[clientId] = spawnPoint;
 		}
 
 		private void HandlePlayerDisconnected(ulong clientId)
 		{
 			if (!IsHost) return;
-
-			var spawnPoint = FindPlayerSpawnPoint(clientId);
-			if (spawnPoint) spawnPoint.ClearPlayer();
 
 			if (_playerObjects.TryGetValue(clientId, out var player))
 			{
@@ -111,8 +84,6 @@ namespace Game.Runtime.Controller
 
 				player.Despawn();
 			}
-
-			_playerSpawnPoints.Remove(clientId);
 		}
 
 		private void HandlePreShutdown()
@@ -125,25 +96,12 @@ namespace Game.Runtime.Controller
 			}
 
 			_playerObjects.Clear();
-			_playerSpawnPoints.Clear();
 			Players.Clear();
 		}
 
-		private PlayerSpawnPoint FindAvailableSpawnPoint()
+		private PlayerSpawnPoint GetRandomSpawnPoint()
 		{
-			foreach (var spawnPoint in _sequentialSpawnPoints)
-			{
-				if (spawnPoint.IsValid) continue;
-
-				return spawnPoint;
-			}
-
-			return null;
-		}
-
-		private PlayerSpawnPoint FindPlayerSpawnPoint(ulong clientId)
-		{
-			return _playerSpawnPoints.GetValueOrDefault(clientId);
+			return _spawnPoints.Count == 0 ? null : _spawnPoints[UnityEngine.Random.Range(0, _spawnPoints.Count)];
 		}
 
 		private void HandlePlayersChanged(NetworkListEvent<NetworkObjectReference> changeEvent)

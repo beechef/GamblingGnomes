@@ -165,6 +165,8 @@ GameObject:
   - component: {fileID: 3942293894947819376}
   - component: {fileID: 4058645927303377609}
   - component: {fileID: 438662258472082050}
+  - component: {fileID: 6058892844790428177}
+  - component: {fileID: 7693860977262366506}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -360,6 +362,56 @@ MonoBehaviour:
   _hatRenderer: {fileID: 3473916952656789882}
   _handOnlyBodyMeshRenderer: {fileID: 323302484187471388}
   _handOnlyOutfitMeshRenderer: {fileID: 3419156991284356501}
+--- !u!114 &6058892844790428177
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6105733973742945484}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5e2f6d542c8ef014caf066f5c2a81d6e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.PlayerInteractionController
+  ShowTopMostFoldoutHeaderGroup: 1
+  _interactRange: 2
+  _interactRadius: 0.1
+  _serverRangeTolerance: 1
+  _interactableLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  _obstructionLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  _drawDebugRays: 1
+  _interactAction: {fileID: 1781555164194001046, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+  _playerController: {fileID: 4058645927303377609}
+  _lookOrigin: {fileID: 6591500634726463609}
+--- !u!114 &7693860977262366506
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6105733973742945484}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7322c126557f9854bb506f4c662a108b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.PlayerSeatController
+  ShowTopMostFoldoutHeaderGroup: 1
+  _bodyAnimator: {fileID: 8542732838043415226}
+  _handOnlyAnimator: {fileID: 3963024253735450076}
+  _defaultAnimationState: _Idle
+  _animationCrossFade: 0.15
+  _poseLayer: 0
+  _exitSeatAction: {fileID: -4121904096248556382, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+  _playerController: {fileID: 4058645927303377609}
+  CurrentSeat:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
 --- !u!1 &8710430525923375995
 GameObject:
   m_ObjectHideFlags: 0

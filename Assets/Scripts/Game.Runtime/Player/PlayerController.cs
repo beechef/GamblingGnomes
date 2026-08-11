@@ -59,6 +59,15 @@ namespace Game.Runtime.Player
 		private Vector2 _moveInput;
 		private bool _sprinting;
 
+		private bool _movementEnabled = true;
+		private bool _lookConstrained;
+		private bool _constraintAllowsRotation;
+		private float _constraintYaw;
+		private Vector2 _constraintYawLimits;
+		private Vector2 _activePitchLimits;
+
+		public bool MovementEnabled => _movementEnabled;
+
 		private struct AngleSample
 		{
 			public double Time;
@@ -96,6 +105,50 @@ namespace Game.Runtime.Player
 		{
 			_firstPersonCamera.enabled = false;
 			_ownerFirstPersonCamera.enabled = false;
+
+			_activePitchLimits = _pitchLimits;
+		}
+
+		public void SetMovementEnabled(bool enabled)
+		{
+			_movementEnabled = enabled;
+
+			if (enabled) return;
+
+			_moveInput = Vector2.zero;
+			_verticalVelocity = 0f;
+		}
+
+		// Sitting, lying down or any other anchored pose narrows what the look input is allowed to do:
+		// yaw is measured against the anchor's facing instead of being free, and pitch can be tightened.
+		public void ApplyLookConstraint(float referenceYaw, bool allowRotation, Vector2 yawLimits, Vector2 pitchLimits)
+		{
+			_lookConstrained = true;
+			_constraintAllowsRotation = allowRotation;
+			_constraintYaw = referenceYaw;
+			_constraintYawLimits = yawLimits;
+			_activePitchLimits = pitchLimits;
+
+			_currentPitch = Mathf.Clamp(_currentPitch, _activePitchLimits.x, _activePitchLimits.y);
+			_pitch.Value = _currentPitch;
+			_lastSentPitch = _currentPitch;
+		}
+
+		public void ClearLookConstraint()
+		{
+			_lookConstrained = false;
+			_constraintAllowsRotation = true;
+			_activePitchLimits = _pitchLimits;
+		}
+
+		public void Teleport(Vector3 position, Quaternion rotation)
+		{
+			var wasEnabled = _characterController.enabled;
+			_characterController.enabled = false;
+
+			transform.SetPositionAndRotation(position, rotation);
+
+			_characterController.enabled = wasEnabled;
 		}
 
 		public override void OnNetworkSpawn()
@@ -180,6 +233,8 @@ namespace Game.Runtime.Player
 
 		private void OnJumpPerformed(InputAction.CallbackContext ctx)
 		{
+			if (!_movementEnabled) return;
+
 			if (_characterController.isGrounded)
 			{
 				_verticalVelocity = Mathf.Sqrt(_jumpHeight * -2f * _gravity);
@@ -202,9 +257,10 @@ namespace Game.Runtime.Player
 
 			// Yaw turns the whole character, so it rides along on NetworkTransform rather than
 			// needing its own NetworkVariable like pitch does.
-			transform.Rotate(Vector3.up, filteredX * _lookSensitivityX);
+			transform.Rotate(Vector3.up, ConstrainYawDelta(filteredX * _lookSensitivityX));
 
-			_currentPitch = Mathf.Clamp(_currentPitch + filteredY * _lookSensitivityY * -1f, _pitchLimits.x, _pitchLimits.y);
+			_currentPitch = Mathf.Clamp(_currentPitch + filteredY * _lookSensitivityY * -1f,
+				_activePitchLimits.x, _activePitchLimits.y);
 
 			if (Mathf.Abs(Mathf.DeltaAngle(_lastSentPitch, _currentPitch)) >= _minNetworkSendDeltaDegrees)
 			{
@@ -213,9 +269,20 @@ namespace Game.Runtime.Player
 			}
 		}
 
+		private float ConstrainYawDelta(float yawDelta)
+		{
+			if (!_lookConstrained) return yawDelta;
+			if (!_constraintAllowsRotation) return 0f;
+
+			var currentOffset = Mathf.DeltaAngle(_constraintYaw, transform.eulerAngles.y);
+			var clampedOffset = Mathf.Clamp(currentOffset + yawDelta, _constraintYawLimits.x, _constraintYawLimits.y);
+
+			return clampedOffset - currentOffset;
+		}
+
 		private void Update()
 		{
-			if (!IsOwner || !IsSpawned) return;
+			if (!IsOwner || !IsSpawned || !_movementEnabled) return;
 
 			var speed = _sprinting ? _sprintSpeed : _walkSpeed;
 			var horizontalMove = (transform.forward * _moveInput.y + transform.right * _moveInput.x).normalized * speed;
