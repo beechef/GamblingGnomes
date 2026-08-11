@@ -82,6 +82,14 @@ Do not scatter scripts outside `Assets/Scripts/`. Do not create per-feature asmd
 - Scenes: short PascalCase purpose names (`Bootstrap.unity`, `Gameplay.unity`).
 - ScriptableObject assets: PascalCase matching the class name.
 
+## Editor settings that affect how you write code
+
+- **Domain Reload is disabled** (Scene Reload only). Static fields, static events, and singleton `Instance` properties survive between Play sessions. Every class holding static state must reset it via `[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]` — see `SteamController`, `GameNetworkManager`, `GameModeController`.
+- **Auto Refresh is disabled.** After writing scripts outside the Editor, trigger `AssetDatabase.Refresh()` manually before expecting a recompile.
+- **UI uses TextMeshPro**, never legacy `UnityEngine.UI.Text` — `TextMeshProUGUI`, `TMP_InputField`, `TMP_Dropdown`, and `TMP_Text` in code.
+- **Input uses `InputActionReference` serialized fields**, never string lookups like `_playerInput.actions["Look"]` — see `PlayerController`.
+- Scene-placed `NetworkObject`s created programmatically get `GlobalObjectIdHash = 0` and fail to spawn. If that happens, remove and re-add the `NetworkObject` component on the saved scene object to regenerate it.
+
 ## Rules
 
 1. Match ProjectGamble's package set exactly (`Packages/manifest.json`) unless there's a concrete reason to diverge — keeps both projects buildable/portable with the same toolchain.

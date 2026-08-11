@@ -85,9 +85,29 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "ToggleCursor",
+                    "type": "Button",
+                    "id": "8f2b1c47-5d3e-4a91-b6c8-1e7f0a2d9b34",
+                    "expectedControlType": "Button",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
+                {
+                    "name": "",
+                    "id": "3c6a9e12-7b48-4f05-9d21-8a5e4c0b7f6d",
+                    "path": "<Keyboard>/escape",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Keyboard&Mouse",
+                    "action": "ToggleCursor",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
                 {
                     "name": "",
                     "id": "978bfe49-cc26-4a3d-ab7b-7d7a29327403",
