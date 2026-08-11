@@ -68,12 +68,17 @@ namespace Game.Runtime.Player
 			CurrentSeat.Value = new NetworkBehaviourReference(seat);
 		}
 
-		public void StandServer()
+		public void StandServer(bool force = false)
 		{
 			if (!IsServer) return;
 
 			var seat = Seat;
-			if (seat) seat.ReleaseServer(new NetworkBehaviourReference(this));
+			var selfReference = new NetworkBehaviourReference(this);
+
+			// The seat gets the last word — a poker seat holds its player until the hand is over.
+			if (seat && !force && !seat.CanStand(selfReference)) return;
+
+			if (seat) seat.ReleaseServer(selfReference);
 
 			CurrentSeat.Value = default;
 		}

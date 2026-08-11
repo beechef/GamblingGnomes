@@ -6,6 +6,8 @@ namespace Game.Runtime.Interaction
 {
 	public class SeatInteractable : InteractableBase
 	{
+		public const ulong NoOccupantClientId = ulong.MaxValue;
+
 		[Header("Seat")]
 		[SerializeField] private Transform _sitAnchor;
 		[SerializeField] private Transform _exitAnchor;
@@ -18,19 +20,47 @@ namespace Game.Runtime.Interaction
 		public Transform SitAnchor => _sitAnchor ? _sitAnchor : transform;
 		public Transform ExitAnchor => _exitAnchor ? _exitAnchor : transform;
 
+		// Cached rather than resolved on demand: a player who disconnects while seated stops resolving,
+		// and the seat still needs to know who it was releasing.
+		public ulong OccupantClientId { get; private set; } = NoOccupantClientId;
+
 		// A despawned occupant stops resolving, so a player who disconnects while seated frees the
 		// seat on its own rather than needing a disconnect hook to clean up after them.
 		public bool IsOccupied => Occupant.Value.TryGet(out NetworkBehaviour _);
+
+		public override void OnNetworkSpawn()
+		{
+			base.OnNetworkSpawn();
+			Occupant.OnValueChanged += HandleOccupantChanged;
+		}
+
+		public override void OnNetworkDespawn()
+		{
+			Occupant.OnValueChanged -= HandleOccupantChanged;
+			base.OnNetworkDespawn();
+		}
 
 		public override bool CanInteract(NetworkBehaviourReference interactor)
 		{
 			return base.CanInteract(interactor) && !IsOccupied;
 		}
 
+		// Asked before a seated player is allowed to stand. The plain seat never says no; a seat tied
+		// to a running game does.
+		public virtual bool CanStand(NetworkBehaviourReference occupant) => true;
+
 		public void ReleaseServer(NetworkBehaviourReference occupant)
 		{
 			if (!IsServer) return;
 			if (!Occupant.Value.Equals(occupant)) return;
+
+			Occupant.Value = default;
+		}
+
+		public void ReleaseIfOccupiedBy(ulong clientId)
+		{
+			if (!IsServer) return;
+			if (OccupantClientId != clientId) return;
 
 			Occupant.Value = default;
 		}
@@ -44,6 +74,19 @@ namespace Game.Runtime.Interaction
 
 			Occupant.Value = new NetworkBehaviourReference(seatController);
 			seatController.SitServer(this);
+		}
+
+		protected virtual void OnOccupantChanged(ulong previousClientId, ulong currentClientId) { }
+
+		private void HandleOccupantChanged(NetworkBehaviourReference previous, NetworkBehaviourReference current)
+		{
+			var previousClientId = OccupantClientId;
+
+			OccupantClientId = current.TryGet(out NetworkBehaviour behaviour)
+				? behaviour.OwnerClientId
+				: NoOccupantClientId;
+
+			OnOccupantChanged(previousClientId, OccupantClientId);
 		}
 	}
 }

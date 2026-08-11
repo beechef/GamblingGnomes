@@ -2,6 +2,7 @@ namespace Game.Runtime.GameMode
 {
 	public enum GameModeType
 	{
-		Sandbox = 0
+		Sandbox = 0,
+		Poker = 1
 	}
 }
