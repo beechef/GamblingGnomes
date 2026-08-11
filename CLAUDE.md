@@ -1,7 +1,5 @@
 # GamblingGnomes — Project Conventions
 
-This document is derived from the sister project **ProjectGamble** (same author/team) to keep both codebases consistent. GamblingGnomes is a fresh Unity project — this file defines the conventions to follow *as code is added*, not a description of code that already exists here.
-
 ## Tech stack (mirrors ProjectGamble)
 
 - **Unity** with **URP** (`com.unity.render-pipelines.universal`).
@@ -92,8 +90,6 @@ Do not scatter scripts outside `Assets/Scripts/`. Do not create per-feature asmd
 
 ## Rules
 
-1. Match ProjectGamble's package set exactly (`Packages/manifest.json`) unless there's a concrete reason to diverge — keeps both projects buildable/portable with the same toolchain.
-2. Keep the two-assembly split (`Game.Runtime`, `Game.Editor`); don't introduce new asmdefs without a real modularity need.
-3. Server-authoritative by default — any gameplay state that must be consistent across clients lives in a `NetworkBehaviour`/`NetworkVariable`, not in a locally-mutated field trusted from the client.
-4. Don't add abstractions (generic singleton base, DI container, event bus) that ProjectGamble doesn't already use — stay consistent with its hand-rolled patterns rather than "improving" them here.
-5. No XML doc comments or comment blocks; let naming carry the meaning.
+1. Keep the two-assembly split (`Game.Runtime`, `Game.Editor`); don't introduce new asmdefs without a real modularity need.
+2. Server-authoritative by default — any gameplay state that must be consistent across clients lives in a `NetworkBehaviour`/`NetworkVariable`, not in a locally-mutated field trusted from the client.
+3. No XML doc comments or comment blocks; let naming carry the meaning.
