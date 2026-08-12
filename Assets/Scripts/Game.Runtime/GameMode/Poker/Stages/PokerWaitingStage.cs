@@ -1,7 +1,10 @@
+using UnityEngine;
+
 namespace Game.Runtime.GameMode.Poker.Stages
 {
 	// Idle table. Nothing advances it on its own — the host's start button does, which is also why
 	// this is the only stage players are free to stand up from.
+	[CreateAssetMenu(fileName = "PokerStage_Waiting", menuName = "Game/Poker/Stages/Waiting")]
 	public class PokerWaitingStage : PokerStage
 	{
 		protected override void OnStartStage()

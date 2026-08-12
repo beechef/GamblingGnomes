@@ -42,9 +42,18 @@ namespace Game.Runtime.Controller
 		public event Action OnLobbyEnter;
 		public event Action OnHostStarted;
 
+		// Raised once the table is fully torn down and the app is back to a blank state — whether the
+		// player walked out, the host vanished, or the transport died.
+		public event Action OnGameLeft;
+
 		public Lobby? CurrentLobby { get; private set; }
 
+		public bool IsInGame => CurrentLobby.HasValue || _networkManager.IsListening;
+
+		private readonly Dictionary<ulong, int> _editorSuffixes = new();
+
 		private bool _joiningLobby;
+		private bool _leavingGame;
 		private Scene _gameplayScene;
 		private string _gameplaySceneName;
 
@@ -96,6 +105,66 @@ namespace Game.Runtime.Controller
 			_networkManager.OnClientDisconnectCallback -= OnClientDisconnected;
 			_networkManager.OnTransportFailure -= OnTransportFailure;
 			_networkManager.OnServerStopped -= OnServerStopped;
+		}
+
+		// The identity that outlives a connection, which is what a returning player would be matched on.
+		// Steam supplies one; the editor transport does not, so there a connection id stands in and a
+		// reconnect counts as somebody new.
+		public ulong ResolvePlayerId(ulong clientId)
+		{
+			var playerId = SteamIdOf(clientId, out var steamId) ? steamId : clientId;
+
+			// Two editor instances sign in as the same Steam user and would otherwise be one player as
+			// far as the table is concerned. Salting with the same number their name carries pulls them
+			// apart, and keeps doing so for as long as each connection lasts.
+			return Application.isEditor ? playerId ^ ((ulong)EditorSuffix(clientId) << 32) : playerId;
+		}
+
+		public string ResolvePlayerName(ulong clientId)
+		{
+			var name = LookupSteamName(clientId);
+			if (string.IsNullOrEmpty(name)) name = $"Player {clientId}";
+
+			return Application.isEditor ? $"{name}_{EditorSuffix(clientId)}" : name;
+		}
+
+		private bool SteamIdOf(ulong clientId, out ulong steamId)
+		{
+			if (clientId == NetworkManager.ServerClientId && SteamClient.IsValid)
+			{
+				steamId = SteamClient.SteamId.Value;
+				return true;
+			}
+
+			steamId = 0;
+			return _steamTransport && _steamTransport.TryGetSteamId(clientId, out steamId);
+		}
+
+		// The lobby is the only place the server can read a persona from, since the transport hands it
+		// nothing but an id.
+		private string LookupSteamName(ulong clientId)
+		{
+			if (clientId == NetworkManager.ServerClientId && SteamClient.IsValid) return SteamClient.Name;
+
+			if (!SteamIdOf(clientId, out var steamId) || !CurrentLobby.HasValue) return null;
+
+			foreach (var member in CurrentLobby.Value.Members)
+			{
+				if (member.Id == steamId) return member.Name;
+			}
+
+			return null;
+		}
+
+		// Drawn once per connection so a player keeps the same tag for as long as they are here.
+		private int EditorSuffix(ulong clientId)
+		{
+			if (_editorSuffixes.TryGetValue(clientId, out var suffix)) return suffix;
+
+			suffix = UnityEngine.Random.Range(1000, 10000);
+			_editorSuffixes[clientId] = suffix;
+
+			return suffix;
 		}
 
 		public void ConfigureLobby(int maxPlayers, bool isPrivate, GameModeType gameMode)
@@ -269,6 +338,10 @@ namespace Game.Runtime.Controller
 		{
 			if (clientId != _networkManager.LocalClientId) return;
 
+			// Shutting down is how leaving works, so the callbacks it raises are our own footsteps —
+			// reporting them as a failed connection would put an error on screen for a clean exit.
+			if (_leavingGame) return;
+
 			var reason = _networkManager.DisconnectReason;
 			if (string.IsNullOrEmpty(reason)) reason = "Connection lost or rejected (no reason provided).";
 
@@ -280,53 +353,94 @@ namespace Game.Runtime.Controller
 
 		private void OnServerStopped(bool isStopped)
 		{
+			if (_leavingGame) return;
+
 			Debug.Log("[GameNetworkManager] Server stopped.");
 			Shutdown();
 		}
 
 		private void OnTransportFailure()
 		{
+			if (_leavingGame) return;
+
 			Shutdown();
 
 			OnConnectFailed?.Invoke("Transport-level failure (NAT/relay/socket error).");
 		}
 
-		private void LeaveGame()
+		// The single way out, whatever the reason. It runs to completion even when there is no lobby or
+		// no connection left to close, because half a teardown is what stops the next host from starting:
+		// everything it touches ends up back where Awake left it.
+		public async Awaitable LeaveGame()
 		{
-			if (CurrentLobby.HasValue)
-			{
-				if (Application.isEditor)
-				{
-					if (_networkManager.IsHost)
-					{
-						CurrentLobby.Value.Leave();
-					}
-				}
-				else
-				{
-					CurrentLobby.Value.Leave();
-				}
+			if (_leavingGame) return;
+			_leavingGame = true;
 
+			try
+			{
 				StopListenGameplaySceneLoad();
 
-				CurrentLobby = null;
-				_networkManager.Shutdown();
+				LeaveLobby(Application.isEditor);
 
-				if (_gameplayScene.IsValid())
-				{
-					SceneManager.UnloadSceneAsync(_gameplayScene);
-				}
+				if (_networkManager.IsListening) _networkManager.Shutdown();
+
+				await UnloadGameplayScene();
+
+				_gameplaySceneName = null;
+				_joiningLobby = false;
 			}
+			finally
+			{
+				_leavingGame = false;
+			}
+
+			OnGameLeft?.Invoke();
+		}
+
+		// The gameplay scene comes in additively through the network scene manager, but it outlives the
+		// shutdown that just happened — so it goes out through the plain one.
+		private async Awaitable UnloadGameplayScene()
+		{
+			if (!_gameplayScene.IsValid() || !_gameplayScene.isLoaded)
+			{
+				_gameplayScene = default;
+				return;
+			}
+
+			var unload = SceneManager.UnloadSceneAsync(_gameplayScene);
+			_gameplayScene = default;
+
+			// Awaited rather than fired off: hosting again immediately would otherwise load the next
+			// gameplay scene on top of one still being torn down.
+			while (unload != null && !unload.isDone) await Awaitable.NextFrameAsync();
 		}
 
 		public void Shutdown()
 		{
-			LeaveGame();
+			LeaveGame().LogExceptionsAndForget();
 		}
 
 		private void OnApplicationQuit()
 		{
-			Shutdown();
+			// No point unloading a scene the process is about to drop — just hand the lobby back.
+			LeaveLobby(false);
+
+			if (_networkManager.IsListening) _networkManager.Shutdown();
+		}
+
+		private void LeaveLobby(bool hostOnly)
+		{
+			if (!CurrentLobby.HasValue) return;
+
+			// Two editor instances share one lobby, so only the host may hand it back — a client leaving
+			// would close the room out from under the player still hosting it.
+			var mayLeave = !hostOnly || _networkManager.IsHost;
+
+			// Steam can already be down by the time this runs: nothing orders one OnApplicationQuit
+			// against another, and calling into a shut down client throws from inside Facepunch.
+			if (mayLeave && SteamClient.IsValid) CurrentLobby.Value.Leave();
+
+			CurrentLobby = null;
 		}
 
 		private void StartListenGameplaySceneLoad()

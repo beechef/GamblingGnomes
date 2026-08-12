@@ -1,25 +1,26 @@
-using Unity.Netcode;
 using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker.Stages
 {
-	// Stages are NetworkBehaviours so a stage can carry its own replicated state and RPCs — an
-	// overlay that runs a vote needs both, and nothing about the machine should force it back into
-	// the shared table data.
-	public abstract class PokerStage : NetworkBehaviour
+	// A stage is an asset, not a scene object. The round is a list of them on a PokerStageSequence, so
+	// swapping that one reference swaps the whole shape of the game without touching the table prefab,
+	// and every stage carries the numbers it runs on instead of reaching for a shared rule asset.
+	//
+	// The mode runs a clone of each asset, which is what lets a stage keep runtime state without the
+	// edited asset following it into the next play session.
+	public abstract class PokerStage : ScriptableObject
 	{
 		[Header("Stage")]
-		[Tooltip("Replicated to clients so UI can key off the running stage without knowing the type.")]
+		[Tooltip("Replicated to clients so UI can key off the running stage without knowing the type. Empty falls back to the asset name.")]
 		[SerializeField] private string _stageId;
 
-		public string StageId => string.IsNullOrEmpty(_stageId) ? GetType().Name : _stageId;
+		public string StageId => string.IsNullOrEmpty(_stageId) ? name : _stageId;
 
 		public PokerGameMode GameMode { get; private set; }
 		public bool IsRunning { get; private set; }
 		public bool IsPaused { get; private set; }
 
 		protected PokerGameData Data => GameMode ? GameMode.Data : null;
-		protected PokerRuleSettings Rules => GameMode ? GameMode.Rules : null;
 
 		public void Initialize(PokerGameMode gameMode)
 		{

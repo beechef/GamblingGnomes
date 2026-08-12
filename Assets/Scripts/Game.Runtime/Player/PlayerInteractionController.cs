@@ -1,3 +1,4 @@
+using Game.Runtime.Controller;
 using Game.Runtime.Interaction;
 using Game.Runtime.UI.Interaction;
 using Unity.Netcode;
@@ -155,8 +156,8 @@ namespace Game.Runtime.Player
 
 			Debug.DrawRay(ray.origin, ray.direction * _interactRange, foundTarget ? Color.green : Color.red);
 
-			var mainCamera = Camera.main;
-			if (mainCamera) Debug.DrawRay(mainCamera.transform.position, mainCamera.transform.forward * _interactRange, Color.cyan);
+			var view = GameCamera.View;
+			if (view) Debug.DrawRay(view.position, view.forward * _interactRange, Color.cyan);
 		}
 
 		// Magenta marks whatever collider actually blocked the view, so a false block is traceable to the

@@ -19,11 +19,18 @@ namespace Game.Runtime.GameMode.Poker.Player
 		public static IReadOnlyList<PokerPlayer> All => Registry;
 		public static event Action OnRegistryChanged;
 
+		// The player this client owns. UI hangs its whole lifecycle off this rather than polling for a
+		// local player to appear.
+		public static PokerPlayer Local { get; private set; }
+		public static event Action<PokerPlayer> OnLocalPlayerChanged;
+
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
 		private static void ResetStatics()
 		{
 			Registry.Clear();
+			Local = null;
 			OnRegistryChanged = null;
+			OnLocalPlayerChanged = null;
 		}
 
 		public PokerPlayerData Data => _data;
@@ -53,6 +60,11 @@ namespace Game.Runtime.GameMode.Poker.Player
 			// the seated list only ever rebuilt on the host, so a client never saw itself at the table
 			// and never got an action bar on its turn.
 			if (_data) _data.SeatIndex.OnValueChanged += HandleSeatIndexChanged;
+
+			if (!IsOwner) return;
+
+			Local = this;
+			OnLocalPlayerChanged?.Invoke(this);
 		}
 
 		public override void OnNetworkDespawn()
@@ -60,6 +72,11 @@ namespace Game.Runtime.GameMode.Poker.Player
 			if (_data) _data.SeatIndex.OnValueChanged -= HandleSeatIndexChanged;
 
 			if (Registry.Remove(this)) OnRegistryChanged?.Invoke();
+
+			if (Local != this) return;
+
+			Local = null;
+			OnLocalPlayerChanged?.Invoke(null);
 		}
 
 		private void HandleSeatIndexChanged(int previous, int current) => OnRegistryChanged?.Invoke();

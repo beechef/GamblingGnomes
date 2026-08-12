@@ -1,3 +1,4 @@
+using Game.Runtime.Controller;
 using Game.Runtime.UI.FindLobby;
 using Unity.Netcode;
 using UnityEngine;
@@ -21,6 +22,10 @@ namespace Game.Runtime.UI.MainMenu
 			};
 
 			NetworkManager.Singleton.OnTransportFailure += Show;
+
+			// Walking out of a table never touches those callbacks when nothing was listening yet, so the
+			// menu also answers the teardown itself.
+			if (GameNetworkManager.Instance) GameNetworkManager.Instance.OnGameLeft += Show;
 		}
 
 		// Also closes the sub-screens: they replace the menu rather than stacking on it, so their

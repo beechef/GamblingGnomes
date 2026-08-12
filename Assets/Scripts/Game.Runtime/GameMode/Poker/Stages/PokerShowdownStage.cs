@@ -1,15 +1,23 @@
 using System.Collections.Generic;
 using Game.Runtime.GameMode.Poker.Hands;
 using Game.Runtime.GameMode.Poker.Player;
+using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker.Stages
 {
+	[CreateAssetMenu(fileName = "PokerStage_Showdown", menuName = "Game/Poker/Stages/Showdown")]
 	public class PokerShowdownStage : PokerStage
 	{
+		[Header("Hands")]
+		[Tooltip("Which hands this showdown recognises and how they rank. Swap the asset to change the ranking wholesale.")]
+		[SerializeField] private PokerHandDatabase _handDatabase;
+
+		[Header("Timing")]
+		[Tooltip("Seconds the winning hand stays up before the table resets.")]
+		[SerializeField] private float _showdownDuration = 5f;
+
 		private readonly List<PokerPlayer> _winners = new();
 		private readonly List<CardData> _evaluationBuffer = new();
-
-		private float _remaining;
 
 		protected override void OnStartStage()
 		{
@@ -22,15 +30,25 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 			Data.LastWinnerClientId.Value = _winners.Count > 0 ? _winners[0].ClientId : PokerGameData.NoTurn;
 
-			_remaining = Rules.ShowdownDuration;
+			if (_showdownDuration <= 0f)
+			{
+				FinishShowdown();
+				return;
+			}
+
+			GameMode.BeginStageTimer(_showdownDuration);
 		}
 
 		protected override void OnTickStage(float deltaTime)
 		{
-			_remaining -= deltaTime;
-			if (_remaining > 0f) return;
+			if (!GameMode.IsStageTimerExpired()) return;
 
-			// Back to the idle table: the hand is over, so seats unlock and the host can deal again.
+			FinishShowdown();
+		}
+
+		// Back to the idle table: the hand is over, so seats unlock and the host can deal again.
+		private void FinishShowdown()
+		{
 			GameMode.EndGame();
 			GameMode.GoToStage(0);
 		}
@@ -72,7 +90,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			foreach (var card in player.Data.HoleCards) _evaluationBuffer.Add(card);
 			foreach (var card in Data.CommunityCards) _evaluationBuffer.Add(card);
 
-			return GameMode.HandEvaluator.Evaluate(Rules.HandDatabase, _evaluationBuffer);
+			return GameMode.HandEvaluator.Evaluate(_handDatabase, _evaluationBuffer);
 		}
 	}
 }

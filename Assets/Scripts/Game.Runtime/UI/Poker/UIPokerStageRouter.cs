@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Unity.Collections;
 using UnityEngine;
 
 namespace Game.Runtime.UI.Poker
@@ -13,13 +14,28 @@ namespace Game.Runtime.UI.Poker
 		{
 			if (_panels.Count == 0) GetComponentsInChildren(true, _panels);
 
-			foreach (var panel in _panels)
-			{
-				if (panel) panel.SetVisible(false);
-			}
+			HideAll();
 		}
 
-		protected override void OnTick()
+		protected override void OnBind()
+		{
+			Data.StageId.OnValueChanged += HandleStageChanged;
+			Data.OverlayStageId.OnValueChanged += HandleStageChanged;
+
+			Refresh();
+		}
+
+		protected override void OnUnbind()
+		{
+			Data.StageId.OnValueChanged -= HandleStageChanged;
+			Data.OverlayStageId.OnValueChanged -= HandleStageChanged;
+
+			HideAll();
+		}
+
+		private void HandleStageChanged(FixedString32Bytes previous, FixedString32Bytes current) => Refresh();
+
+		private void Refresh()
 		{
 			var stageId = Data.StageId.Value.ToString();
 			var overlayId = Data.OverlayStageId.Value.ToString();
@@ -33,7 +49,7 @@ namespace Game.Runtime.UI.Poker
 			}
 		}
 
-		protected override void OnUnbind()
+		private void HideAll()
 		{
 			foreach (var panel in _panels)
 			{

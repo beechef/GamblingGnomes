@@ -1,10 +1,15 @@
 using System;
 using System.Collections.Generic;
+using Game.Runtime.Player;
 using Unity.Netcode;
 using UnityEngine;
 
 namespace Game.Runtime.Controller
 {
+	// Owns a player object from spawn to teardown. Netcode would otherwise take one down with the
+	// connection that owned it, which leaves nothing to hand back when that player returns — the prefab
+	// opts out of that, so a disconnect arrives here with the object still intact and every decision
+	// about it made in one place.
 	public class PlayerManager : NetworkBehaviour
 	{
 		public event Action<NetworkObject> OnPlayerSpawned;
@@ -17,7 +22,27 @@ namespace Game.Runtime.Controller
 		public NetworkList<NetworkObjectReference> Players { get; } =
 			new(writePerm: NetworkVariableWritePermission.Server, readPerm: NetworkVariableReadPermission.Everyone);
 
-		private readonly Dictionary<ulong, NetworkObject> _playerObjects = new();
+		// Keyed by connection, but each entry carries the identity that outlives it — matching a
+		// returning player against that id is what reconnecting will be built on.
+		private readonly Dictionary<ulong, PlayerEntry> _players = new();
+
+		private readonly struct PlayerEntry
+		{
+			public PlayerEntry(ulong playerId, NetworkObject player)
+			{
+				PlayerId = playerId;
+				NetworkObjectId = player.NetworkObjectId;
+				Object = player;
+			}
+
+			public ulong PlayerId { get; }
+
+			// Held beside the object because a destroyed one can no longer be asked for its id, and the
+			// id is all the list needs to drop the right row.
+			public ulong NetworkObjectId { get; }
+
+			public NetworkObject Object { get; }
+		}
 
 		public override void OnNetworkSpawn()
 		{
@@ -61,6 +86,10 @@ namespace Game.Runtime.Controller
 		{
 			if (!IsHost) return;
 
+			// The host is already connected when this spawns, so it arrives both through the sweep and
+			// through the callback — without this it would be dealt two bodies.
+			if (_players.ContainsKey(clientId)) return;
+
 			var spawnPoint = GetRandomSpawnPoint();
 			var player = NetworkManager.SpawnManager.InstantiateAndSpawn(_playerPrefab,
 				ownerClientId: clientId,
@@ -68,35 +97,53 @@ namespace Game.Runtime.Controller
 				position: spawnPoint ? spawnPoint.transform.position : Vector3.zero,
 				rotation: spawnPoint ? spawnPoint.transform.rotation : Quaternion.identity);
 
+			// Taken now rather than at disconnect: the transport forgets who a connection belonged to
+			// the moment it drops.
+			var network = GameNetworkManager.Instance;
+			var playerId = network ? network.ResolvePlayerId(clientId) : clientId;
+
+			var data = player.GetComponent<PlayerData>();
+			if (data) data.ServerSetIdentity(playerId, network ? network.ResolvePlayerName(clientId) : $"Player {clientId}");
+
 			Players.Add(player);
-			_playerObjects[clientId] = player;
+			_players[clientId] = new PlayerEntry(playerId, player);
 		}
 
 		private void HandlePlayerDisconnected(ulong clientId)
 		{
 			if (!IsHost) return;
+			if (!_players.Remove(clientId, out var entry)) return;
 
-			if (_playerObjects.TryGetValue(clientId, out var player))
-			{
-				Players.Remove(player);
+			RemoveFromPlayers(entry.NetworkObjectId);
 
-				_playerObjects.Remove(clientId);
-
-				player.Despawn();
-			}
+			// Where a returning player would reclaim this body instead of losing it.
+			if (entry.Object && entry.Object.IsSpawned) entry.Object.Despawn();
 		}
 
 		private void HandlePreShutdown()
 		{
 			if (!IsHost) return;
 
-			foreach (var player in _playerObjects.Values)
+			// Null-conditional is not enough: a destroyed object answers a plain null check the wrong
+			// way round, and despawning something already gone throws.
+			foreach (var entry in _players.Values)
 			{
-				player?.Despawn();
+				if (entry.Object && entry.Object.IsSpawned) entry.Object.Despawn();
 			}
 
-			_playerObjects.Clear();
+			_players.Clear();
 			Players.Clear();
+		}
+
+		private void RemoveFromPlayers(ulong networkObjectId)
+		{
+			for (var i = Players.Count - 1; i >= 0; i--)
+			{
+				if (Players[i].NetworkObjectId != networkObjectId) continue;
+
+				Players.RemoveAt(i);
+				return;
+			}
 		}
 
 		private PlayerSpawnPoint GetRandomSpawnPoint()

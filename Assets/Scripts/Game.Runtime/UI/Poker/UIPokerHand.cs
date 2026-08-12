@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Game.Runtime.GameMode.Poker;
-using Game.Runtime.GameMode.Poker.Player;
 using Game.Runtime.GameMode.Poker.Visual;
 using Unity.Netcode;
 using UnityEngine;
@@ -8,8 +7,7 @@ using UnityEngine.UI;
 
 namespace Game.Runtime.UI.Poker
 {
-	// The local player's own two cards, read straight off their PokerPlayerData — the hole card list
-	// is owner-read, so this UI is only ever able to draw the hand it belongs to.
+	// The local player's own cards, read straight off the player this client owns.
 	public class UIPokerHand : UIPokerView
 	{
 		[Header("References")]
@@ -19,30 +17,16 @@ namespace Game.Runtime.UI.Poker
 
 		private readonly List<Image> _cardImages = new();
 
-		private PokerPlayerData _boundData;
-
-		protected override void OnTick()
+		protected override void OnBind()
 		{
-			var localPlayer = GameMode.FindSeatedPlayer(LocalClientId);
-			var data = localPlayer ? localPlayer.Data : null;
-
-			if (data == _boundData) return;
-
-			if (_boundData) _boundData.OnHoleCardsChanged -= HandleHoleCardsChanged;
-
-			_boundData = data;
-
-			if (_boundData) _boundData.OnHoleCardsChanged += HandleHoleCardsChanged;
-
+			LocalData.OnHoleCardsChanged += HandleHoleCardsChanged;
 			Refresh();
 		}
 
 		protected override void OnUnbind()
 		{
-			if (_boundData) _boundData.OnHoleCardsChanged -= HandleHoleCardsChanged;
-
-			_boundData = null;
-			Refresh();
+			LocalData.OnHoleCardsChanged -= HandleHoleCardsChanged;
+			HideAll();
 		}
 
 		// Two flat images with no animation to lose, so the screen copy just redraws.
@@ -52,20 +36,25 @@ namespace Game.Runtime.UI.Poker
 		{
 			if (!_cardImagePrefab || !_cardContainer || !_database) return;
 
-			var count = _boundData ? _boundData.HoleCards.Count : 0;
+			var cards = LocalData.HoleCards;
 
-			while (_cardImages.Count < count)
-			{
-				_cardImages.Add(Instantiate(_cardImagePrefab, _cardContainer));
-			}
+			while (_cardImages.Count < cards.Count) _cardImages.Add(Instantiate(_cardImagePrefab, _cardContainer));
 
 			for (var i = 0; i < _cardImages.Count; i++)
 			{
 				var image = _cardImages[i];
-				var active = i < count;
+				var active = i < cards.Count;
 				image.gameObject.SetActive(active);
 
-				if (active) image.sprite = _database.GetFace(_boundData.HoleCards[i]);
+				if (active) image.sprite = _database.GetFace(cards[i]);
+			}
+		}
+
+		private void HideAll()
+		{
+			foreach (var image in _cardImages)
+			{
+				if (image) image.gameObject.SetActive(false);
 			}
 		}
 	}

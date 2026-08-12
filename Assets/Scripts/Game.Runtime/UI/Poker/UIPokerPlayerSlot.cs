@@ -44,5 +44,11 @@ namespace Game.Runtime.UI.Poker
 
 			if (_canvasGroup) _canvasGroup.alpha = data.Status.Value == PokerPlayerStatus.Folded ? _foldedAlpha : 1f;
 		}
+
+		// Split out so the countdown can move without redrawing everything else on the row.
+		public void SetTurnProgress(float normalized)
+		{
+			if (_turnTimerFill) _turnTimerFill.fillAmount = normalized;
+		}
 	}
 }

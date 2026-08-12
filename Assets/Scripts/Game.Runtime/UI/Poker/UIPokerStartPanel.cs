@@ -23,20 +23,32 @@ namespace Game.Runtime.UI.Poker
 		protected override void OnBind()
 		{
 			if (_startButton) _startButton.OnClick += HandleStartClicked;
+
+			Data.Phase.OnValueChanged += HandlePhaseChanged;
+			GameMode.OnSeatedPlayersChanged += Refresh;
+			LocalData.SeatIndex.OnValueChanged += HandleSeatChanged;
+
+			Refresh();
 		}
 
 		protected override void OnUnbind()
 		{
 			if (_startButton) _startButton.OnClick -= HandleStartClicked;
+
+			Data.Phase.OnValueChanged -= HandlePhaseChanged;
+			GameMode.OnSeatedPlayersChanged -= Refresh;
+			LocalData.SeatIndex.OnValueChanged -= HandleSeatChanged;
+
 			if (_panel) _panel.SetActive(false);
 		}
 
-		protected override void OnTick()
+		private void HandlePhaseChanged(PokerPhase previous, PokerPhase current) => Refresh();
+		private void HandleSeatChanged(int previous, int current) => Refresh();
+
+		private void Refresh()
 		{
 			var isHost = NetworkManager.Singleton && NetworkManager.Singleton.IsHost;
-			var isSeated = GameMode.FindSeatedPlayer(LocalClientId);
-			var isWaiting = Data.Phase.Value == PokerPhase.Waiting;
-			var visible = isHost && isSeated && isWaiting;
+			var visible = isHost && LocalData.IsSeated && Data.Phase.Value == PokerPhase.Waiting;
 
 			if (_panel && _panel.activeSelf != visible) _panel.SetActive(visible);
 			if (!visible) return;
@@ -57,9 +69,7 @@ namespace Game.Runtime.UI.Poker
 
 		private void HandleStartClicked()
 		{
-			if (!GameMode) return;
-
-			GameMode.RequestStartGameRPC();
+			if (GameMode) GameMode.RequestStartGameRPC();
 		}
 	}
 }

@@ -7,6 +7,7 @@ namespace Game.Runtime.GameMode.Poker
 		Check = 2,
 		Call = 3,
 		Raise = 4,
-		AllIn = 5
+		AllIn = 5,
+		Bet = 6
 	}
 }

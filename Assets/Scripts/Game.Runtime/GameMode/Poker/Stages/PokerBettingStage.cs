@@ -3,8 +3,10 @@ using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker.Stages
 {
-	// One betting street. Which street it is comes from the inspector rather than from subclasses, so
-	// a mode with a different board — or a module adding an extra street — is configuration, not code.
+	// One betting street, taken in turn. Which street it is and what it costs come from the asset rather
+	// than from subclasses, so a mode with a different board — or a module adding an extra street — is
+	// another asset in the sequence, not another class.
+	[CreateAssetMenu(fileName = "PokerStage_Betting", menuName = "Game/Poker/Stages/Betting")]
 	public class PokerBettingStage : PokerStage
 	{
 		[Header("Street")]
@@ -13,12 +15,34 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		[Tooltip("Community cards turned face up as this street opens: 0 pre-flop, 3 on the flop, 1 each on turn and river.")]
 		[SerializeField] private int _communityCardsToReveal;
 
-		[Tooltip("Pre-flop keeps the blinds standing, every later street starts the betting from scratch.")]
+		[Tooltip("On, whatever is already in front of the players stands — the blinds, pre-flop. Off, the street starts from scratch.")]
 		[SerializeField] private bool _keepPreviousBets;
+
+		[Header("Bet")]
+		[Tooltip("Smallest a raise may move the bet. The blind, on a normal table.")]
+		[SerializeField] private int _minimumBet = 20;
+
+		[SerializeField] private int _minimumRaiseMultiplier = 2;
+		[SerializeField] private bool _allowCheckWhenNoBet = true;
+		[SerializeField] private bool _allowAllIn = true;
+
+		[Header("Timing")]
+		[Tooltip("Seconds each player gets on their turn. Zero or less leaves them unhurried.")]
+		[SerializeField] private float _turnDuration = 30f;
+
+		[Tooltip("On, a player who runs out of time checks when nothing is owed and folds otherwise. Off, they always fold.")]
+		[SerializeField] private bool _timeoutChecksWhenFree = true;
 
 		[Header("References")]
 		[Tooltip("Where the hand jumps when everyone but one player has folded.")]
 		[SerializeField] private PokerStage _handOverStage;
+
+		public int MinimumBet => Mathf.Max(0, _minimumBet);
+		public int MinimumRaiseMultiplier => Mathf.Max(1, _minimumRaiseMultiplier);
+		public bool AllowCheckWhenNoBet => _allowCheckWhenNoBet;
+		public bool AllowAllIn => _allowAllIn;
+
+		public int MinimumRaiseStep => Mathf.Max(MinimumBet, Data ? Data.LastRaise.Value * MinimumRaiseMultiplier : MinimumBet);
 
 		protected override void OnStartStage()
 		{
@@ -74,7 +98,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			if (!player) return;
 
 			var owed = Data.CurrentBet.Value - player.Data.Bet.Value;
-			var timeoutAction = owed <= 0 && Rules.TimeoutChecksWhenFree ? PokerActionType.Check : PokerActionType.Fold;
+			var timeoutAction = owed <= 0 && _timeoutChecksWhenFree ? PokerActionType.Check : PokerActionType.Fold;
 
 			HandleAction(clientId, timeoutAction, 0);
 		}
@@ -98,7 +122,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 					break;
 
 				case PokerActionType.Check:
-					if (owed > 0 || !Rules.AllowCheckWhenNoBet) return false;
+					if (owed > 0 || !_allowCheckWhenNoBet) return false;
 					data.HasActed.Value = true;
 					break;
 
@@ -110,14 +134,13 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 				case PokerActionType.Raise:
 				{
-					var minimumRaise = Mathf.Max(Rules.BigBlind, Data.LastRaise.Value * Rules.MinimumRaiseMultiplier);
-					var target = Mathf.Max(amount, Data.CurrentBet.Value + minimumRaise);
+					var target = Mathf.Max(amount, Data.CurrentBet.Value + MinimumRaiseStep);
 					var toPay = target - data.Bet.Value;
 					if (toPay <= owed || data.Chips.Value < toPay) return false;
 
 					var previousBet = Data.CurrentBet.Value;
 					PokerTableUtility.PlaceBet(Data, player, toPay);
-					Data.LastRaise.Value = Mathf.Max(Rules.BigBlind, Data.CurrentBet.Value - previousBet);
+					Data.LastRaise.Value = Mathf.Max(MinimumBet, Data.CurrentBet.Value - previousBet);
 
 					// A raise reopens the action: everyone still in owes an answer to the new number.
 					ReopenAction(player);
@@ -127,14 +150,14 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 				case PokerActionType.AllIn:
 				{
-					if (!Rules.AllowAllIn || data.Chips.Value <= 0) return false;
+					if (!_allowAllIn || data.Chips.Value <= 0) return false;
 
 					var previousBet = Data.CurrentBet.Value;
 					PokerTableUtility.PlaceBet(Data, player, data.Chips.Value);
 
 					if (Data.CurrentBet.Value > previousBet)
 					{
-						Data.LastRaise.Value = Mathf.Max(Rules.BigBlind, Data.CurrentBet.Value - previousBet);
+						Data.LastRaise.Value = Mathf.Max(MinimumBet, Data.CurrentBet.Value - previousBet);
 						ReopenAction(player);
 					}
 
@@ -185,7 +208,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 				return;
 			}
 
-			GameMode.BeginTurn(next.ClientId, Rules.TurnDuration);
+			GameMode.BeginTurn(next.ClientId, _turnDuration);
 		}
 
 		private void FinishStreet()

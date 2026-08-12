@@ -3,11 +3,30 @@ using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker.Stages
 {
+	[CreateAssetMenu(fileName = "PokerStage_Deal", menuName = "Game/Poker/Stages/Deal")]
 	public class PokerDealStage : PokerStage
 	{
+		[Header("Cards")]
+		[SerializeField] private int _holeCardsPerPlayer = 2;
+
+		[Tooltip("How much board this hand needs. Drawn up front so the streets only flip what is already decided.")]
+		[SerializeField] private int _communityCardCount = 5;
+
+		[Header("Blinds")]
+		[Tooltip("Zero on both leaves the hand unforced — a table where the first street is where money first moves.")]
+		[SerializeField] private int _smallBlind = 10;
+		[SerializeField] private int _bigBlind = 20;
+
+		[Header("Timing")]
+		[Tooltip("Seconds the deal is left on screen. Zero or less moves on the same frame.")]
+		[SerializeField] private float _dealDuration = 1.5f;
+
 		private readonly List<CardData> _dealtCards = new();
 
-		private float _remaining;
+		public int HoleCardsPerPlayer => Mathf.Max(1, _holeCardsPerPlayer);
+		public int CommunityCardCount => Mathf.Max(0, _communityCardCount);
+		public int SmallBlind => Mathf.Max(0, _smallBlind);
+		public int BigBlind => Mathf.Max(0, _bigBlind);
 
 		protected override void OnStartStage()
 		{
@@ -20,13 +39,18 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			DealHoleCards();
 			PostBlinds();
 
-			_remaining = Rules.DealDuration;
+			if (_dealDuration <= 0f)
+			{
+				NextStage();
+				return;
+			}
+
+			GameMode.BeginStageTimer(_dealDuration);
 		}
 
 		protected override void OnTickStage(float deltaTime)
 		{
-			_remaining -= deltaTime;
-			if (_remaining > 0f) return;
+			if (!GameMode.IsStageTimerExpired()) return;
 
 			NextStage();
 		}
@@ -50,7 +74,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			// The board is burned off the same shuffle up front so the deal stage owns the whole deck
 			// and the betting stages only ever flip what is already decided.
 			var community = new List<CardData>();
-			for (var i = 0; i < Rules.CommunityCardCount; i++) community.Add(GameMode.Deck.Draw());
+			for (var i = 0; i < CommunityCardCount; i++) community.Add(GameMode.Deck.Draw());
 			GameMode.ServerSetPendingCommunityCards(community);
 
 			foreach (var player in GameMode.SeatedPlayers)
@@ -65,7 +89,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 				}
 
 				_dealtCards.Clear();
-				for (var card = 0; card < Rules.HoleCardsPerPlayer; card++) _dealtCards.Add(GameMode.Deck.Draw());
+				for (var card = 0; card < HoleCardsPerPlayer; card++) _dealtCards.Add(GameMode.Deck.Draw());
 
 				data.ServerSetHoleCards(_dealtCards);
 				data.Status.Value = PokerPlayerStatus.Active;
@@ -74,6 +98,8 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 		private void PostBlinds()
 		{
+			if (SmallBlind <= 0 && BigBlind <= 0) return;
+
 			var players = GameMode.SeatedPlayers;
 
 			var smallBlind = PokerTableUtility.NextPlayer(players, Data.DealerSeatIndex.Value, player => player.Data.CanAct);
@@ -81,14 +107,14 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 			var bigBlind = PokerTableUtility.NextPlayer(players, smallBlind.Data.SeatIndex.Value, player => player.Data.CanAct);
 
-			PokerTableUtility.PlaceBet(Data, smallBlind, Rules.SmallBlind);
+			PokerTableUtility.PlaceBet(Data, smallBlind, SmallBlind);
 
 			if (bigBlind != null && bigBlind != smallBlind)
 			{
-				PokerTableUtility.PlaceBet(Data, bigBlind, Rules.BigBlind);
+				PokerTableUtility.PlaceBet(Data, bigBlind, BigBlind);
 			}
 
-			Data.LastRaise.Value = Mathf.Max(Rules.BigBlind, Data.CurrentBet.Value);
+			Data.LastRaise.Value = Mathf.Max(BigBlind, Data.CurrentBet.Value);
 		}
 	}
 }

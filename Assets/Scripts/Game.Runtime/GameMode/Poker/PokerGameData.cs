@@ -46,6 +46,14 @@ namespace Game.Runtime.GameMode.Poker
 		[HideInInspector] public NetworkVariable<ulong> LastWinnerClientId = new(NoTurn,
 			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
 
+		// One clock any stage can run, separate from the turn clock: a deal that plays out, a showdown
+		// that lingers, a street everybody bets on at once — none of them belong to a single seat.
+		[HideInInspector] public NetworkVariable<double> StageEndTime = new(0d,
+			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
+
+		[HideInInspector] public NetworkVariable<float> StageDuration = new(0f,
+			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
+
 		public readonly NetworkList<CardData> CommunityCards = new(null,
 			NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
@@ -67,6 +75,21 @@ namespace Game.Runtime.GameMode.Poker
 		}
 
 		public float TurnNormalized => TurnDuration.Value <= 0f ? 0f : TurnRemaining / TurnDuration.Value;
+
+		public bool HasStageTimer => StageDuration.Value > 0f;
+
+		public float StageTimeRemaining
+		{
+			get
+			{
+				if (!HasStageTimer || !NetworkManager.Singleton) return 0f;
+
+				var remaining = StageEndTime.Value - NetworkManager.Singleton.ServerTime.Time;
+				return Mathf.Clamp((float)remaining, 0f, StageDuration.Value);
+			}
+		}
+
+		public float StageTimeNormalized => StageDuration.Value <= 0f ? 0f : StageTimeRemaining / StageDuration.Value;
 
 		public override void OnNetworkSpawn()
 		{

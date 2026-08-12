@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5fd3db6bd68f62408f77b8d73be261b, type: 3}
+  m_Name: PokerStage_PreFlop
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Stages.PokerBettingStage
+  _stageId: PreFlop
+  _phase: 2
+  _communityCardsToReveal: 0
+  _keepPreviousBets: 1
+  _minimumBet: 20
+  _minimumRaiseMultiplier: 2
+  _allowCheckWhenNoBet: 1
+  _allowAllIn: 1
+  _turnDuration: 30
+  _timeoutChecksWhenFree: 1
+  _handOverStage: {fileID: 11400000, guid: b22264431582dc5408061ca2167253a6, type: 2}

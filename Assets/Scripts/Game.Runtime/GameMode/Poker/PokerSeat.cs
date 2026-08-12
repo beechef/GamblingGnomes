@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Game.Runtime.Interaction;
 using Unity.Netcode;
 using UnityEngine;
@@ -6,6 +7,15 @@ namespace Game.Runtime.GameMode.Poker
 {
 	public class PokerSeat : SeatInteractable
 	{
+		// Seats announce themselves the way players do, so a table that spawns after its chairs still
+		// finds them all — and nothing has to sweep the scene to go looking.
+		private static readonly List<PokerSeat> Registry = new();
+
+		public static IReadOnlyList<PokerSeat> All => Registry;
+
+		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+		private static void ResetStatics() => Registry.Clear();
+
 		[Header("Poker Seat")]
 		[SerializeField] private int _seatIndex;
 
@@ -21,11 +31,15 @@ namespace Game.Runtime.GameMode.Poker
 		{
 			base.OnNetworkSpawn();
 
+			if (!Registry.Contains(this)) Registry.Add(this);
+
 			if (GameMode) GameMode.RegisterSeat(this);
 		}
 
 		public override void OnNetworkDespawn()
 		{
+			Registry.Remove(this);
+
 			if (GameMode) GameMode.UnregisterSeat(this);
 
 			base.OnNetworkDespawn();

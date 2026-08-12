@@ -17,8 +17,8 @@ namespace Game.Runtime.GameMode.Poker
 		[SerializeField] private PokerRuleSettings _rules;
 
 		[Header("Stages")]
-		[Tooltip("The round loop, in order. Modules add to it, and any stage can be interrupted at runtime by InsertStage or PushOverlay.")]
-		[SerializeField] private List<PokerStage> _stages = new();
+		[Tooltip("The round loop as a preset. Swap this asset to change the game — modules still add to it, and any stage can be interrupted at runtime by InsertStage or PushOverlay.")]
+		[SerializeField] private PokerStageSequence _sequence;
 
 		[Header("Modules")]
 		[Tooltip("Plugged in features — each one may add stages, commands and restrictions of its own.")]
@@ -28,17 +28,25 @@ namespace Game.Runtime.GameMode.Poker
 		[Tooltip("Spawned locally on every peer while the mode is alive. Presentation only, so it is a plain prefab and never travels over the network.")]
 		[SerializeField] private GameObject _hudPrefab;
 
-		[Header("References")]
+		[Header("References")] 
 		[SerializeField] private PokerGameData _data;
 		[SerializeField] private List<PokerSeat> _seats = new();
 
 		public static PokerGameMode Instance { get; private set; }
 
+		// Raised when the table arrives or leaves, so views bind to it instead of watching for it.
+		public static event Action<PokerGameMode> OnInstanceChanged;
+
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-		private static void ResetStatics() => Instance = null;
+		private static void ResetStatics()
+		{
+			Instance = null;
+			OnInstanceChanged = null;
+		}
 
 		public PokerGameData Data => _data;
 		public PokerRuleSettings Rules => _rules;
+		public PokerStageSequence Sequence => _sequence;
 		public PokerDeck Deck { get; } = new();
 		public PokerHandEvaluator HandEvaluator { get; } = new();
 
@@ -58,7 +66,13 @@ namespace Game.Runtime.GameMode.Poker
 		public event Action OnSeatedPlayersChanged;
 		public event Action<PokerStage> OnStageChanged;
 
+		private readonly List<PokerStage> _stageSources = new();
 		private readonly List<PokerStage> _runtimeStages = new();
+
+		// Stages reached by reference rather than by sequence — a module's overlay, a hand over branch.
+		// They run the same way, they just never take a slot in the loop.
+		private readonly List<PokerStage> _detachedStages = new();
+
 		private readonly List<PokerStage> _overlayStack = new();
 		private readonly Queue<PokerStage> _insertedStages = new();
 		private readonly List<PokerPlayer> _seatedPlayers = new();
@@ -88,7 +102,7 @@ namespace Game.Runtime.GameMode.Poker
 		public override void OnNetworkSpawn()
 		{
 			if (!_data) _data = GetComponentInChildren<PokerGameData>();
-			if (_seats.Count == 0) CollectSceneSeats();
+			if (_seats.Count == 0) CollectRegisteredSeats();
 
 			BuildRuntimeStages();
 
@@ -105,6 +119,8 @@ namespace Game.Runtime.GameMode.Poker
 			PokerPlayer.OnRegistryChanged += RefreshSeatedPlayers;
 			RefreshSeatedPlayers();
 
+			OnInstanceChanged?.Invoke(this);
+
 			SpawnHud();
 
 			if (!IsServer) return;
@@ -116,6 +132,8 @@ namespace Game.Runtime.GameMode.Poker
 		public override void OnNetworkDespawn()
 		{
 			PokerPlayer.OnRegistryChanged -= RefreshSeatedPlayers;
+
+			OnInstanceChanged?.Invoke(null);
 
 			DespawnHud();
 
@@ -133,6 +151,13 @@ namespace Game.Runtime.GameMode.Poker
 			{
 				if (stage) stage.DeInitialize();
 			}
+
+			foreach (var stage in _detachedStages)
+			{
+				if (stage) stage.DeInitialize();
+			}
+
+			ReleaseRuntimeStages();
 
 			foreach (var module in _modules)
 			{
@@ -172,25 +197,93 @@ namespace Game.Runtime.GameMode.Poker
 			_hudInstance = null;
 		}
 
+		// Assets describe the round; the mode plays clones of them, so nothing a stage does at runtime is
+		// written back into the project.
 		private void BuildRuntimeStages()
 		{
-			_runtimeStages.Clear();
+			ReleaseRuntimeStages();
 
-			foreach (var stage in _stages)
-			{
-				if (stage) _runtimeStages.Add(stage);
-			}
+			_stageSources.Clear();
+
+			if (_sequence) _sequence.CollectStages(_stageSources);
 
 			foreach (var module in _modules)
 			{
-				if (module) module.CollectStages(_runtimeStages);
+				if (module) module.CollectStages(_stageSources);
+			}
+
+			foreach (var source in _stageSources)
+			{
+				if (source) _runtimeStages.Add(CreateRuntimeStage(source));
 			}
 		}
 
-		private void CollectSceneSeats()
+		private PokerStage CreateRuntimeStage(PokerStage source)
+		{
+			var runtime = Instantiate(source);
+			runtime.name = source.name;
+
+			return runtime;
+		}
+
+		private void ReleaseRuntimeStages()
+		{
+			foreach (var stage in _runtimeStages)
+			{
+				if (stage) Destroy(stage);
+			}
+
+			foreach (var stage in _detachedStages)
+			{
+				if (stage) Destroy(stage);
+			}
+
+			_runtimeStages.Clear();
+			_detachedStages.Clear();
+
+			CurrentStage = null;
+			_nextStageIndex = 0;
+		}
+
+		public PokerStage FindStage(string stageId)
+		{
+			if (string.IsNullOrEmpty(stageId)) return null;
+
+			foreach (var stage in _runtimeStages)
+			{
+				if (stage && stage.StageId == stageId) return stage;
+			}
+
+			foreach (var stage in _detachedStages)
+			{
+				if (stage && stage.StageId == stageId) return stage;
+			}
+
+			return null;
+		}
+
+		// Stage fields point at project assets, so a reference has to be traded for the clone actually
+		// running. Anything the sequence never mentions gets a clone of its own on first use.
+		public PokerStage ResolveRuntimeStage(PokerStage stage)
+		{
+			if (!stage) return null;
+
+			var running = FindStage(stage.StageId);
+			if (running) return running;
+
+			var runtime = CreateRuntimeStage(stage);
+			_detachedStages.Add(runtime);
+			runtime.Initialize(this);
+
+			return runtime;
+		}
+
+		// Only picks up seats that spawned before this table did; the ones that come later register
+		// themselves on the way in.
+		private void CollectRegisteredSeats()
 		{
 			_seats.Clear();
-			_seats.AddRange(FindObjectsByType<PokerSeat>());
+			_seats.AddRange(PokerSeat.All);
 			_seats.Sort((left, right) => left.SeatIndex.CompareTo(right.SeatIndex));
 		}
 
@@ -306,7 +399,7 @@ namespace Game.Runtime.GameMode.Poker
 
 		public void GoToStage(PokerStage stage)
 		{
-			var index = _runtimeStages.IndexOf(stage);
+			var index = _runtimeStages.IndexOf(ResolveRuntimeStage(stage));
 			if (index >= 0) GoToStage(index);
 		}
 
@@ -315,7 +408,7 @@ namespace Game.Runtime.GameMode.Poker
 		{
 			if (!IsServer || !stage) return;
 
-			_insertedStages.Enqueue(stage);
+			_insertedStages.Enqueue(ResolveRuntimeStage(stage));
 		}
 
 		// Runs immediately on top, freezing everything below it until it is popped.
@@ -323,13 +416,16 @@ namespace Game.Runtime.GameMode.Poker
 		{
 			if (!IsServer || !stage) return;
 
+			var overlay = ResolveRuntimeStage(stage);
+			if (!overlay) return;
+
 			ActiveStage?.PauseStage();
 
-			_overlayStack.Add(stage);
-			_data.OverlayStageId.Value = stage.StageId;
+			_overlayStack.Add(overlay);
+			_data.OverlayStageId.Value = overlay.StageId;
 
-			stage.StartStage();
-			NotifyStageStarted(stage);
+			overlay.StartStage();
+			NotifyStageStarted(overlay);
 		}
 
 		public void PopOverlay()
@@ -350,6 +446,9 @@ namespace Game.Runtime.GameMode.Poker
 		{
 			CurrentStage = stage;
 			_data.StageId.Value = stage ? stage.StageId : string.Empty;
+
+			// The clock belongs to whoever is running, so it never survives the handover.
+			ClearStageTimer();
 
 			if (!stage) return;
 
@@ -473,6 +572,31 @@ namespace Game.Runtime.GameMode.Poker
 			if (!_data.HasTurn || _data.TurnDuration.Value <= 0f) return false;
 
 			return NetworkManager.ServerTime.Time >= _data.TurnEndTime.Value;
+		}
+
+		// The stage's own clock, running alongside the turn rather than instead of it — a stage that
+		// plays out on its own, or one the whole table answers at once.
+		public void BeginStageTimer(float duration)
+		{
+			if (!IsServer) return;
+
+			_data.StageDuration.Value = Mathf.Max(0f, duration);
+			_data.StageEndTime.Value = duration > 0f ? NetworkManager.ServerTime.Time + duration : 0d;
+		}
+
+		public void ClearStageTimer()
+		{
+			if (!IsServer) return;
+
+			_data.StageDuration.Value = 0f;
+			_data.StageEndTime.Value = 0d;
+		}
+
+		public bool IsStageTimerExpired()
+		{
+			if (!_data.HasStageTimer) return false;
+
+			return NetworkManager.ServerTime.Time >= _data.StageEndTime.Value;
 		}
 
 		// The board is dealt face down at shuffle time and revealed a street at a time, so no stage can
