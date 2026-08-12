@@ -14,7 +14,11 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		[Tooltip("Replicated to clients so UI can key off the running stage without knowing the type. Empty falls back to the asset name.")]
 		[SerializeField] private string _stageId;
 
+		[Tooltip("Seconds the table holds on this stage after it finishes, before the next one opens. Without it a street can end and the next begin in the same frame, and nobody sees what happened.")]
+		[SerializeField] private float _exitDelay = 0.75f;
+
 		public string StageId => string.IsNullOrEmpty(_stageId) ? name : _stageId;
+		public float ExitDelay => Mathf.Max(0f, _exitDelay);
 
 		public PokerGameMode GameMode { get; private set; }
 		public bool IsRunning { get; private set; }
@@ -34,10 +38,18 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			GameMode = null;
 		}
 
+		private bool _exiting;
+		private float _exitRemaining;
+		private PokerStage _exitTarget;
+
 		public void StartStage()
 		{
 			IsRunning = true;
 			IsPaused = false;
+
+			_exiting = false;
+			_exitTarget = null;
+
 			OnStartStage();
 		}
 
@@ -70,10 +82,25 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		{
 			if (!IsRunning || IsPaused) return;
 
+			// Once the stage has called it a day nothing else should run — it is only still here so the
+			// table can be looked at before the next one takes over.
+			if (_exiting)
+			{
+				_exitRemaining -= deltaTime;
+				if (_exitRemaining <= 0f) CompleteExit();
+
+				return;
+			}
+
 			OnTickStage(deltaTime);
 		}
 
 		public virtual bool HandleAction(ulong clientId, PokerActionType action, int amount) => false;
+
+		// A player left the table mid stage. The seat index comes along because the player object may
+		// already be gone by the time this runs, and a stage that was waiting on them needs to know
+		// where in the order the hole is.
+		public virtual void HandlePlayerLeft(ulong clientId, int seatIndex) { }
 
 		protected virtual void OnInitialize() { }
 		protected virtual void OnDeInitialize() { }
@@ -86,6 +113,36 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		protected void NextStage()
 		{
 			if (GameMode) GameMode.NextStage();
+		}
+
+		// How a stage bows out. Passing a target jumps there instead of following the sequence — a hand
+		// that ended early, a showdown returning to the idle table. The wait is the stage's own affair,
+		// so a stage that wants to hand over instantly just leaves its delay at zero.
+		protected void FinishStage(PokerStage target = null)
+		{
+			if (_exiting) return;
+
+			_exitTarget = target;
+
+			if (ExitDelay <= 0f)
+			{
+				CompleteExit();
+				return;
+			}
+
+			_exiting = true;
+			_exitRemaining = ExitDelay;
+		}
+
+		private void CompleteExit()
+		{
+			_exiting = false;
+
+			var target = _exitTarget;
+			_exitTarget = null;
+
+			if (target && GameMode) GameMode.GoToStage(target);
+			else NextStage();
 		}
 	}
 }

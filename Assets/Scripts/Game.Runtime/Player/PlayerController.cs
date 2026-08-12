@@ -60,6 +60,7 @@ namespace Game.Runtime.Player
 		private Vector2 _moveInput;
 		private bool _sprinting;
 
+		private bool _inputBound;
 		private bool _movementEnabled = true;
 		private bool _lookConstrained;
 		private bool _constraintAllowsRotation;
@@ -182,16 +183,22 @@ namespace Game.Runtime.Player
 			_toggleCursorAction.action.Enable();
 			_toggleCursorAction.action.performed += OnToggleCursorPerformed;
 
+			_inputBound = true;
+
 			CursorController.SetBaseLocked(true);
 		}
 
 		public override void OnNetworkDespawn()
 		{
-			if (!IsOwner)
-			{
-				_pitch.OnValueChanged -= OnPitchChanged;
-				return;
-			}
+			_pitch.OnValueChanged -= OnPitchChanged;
+
+			// The input actions are one shared asset for the whole process, and ownership can pass to the
+			// server as a client leaves — so "am I the owner" is not a safe question to ask on the way
+			// out. Only the instance that took the controls hands them back; otherwise a remote player
+			// despawning would disable the local player's movement.
+			if (!_inputBound) return;
+
+			_inputBound = false;
 
 			_moveAction.action.performed -= OnMovePerformed;
 			_moveAction.action.canceled -= OnMovePerformed;

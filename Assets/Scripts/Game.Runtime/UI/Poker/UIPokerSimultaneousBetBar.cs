@@ -99,7 +99,7 @@ namespace Game.Runtime.UI.Poker
 
 		private void RefreshAmounts()
 		{
-			var chips = LocalData.Chips.Value;
+			var chips = LocalData.Chips;
 			var minimum = _stage.MinimumBetFor(chips);
 			var maximum = _stage.MaximumBetFor(chips);
 
@@ -158,7 +158,7 @@ namespace Game.Runtime.UI.Poker
 			if (!_stage || !LocalData) return 0;
 
 			var requested = _amountSlider ? (int)_amountSlider.value : _stage.MinimumBet;
-			return _stage.ClampBet(requested, LocalData.Chips.Value);
+			return _stage.ClampBet(requested, LocalData.Chips);
 		}
 
 		private void HandleBet()

@@ -33,7 +33,7 @@ namespace Game.Runtime.UI.Poker
 			var data = player.Data;
 
 			if (_nameLabel) _nameLabel.text = isLocal ? "You" : $"Seat {data.SeatIndex.Value + 1}";
-			if (_chipsLabel) _chipsLabel.text = data.Chips.Value.ToString();
+			if (_chipsLabel) _chipsLabel.text = data.Chips.ToString();
 			if (_betLabel) _betLabel.text = data.Bet.Value > 0 ? data.Bet.Value.ToString() : string.Empty;
 			if (_statusLabel) _statusLabel.text = data.Status.Value.ToString();
 

@@ -14,7 +14,7 @@ namespace Game.Runtime.UI.Poker
 		[SerializeField] private TextMeshProUGUI _stageLabel;
 
 		[Header("Player")]
-		[Tooltip("What the player still owns away from the table — the buy-in comes out of this, the stack in front of them does not.")]
+		[Tooltip("What the player owns, which is also what they have to bet with — there is no separate stack at the table.")]
 		[SerializeField] private TextMeshProUGUI _moneyLabel;
 
 		[Header("Result")]

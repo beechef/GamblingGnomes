@@ -15,7 +15,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		[Header("References")]
 		[SerializeField] private PokerPlayerData _data;
 
-		[Tooltip("The wallet the buy-in comes out of. Lives beside this on the player, not on the table.")]
+		[Tooltip("The wallet the bets come out of. Lives beside this on the player, not on the table.")]
 		[SerializeField] private PlayerData _wallet;
 
 		private static readonly List<PokerPlayer> Registry = new();

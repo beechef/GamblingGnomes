@@ -46,6 +46,7 @@ namespace Game.Runtime.Player
 		private string _promptActionName;
 		private NetworkBehaviourReference _selfReference;
 		private UIInteractPrompt _prompt;
+		private bool _inputBound;
 
 		public IInteractable Focused => _focused;
 
@@ -57,13 +58,18 @@ namespace Game.Runtime.Player
 
 			_interactAction.action.Enable();
 			_interactAction.action.performed += OnInteractPerformed;
+			_inputBound = true;
 
 			SpawnPrompt();
 		}
 
 		public override void OnNetworkDespawn()
 		{
-			if (!IsOwner) return;
+			// The action asset is shared by every player object in the process, and ownership can pass to
+			// the server as a client leaves — so only the instance that took the action gives it back.
+			if (!_inputBound) return;
+
+			_inputBound = false;
 
 			_interactAction.action.performed -= OnInteractPerformed;
 			_interactAction.action.Disable();

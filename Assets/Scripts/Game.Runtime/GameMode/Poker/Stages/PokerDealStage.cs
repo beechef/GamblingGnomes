@@ -33,6 +33,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			Data.Phase.Value = PokerPhase.Dealing;
 			GameMode.ClearTurn();
 			Data.CommunityCards.Clear();
+			Data.Showdown.Clear();
 			Data.Pot.Value = 0;
 
 			RotateDealer();
@@ -41,7 +42,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 			if (_dealDuration <= 0f)
 			{
-				NextStage();
+				FinishStage();
 				return;
 			}
 
@@ -52,7 +53,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		{
 			if (!GameMode.IsStageTimerExpired()) return;
 
-			NextStage();
+			FinishStage();
 		}
 
 		private void RotateDealer()
@@ -60,7 +61,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			var players = GameMode.SeatedPlayers;
 			if (players.Count == 0) return;
 
-			var next = PokerTableUtility.NextPlayer(players, Data.DealerSeatIndex.Value, player => player.Data.Chips.Value > 0)
+			var next = PokerTableUtility.NextPlayer(players, Data.DealerSeatIndex.Value, player => player.Data.Chips > 0)
 			           ?? players[0];
 
 			Data.DealerSeatIndex.Value = next.Data.SeatIndex.Value;
@@ -82,7 +83,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 				var data = player.Data;
 				data.ServerResetForHand();
 
-				if (data.Chips.Value <= 0)
+				if (data.Chips <= 0)
 				{
 					data.Status.Value = PokerPlayerStatus.Busted;
 					continue;

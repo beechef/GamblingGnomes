@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Game.Runtime.Player;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -12,10 +13,11 @@ namespace Game.Runtime.GameMode.Poker.Player
 	{
 		public const int NoSeat = -1;
 
-		[HideInInspector] public NetworkVariable<int> SeatIndex = new(NoSeat,
-			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
+		[Header("References")]
+		[Tooltip("What the player bets with. There is no separate stack in front of them — the wallet is the stack.")]
+		[SerializeField] private PlayerData _wallet;
 
-		[HideInInspector] public NetworkVariable<int> Chips = new(0,
+		[HideInInspector] public NetworkVariable<int> SeatIndex = new(NoSeat,
 			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
 
 		[HideInInspector] public NetworkVariable<int> Bet = new(0,
@@ -51,6 +53,10 @@ namespace Game.Runtime.GameMode.Poker.Player
 		// Carries the change so a hand can deal one card in without disturbing the others.
 		public event Action<NetworkListEvent<CardData>> OnHoleCardsChanged;
 
+		// Money staked at the table is the same money the player owns, so there is nothing to buy in with
+		// and nothing to cash out — what is bet leaves the wallet and what is won lands back in it.
+		public int Chips => _wallet ? _wallet.Money.Value : 0;
+
 		public bool IsSeated => SeatIndex.Value != NoSeat;
 		public bool IsInHand => Status.Value is PokerPlayerStatus.Active or PokerPlayerStatus.AllIn;
 		public bool CanAct => Status.Value == PokerPlayerStatus.Active;
@@ -62,8 +68,13 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 		public override void OnNetworkSpawn()
 		{
+			if (!_wallet) _wallet = GetComponent<PlayerData>();
+
+			// The stack is the wallet now, so a view watching this player still hears about every chip
+			// that moves — it just hears it from the wallet.
+			if (_wallet) _wallet.Money.OnValueChanged += HandleIntChanged;
+
 			SeatIndex.OnValueChanged += HandleIntChanged;
-			Chips.OnValueChanged += HandleIntChanged;
 			Bet.OnValueChanged += HandleIntChanged;
 			TotalBet.OnValueChanged += HandleIntChanged;
 			Status.OnValueChanged += HandleStatusChanged;
@@ -75,8 +86,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 		public override void OnNetworkDespawn()
 		{
+			if (_wallet) _wallet.Money.OnValueChanged -= HandleIntChanged;
+
 			SeatIndex.OnValueChanged -= HandleIntChanged;
-			Chips.OnValueChanged -= HandleIntChanged;
 			Bet.OnValueChanged -= HandleIntChanged;
 			TotalBet.OnValueChanged -= HandleIntChanged;
 			Status.OnValueChanged -= HandleStatusChanged;
@@ -86,12 +98,11 @@ namespace Game.Runtime.GameMode.Poker.Player
 			HoleCards.OnListChanged -= HandleHoleCardsChanged;
 		}
 
-		public void ServerTakeSeat(int seatIndex, int startingChips)
+		public void ServerTakeSeat(int seatIndex)
 		{
 			if (!IsServer) return;
 
 			SeatIndex.Value = seatIndex;
-			Chips.Value = startingChips;
 			Status.Value = PokerPlayerStatus.Waiting;
 			ServerResetForHand();
 		}
@@ -143,15 +154,22 @@ namespace Game.Runtime.GameMode.Poker.Player
 		{
 			if (!IsServer) return 0;
 
-			var paid = Mathf.Clamp(amount, 0, Chips.Value);
+			var paid = Mathf.Clamp(amount, 0, Chips);
+			if (paid > 0 && !_wallet.ServerTryWithdraw(paid)) return 0;
 
-			Chips.Value -= paid;
 			Bet.Value += paid;
 			TotalBet.Value += paid;
 
-			if (Chips.Value <= 0) Status.Value = PokerPlayerStatus.AllIn;
+			if (Chips <= 0) Status.Value = PokerPlayerStatus.AllIn;
 
 			return paid;
+		}
+
+		public void ServerWinChips(int amount)
+		{
+			if (!IsServer || !_wallet) return;
+
+			_wallet.ServerDeposit(amount);
 		}
 
 		public void ServerCollectBet()

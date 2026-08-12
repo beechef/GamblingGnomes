@@ -92,12 +92,12 @@ namespace Game.Runtime.UI.Poker
 			// carrying a second copy of the numbers.
 			var stage = GameMode.FindStage(Data.StageId.Value.ToString()) as PokerBettingStage;
 			var minimumTarget = Data.CurrentBet.Value + (stage ? stage.MinimumRaiseStep : Data.LastRaise.Value);
-			var maximumTarget = LocalData.Bet.Value + LocalData.Chips.Value;
+			var maximumTarget = LocalData.Bet.Value + LocalData.Chips;
 
 			if (_checkButton) _checkButton.IsInteractable = owed <= 0 && (!stage || stage.AllowCheckWhenNoBet);
-			if (_callButton) _callButton.IsInteractable = owed > 0 && LocalData.Chips.Value > 0;
+			if (_callButton) _callButton.IsInteractable = owed > 0 && LocalData.Chips > 0;
 			if (_raiseButton) _raiseButton.IsInteractable = maximumTarget > minimumTarget;
-			if (_allInButton) _allInButton.IsInteractable = LocalData.Chips.Value > 0 && (!stage || stage.AllowAllIn);
+			if (_allInButton) _allInButton.IsInteractable = LocalData.Chips > 0 && (!stage || stage.AllowAllIn);
 
 			if (_raiseSlider)
 			{
@@ -106,8 +106,8 @@ namespace Game.Runtime.UI.Poker
 				_raiseSlider.wholeNumbers = true;
 			}
 
-			if (_callLabel) _callLabel.text = owed > 0 ? $"Call {Mathf.Min(owed, LocalData.Chips.Value)}" : "Call";
-			if (_chipsLabel) _chipsLabel.text = LocalData.Chips.Value.ToString();
+			if (_callLabel) _callLabel.text = owed > 0 ? $"Call {Mathf.Min(owed, LocalData.Chips)}" : "Call";
+			if (_chipsLabel) _chipsLabel.text = LocalData.Chips.ToString();
 
 			RefreshRaiseLabel();
 			RefreshTimer();

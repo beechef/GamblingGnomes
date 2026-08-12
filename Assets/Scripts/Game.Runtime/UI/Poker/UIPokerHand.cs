@@ -1,9 +1,7 @@
 using System.Collections.Generic;
 using Game.Runtime.GameMode.Poker;
-using Game.Runtime.GameMode.Poker.Visual;
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace Game.Runtime.UI.Poker
 {
@@ -11,11 +9,10 @@ namespace Game.Runtime.UI.Poker
 	public class UIPokerHand : UIPokerView
 	{
 		[Header("References")]
-		[SerializeField] private PokerCardDatabase _database;
-		[SerializeField] private Image _cardImagePrefab;
+		[SerializeField] private UIPokerCard _cardPrefab;
 		[SerializeField] private RectTransform _cardContainer;
 
-		private readonly List<Image> _cardImages = new();
+		private readonly List<UIPokerCard> _cards = new();
 
 		protected override void OnBind()
 		{
@@ -34,27 +31,26 @@ namespace Game.Runtime.UI.Poker
 
 		private void Refresh()
 		{
-			if (!_cardImagePrefab || !_cardContainer || !_database) return;
+			if (!_cardPrefab || !_cardContainer) return;
 
 			var cards = LocalData.HoleCards;
 
-			while (_cardImages.Count < cards.Count) _cardImages.Add(Instantiate(_cardImagePrefab, _cardContainer));
+			while (_cards.Count < cards.Count) _cards.Add(Instantiate(_cardPrefab, _cardContainer));
 
-			for (var i = 0; i < _cardImages.Count; i++)
+			for (var i = 0; i < _cards.Count; i++)
 			{
-				var image = _cardImages[i];
 				var active = i < cards.Count;
-				image.gameObject.SetActive(active);
+				_cards[i].gameObject.SetActive(active);
 
-				if (active) image.sprite = _database.GetFace(cards[i]);
+				if (active) _cards[i].SetCard(cards[i]);
 			}
 		}
 
 		private void HideAll()
 		{
-			foreach (var image in _cardImages)
+			foreach (var card in _cards)
 			{
-				if (image) image.gameObject.SetActive(false);
+				if (card) card.gameObject.SetActive(false);
 			}
 		}
 	}

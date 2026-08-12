@@ -57,6 +57,23 @@ namespace Game.Runtime.GameMode.Poker
 		// Seated players in seat order — the order the turn passes around the table.
 		public IReadOnlyList<PokerPlayer> SeatedPlayers => _seatedPlayers;
 
+		// Sitting down is free, so a seat filled is not the same as a player who can play. Only the ones
+		// with money left to stake make a hand worth dealing.
+		public int FundedPlayerCount
+		{
+			get
+			{
+				var count = 0;
+
+				foreach (var player in _seatedPlayers)
+				{
+					if (player.Data.Chips > 0) count++;
+				}
+
+				return count;
+			}
+		}
+
 		public PokerStage CurrentStage { get; private set; }
 		public PokerStage CurrentOverlay => _overlayStack.Count > 0 ? _overlayStack[^1] : null;
 		public PokerStage ActiveStage => CurrentOverlay ? CurrentOverlay : CurrentStage;
@@ -324,7 +341,7 @@ namespace Game.Runtime.GameMode.Poker
 		{
 			if (!IsServer) return;
 			if (IsGameRunning) return;
-			if (_seatedPlayers.Count < _rules.MinimumPlayersToStart) return;
+			if (FundedPlayerCount < _rules.MinimumPlayersToStart) return;
 
 			foreach (var module in _modules)
 			{
@@ -500,16 +517,9 @@ namespace Game.Runtime.GameMode.Poker
 			var player = PokerPlayer.Find(clientId);
 			if (!player || !player.Data) return;
 
-			// The seat already turned away anyone who could not cover this, but the money still has to
-			// actually leave the wallet here — that transfer is what makes standing up and sitting down
-			// again cost something rather than hand out a fresh stack.
-			if (!player.Wallet || !player.Wallet.ServerTryWithdraw(_rules.StartingChips))
-			{
-				seat.ReleaseIfOccupiedBy(clientId);
-				return;
-			}
-
-			player.Data.ServerTakeSeat(seat.SeatIndex, _rules.StartingChips);
+			// Sitting down costs nothing and hands out nothing: the player stakes the money they already
+			// own, so there is no buy-in to take and no stack to grant.
+			player.Data.ServerTakeSeat(seat.SeatIndex);
 			RefreshSeatedPlayers();
 
 			foreach (var module in _modules)
@@ -532,17 +542,15 @@ namespace Game.Runtime.GameMode.Poker
 				}
 				else
 				{
-					// Whatever is left in front of them goes back in the wallet — leaving the table is a
-					// cash out, not a forfeit.
-					var remaining = player.Data.Chips.Value;
-					player.Data.Chips.Value = 0;
+					// Nothing to settle: the money never left the wallet to begin with, so standing up is
+					// only a matter of giving up the seat.
 					player.Data.ServerLeaveSeat();
-
-					if (player.Wallet) player.Wallet.ServerDeposit(remaining);
 				}
 			}
 
 			RefreshSeatedPlayers();
+
+			ActiveStage?.HandlePlayerLeft(clientId, seat ? seat.SeatIndex : -1);
 
 			foreach (var module in _modules)
 			{
@@ -554,6 +562,14 @@ namespace Game.Runtime.GameMode.Poker
 		{
 			if (!IsServer) return;
 
+			// Read off the seat, not the player: by now their object may already be despawned, and the
+			// stage still needs to know which place at the table just emptied.
+			var seatIndex = -1;
+			foreach (var seat in _seats)
+			{
+				if (seat && seat.OccupantClientId == clientId) seatIndex = seat.SeatIndex;
+			}
+
 			foreach (var seat in _seats)
 			{
 				if (seat) seat.ReleaseIfOccupiedBy(clientId);
@@ -561,7 +577,9 @@ namespace Game.Runtime.GameMode.Poker
 
 			RefreshSeatedPlayers();
 
-			if (_data.CurrentTurnClientId.Value == clientId) ClearTurn();
+			// Clearing the turn is not enough on its own — a street waiting on a player who has gone
+			// waits forever, and the table freezes for everyone still in it.
+			ActiveStage?.HandlePlayerLeft(clientId, seatIndex);
 		}
 
 		public void BeginTurn(ulong clientId, float duration)

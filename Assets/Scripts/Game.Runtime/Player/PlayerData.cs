@@ -11,7 +11,7 @@ namespace Game.Runtime.Player
 	public class PlayerData : NetworkBehaviour
 	{
 		[Header("Wallet")]
-		[Tooltip("What a player arrives with. Tables take their buy-in out of this, so it has to cover at least one.")]
+		[Tooltip("What a player arrives with. Tables are free to sit at, so this only has to cover the bets they want to make.")]
 		[SerializeField] private int _startingMoney = 5000;
 
 		[HideInInspector] public NetworkVariable<FixedString64Bytes> DisplayName = new(default,
@@ -20,9 +20,8 @@ namespace Game.Runtime.Player
 		[HideInInspector] public NetworkVariable<ulong> PlayerId = new(0,
 			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
 
-		// What the player owns, as opposed to what is in front of them at a table. Sitting down moves
-		// money out of here and standing up brings it back, which is the only reason a busted player
-		// cannot simply stand and sit again for a fresh stack.
+		// The only money a player has: tables stake it directly rather than exchanging it for a stack, so
+		// a bet leaves here as it is placed and a pot lands here as it is won.
 		[HideInInspector] public NetworkVariable<int> Money = new(0,
 			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
 
@@ -106,8 +105,8 @@ namespace Game.Runtime.Player
 			Money.Value += amount;
 		}
 
-		// Refuses rather than clamping: a partial buy-in would seat somebody at a table they cannot
-		// actually afford, which is the thing being prevented.
+		// Refuses rather than clamping: paying part of what was asked would leave the caller believing a
+		// bet was covered when it was not.
 		public bool ServerTryWithdraw(int amount)
 		{
 			if (!IsServer) return false;

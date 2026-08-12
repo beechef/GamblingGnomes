@@ -13,6 +13,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 			GameMode.ClearTurn();
 			Data.CommunityCards.Clear();
+			Data.Showdown.Clear();
 			Data.Pot.Value = 0;
 			Data.CurrentBet.Value = 0;
 			Data.LastRaise.Value = 0;
@@ -21,7 +22,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			{
 				var data = player.Data;
 				data.ServerResetForHand();
-				data.Status.Value = data.Chips.Value > 0 ? PokerPlayerStatus.Waiting : PokerPlayerStatus.Busted;
+				data.Status.Value = data.Chips > 0 ? PokerPlayerStatus.Waiting : PokerPlayerStatus.Busted;
 			}
 		}
 	}

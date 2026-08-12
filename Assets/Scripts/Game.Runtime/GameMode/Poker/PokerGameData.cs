@@ -57,6 +57,13 @@ namespace Game.Runtime.GameMode.Poker
 		public readonly NetworkList<CardData> CommunityCards = new(null,
 			NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
+		// The showdown board, in finishing order. Filled when the hand is settled and cleared when the
+		// next one is dealt, so a panel can simply mirror it rather than recompute the ranking.
+		public readonly NetworkList<PokerShowdownEntry> Showdown = new(null,
+			NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+
+		public event Action OnShowdownChanged;
+
 		// The change itself travels with the event so a view can add or remove the one card that moved
 		// instead of rebuilding a board whose other cards are mid animation.
 		public event Action<NetworkListEvent<CardData>> OnCommunityCardsChanged;
@@ -94,13 +101,16 @@ namespace Game.Runtime.GameMode.Poker
 		public override void OnNetworkSpawn()
 		{
 			CommunityCards.OnListChanged += HandleCommunityCardsChanged;
+			Showdown.OnListChanged += HandleShowdownChanged;
 		}
 
 		public override void OnNetworkDespawn()
 		{
 			CommunityCards.OnListChanged -= HandleCommunityCardsChanged;
+			Showdown.OnListChanged -= HandleShowdownChanged;
 		}
 
 		private void HandleCommunityCardsChanged(NetworkListEvent<CardData> changeEvent) => OnCommunityCardsChanged?.Invoke(changeEvent);
+		private void HandleShowdownChanged(NetworkListEvent<PokerShowdownEntry> changeEvent) => OnShowdownChanged?.Invoke();
 	}
 }

@@ -53,17 +53,19 @@ namespace Game.Runtime.UI.Poker
 			if (_panel && _panel.activeSelf != visible) _panel.SetActive(visible);
 			if (!visible) return;
 
-			var seatedCount = GameMode.SeatedPlayers.Count;
+			// Counted the way the server counts it, so the button is never offered for a table that would
+			// refuse to deal — a seat filled by a player with nothing left to bet is not company.
+			var readyCount = GameMode.FundedPlayerCount;
 			var required = GameMode.Rules ? GameMode.Rules.MinimumPlayersToStart : 2;
-			var canStart = seatedCount >= required;
+			var canStart = readyCount >= required;
 
 			if (_startButton) _startButton.IsInteractable = canStart;
 
 			if (_hintLabel)
 			{
 				_hintLabel.text = canStart
-					? $"{seatedCount} players seated"
-					: $"Waiting for players ({seatedCount}/{required})";
+					? $"{readyCount} players ready"
+					: $"Waiting for players ({readyCount}/{required})";
 			}
 		}
 

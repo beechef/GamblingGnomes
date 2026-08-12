@@ -22,6 +22,8 @@ namespace Game.Runtime.Player
 		[Header("References")]
 		[SerializeField] private PlayerController _playerController;
 
+		private bool _inputBound;
+
 		[HideInInspector] public NetworkVariable<NetworkBehaviourReference> CurrentSeat = new(default,
 			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
 
@@ -40,6 +42,7 @@ namespace Game.Runtime.Player
 
 			_exitSeatAction.action.Enable();
 			_exitSeatAction.action.performed += OnExitSeatPerformed;
+			_inputBound = true;
 		}
 
 		public override void OnNetworkDespawn()
@@ -54,7 +57,11 @@ namespace Game.Runtime.Player
 				if (seat) seat.ReleaseServer(new NetworkBehaviourReference(this));
 			}
 
-			if (!IsOwner) return;
+			// The action asset is shared by every player object in the process, and ownership can pass to
+			// the server as a client leaves — so only the instance that took the action gives it back.
+			if (!_inputBound) return;
+
+			_inputBound = false;
 
 			_exitSeatAction.action.performed -= OnExitSeatPerformed;
 			_exitSeatAction.action.Disable();

@@ -95,7 +95,14 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 			var clientId = Data.CurrentTurnClientId.Value;
 			var player = GameMode.FindSeatedPlayer(clientId);
-			if (!player) return;
+
+			// The turn points at somebody who is no longer at the table — a disconnect that raced the
+			// callback, say. Treat it as them leaving rather than sitting here waiting on a ghost.
+			if (!player)
+			{
+				HandlePlayerLeft(clientId, -1);
+				return;
+			}
 
 			var owed = Data.CurrentBet.Value - player.Data.Bet.Value;
 			var timeoutAction = owed <= 0 && _timeoutChecksWhenFree ? PokerActionType.Check : PokerActionType.Fold;
@@ -128,7 +135,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 				case PokerActionType.Call:
 					if (owed <= 0) return false;
-					PokerTableUtility.PlaceBet(Data, player, Mathf.Min(owed, data.Chips.Value));
+					PokerTableUtility.PlaceBet(Data, player, Mathf.Min(owed, data.Chips));
 					data.HasActed.Value = true;
 					break;
 
@@ -136,7 +143,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 				{
 					var target = Mathf.Max(amount, Data.CurrentBet.Value + MinimumRaiseStep);
 					var toPay = target - data.Bet.Value;
-					if (toPay <= owed || data.Chips.Value < toPay) return false;
+					if (toPay <= owed || data.Chips < toPay) return false;
 
 					var previousBet = Data.CurrentBet.Value;
 					PokerTableUtility.PlaceBet(Data, player, toPay);
@@ -150,10 +157,10 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 				case PokerActionType.AllIn:
 				{
-					if (!_allowAllIn || data.Chips.Value <= 0) return false;
+					if (!_allowAllIn || data.Chips <= 0) return false;
 
 					var previousBet = Data.CurrentBet.Value;
-					PokerTableUtility.PlaceBet(Data, player, data.Chips.Value);
+					PokerTableUtility.PlaceBet(Data, player, data.Chips);
 
 					if (Data.CurrentBet.Value > previousBet)
 					{
@@ -181,6 +188,29 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 				other.Data.HasActed.Value = false;
 			}
+		}
+
+		// Somebody left. If the street was waiting on them it has to move itself along, and if their
+		// leaving ended the hand it has to say so — nothing else will arrive to do it.
+		public override void HandlePlayerLeft(ulong clientId, int seatIndex)
+		{
+			if (!IsRunning || IsPaused) return;
+
+			var wasTheirTurn = Data.CurrentTurnClientId.Value == clientId;
+			if (wasTheirTurn) GameMode.ClearTurn();
+
+			var players = GameMode.SeatedPlayers;
+
+			if (PokerTableUtility.CountInHand(players) <= 1 || PokerTableUtility.IsBettingComplete(Data, players))
+			{
+				FinishStreet();
+				return;
+			}
+
+			if (!wasTheirTurn) return;
+
+			// Continue from the seat they vacated so the order stays as it was.
+			BeginNextTurn(seatIndex >= 0 ? seatIndex : Data.DealerSeatIndex.Value);
 		}
 
 		private void AdvanceAfterAction()
@@ -216,13 +246,8 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			GameMode.ClearTurn();
 			PokerTableUtility.CollectBets(Data, GameMode.SeatedPlayers);
 
-			if (PokerTableUtility.CountInHand(GameMode.SeatedPlayers) <= 1 && _handOverStage)
-			{
-				GameMode.GoToStage(_handOverStage);
-				return;
-			}
-
-			NextStage();
+			var handOver = PokerTableUtility.CountInHand(GameMode.SeatedPlayers) <= 1;
+			FinishStage(handOver ? _handOverStage : null);
 		}
 	}
 }

@@ -9,9 +9,7 @@ namespace Game.Runtime.GameMode.Poker
 	{
 		[Header("Table")]
 		[SerializeField] private int _minimumPlayersToStart = 2;
-		[SerializeField] private int _startingChips = 1000;
 
 		public int MinimumPlayersToStart => Mathf.Max(2, _minimumPlayersToStart);
-		public int StartingChips => _startingChips;
 	}
 }

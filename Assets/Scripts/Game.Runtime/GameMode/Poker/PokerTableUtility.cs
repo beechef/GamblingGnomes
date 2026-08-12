@@ -57,6 +57,7 @@ namespace Game.Runtime.GameMode.Poker
 		{
 			foreach (var player in players)
 			{
+				if (!player || !player.Data) continue;
 				if (!player.Data.CanAct) continue;
 				if (!player.Data.HasActed.Value || player.Data.Bet.Value != data.CurrentBet.Value) return false;
 			}
@@ -83,19 +84,20 @@ namespace Game.Runtime.GameMode.Poker
 
 			for (var i = 0; i < winners.Count; i++)
 			{
-				var chips = winners[i].Data.Chips;
-				chips.Value += share + (i == 0 ? remainder : 0);
+				winners[i].Data.ServerWinChips(share + (i == 0 ? remainder : 0));
 			}
 
 			data.Pot.Value = 0;
 		}
 
+		// Null tolerant: a player can be destroyed mid hand by a disconnect, and a count that throws
+		// halfway leaves the street unable to decide whether it is over.
 		public static int CountInHand(IReadOnlyList<PokerPlayer> players)
 		{
 			var count = 0;
 			foreach (var player in players)
 			{
-				if (player.Data.IsInHand) count++;
+				if (player && player.Data && player.Data.IsInHand) count++;
 			}
 
 			return count;
@@ -106,7 +108,7 @@ namespace Game.Runtime.GameMode.Poker
 			var count = 0;
 			foreach (var player in players)
 			{
-				if (player.Data.CanAct) count++;
+				if (player && player.Data && player.Data.CanAct) count++;
 			}
 
 			return count;

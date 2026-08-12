@@ -129,7 +129,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 		private void PlaceBet(PokerPlayer player, int amount)
 		{
-			var bet = ClampBet(amount, player.Data.Chips.Value);
+			var bet = ClampBet(amount, player.Data.Chips);
 			if (bet <= 0) return;
 
 			// Bets stand side by side rather than against each other, so the table's current bet is left
@@ -170,13 +170,8 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			GameMode.ClearStageTimer();
 			PokerTableUtility.CollectBets(Data, GameMode.SeatedPlayers);
 
-			if (PokerTableUtility.CountInHand(GameMode.SeatedPlayers) <= 1 && _handOverStage)
-			{
-				GameMode.GoToStage(_handOverStage);
-				return;
-			}
-
-			NextStage();
+			var handOver = PokerTableUtility.CountInHand(GameMode.SeatedPlayers) <= 1;
+			FinishStage(handOver ? _handOverStage : null);
 		}
 	}
 }
