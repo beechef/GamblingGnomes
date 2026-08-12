@@ -49,7 +49,9 @@ namespace Game.Runtime.GameMode.Poker
 		public readonly NetworkList<CardData> CommunityCards = new(null,
 			NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
-		public event Action OnCommunityCardsChanged;
+		// The change itself travels with the event so a view can add or remove the one card that moved
+		// instead of rebuilding a board whose other cards are mid animation.
+		public event Action<NetworkListEvent<CardData>> OnCommunityCardsChanged;
 
 		public bool HasTurn => CurrentTurnClientId.Value != NoTurn;
 
@@ -76,6 +78,6 @@ namespace Game.Runtime.GameMode.Poker
 			CommunityCards.OnListChanged -= HandleCommunityCardsChanged;
 		}
 
-		private void HandleCommunityCardsChanged(NetworkListEvent<CardData> changeEvent) => OnCommunityCardsChanged?.Invoke();
+		private void HandleCommunityCardsChanged(NetworkListEvent<CardData> changeEvent) => OnCommunityCardsChanged?.Invoke(changeEvent);
 	}
 }

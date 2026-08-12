@@ -47,7 +47,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 		private static void ResetStatics() => HandVisibilityOverride = null;
 
 		public event Action OnStateChanged;
-		public event Action OnHoleCardsChanged;
+
+		// Carries the change so a hand can deal one card in without disturbing the others.
+		public event Action<NetworkListEvent<CardData>> OnHoleCardsChanged;
 
 		public bool IsSeated => SeatIndex.Value != NoSeat;
 		public bool IsInHand => Status.Value is PokerPlayerStatus.Active or PokerPlayerStatus.AllIn;
@@ -162,6 +164,6 @@ namespace Game.Runtime.GameMode.Poker.Player
 		private void HandleIntChanged(int previous, int current) => OnStateChanged?.Invoke();
 		private void HandleBoolChanged(bool previous, bool current) => OnStateChanged?.Invoke();
 		private void HandleStatusChanged(PokerPlayerStatus previous, PokerPlayerStatus current) => OnStateChanged?.Invoke();
-		private void HandleHoleCardsChanged(NetworkListEvent<CardData> changeEvent) => OnHoleCardsChanged?.Invoke();
+		private void HandleHoleCardsChanged(NetworkListEvent<CardData> changeEvent) => OnHoleCardsChanged?.Invoke(changeEvent);
 	}
 }

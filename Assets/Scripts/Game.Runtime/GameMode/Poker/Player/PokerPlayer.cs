@@ -48,11 +48,20 @@ namespace Game.Runtime.GameMode.Poker.Player
 				Registry.Add(this);
 				OnRegistryChanged?.Invoke();
 			}
+
+			// Seating happens on the server and arrives here as a replicated seat index. Without this
+			// the seated list only ever rebuilt on the host, so a client never saw itself at the table
+			// and never got an action bar on its turn.
+			if (_data) _data.SeatIndex.OnValueChanged += HandleSeatIndexChanged;
 		}
 
 		public override void OnNetworkDespawn()
 		{
+			if (_data) _data.SeatIndex.OnValueChanged -= HandleSeatIndexChanged;
+
 			if (Registry.Remove(this)) OnRegistryChanged?.Invoke();
 		}
+
+		private void HandleSeatIndexChanged(int previous, int current) => OnRegistryChanged?.Invoke();
 	}
 }

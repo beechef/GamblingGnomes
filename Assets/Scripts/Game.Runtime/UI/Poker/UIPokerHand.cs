@@ -1,6 +1,8 @@
 using System.Collections.Generic;
+using Game.Runtime.GameMode.Poker;
 using Game.Runtime.GameMode.Poker.Player;
 using Game.Runtime.GameMode.Poker.Visual;
+using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -26,22 +28,25 @@ namespace Game.Runtime.UI.Poker
 
 			if (data == _boundData) return;
 
-			if (_boundData) _boundData.OnHoleCardsChanged -= Refresh;
+			if (_boundData) _boundData.OnHoleCardsChanged -= HandleHoleCardsChanged;
 
 			_boundData = data;
 
-			if (_boundData) _boundData.OnHoleCardsChanged += Refresh;
+			if (_boundData) _boundData.OnHoleCardsChanged += HandleHoleCardsChanged;
 
 			Refresh();
 		}
 
 		protected override void OnUnbind()
 		{
-			if (_boundData) _boundData.OnHoleCardsChanged -= Refresh;
+			if (_boundData) _boundData.OnHoleCardsChanged -= HandleHoleCardsChanged;
 
 			_boundData = null;
 			Refresh();
 		}
+
+		// Two flat images with no animation to lose, so the screen copy just redraws.
+		private void HandleHoleCardsChanged(NetworkListEvent<CardData> change) => Refresh();
 
 		private void Refresh()
 		{

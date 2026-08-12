@@ -4,6 +4,7 @@ using Game.Runtime.GameMode.Poker.Hands;
 using Game.Runtime.GameMode.Poker.Modules;
 using Game.Runtime.GameMode.Poker.Player;
 using Game.Runtime.GameMode.Poker.Stages;
+using Game.Runtime.UI;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
@@ -22,6 +23,10 @@ namespace Game.Runtime.GameMode.Poker
 		[Header("Modules")]
 		[Tooltip("Plugged in features — each one may add stages, commands and restrictions of its own.")]
 		[SerializeField] private List<PokerModule> _modules = new();
+
+		[Header("UI")]
+		[Tooltip("Spawned locally on every peer while the mode is alive. Presentation only, so it is a plain prefab and never travels over the network.")]
+		[SerializeField] private GameObject _hudPrefab;
 
 		[Header("References")]
 		[SerializeField] private PokerGameData _data;
@@ -59,6 +64,7 @@ namespace Game.Runtime.GameMode.Poker
 		private readonly List<PokerPlayer> _seatedPlayers = new();
 		private readonly List<CardData> _pendingCommunityCards = new();
 
+		private GameObject _hudInstance;
 		private int _nextStageIndex;
 
 		private void Awake()
@@ -99,6 +105,8 @@ namespace Game.Runtime.GameMode.Poker
 			PokerPlayer.OnRegistryChanged += RefreshSeatedPlayers;
 			RefreshSeatedPlayers();
 
+			SpawnHud();
+
 			if (!IsServer) return;
 
 			NetworkManager.Singleton.OnClientDisconnectCallback += HandleClientDisconnected;
@@ -108,6 +116,8 @@ namespace Game.Runtime.GameMode.Poker
 		public override void OnNetworkDespawn()
 		{
 			PokerPlayer.OnRegistryChanged -= RefreshSeatedPlayers;
+
+			DespawnHud();
 
 			if (IsServer && NetworkManager.Singleton)
 			{
@@ -135,6 +145,31 @@ namespace Game.Runtime.GameMode.Poker
 			if (!IsServer || !IsSpawned) return;
 
 			ActiveStage?.TickStage(Time.deltaTime);
+		}
+
+		private void SpawnHud()
+		{
+			if (!_hudPrefab || _hudInstance) return;
+
+			// The HUD is a panel, not a canvas of its own, so without the shared canvas there is
+			// nowhere for it to draw — worth saying out loud rather than spawning something invisible.
+			if (!UIManager.Instance)
+			{
+				Debug.LogWarning("[PokerGameMode] No UIManager found — the poker HUD needs the bootstrap canvas.");
+				return;
+			}
+
+			_hudInstance = UIManager.Instance.Show(_hudPrefab, UILayer.Hud);
+		}
+
+		private void DespawnHud()
+		{
+			if (!_hudInstance) return;
+
+			if (UIManager.Instance) UIManager.Instance.Hide(_hudInstance);
+			else Destroy(_hudInstance);
+
+			_hudInstance = null;
 		}
 
 		private void BuildRuntimeStages()

@@ -1214,7 +1214,7 @@ MonoBehaviour:
     PlayerPrefab: {fileID: 0}
     Prefabs:
       NetworkPrefabsLists:
-      - {fileID: 11400000, guid: d8b12a9b7c6f32843a1e46f426ef510f, type: 2}
+      - {fileID: 11400000, guid: d9f830354f662884ab6e44f72eb16aeb, type: 2}
     TickRate: 30
     ClientConnectionBufferTimeout: 10
     ConnectionApproval: 0
@@ -2663,7 +2663,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.Multiplayer.Tools.NetworkSimulator.Runtime::Unity.Multiplayer.Tools.NetworkSimulator.Runtime.NetworkSimulator
   m_PresetAsset: {fileID: 0}
   m_PresetReference:
-    rid: 6013052327915159735
+    rid: 6013052345303695360
   m_Scenario:
     rid: -2
   m_IsScenarioSettingsFolded: 0
@@ -2673,7 +2673,7 @@ MonoBehaviour:
     RefIds:
     - rid: -2
       type: {class: , ns: , asm: }
-    - rid: 6013052327915159735
+    - rid: 6013052345303695360
       type: {class: NetworkSimulatorPreset, ns: Unity.Multiplayer.Tools.NetworkSimulator.Runtime, asm: Unity.Multiplayer.Tools.NetworkSimulator.Runtime}
       data:
         <Name>k__BackingField: None
@@ -5372,6 +5372,23 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1817843029}
   m_CullTransparentMesh: 1
+--- !u!1001 &1900000000
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 7400000000000000001, guid: c3e6f9d4b1a56e7f0d9c8b7a6e5f4d32, type: 3}
+      propertyPath: m_Name
+      value: UI_Manager
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: c3e6f9d4b1a56e7f0d9c8b7a6e5f4d32, type: 3}
 --- !u!1 &1934288665
 GameObject:
   m_ObjectHideFlags: 0
@@ -5594,3 +5611,4 @@ SceneRoots:
   - {fileID: 131649049}
   - {fileID: 1754296507}
   - {fileID: 1011165997}
+  - {fileID: 1900000000}

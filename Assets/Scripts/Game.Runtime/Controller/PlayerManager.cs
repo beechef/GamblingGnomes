@@ -92,7 +92,7 @@ namespace Game.Runtime.Controller
 
 			foreach (var player in _playerObjects.Values)
 			{
-				player.Despawn();
+				player?.Despawn();
 			}
 
 			_playerObjects.Clear();
