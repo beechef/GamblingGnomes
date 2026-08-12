@@ -25,7 +25,6 @@ namespace Game.Runtime.UI.Pause
 
 		public bool IsOpen { get; private set; }
 
-		private bool _restoreCursorLock;
 		private bool _restoreMovement;
 		private bool _leaving;
 
@@ -90,15 +89,16 @@ namespace Game.Runtime.UI.Pause
 			IsOpen = true;
 			if (_panel) _panel.SetActive(true);
 
+			// One release among however many are out — the poker HUD may be holding its own, and
+			// resuming must not take the cursor back from it.
+			CursorController.RequestUnlock();
+
 			var player = FindLocalPlayer();
 			if (!player) return;
 
 			// Remembered rather than assumed: a seated player is already frozen, and resuming must not
 			// hand their legs back while they are still in the chair.
-			_restoreCursorLock = player.CursorLocked;
 			_restoreMovement = player.MovementEnabled;
-
-			player.CursorLocked = false;
 			player.SetMovementEnabled(false);
 		}
 
@@ -107,17 +107,17 @@ namespace Game.Runtime.UI.Pause
 			if (!IsOpen) return;
 
 			var player = FindLocalPlayer();
-			if (player)
-			{
-				player.CursorLocked = _restoreCursorLock;
-				player.SetMovementEnabled(_restoreMovement);
-			}
+			if (player) player.SetMovementEnabled(_restoreMovement);
 
 			ClosePanel();
 		}
 
 		private void ClosePanel()
 		{
+			// Every way out runs through here, so the release is handed back exactly once however the
+			// panel closed — resumed, left the table, or switched off.
+			if (IsOpen) CursorController.ReleaseUnlock();
+
 			IsOpen = false;
 			if (_panel) _panel.SetActive(false);
 		}

@@ -1,5 +1,6 @@
 using Game.Runtime.Controller;
 using Game.Runtime.Interaction;
+using Game.Runtime.UI;
 using Game.Runtime.UI.Interaction;
 using Unity.Netcode;
 using UnityEngine;
@@ -29,6 +30,10 @@ namespace Game.Runtime.Player
 		[Header("Input Actions")]
 		[SerializeField] private InputActionReference _interactAction;
 
+		[Header("UI")]
+		[Tooltip("Spawned into the shared canvas for the owner only. Presentation, so it is a plain prefab and never travels over the network.")]
+		[SerializeField] private UIInteractPrompt _promptPrefab;
+
 		[Header("References")]
 		[SerializeField] private PlayerController _playerController;
 
@@ -40,6 +45,7 @@ namespace Game.Runtime.Player
 		private IInteractable _focused;
 		private string _promptActionName;
 		private NetworkBehaviourReference _selfReference;
+		private UIInteractPrompt _prompt;
 
 		public IInteractable Focused => _focused;
 
@@ -51,6 +57,8 @@ namespace Game.Runtime.Player
 
 			_interactAction.action.Enable();
 			_interactAction.action.performed += OnInteractPerformed;
+
+			SpawnPrompt();
 		}
 
 		public override void OnNetworkDespawn()
@@ -61,6 +69,32 @@ namespace Game.Runtime.Player
 			_interactAction.action.Disable();
 
 			SetFocused(null);
+			DespawnPrompt();
+		}
+
+		private void SpawnPrompt()
+		{
+			if (!_promptPrefab || _prompt) return;
+
+			// The prompt is a panel, not a canvas of its own, so without the shared canvas there is
+			// nowhere for it to draw — worth saying out loud rather than spawning something invisible.
+			if (!UIManager.Instance)
+			{
+				Debug.LogWarning("[PlayerInteractionController] No UIManager found — the interact prompt needs the bootstrap canvas.");
+				return;
+			}
+
+			_prompt = UIManager.Instance.Show(_promptPrefab, UILayer.Hud);
+		}
+
+		private void DespawnPrompt()
+		{
+			if (!_prompt) return;
+
+			if (UIManager.Instance) UIManager.Instance.Hide(_prompt.gameObject);
+			else Destroy(_prompt.gameObject);
+
+			_prompt = null;
 		}
 
 		// Scanning in LateUpdate, after PlayerController has written the pitch onto the head bone the
@@ -77,7 +111,7 @@ namespace Game.Runtime.Player
 		private IInteractable Scan()
 		{
 			if (!_lookOrigin) return null;
-			// if (_playerController && !_playerController.CursorLocked) return null;
+			// if (!CursorController.IsLocked) return null;
 
 			var ray = new Ray(_lookOrigin.position, _lookOrigin.forward);
 			var count = Physics.SphereCastNonAlloc(ray,
@@ -199,13 +233,12 @@ namespace Game.Runtime.Player
 
 		private void RefreshPrompt()
 		{
-			var prompt = UIInteractPrompt.Instance;
-			if (!prompt) return;
+			if (!_prompt) return;
 
 			if (_focused == null)
 			{
 				_promptActionName = null;
-				prompt.Hide();
+				_prompt.Hide();
 				return;
 			}
 
@@ -213,7 +246,7 @@ namespace Game.Runtime.Player
 			if (actionName == _promptActionName) return;
 
 			_promptActionName = actionName;
-			prompt.Show(actionName, _interactAction.action.GetBindingDisplayString());
+			_prompt.Show(actionName, _interactAction.action.GetBindingDisplayString());
 		}
 
 		private void OnInteractPerformed(InputAction.CallbackContext ctx)

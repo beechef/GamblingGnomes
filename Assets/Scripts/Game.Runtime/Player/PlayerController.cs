@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Game.Runtime.Controller;
 using Unity.Cinemachine;
 using Unity.Netcode;
 using UnityEngine;
@@ -88,18 +89,9 @@ namespace Game.Runtime.Player
 		private CinemachineCamera ActiveCamera => IsOwner ? _ownerFirstPersonCamera : _firstPersonCamera;
 		private Transform ActivePitchTransform => IsOwner ? _ownerPitchTransform : _pitchTransform;
 
-		public bool CursorLocked
-		{
-			get => _cursorLocked;
-			set
-			{
-				_cursorLocked = value;
-				Cursor.lockState = _cursorLocked ? CursorLockMode.Locked : CursorLockMode.None;
-				Cursor.visible = !_cursorLocked;
-			}
-		}
-
-		private bool _cursorLocked = true;
+		// This controller holds one release among however many are outstanding, so the toggle key frees
+		// the cursor without overriding a panel that is also holding it.
+		private bool _holdsCursorRelease;
 
 		private void Awake()
 		{
@@ -190,7 +182,7 @@ namespace Game.Runtime.Player
 			_toggleCursorAction.action.Enable();
 			_toggleCursorAction.action.performed += OnToggleCursorPerformed;
 
-			CursorLocked = true;
+			CursorController.SetBaseLocked(true);
 		}
 
 		public override void OnNetworkDespawn()
@@ -218,7 +210,10 @@ namespace Game.Runtime.Player
 			_toggleCursorAction.action.performed -= OnToggleCursorPerformed;
 			_toggleCursorAction.action.Disable();
 
-			CursorLocked = false;
+			// Hands back this controller's own release before dropping the lock entirely, so the count
+			// is square for whoever is still holding one when the next player spawns.
+			SetCursorReleased(false);
+			CursorController.SetBaseLocked(false);
 		}
 
 		private void OnMovePerformed(InputAction.CallbackContext ctx)
@@ -243,12 +238,22 @@ namespace Game.Runtime.Player
 
 		private void OnToggleCursorPerformed(InputAction.CallbackContext ctx)
 		{
-			CursorLocked = !CursorLocked;
+			SetCursorReleased(!_holdsCursorRelease);
+		}
+
+		private void SetCursorReleased(bool released)
+		{
+			if (_holdsCursorRelease == released) return;
+
+			_holdsCursorRelease = released;
+
+			if (released) CursorController.RequestUnlock();
+			else CursorController.ReleaseUnlock();
 		}
 
 		private void OnLookPerformed(InputAction.CallbackContext ctx)
 		{
-			if (!CursorLocked) return;
+			if (!CursorController.IsLocked) return;
 
 			var delta = ctx.ReadValue<Vector2>();
 			var filteredX = Mathf.Abs(delta.x) < _inputDeadzone ? 0f : delta.x;

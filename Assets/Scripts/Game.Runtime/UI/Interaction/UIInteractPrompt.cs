@@ -3,6 +3,8 @@ using UnityEngine;
 
 namespace Game.Runtime.UI.Interaction
 {
+	// Spawned into the shared canvas by whoever needs prompting, and held by them — there is one of
+	// these per local player, so it is handed out rather than looked up.
 	public class UIInteractPrompt : MonoBehaviour
 	{
 		[Header("References")]
@@ -10,26 +12,9 @@ namespace Game.Runtime.UI.Interaction
 		[SerializeField] private TextMeshProUGUI _actionLabel;
 		[SerializeField] private TextMeshProUGUI _keyLabel;
 
-		public static UIInteractPrompt Instance { get; private set; }
-
-		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-		private static void ResetStatics() => Instance = null;
-
 		private void Awake()
 		{
-			if (Instance && Instance != this)
-			{
-				Destroy(gameObject);
-				return;
-			}
-
-			Instance = this;
 			Hide();
-		}
-
-		private void OnDestroy()
-		{
-			if (Instance == this) Instance = null;
 		}
 
 		public void Show(string actionName, string keyDisplayName)
