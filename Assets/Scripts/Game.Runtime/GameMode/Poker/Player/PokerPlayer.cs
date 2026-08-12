@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Game.Runtime.Player;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -13,6 +14,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 	{
 		[Header("References")]
 		[SerializeField] private PokerPlayerData _data;
+
+		[Tooltip("The wallet the buy-in comes out of. Lives beside this on the player, not on the table.")]
+		[SerializeField] private PlayerData _wallet;
 
 		private static readonly List<PokerPlayer> Registry = new();
 
@@ -34,6 +38,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		}
 
 		public PokerPlayerData Data => _data;
+		public PlayerData Wallet => _wallet;
 		public ulong ClientId => OwnerClientId;
 
 		public static PokerPlayer Find(ulong clientId)
@@ -49,6 +54,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		public override void OnNetworkSpawn()
 		{
 			if (!_data) _data = GetComponent<PokerPlayerData>();
+			if (!_wallet) _wallet = GetComponent<PlayerData>();
 
 			if (!Registry.Contains(this))
 			{

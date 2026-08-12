@@ -500,6 +500,15 @@ namespace Game.Runtime.GameMode.Poker
 			var player = PokerPlayer.Find(clientId);
 			if (!player || !player.Data) return;
 
+			// The seat already turned away anyone who could not cover this, but the money still has to
+			// actually leave the wallet here — that transfer is what makes standing up and sitting down
+			// again cost something rather than hand out a fresh stack.
+			if (!player.Wallet || !player.Wallet.ServerTryWithdraw(_rules.StartingChips))
+			{
+				seat.ReleaseIfOccupiedBy(clientId);
+				return;
+			}
+
 			player.Data.ServerTakeSeat(seat.SeatIndex, _rules.StartingChips);
 			RefreshSeatedPlayers();
 
@@ -523,7 +532,13 @@ namespace Game.Runtime.GameMode.Poker
 				}
 				else
 				{
+					// Whatever is left in front of them goes back in the wallet — leaving the table is a
+					// cash out, not a forfeit.
+					var remaining = player.Data.Chips.Value;
+					player.Data.Chips.Value = 0;
 					player.Data.ServerLeaveSeat();
+
+					if (player.Wallet) player.Wallet.ServerDeposit(remaining);
 				}
 			}
 

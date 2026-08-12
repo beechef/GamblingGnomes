@@ -30,19 +30,6 @@ namespace Game.Runtime.Steam
             public SocketConnection Connection;
         }
 
-        // The Steam id behind a connection, which is the only handle on a player that survives them
-        // dropping. It is gone from the table by the time the disconnect is announced, so callers have
-        // to take it while the client is still connected.
-        public bool TryGetSteamId(ulong clientId, out ulong steamId)
-        {
-            steamId = 0;
-
-            if (_connectedClients == null || !_connectedClients.TryGetValue(clientId, out var client)) return false;
-
-            steamId = client.SteamId;
-            return true;
-        }
-
         #region NetworkTransport Overrides
 
         protected override void OnEarlyUpdate()

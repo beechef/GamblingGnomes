@@ -1,4 +1,5 @@
 using Game.Runtime.GameMode.Poker;
+using Game.Runtime.Player;
 using TMPro;
 using UnityEngine;
 
@@ -12,6 +13,10 @@ namespace Game.Runtime.UI.Poker
 		[SerializeField] private TextMeshProUGUI _potLabel;
 		[SerializeField] private TextMeshProUGUI _stageLabel;
 
+		[Header("Player")]
+		[Tooltip("What the player still owns away from the table — the buy-in comes out of this, the stack in front of them does not.")]
+		[SerializeField] private TextMeshProUGUI _moneyLabel;
+
 		[Header("Result")]
 		[SerializeField] private GameObject _winnerPanel;
 		[SerializeField] private TextMeshProUGUI _winnerLabel;
@@ -23,6 +28,8 @@ namespace Game.Runtime.UI.Poker
 			Data.StageId.OnValueChanged += HandleStageChanged;
 			Data.LastWinnerClientId.OnValueChanged += HandleWinnerChanged;
 
+			if (Wallet) Wallet.Money.OnValueChanged += HandleMoneyChanged;
+
 			Refresh();
 		}
 
@@ -32,12 +39,17 @@ namespace Game.Runtime.UI.Poker
 			Data.Pot.OnValueChanged -= HandlePotChanged;
 			Data.StageId.OnValueChanged -= HandleStageChanged;
 			Data.LastWinnerClientId.OnValueChanged -= HandleWinnerChanged;
+
+			if (Wallet) Wallet.Money.OnValueChanged -= HandleMoneyChanged;
 		}
+
+		private PlayerData Wallet => LocalPlayer ? LocalPlayer.Wallet : null;
 
 		private void HandlePhaseChanged(PokerPhase previous, PokerPhase current) => Refresh();
 		private void HandlePotChanged(int previous, int current) => Refresh();
 		private void HandleStageChanged(Unity.Collections.FixedString32Bytes previous, Unity.Collections.FixedString32Bytes current) => Refresh();
 		private void HandleWinnerChanged(ulong previous, ulong current) => Refresh();
+		private void HandleMoneyChanged(int previous, int current) => Refresh();
 
 		private void Refresh()
 		{
@@ -47,6 +59,7 @@ namespace Game.Runtime.UI.Poker
 			if (_phaseLabel) _phaseLabel.text = Data.Phase.Value.ToString();
 			if (_potLabel) _potLabel.text = Data.Pot.Value.ToString();
 			if (_stageLabel) _stageLabel.text = Data.StageId.Value.ToString();
+			if (_moneyLabel) _moneyLabel.text = Wallet ? Wallet.Money.Value.ToString() : "0";
 
 			var showWinner = Data.Phase.Value is PokerPhase.Showdown or PokerPhase.Finished
 			                 && Data.LastWinnerClientId.Value != PokerGameData.NoTurn;

@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using Game.Runtime.GameMode.Poker.Player;
 using Game.Runtime.Interaction;
+using Game.Runtime.Player;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -50,7 +52,34 @@ namespace Game.Runtime.GameMode.Poker
 			if (!base.CanInteract(interactor)) return false;
 
 			// Once the cards are out the table is closed — a late arrival waits for the next hand.
-			return !GameMode || !GameMode.IsGameRunning;
+			if (GameMode && GameMode.IsGameRunning) return false;
+
+			return CanAffordBuyIn(interactor);
+		}
+
+		// Money is replicated, so the client asking gets the same answer the server will give it — the
+		// prompt goes quiet instead of offering a seat that would be refused on arrival.
+		private bool CanAffordBuyIn(NetworkBehaviourReference interactor)
+		{
+			if (!GameMode || !GameMode.Rules) return true;
+			if (!interactor.TryGet(out NetworkBehaviour behaviour)) return true;
+
+			var wallet = behaviour.GetComponent<PlayerData>();
+			return !wallet || wallet.CanAfford(GameMode.Rules.StartingChips);
+		}
+
+		// Only the local player ever reads this, since it is what their own prompt says.
+		public override string ActionName
+		{
+			get
+			{
+				var rules = GameMode ? GameMode.Rules : null;
+				var wallet = PokerPlayer.Local ? PokerPlayer.Local.Wallet : null;
+
+				if (rules && wallet && !wallet.CanAfford(rules.StartingChips)) return $"Need {rules.StartingChips}";
+
+				return base.ActionName;
+			}
 		}
 
 		public override bool CanStand(NetworkBehaviourReference occupant)

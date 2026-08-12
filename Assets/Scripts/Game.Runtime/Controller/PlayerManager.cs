@@ -22,20 +22,18 @@ namespace Game.Runtime.Controller
 		public NetworkList<NetworkObjectReference> Players { get; } =
 			new(writePerm: NetworkVariableWritePermission.Server, readPerm: NetworkVariableReadPermission.Everyone);
 
-		// Keyed by connection, but each entry carries the identity that outlives it — matching a
-		// returning player against that id is what reconnecting will be built on.
+		// Keyed by connection only. The identity that outlives one lives on the player object itself,
+		// which now survives the disconnect — so matching a returning player is a question for their
+		// PlayerData, not for a copy kept here.
 		private readonly Dictionary<ulong, PlayerEntry> _players = new();
 
 		private readonly struct PlayerEntry
 		{
-			public PlayerEntry(ulong playerId, NetworkObject player)
+			public PlayerEntry(NetworkObject player)
 			{
-				PlayerId = playerId;
 				NetworkObjectId = player.NetworkObjectId;
 				Object = player;
 			}
-
-			public ulong PlayerId { get; }
 
 			// Held beside the object because a destroyed one can no longer be asked for its id, and the
 			// id is all the list needs to drop the right row.
@@ -97,16 +95,8 @@ namespace Game.Runtime.Controller
 				position: spawnPoint ? spawnPoint.transform.position : Vector3.zero,
 				rotation: spawnPoint ? spawnPoint.transform.rotation : Quaternion.identity);
 
-			// Taken now rather than at disconnect: the transport forgets who a connection belonged to
-			// the moment it drops.
-			var network = GameNetworkManager.Instance;
-			var playerId = network ? network.ResolvePlayerId(clientId) : clientId;
-
-			var data = player.GetComponent<PlayerData>();
-			if (data) data.ServerSetIdentity(playerId, network ? network.ResolvePlayerName(clientId) : $"Player {clientId}");
-
 			Players.Add(player);
-			_players[clientId] = new PlayerEntry(playerId, player);
+			_players[clientId] = new PlayerEntry(player);
 		}
 
 		private void HandlePlayerDisconnected(ulong clientId)

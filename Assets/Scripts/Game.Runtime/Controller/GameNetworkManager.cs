@@ -50,8 +50,6 @@ namespace Game.Runtime.Controller
 
 		public bool IsInGame => CurrentLobby.HasValue || _networkManager.IsListening;
 
-		private readonly Dictionary<ulong, int> _editorSuffixes = new();
-
 		private bool _joiningLobby;
 		private bool _leavingGame;
 		private Scene _gameplayScene;
@@ -105,66 +103,6 @@ namespace Game.Runtime.Controller
 			_networkManager.OnClientDisconnectCallback -= OnClientDisconnected;
 			_networkManager.OnTransportFailure -= OnTransportFailure;
 			_networkManager.OnServerStopped -= OnServerStopped;
-		}
-
-		// The identity that outlives a connection, which is what a returning player would be matched on.
-		// Steam supplies one; the editor transport does not, so there a connection id stands in and a
-		// reconnect counts as somebody new.
-		public ulong ResolvePlayerId(ulong clientId)
-		{
-			var playerId = SteamIdOf(clientId, out var steamId) ? steamId : clientId;
-
-			// Two editor instances sign in as the same Steam user and would otherwise be one player as
-			// far as the table is concerned. Salting with the same number their name carries pulls them
-			// apart, and keeps doing so for as long as each connection lasts.
-			return Application.isEditor ? playerId ^ ((ulong)EditorSuffix(clientId) << 32) : playerId;
-		}
-
-		public string ResolvePlayerName(ulong clientId)
-		{
-			var name = LookupSteamName(clientId);
-			if (string.IsNullOrEmpty(name)) name = $"Player {clientId}";
-
-			return Application.isEditor ? $"{name}_{EditorSuffix(clientId)}" : name;
-		}
-
-		private bool SteamIdOf(ulong clientId, out ulong steamId)
-		{
-			if (clientId == NetworkManager.ServerClientId && SteamClient.IsValid)
-			{
-				steamId = SteamClient.SteamId.Value;
-				return true;
-			}
-
-			steamId = 0;
-			return _steamTransport && _steamTransport.TryGetSteamId(clientId, out steamId);
-		}
-
-		// The lobby is the only place the server can read a persona from, since the transport hands it
-		// nothing but an id.
-		private string LookupSteamName(ulong clientId)
-		{
-			if (clientId == NetworkManager.ServerClientId && SteamClient.IsValid) return SteamClient.Name;
-
-			if (!SteamIdOf(clientId, out var steamId) || !CurrentLobby.HasValue) return null;
-
-			foreach (var member in CurrentLobby.Value.Members)
-			{
-				if (member.Id == steamId) return member.Name;
-			}
-
-			return null;
-		}
-
-		// Drawn once per connection so a player keeps the same tag for as long as they are here.
-		private int EditorSuffix(ulong clientId)
-		{
-			if (_editorSuffixes.TryGetValue(clientId, out var suffix)) return suffix;
-
-			suffix = UnityEngine.Random.Range(1000, 10000);
-			_editorSuffixes[clientId] = suffix;
-
-			return suffix;
 		}
 
 		public void ConfigureLobby(int maxPlayers, bool isPrivate, GameModeType gameMode)
