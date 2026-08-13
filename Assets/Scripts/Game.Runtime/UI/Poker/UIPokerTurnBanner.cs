@@ -1,4 +1,5 @@
 using Game.Runtime.GameMode.Poker;
+using Game.Runtime.Player;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -23,6 +24,8 @@ namespace Game.Runtime.UI.Poker
 
 		protected override bool WantsTick => Data && Data.HasTurn;
 
+		private PlayerData _boundWallet;
+
 		private void Awake()
 		{
 			if (_panel) _panel.SetActive(false);
@@ -37,25 +40,49 @@ namespace Game.Runtime.UI.Poker
 		protected override void OnUnbind()
 		{
 			Data.CurrentTurnClientId.OnValueChanged -= HandleTurnChanged;
+			BindTurnIdentity(null);
 
 			if (_panel) _panel.SetActive(false);
 		}
 
 		private void HandleTurnChanged(ulong previous, ulong current) => Refresh();
 
+		// The banner names one player at a time, so it listens to that player only and moves the
+		// subscription along with the turn — a name landing late still reaches the label.
+		private void BindTurnIdentity(PlayerData wallet)
+		{
+			if (_boundWallet == wallet) return;
+
+			if (_boundWallet) _boundWallet.OnIdentityChanged -= HandleIdentityChanged;
+
+			_boundWallet = wallet;
+
+			if (_boundWallet) _boundWallet.OnIdentityChanged += HandleIdentityChanged;
+		}
+
+		private void HandleIdentityChanged() => Refresh();
+
 		private void Refresh()
 		{
 			var hasTurn = Data.HasTurn;
 			if (_panel && _panel.activeSelf != hasTurn) _panel.SetActive(hasTurn);
-			if (!hasTurn) return;
+
+			if (!hasTurn)
+			{
+				BindTurnIdentity(null);
+				return;
+			}
+
+			var turnClientId = Data.CurrentTurnClientId.Value;
+			var turnPlayer = GameMode.FindSeatedPlayer(turnClientId);
+
+			BindTurnIdentity(turnPlayer ? turnPlayer.Wallet : null);
 
 			if (_turnLabel)
 			{
-				var turnClientId = Data.CurrentTurnClientId.Value;
-				var turnPlayer = GameMode.FindSeatedPlayer(turnClientId);
-				var seatSuffix = turnPlayer ? $"Seat {turnPlayer.Data.SeatIndex.Value + 1}" : "Player";
+				var turnName = turnPlayer ? turnPlayer.DisplayName : "Player";
 
-				_turnLabel.text = turnClientId == LocalClientId ? "Your turn" : $"{seatSuffix}'s turn";
+				_turnLabel.text = turnClientId == LocalClientId ? "Your turn" : $"{turnName}'s turn";
 			}
 
 			OnTick();

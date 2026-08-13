@@ -73,6 +73,28 @@ Do not scatter scripts outside `Assets/Scripts/`. Do not create per-feature asmd
 - No DI container / service locator. Wire dependencies via `[SerializeField]` inspector refs or static `Instance` singletons.
 - Odin Inspector (`[ValueDropdown]`, `[FoldoutGroup]`, etc.) only where plain `[SerializeField]`/`[Header]` can't express the need (dynamic dropdowns, foldout grouping) — not as the default on every class.
 
+## Design principles
+
+Hold code to an industry-standard design bar rather than inventing bespoke structure. When facing a design choice, reach for the solution many teams already converge on; check whether this codebase (or the wider industry) already has the shape for it before writing a new mechanism.
+
+- **SOLID + KISS + DRY.** Split into clear modules that can be reused and assembled, not monoliths.
+- **Minimise coupling.** A component that needs a dependency takes it from an event or an injected reference rather than reaching into a concrete singleton — a module that can only work in the one place it grew up in is not reusable.
+- **Template method for extension points.** A base class keeps its own step non-virtual and calls a `protected virtual` hook from inside it, so a subclass extends behaviour without the parent ever being edited, and shared work can't be skipped by a subclass that forgets `base.Foo()`:
+
+  ```csharp
+  private void Tick(float deltaTime)
+  {
+      // shared work the base always does
+      OnTick(deltaTime);
+  }
+
+  protected virtual void OnTick(float deltaTime) { }
+  ```
+
+  The outer method carries the invariants (guards, ordering, state flags); the `OnX` hook carries only the subclass's own work. Applies to every extension point, not just tick — `Start`/`End`, `Bind`/`Unbind`, `Enable`/`Disable`. See `PokerStage` (`StartStage`/`OnStartStage`), `UIPokerView` and `PokerVisual` (`OnBind`/`OnUnbind`).
+- **Every system has an explicit lifecycle.** Bind and unbind through paired hooks — `OnEnable`/`OnDisable`, `OnNetworkSpawn`/`OnNetworkDespawn`, `OnBind`/`OnUnbind`, or a static `OnInstanceChanged`-style event. Never poll for a dependency in `Update()` and rebind when you notice it changed: that hides the binding in the per-frame path and leaves no single point where the subscription is released, so handlers leak. Unsubscribe in the reverse order of subscribing, and null a reference only after the unsubscribe that needs it. (`PokerTableVisual` predates this and still polls `PokerGameMode.Instance` — counter-example, not model.)
+- **Animate with DOTween, not hand-rolled interpolation.** A per-frame `Vector3.Lerp`/`Quaternion.Slerp` toward a moving target bakes the curve into decay maths and offers no hook for "then do this". A tween makes easing, duration, delay, loops, callbacks and sequences tunable after the fact. Expose duration and `Ease` as `[SerializeField]` so they can be retuned without touching code, and prefer `SetEase` over hand-tuned constants.
+
 ## Asset naming conventions
 
 - Prefabs: `UI_` prefix for UI prefabs (`UI_Screen_<Name>` for full-screen panels, `UI_<Name>` for components). No prefix for gameplay prefabs. `Button_` prefix for button prefabs.
@@ -93,3 +115,7 @@ Do not scatter scripts outside `Assets/Scripts/`. Do not create per-feature asmd
 1. Keep the two-assembly split (`Game.Runtime`, `Game.Editor`); don't introduce new asmdefs without a real modularity need.
 2. Server-authoritative by default — any gameplay state that must be consistent across clients lives in a `NetworkBehaviour`/`NetworkVariable`, not in a locally-mutated field trusted from the client.
 3. No XML doc comments or comment blocks; let naming carry the meaning.
+4. Follow SOLID, KISS and DRY; prefer industry-standard patterns over bespoke structure, and keep modules loosely coupled and reusable.
+5. Extend through `protected virtual OnX` hooks called from a non-virtual base method — never edit a parent class to accommodate a subclass.
+6. Every system binds and unbinds through explicit paired lifecycle hooks; never poll for a dependency in `Update()`.
+7. Animate with DOTween tweens, not hand-rolled `Lerp`/`Slerp` stepped in `Update()`.

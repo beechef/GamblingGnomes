@@ -42,7 +42,18 @@ namespace Game.Runtime.Interaction
 
 		public override bool CanInteract(NetworkBehaviourReference interactor)
 		{
-			return base.CanInteract(interactor) && !IsOccupied;
+			return base.CanInteract(interactor) && !IsOccupied && !IsSeatedElsewhere(interactor);
+		}
+
+		// A seated player stands before taking another chair, so no other seat offers itself while they
+		// are down. The seat they are in is excluded rather than every seat: it is already occupied by
+		// them, and letting it answer for itself keeps this from depending on the occupant check.
+		private static bool IsSeatedElsewhere(NetworkBehaviourReference interactor)
+		{
+			if (!interactor.TryGet(out NetworkBehaviour behaviour)) return false;
+
+			var seatController = behaviour.GetComponent<PlayerSeatController>();
+			return seatController && seatController.IsSeated;
 		}
 
 		// Asked before a seated player is allowed to stand. The plain seat never says no; a seat tied

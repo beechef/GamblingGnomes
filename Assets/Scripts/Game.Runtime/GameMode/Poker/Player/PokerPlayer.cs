@@ -41,6 +41,22 @@ namespace Game.Runtime.GameMode.Poker.Player
 		public PlayerData Wallet => _wallet;
 		public ulong ClientId => OwnerClientId;
 
+		// The seat number is the fallback rather than the label: a player whose identity RPC has not
+		// landed yet still has a chair, and a name that arrives late replaces it on the next redraw.
+		public string DisplayName
+		{
+			get
+			{
+				if (_wallet)
+				{
+					var name = _wallet.DisplayName.Value.ToString();
+					if (!string.IsNullOrEmpty(name)) return name;
+				}
+
+				return _data && _data.IsSeated ? $"Seat {_data.SeatIndex.Value + 1}" : "Player";
+			}
+		}
+
 		public static PokerPlayer Find(ulong clientId)
 		{
 			foreach (var player in Registry)

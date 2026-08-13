@@ -57,6 +57,11 @@ namespace Game.Runtime.UI.Poker
 				if (!player || !player.Data) continue;
 
 				player.Data.OnStateChanged += HandlePlayerStateChanged;
+
+				// The name arrives by RPC after the body spawns, so a player can be seated before it
+				// lands and the row would keep showing the seat number it fell back to.
+				if (player.Wallet) player.Wallet.OnIdentityChanged += HandlePlayerStateChanged;
+
 				_boundPlayers.Add(player);
 			}
 
@@ -67,7 +72,10 @@ namespace Game.Runtime.UI.Poker
 		{
 			foreach (var player in _boundPlayers)
 			{
-				if (player && player.Data) player.Data.OnStateChanged -= HandlePlayerStateChanged;
+				if (!player) continue;
+
+				if (player.Data) player.Data.OnStateChanged -= HandlePlayerStateChanged;
+				if (player.Wallet) player.Wallet.OnIdentityChanged -= HandlePlayerStateChanged;
 			}
 
 			_boundPlayers.Clear();
