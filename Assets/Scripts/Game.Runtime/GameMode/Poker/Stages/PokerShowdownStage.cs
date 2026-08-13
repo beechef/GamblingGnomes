@@ -20,9 +20,10 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		[Tooltip("Where the table goes once the hand is settled. Empty simply follows the sequence, which wraps to the idle stage when showdown is last.")]
 		[SerializeField] private PokerStage _idleStage;
 
-		private readonly List<PokerPlayer> _winners = new();
 		private readonly List<CardData> _evaluationBuffer = new();
 		private readonly List<Contender> _ranking = new();
+		private readonly List<(PokerPlayer Player, int RankGroup)> _contenders = new();
+		private readonly Dictionary<ulong, int> _winnings = new();
 
 		private readonly struct Contender
 		{
@@ -42,15 +43,11 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			GameMode.ClearTurn();
 			PokerTableUtility.CollectBets(Data, GameMode.SeatedPlayers);
 
-			ResolveWinners();
+			ResolveContenders();
+			PokerTableUtility.SettlePots(Data, GameMode.SeatedPlayers, _contenders, _winnings);
+			PublishRanking();
 
-			// Taken before the pot moves so what each player gained can be read off the difference.
-			var pot = Data.Pot.Value;
-			PokerTableUtility.AwardPot(Data, _winners);
-
-			PublishRanking(pot);
-
-			Data.LastWinnerClientId.Value = _winners.Count > 0 ? _winners[0].ClientId : PokerGameData.NoTurn;
+			Data.LastWinnerClientId.Value = _contenders.Count > 0 ? _contenders[0].Player.ClientId : PokerGameData.NoTurn;
 
 			if (_showdownDuration <= 0f)
 			{
@@ -75,63 +72,69 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			FinishStage(_idleStage);
 		}
 
-		private void ResolveWinners()
+		private void ResolveContenders()
 		{
-			_winners.Clear();
 			_ranking.Clear();
+			_contenders.Clear();
 
-			var contenders = PokerTableUtility.CountInHand(GameMode.SeatedPlayers);
+			var inHand = PokerTableUtility.CountInHand(GameMode.SeatedPlayers);
 
 			foreach (var player in GameMode.SeatedPlayers)
 			{
 				if (!player.Data.IsInHand) continue;
 
-				// Everyone folding out leaves one player who never has to show what they held.
-				if (contenders > 1) player.Data.ServerRevealHand();
+				// Everyone folding out leaves one player who never has to show what they held — or say
+				// what it was worth, so the hand is not even evaluated on their behalf.
+				if (inHand <= 1)
+				{
+					_ranking.Add(new Contender(player, PokerHandResult.None));
+					continue;
+				}
 
+				player.Data.ServerRevealHand();
 				_ranking.Add(new Contender(player, Evaluate(player)));
 			}
 
-			// Strongest first, so position in this list is the finishing order.
+			// Strongest first, so position in this list is the finishing order. Ties share a rank group,
+			// which is also how the settlement knows two hands are worth the same.
 			_ranking.Sort((left, right) => right.Result.CompareTo(left.Result));
 
-			foreach (var contender in _ranking)
-			{
-				if (_ranking.Count > 0 && contender.Result.CompareTo(_ranking[0].Result) != 0) break;
+			var rankGroup = 0;
+			var previous = PokerHandResult.None;
 
-				_winners.Add(contender.Player);
+			for (var i = 0; i < _ranking.Count; i++)
+			{
+				if (i == 0 || _ranking[i].Result.CompareTo(previous) != 0) rankGroup = i + 1;
+
+				previous = _ranking[i].Result;
+				_contenders.Add((_ranking[i].Player, rankGroup));
 			}
 		}
 
 		// Ties share a place, and the next player down skips the places they used up — two firsts are
 		// followed by a third.
-		private void PublishRanking(int pot)
+		private void PublishRanking()
 		{
 			Data.Showdown.Clear();
 
-			var rank = 0;
-			var previous = PokerHandResult.None;
-
-			for (var i = 0; i < _ranking.Count; i++)
+			for (var i = 0; i < _contenders.Count; i++)
 			{
-				var contender = _ranking[i];
-				if (i == 0 || contender.Result.CompareTo(previous) != 0) rank = i + 1;
+				var (player, rankGroup) = _contenders[i];
+				var result = _ranking[i].Result;
 
-				previous = contender.Result;
-
-				var share = _winners.Contains(contender.Player) && _winners.Count > 0 ? pot / _winners.Count : 0;
+				_winnings.TryGetValue(player.ClientId, out var won);
 
 				// The name travels in a fixed buffer, so an overlong one is cut rather than allowed to
 				// throw on the way out.
-				var handName = contender.Result.DisplayName ?? string.Empty;
+				var handName = result.DisplayName ?? string.Empty;
 				if (handName.Length > 28) handName = handName[..28];
 
 				Data.Showdown.Add(new PokerShowdownEntry
 				{
-					ClientId = contender.Player.ClientId,
-					Rank = rank,
+					ClientId = player.ClientId,
+					Rank = rankGroup,
 					HandName = handName,
-					Winnings = share
+					Winnings = won
 				});
 			}
 		}

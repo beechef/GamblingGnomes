@@ -52,6 +52,7 @@ namespace Game.Runtime.UI.Poker
 			if (_amountSlider) _amountSlider.onValueChanged.AddListener(HandleAmountChanged);
 
 			Data.StageId.OnValueChanged += HandleStageChanged;
+			Data.OverlayStageId.OnValueChanged += HandleStageChanged;
 			LocalData.OnStateChanged += Refresh;
 
 			Refresh();
@@ -63,6 +64,7 @@ namespace Game.Runtime.UI.Poker
 			if (_foldButton) _foldButton.OnClick -= HandleFold;
 			if (_amountSlider) _amountSlider.onValueChanged.RemoveListener(HandleAmountChanged);
 
+			Data.OverlayStageId.OnValueChanged -= HandleStageChanged;
 			Data.StageId.OnValueChanged -= HandleStageChanged;
 			LocalData.OnStateChanged -= Refresh;
 
@@ -81,10 +83,14 @@ namespace Game.Runtime.UI.Poker
 			// rather than having them mirrored through the table data.
 			_stage = GameMode.FindStage(Data.StageId.Value.ToString()) as PokerSimultaneousBetStage;
 
-			var awaitingUs = _stage && LocalData.CanAct && !LocalData.HasActed.Value;
+			// An overlay pauses the stage underneath, and the server drops anything sent to a paused
+			// stage — so the bar stops offering what would only be refused.
+			var overlaid = !Data.OverlayStageId.Value.IsEmpty;
+
+			var awaitingUs = _stage && !overlaid && LocalData.CanAct && !LocalData.HasActed.Value;
 
 			// Only somebody still in the hand is waiting on anything — a folded or busted seat is out.
-			var waiting = _stage && !awaitingUs && LocalData.IsInHand;
+			var waiting = _stage && !overlaid && !awaitingUs && LocalData.IsInHand;
 
 			if (_panel && _panel.activeSelf != awaitingUs) _panel.SetActive(awaitingUs);
 			if (_waitingPanel && _waitingPanel.activeSelf != waiting) _waitingPanel.SetActive(waiting);

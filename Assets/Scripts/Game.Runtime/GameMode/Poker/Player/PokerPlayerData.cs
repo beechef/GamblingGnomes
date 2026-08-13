@@ -43,10 +43,21 @@ namespace Game.Runtime.GameMode.Poker.Player
 			NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
 		// Installed by whatever grants extra sight — a cheat ability, a spectator mode, a debug view.
-		public static Func<PokerPlayerData, bool> HandVisibilityOverride;
+		// A list rather than a single slot so two of them can coexist; any one saying yes is enough.
+		private static readonly List<Func<PokerPlayerData, bool>> HandVisibilityProviders = new();
+
+		public static void AddHandVisibilityProvider(Func<PokerPlayerData, bool> provider)
+		{
+			if (provider != null && !HandVisibilityProviders.Contains(provider)) HandVisibilityProviders.Add(provider);
+		}
+
+		public static void RemoveHandVisibilityProvider(Func<PokerPlayerData, bool> provider)
+		{
+			HandVisibilityProviders.Remove(provider);
+		}
 
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-		private static void ResetStatics() => HandVisibilityOverride = null;
+		private static void ResetStatics() => HandVisibilityProviders.Clear();
 
 		public event Action OnStateChanged;
 
@@ -62,9 +73,17 @@ namespace Game.Runtime.GameMode.Poker.Player
 		public bool CanAct => Status.Value == PokerPlayerStatus.Active;
 		public int CardCount => HoleCards.Count;
 
-		public bool IsHandVisible => IsOwner
-		                             || HandRevealed.Value
-		                             || (HandVisibilityOverride != null && HandVisibilityOverride.Invoke(this));
+		public bool IsHandVisible => IsOwner || HandRevealed.Value || IsHandVisibleToProvider();
+
+		private bool IsHandVisibleToProvider()
+		{
+			foreach (var provider in HandVisibilityProviders)
+			{
+				if (provider != null && provider.Invoke(this)) return true;
+			}
+
+			return false;
+		}
 
 		public override void OnNetworkSpawn()
 		{

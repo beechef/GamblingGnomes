@@ -8,7 +8,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 	// The board is built up card by card, the way it is dealt. A full rebuild only happens when this
 	// client arrives to a table that is already running, because that is the only time it has nothing
 	// to preserve — every other path would restart the animations of cards already lying face up.
-	public class PokerTableVisual : MonoBehaviour
+	public class PokerTableVisual : PokerVisual
 	{
 		[Header("Community Cards")]
 		[SerializeField] private PokerCardVisual _cardPrefab;
@@ -30,20 +30,24 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 		private readonly List<PokerCardVisual> _cards = new();
 
-		private PokerGameMode _gameMode;
 		private Transform _viewer;
 
-		private void Update()
-		{
-			var gameMode = PokerGameMode.Instance;
-			if (gameMode != _gameMode)
-			{
-				Unbind();
-				_gameMode = gameMode;
-				Bind();
-			}
+		private void Update() => FaceViewer();
 
-			FaceViewer();
+		protected override void OnBind()
+		{
+			Data.OnCommunityCardsChanged += HandleCommunityCardsChanged;
+
+			// Late join: replicate the board as it stands, with no flips to replay.
+			RebuildAll();
+		}
+
+		protected override void OnUnbind()
+		{
+			if (Data) Data.OnCommunityCardsChanged -= HandleCommunityCardsChanged;
+
+			// The table is gone, so a board with nothing left to mirror does not linger.
+			ClearCards();
 		}
 
 		// A card lying flat only reads from one side of the table, so the board turns to whoever is
@@ -71,25 +75,6 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			if (_viewer) return _viewer;
 
 			return _viewer = GameCamera.View;
-		}
-
-		private void OnDisable() => Unbind();
-
-		private void Bind()
-		{
-			if (!_gameMode || !_gameMode.Data) return;
-
-			_gameMode.Data.OnCommunityCardsChanged += HandleCommunityCardsChanged;
-
-			// Late join: replicate the board as it stands, with no flips to replay.
-			RebuildAll();
-		}
-
-		private void Unbind()
-		{
-			if (_gameMode && _gameMode.Data) _gameMode.Data.OnCommunityCardsChanged -= HandleCommunityCardsChanged;
-
-			_gameMode = null;
 		}
 
 		private void HandleCommunityCardsChanged(NetworkListEvent<CardData> change)
@@ -162,9 +147,9 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		{
 			ClearCards();
 
-			if (!_gameMode || !_gameMode.Data) return;
+			if (!Data) return;
 
-			foreach (var card in _gameMode.Data.CommunityCards) AddCard(card, false);
+			foreach (var card in Data.CommunityCards) AddCard(card, false);
 
 			Layout();
 		}

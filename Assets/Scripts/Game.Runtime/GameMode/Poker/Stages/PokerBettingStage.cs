@@ -44,8 +44,17 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 		public int MinimumRaiseStep => Mathf.Max(MinimumBet, Data ? Data.LastRaise.Value * MinimumRaiseMultiplier : MinimumBet);
 
+		private const float MinimumResumedTurnSeconds = 1f;
+
+		private bool _hasPausedTurn;
+		private ulong _pausedTurnClientId;
+		private int _pausedTurnSeatIndex;
+		private float _pausedTurnRemaining;
+
 		protected override void OnStartStage()
 		{
+			_hasPausedTurn = false;
+
 			Data.Phase.Value = _phase;
 
 			GameMode.RevealCommunityCards(_communityCardsToReveal);
@@ -86,6 +95,52 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		protected override void OnEndStage()
 		{
 			GameMode.ClearTurn();
+		}
+
+		// The turn clock is an absolute server time and would drain away under an overlay. The whole
+		// turn comes down with it, not just the clock — whatever runs on top gets the turn slot to
+		// itself, and the banner stops counting a player down while they cannot act.
+		protected override void OnPauseStage()
+		{
+			_hasPausedTurn = Data.HasTurn;
+			if (!_hasPausedTurn) return;
+
+			_pausedTurnClientId = Data.CurrentTurnClientId.Value;
+			_pausedTurnRemaining = Data.TurnRemaining;
+
+			var player = GameMode.FindSeatedPlayer(_pausedTurnClientId);
+			_pausedTurnSeatIndex = player ? player.Data.SeatIndex.Value : Data.DealerSeatIndex.Value;
+
+			GameMode.ClearTurn();
+		}
+
+		// An overlay can change the table under the pause — fold somebody in a lost callout, lose a
+		// player to a disconnect that only the overlay heard about — so the street re-reads the table
+		// rather than trusting what it left behind.
+		protected override void OnResumeStage()
+		{
+			if (!_hasPausedTurn) return;
+
+			_hasPausedTurn = false;
+
+			var players = GameMode.SeatedPlayers;
+
+			if (PokerTableUtility.CountInHand(players) <= 1 || PokerTableUtility.IsBettingComplete(Data, players))
+			{
+				FinishStreet();
+				return;
+			}
+
+			var player = GameMode.FindSeatedPlayer(_pausedTurnClientId);
+			if (player && player.Data.CanAct)
+			{
+				var duration = _turnDuration <= 0f ? 0f : Mathf.Max(_pausedTurnRemaining, MinimumResumedTurnSeconds);
+				GameMode.BeginTurn(_pausedTurnClientId, duration);
+				return;
+			}
+
+			// Whoever was on the clock is gone — continue from their seat so the order stays as it was.
+			BeginNextTurn(_pausedTurnSeatIndex);
 		}
 
 		protected override void OnTickStage(float deltaTime)

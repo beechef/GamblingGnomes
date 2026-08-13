@@ -38,9 +38,16 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			GameMode = null;
 		}
 
+		// A clock that ran out during the pause gets a moment on resume rather than expiring on the
+		// first tick — the player it belongs to spent that time watching an overlay, not thinking.
+		private const float MinimumResumedSeconds = 1f;
+
 		private bool _exiting;
 		private float _exitRemaining;
 		private PokerStage _exitTarget;
+
+		private bool _hasPausedStageTimer;
+		private float _pausedStageTimerRemaining;
 
 		public void StartStage()
 		{
@@ -49,6 +56,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 			_exiting = false;
 			_exitTarget = null;
+			_hasPausedStageTimer = false;
 
 			OnStartStage();
 		}
@@ -67,6 +75,17 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			if (!IsRunning || IsPaused) return;
 
 			IsPaused = true;
+
+			// The stage clock is an absolute server time, so left alone it would drain away under an
+			// overlay. It is taken down here and handed back on resume — every stage that runs one
+			// wants the same thing, so the base does it once rather than each subclass remembering to.
+			_hasPausedStageTimer = Data && Data.HasStageTimer;
+			if (_hasPausedStageTimer)
+			{
+				_pausedStageTimerRemaining = Data.StageTimeRemaining;
+				GameMode.ClearStageTimer();
+			}
+
 			OnPauseStage();
 		}
 
@@ -75,6 +94,13 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			if (!IsRunning || !IsPaused) return;
 
 			IsPaused = false;
+
+			if (_hasPausedStageTimer)
+			{
+				_hasPausedStageTimer = false;
+				GameMode.BeginStageTimer(Mathf.Max(_pausedStageTimerRemaining, MinimumResumedSeconds));
+			}
+
 			OnResumeStage();
 		}
 

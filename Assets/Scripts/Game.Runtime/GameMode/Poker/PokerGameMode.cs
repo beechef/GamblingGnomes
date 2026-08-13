@@ -539,6 +539,12 @@ namespace Game.Runtime.GameMode.Poker
 				{
 					player.Data.Status.Value = PokerPlayerStatus.Folded;
 					player.Data.HasActed.Value = true;
+
+					// The chips they had in front of them stay behind as dead money — collected now,
+					// because once their object despawns no street-end sweep will ever see them, and the
+					// players who pushed them out would win back nothing but their own bets.
+					_data.Pot.Value += player.Data.Bet.Value;
+					player.Data.ServerCollectBet();
 				}
 				else
 				{
