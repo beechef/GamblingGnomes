@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 2214475242416655445}
   - component: {fileID: 370272023844681654}
   - component: {fileID: 7373537335293292376}
+  - component: {fileID: 8672451930287465123}
   m_Layer: 0
   m_Name: GameMode_Poker
   m_TagString: Untagged
@@ -219,7 +220,30 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   _rules: {fileID: 11400000, guid: 8367ae2105df611499070e4e8f1f71ee, type: 2}
   _sequence: {fileID: 11400000, guid: 5532d4eb8f444394d8d0f9a749e3d8b1, type: 2}
-  _modules: []
+  _modules:
+  - {fileID: 8672451930287465123}
   _hudPrefab: {fileID: 3138526501266221406, guid: 2208a74e200460146ab902639dee8eb2, type: 3}
   _data: {fileID: 370272023844681654}
   _seats: []
+--- !u!114 &8672451930287465123
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7894337194493779765}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 33fb32ee3efbf8470e9dea76db19b7cd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Modules.PokerAbilityModule
+  _moduleId: 
+  _pool: {fileID: 11400000, guid: 6799770125e6b7d46f8673cc18c90039, type: 2}
+  _guaranteedCheatCards: 1
+  _abilityStages: []
+  _abilityWindowSeconds: 0
+  _reportsPerRound: 1
+  _reportStake: 100
+  _reportStages: []
+  _reportStage: {fileID: 11400000, guid: ac348855f9712a5fb0283265b90d71b4, type: 2}
+  _enabledByDefault: 1
