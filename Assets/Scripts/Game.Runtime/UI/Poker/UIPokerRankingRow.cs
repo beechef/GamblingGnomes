@@ -32,11 +32,7 @@ namespace Game.Runtime.UI.Poker
 			if (_placeLabel) _placeLabel.text = Ordinal(entry.Rank);
 			if (_handLabel) _handLabel.text = entry.HandName.ToString();
 
-			if (_nameLabel)
-			{
-				var wallet = player ? player.Wallet : null;
-				_nameLabel.text = wallet ? wallet.DisplayName.Value.ToString() : $"Player {entry.ClientId}";
-			}
+			if (_nameLabel) _nameLabel.text = player ? player.DisplayName : $"Player {entry.ClientId}";
 
 			// Nothing won is left blank rather than shown as a zero — a losing row should read as quiet.
 			if (_winningsLabel) _winningsLabel.text = entry.Winnings > 0 ? "+" + entry.Winnings : string.Empty;
@@ -64,7 +60,9 @@ namespace Game.Runtime.UI.Poker
 				var visible = i < count;
 				_cards[i].gameObject.SetActive(visible);
 
-				if (visible) _cards[i].SetCard(data.HoleCards[i]);
+				// A hand that never had to show — a win by folds — keeps its back on the board too;
+				// drawing it face up here would undo the reveal rule the server just applied.
+				if (visible) _cards[i].SetCard(data.HoleCards[i], data.IsHandVisible);
 			}
 		}
 

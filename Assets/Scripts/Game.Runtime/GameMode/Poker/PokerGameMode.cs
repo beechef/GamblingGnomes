@@ -52,7 +52,7 @@ namespace Game.Runtime.GameMode.Poker
 
 		public IReadOnlyList<PokerSeat> Seats => _seats;
 		public IReadOnlyList<PokerModule> Modules => _modules;
-		public IReadOnlyList<PokerStage> Stages => _runtimeStages;
+		public IReadOnlyList<PokerStage> Stages => _stageMachine.Stages;
 
 		// Seated players in seat order — the order the turn passes around the table.
 		public IReadOnlyList<PokerPlayer> SeatedPlayers => _seatedPlayers;
@@ -74,29 +74,20 @@ namespace Game.Runtime.GameMode.Poker
 			}
 		}
 
-		public PokerStage CurrentStage { get; private set; }
-		public PokerStage CurrentOverlay => _overlayStack.Count > 0 ? _overlayStack[^1] : null;
-		public PokerStage ActiveStage => CurrentOverlay ? CurrentOverlay : CurrentStage;
+		public PokerStage CurrentStage => _stageMachine?.CurrentStage;
+		public PokerStage CurrentOverlay => _stageMachine?.CurrentOverlay;
+		public PokerStage ActiveStage => _stageMachine?.ActiveStage;
 
 		public bool IsGameRunning => _data && _data.Phase.Value != PokerPhase.Waiting && _data.Phase.Value != PokerPhase.Finished;
 
 		public event Action OnSeatedPlayersChanged;
 		public event Action<PokerStage> OnStageChanged;
 
-		private readonly List<PokerStage> _stageSources = new();
-		private readonly List<PokerStage> _runtimeStages = new();
-
-		// Stages reached by reference rather than by sequence — a module's overlay, a hand over branch.
-		// They run the same way, they just never take a slot in the loop.
-		private readonly List<PokerStage> _detachedStages = new();
-
-		private readonly List<PokerStage> _overlayStack = new();
-		private readonly Queue<PokerStage> _insertedStages = new();
 		private readonly List<PokerPlayer> _seatedPlayers = new();
 		private readonly List<CardData> _pendingCommunityCards = new();
 
+		private PokerStageMachine _stageMachine;
 		private GameObject _hudInstance;
-		private int _nextStageIndex;
 
 		private void Awake()
 		{
@@ -107,6 +98,8 @@ namespace Game.Runtime.GameMode.Poker
 			}
 
 			Instance = this;
+
+			_stageMachine = new PokerStageMachine(this, NotifyStageStarted, NotifyStageEnded);
 		}
 
 		public override void OnDestroy()
@@ -121,17 +114,14 @@ namespace Game.Runtime.GameMode.Poker
 			if (!_data) _data = GetComponentInChildren<PokerGameData>();
 			if (_seats.Count == 0) CollectRegisteredSeats();
 
-			BuildRuntimeStages();
+			_stageMachine.Build(_sequence, _modules);
 
 			foreach (var module in _modules)
 			{
 				if (module) module.Initialize(this);
 			}
 
-			foreach (var stage in _runtimeStages)
-			{
-				if (stage) stage.Initialize(this);
-			}
+			_stageMachine.InitializeStages();
 
 			PokerPlayer.OnRegistryChanged += RefreshSeatedPlayers;
 			RefreshSeatedPlayers();
@@ -159,22 +149,7 @@ namespace Game.Runtime.GameMode.Poker
 				NetworkManager.Singleton.OnClientDisconnectCallback -= HandleClientDisconnected;
 			}
 
-			CurrentStage?.EndStage();
-			for (var i = _overlayStack.Count - 1; i >= 0; i--) _overlayStack[i].EndStage();
-			_overlayStack.Clear();
-			_insertedStages.Clear();
-
-			foreach (var stage in _runtimeStages)
-			{
-				if (stage) stage.DeInitialize();
-			}
-
-			foreach (var stage in _detachedStages)
-			{
-				if (stage) stage.DeInitialize();
-			}
-
-			ReleaseRuntimeStages();
+			_stageMachine.Shutdown();
 
 			foreach (var module in _modules)
 			{
@@ -186,7 +161,7 @@ namespace Game.Runtime.GameMode.Poker
 		{
 			if (!IsServer || !IsSpawned) return;
 
-			ActiveStage?.TickStage(Time.deltaTime);
+			_stageMachine.Tick(Time.deltaTime);
 		}
 
 		private void SpawnHud()
@@ -214,86 +189,9 @@ namespace Game.Runtime.GameMode.Poker
 			_hudInstance = null;
 		}
 
-		// Assets describe the round; the mode plays clones of them, so nothing a stage does at runtime is
-		// written back into the project.
-		private void BuildRuntimeStages()
-		{
-			ReleaseRuntimeStages();
+		public PokerStage FindStage(string stageId) => _stageMachine.Find(stageId);
 
-			_stageSources.Clear();
-
-			if (_sequence) _sequence.CollectStages(_stageSources);
-
-			foreach (var module in _modules)
-			{
-				if (module) module.CollectStages(_stageSources);
-			}
-
-			foreach (var source in _stageSources)
-			{
-				if (source) _runtimeStages.Add(CreateRuntimeStage(source));
-			}
-		}
-
-		private PokerStage CreateRuntimeStage(PokerStage source)
-		{
-			var runtime = Instantiate(source);
-			runtime.name = source.name;
-
-			return runtime;
-		}
-
-		private void ReleaseRuntimeStages()
-		{
-			foreach (var stage in _runtimeStages)
-			{
-				if (stage) Destroy(stage);
-			}
-
-			foreach (var stage in _detachedStages)
-			{
-				if (stage) Destroy(stage);
-			}
-
-			_runtimeStages.Clear();
-			_detachedStages.Clear();
-
-			CurrentStage = null;
-			_nextStageIndex = 0;
-		}
-
-		public PokerStage FindStage(string stageId)
-		{
-			if (string.IsNullOrEmpty(stageId)) return null;
-
-			foreach (var stage in _runtimeStages)
-			{
-				if (stage && stage.StageId == stageId) return stage;
-			}
-
-			foreach (var stage in _detachedStages)
-			{
-				if (stage && stage.StageId == stageId) return stage;
-			}
-
-			return null;
-		}
-
-		// Stage fields point at project assets, so a reference has to be traded for the clone actually
-		// running. Anything the sequence never mentions gets a clone of its own on first use.
-		public PokerStage ResolveRuntimeStage(PokerStage stage)
-		{
-			if (!stage) return null;
-
-			var running = FindStage(stage.StageId);
-			if (running) return running;
-
-			var runtime = CreateRuntimeStage(stage);
-			_detachedStages.Add(runtime);
-			runtime.Initialize(this);
-
-			return runtime;
-		}
+		public PokerStage ResolveRuntimeStage(PokerStage stage) => _stageMachine.Resolve(stage);
 
 		// Only picks up seats that spawned before this table did; the ones that come later register
 		// themselves on the way in.
@@ -376,101 +274,47 @@ namespace Game.Runtime.GameMode.Poker
 			ClearTurn();
 		}
 
+		// Transitions are the server's alone; how they play out is the machine's business.
 		public void NextStage()
 		{
 			if (!IsServer) return;
 
-			CurrentStage?.EndStage();
-			NotifyStageEnded(CurrentStage);
-
-			// An inserted stage runs before the sequence resumes, and deliberately does not consume a
-			// slot — when it ends the round picks up exactly where it left off.
-			if (_insertedStages.Count > 0)
-			{
-				SetCurrentStage(_insertedStages.Dequeue());
-				return;
-			}
-
-			if (_nextStageIndex >= _runtimeStages.Count) _nextStageIndex = 0;
-
-			var stage = _runtimeStages.Count > 0 ? _runtimeStages[_nextStageIndex] : null;
-			_nextStageIndex++;
-
-			SetCurrentStage(stage);
+			_stageMachine.Next();
 		}
 
 		public void GoToStage(int index)
 		{
 			if (!IsServer) return;
-			if (_runtimeStages.Count == 0) return;
 
-			CurrentStage?.EndStage();
-			NotifyStageEnded(CurrentStage);
-
-			_nextStageIndex = Mathf.Clamp(index, 0, _runtimeStages.Count - 1);
-			var stage = _runtimeStages[_nextStageIndex];
-			_nextStageIndex++;
-
-			SetCurrentStage(stage);
+			_stageMachine.GoTo(index);
 		}
 
 		public void GoToStage(PokerStage stage)
 		{
-			var index = _runtimeStages.IndexOf(ResolveRuntimeStage(stage));
-			if (index >= 0) GoToStage(index);
+			if (!IsServer) return;
+
+			_stageMachine.GoTo(stage);
 		}
 
-		// Queued to run as the next stage, after whatever is running now finishes on its own terms.
 		public void InsertStage(PokerStage stage)
 		{
-			if (!IsServer || !stage) return;
+			if (!IsServer) return;
 
-			_insertedStages.Enqueue(ResolveRuntimeStage(stage));
+			_stageMachine.Insert(stage);
 		}
 
-		// Runs immediately on top, freezing everything below it until it is popped.
 		public void PushOverlay(PokerStage stage)
 		{
-			if (!IsServer || !stage) return;
+			if (!IsServer) return;
 
-			var overlay = ResolveRuntimeStage(stage);
-			if (!overlay) return;
-
-			ActiveStage?.PauseStage();
-
-			_overlayStack.Add(overlay);
-			_data.OverlayStageId.Value = overlay.StageId;
-
-			overlay.StartStage();
-			NotifyStageStarted(overlay);
+			_stageMachine.PushOverlay(stage);
 		}
 
 		public void PopOverlay()
 		{
-			if (!IsServer || _overlayStack.Count == 0) return;
+			if (!IsServer) return;
 
-			var overlay = _overlayStack[^1];
-			_overlayStack.RemoveAt(_overlayStack.Count - 1);
-
-			overlay.EndStage();
-			NotifyStageEnded(overlay);
-
-			_data.OverlayStageId.Value = CurrentOverlay ? CurrentOverlay.StageId : string.Empty;
-			ActiveStage?.ResumeStage();
-		}
-
-		private void SetCurrentStage(PokerStage stage)
-		{
-			CurrentStage = stage;
-			_data.StageId.Value = stage ? stage.StageId : string.Empty;
-
-			// The clock belongs to whoever is running, so it never survives the handover.
-			ClearStageTimer();
-
-			if (!stage) return;
-
-			stage.StartStage();
-			NotifyStageStarted(stage);
+			_stageMachine.PopOverlay();
 		}
 
 		private void NotifyStageStarted(PokerStage stage)

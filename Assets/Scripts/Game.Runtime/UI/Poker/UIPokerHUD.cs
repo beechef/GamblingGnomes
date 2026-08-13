@@ -1,4 +1,5 @@
 using Game.Runtime.GameMode.Poker;
+using Game.Runtime.GameMode.Poker.Player;
 using Game.Runtime.Player;
 using TMPro;
 using UnityEngine;
@@ -69,7 +70,10 @@ namespace Game.Runtime.UI.Poker
 			if (showWinner && _winnerLabel)
 			{
 				var winnerClientId = Data.LastWinnerClientId.Value;
-				_winnerLabel.text = winnerClientId == LocalClientId ? "You win" : $"Player {winnerClientId} wins";
+				var winner = PokerPlayer.Find(winnerClientId);
+				var winnerName = winner ? winner.DisplayName : $"Player {winnerClientId}";
+
+				_winnerLabel.text = winnerClientId == LocalClientId ? "You win" : $"{winnerName} wins";
 			}
 		}
 	}
