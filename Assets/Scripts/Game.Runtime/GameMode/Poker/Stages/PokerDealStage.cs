@@ -17,6 +17,9 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		[SerializeField] private int _smallBlind = 10;
 		[SerializeField] private int _bigBlind = 20;
 
+		[Tooltip("Paid by everyone dealt in, before the blinds — an equal stake in front of every player rather than a bet to answer. Zero plays without one.")]
+		[SerializeField] private int _ante;
+
 		[Header("Timing")]
 		[Tooltip("Seconds the deal is left on screen. Zero or less moves on the same frame.")]
 		[SerializeField] private float _dealDuration = 1.5f;
@@ -27,6 +30,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		public int CommunityCardCount => Mathf.Max(0, _communityCardCount);
 		public int SmallBlind => Mathf.Max(0, _smallBlind);
 		public int BigBlind => Mathf.Max(0, _bigBlind);
+		public int Ante => Mathf.Max(0, _ante);
 
 		protected override void OnStartStage()
 		{
@@ -38,6 +42,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 			RotateDealer();
 			DealHoleCards();
+			PostAnte();
 			PostBlinds();
 
 			if (_dealDuration <= 0f)
@@ -94,6 +99,18 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 				data.ServerSetHoleCards(_dealtCards);
 				data.Status.Value = PokerPlayerStatus.Active;
+			}
+		}
+
+		// Straight onto each player's stake rather than through PlaceBet: an ante is not a bet to
+		// answer, so it must not raise the table's current bet.
+		private void PostAnte()
+		{
+			if (Ante <= 0) return;
+
+			foreach (var player in GameMode.SeatedPlayers)
+			{
+				if (player.Data.CanAct) player.Data.ServerPlaceBet(Ante);
 			}
 		}
 

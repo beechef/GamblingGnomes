@@ -219,7 +219,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.PokerGameMode
   ShowTopMostFoldoutHeaderGroup: 1
   _rules: {fileID: 11400000, guid: 8367ae2105df611499070e4e8f1f71ee, type: 2}
-  _sequence: {fileID: 11400000, guid: 5532d4eb8f444394d8d0f9a749e3d8b1, type: 2}
+  _sequence: {fileID: 11400000, guid: a0409eb1b86572a8b3514420705f5552, type: 2}
   _modules:
   - {fileID: 8672451930287465123}
   _hudPrefab: {fileID: 3138526501266221406, guid: 2208a74e200460146ab902639dee8eb2, type: 3}
@@ -240,10 +240,17 @@ MonoBehaviour:
   _moduleId: 
   _pool: {fileID: 11400000, guid: 6799770125e6b7d46f8673cc18c90039, type: 2}
   _guaranteedCheatCards: 1
-  _abilityStages: []
-  _abilityWindowSeconds: 0
+  _abilityStages:
+  - {fileID: 11400000, guid: 86dc6b1ba01640a0efa8ee6f29da8dce, type: 2}
+  - {fileID: 11400000, guid: bea4c8e71023088e218025c91b36b554, type: 2}
+  - {fileID: 11400000, guid: 33f10e3b8fd52fa2f1a2188559023a76, type: 2}
+  _abilityWindowSeconds: 20
   _reportsPerRound: 1
-  _reportStake: 100
-  _reportStages: []
+  _reportStake: 1
+  _reportStages:
+  - {fileID: 11400000, guid: 86dc6b1ba01640a0efa8ee6f29da8dce, type: 2}
+  - {fileID: 11400000, guid: bea4c8e71023088e218025c91b36b554, type: 2}
+  - {fileID: 11400000, guid: 33f10e3b8fd52fa2f1a2188559023a76, type: 2}
+  - {fileID: 11400000, guid: c6f6aae88079259ee81b59e2f41851bd, type: 2}
   _reportStage: {fileID: 11400000, guid: ac348855f9712a5fb0283265b90d71b4, type: 2}
   _enabledByDefault: 1

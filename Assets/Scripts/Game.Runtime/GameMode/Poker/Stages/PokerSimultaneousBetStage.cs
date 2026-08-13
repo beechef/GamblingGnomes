@@ -38,6 +38,9 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		[Tooltip("On, whoever never answered is charged the minimum when the clock runs out. Off, they put nothing in.")]
 		[SerializeField] private bool _timeoutBetsMinimum = true;
 
+		[Tooltip("On, whoever never answered folds instead — the street is a call-it-or-leave-it gate. Wins over charging the minimum.")]
+		[SerializeField] private bool _timeoutFolds;
+
 		[Header("References")]
 		[Tooltip("Where the hand jumps when everyone but one player has folded.")]
 		[SerializeField] private PokerStage _handOverStage;
@@ -149,7 +152,8 @@ namespace Game.Runtime.GameMode.Poker.Stages
 				var data = player.Data;
 				if (!data.CanAct || data.HasActed.Value) continue;
 
-				if (_timeoutBetsMinimum) PlaceBet(player, MinimumBet);
+				if (_timeoutFolds) data.Status.Value = PokerPlayerStatus.Folded;
+				else if (_timeoutBetsMinimum) PlaceBet(player, MinimumBet);
 
 				data.HasActed.Value = true;
 			}
