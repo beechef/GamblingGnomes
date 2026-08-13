@@ -3,16 +3,17 @@ using System.Collections.Generic;
 using Game.Runtime.GameMode.Poker.Abilities;
 using Game.Runtime.GameMode.Poker.Player;
 using Game.Runtime.GameMode.Poker.Stages;
-using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker.Modules
 {
 	// The ability game, plugged into the table as one module: a pool dealt out every hand, cheats
-	// that tag their user, and the report that calls the tag. Everything that decides guilt lives
-	// server-side in plain collections — replicating any of it would hand the answer to the very
-	// players who are supposed to be guessing.
+	// that tag their user, and the report that calls the tag. Guilt lives server-side in plain
+	// collections — replicating it would hand the answer to the very players supposed to be
+	// guessing. Everything a client needs rides replicated state instead of fired-off RPCs: the
+	// card sits owner-read on the player, and whether the windows are open is decided here and
+	// replicated, so the UI never has to guess at server config.
 	public class PokerAbilityModule : PokerModule
 	{
 		[Header("Deal")]
@@ -47,6 +48,14 @@ namespace Game.Runtime.GameMode.Poker.Modules
 		[HideInInspector] public NetworkVariable<bool> Enabled = new(true,
 			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
 
+		// The module's standing decisions, made on the server and replicated — a client's UI shows the
+		// ability game exactly when these say it is on, whatever stages and windows are configured.
+		[HideInInspector] public NetworkVariable<bool> AbilityWindowOpen = new(false,
+			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
+
+		[HideInInspector] public NetworkVariable<bool> ReportWindowOpen = new(false,
+			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
+
 		[HideInInspector] public NetworkVariable<PokerReportResult> LastReport = new(default,
 			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
 
@@ -55,12 +64,10 @@ namespace Game.Runtime.GameMode.Poker.Modules
 		[HideInInspector] public NetworkVariable<PokerReportAccusation> Accusation = new(default,
 			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
 
-		// Server-only truth. The held cards, the cheater tags and the spent reports never replicate —
+		// Server-only truth. Which card each player holds and who cheated never replicate in the clear —
 		// the report game is a guessing game, and this is the answer sheet.
 		private readonly Dictionary<ulong, PokerAbility> _held = new();
 		private readonly HashSet<ulong> _cheaters = new();
-		private readonly HashSet<ulong> _usedAbility = new();
-		private readonly Dictionary<ulong, int> _reportsUsed = new();
 		private readonly List<PokerAbility> _dealBuffer = new();
 
 		private ulong _pendingAccuser;
@@ -68,30 +75,14 @@ namespace Game.Runtime.GameMode.Poker.Modules
 		private bool _hasPendingReport;
 		private double _stageOpenedTime;
 
-		// What this client knows about its own hand of the ability game, fed by targeted RPCs.
-		public string LocalAbilityId { get; private set; }
-		public string LocalAbilityName { get; private set; }
-		public PokerAbilityKind LocalAbilityKind { get; private set; }
-		public bool LocalAbilityUsed { get; private set; }
-		public int LocalReportsLeft { get; private set; }
-		public bool HasLocalAbility => !string.IsNullOrEmpty(LocalAbilityId);
-
-		public event Action OnLocalStateChanged;
+		// Clients resolve their owner-read ability id against the same pool asset the server deals from.
+		public PokerAbilityPool Pool => _pool;
 
 		public override void OnNetworkSpawn()
 		{
 			base.OnNetworkSpawn();
 
 			if (IsServer) Enabled.Value = _enabledByDefault;
-
-			LastReport.OnValueChanged += HandleReportChanged;
-		}
-
-		public override void OnNetworkDespawn()
-		{
-			LastReport.OnValueChanged -= HandleReportChanged;
-
-			base.OnNetworkDespawn();
 		}
 
 		public void SetEnabledServer(bool enabled)
@@ -109,6 +100,27 @@ namespace Game.Runtime.GameMode.Poker.Modules
 		}
 
 		public override void OnGameEnded() => ClearRoundServer();
+
+		// A NetworkBehaviour update, not a poll for a dependency: the window closes on a clock, and
+		// somebody has to notice the moment it does.
+		private void Update()
+		{
+			if (!IsServer || !IsSpawned) return;
+
+			RefreshWindowsServer();
+		}
+
+		private void RefreshWindowsServer()
+		{
+			var running = Enabled.Value && GameMode && GameMode.IsGameRunning;
+			var uninterrupted = GameMode && GameMode.CurrentOverlay == null;
+
+			var abilityOpen = running && uninterrupted && IsStageAllowed(_abilityStages) && IsInsideAbilityWindow();
+			if (AbilityWindowOpen.Value != abilityOpen) AbilityWindowOpen.Value = abilityOpen;
+
+			var reportOpen = running && uninterrupted && !_hasPendingReport && IsStageAllowed(_reportStages);
+			if (ReportWindowOpen.Value != reportOpen) ReportWindowOpen.Value = reportOpen;
+		}
 
 		private void DealServer()
 		{
@@ -137,22 +149,29 @@ namespace Game.Runtime.GameMode.Poker.Modules
 
 				_held[player.ClientId] = ability;
 
-				GrantAbilityRPC(ability.AbilityId, ability.DisplayName, ability.Kind,
-					RpcTarget.Single(player.ClientId, RpcTargetUse.Temp));
+				var data = player.Data;
+				data.AbilityId.Value = ability.AbilityId;
+				data.AbilityUsed.Value = false;
+				data.ReportsLeft.Value = _reportsPerRound;
 			}
 		}
 
 		private void ClearRoundServer()
 		{
-			if (!IsServer) return;
+			if (!IsServer || !GameMode) return;
 
 			_held.Clear();
 			_cheaters.Clear();
-			_usedAbility.Clear();
-			_reportsUsed.Clear();
 			_hasPendingReport = false;
 
-			ClearLocalAbilityRPC();
+			foreach (var player in GameMode.SeatedPlayers)
+			{
+				if (!player || !player.Data) continue;
+
+				player.Data.AbilityId.Value = default;
+				player.Data.AbilityUsed.Value = false;
+				player.Data.ReportsLeft.Value = 0;
+			}
 		}
 
 		[Rpc(SendTo.Server)]
@@ -160,22 +179,20 @@ namespace Game.Runtime.GameMode.Poker.Modules
 		{
 			var clientId = rpcParams.Receive.SenderClientId;
 
-			if (!Enabled.Value || !GameMode || !GameMode.IsGameRunning) return;
-			if (!IsStageAllowed(_abilityStages) || !IsInsideAbilityWindow()) return;
-			if (_usedAbility.Contains(clientId)) return;
-			if (!_held.TryGetValue(clientId, out var ability) || !ability) return;
+			// The replicated window is the same decision the UI showed — the server just has the
+			// final word on it.
+			if (!AbilityWindowOpen.Value) return;
 
 			var player = GameMode.FindSeatedPlayer(clientId);
-			if (!player || !player.Data.IsInHand) return;
+			if (!player || !player.Data.IsInHand || player.Data.AbilityUsed.Value) return;
+			if (!_held.TryGetValue(clientId, out var ability) || !ability) return;
 
 			if (!ability.ActivateServer(GameMode, player)) return;
 
-			_usedAbility.Add(clientId);
+			// Only the owner's replica learns the card is spent. Nobody else hears a thing — an
+			// ability is played in silence, and the report game is how it ever comes to light.
+			player.Data.AbilityUsed.Value = true;
 			if (ability.Kind == PokerAbilityKind.Cheat) _cheaters.Add(clientId);
-
-			// Only the user learns their card is spent. Nobody else hears a thing — an ability is
-			// played in silence, and the report game is the only way it ever comes to light.
-			ConfirmAbilityUsedRPC(RpcTarget.Single(clientId, RpcTargetUse.Temp));
 		}
 
 		[Rpc(SendTo.Server)]
@@ -183,20 +200,19 @@ namespace Game.Runtime.GameMode.Poker.Modules
 		{
 			var accuser = rpcParams.Receive.SenderClientId;
 
-			if (!Enabled.Value || !GameMode || !GameMode.IsGameRunning) return;
+			if (!ReportWindowOpen.Value) return;
 			if (_hasPendingReport || accuser == targetClientId) return;
-			if (!IsStageAllowed(_reportStages)) return;
-			if (GetReportsUsed(accuser) >= _reportsPerRound) return;
 
 			// A folded player has no voice left this hand — they can be accused, not accuse.
 			var accuserPlayer = GameMode.FindSeatedPlayer(accuser);
 			if (!accuserPlayer || !accuserPlayer.Data.IsInHand) return;
+			if (accuserPlayer.Data.ReportsLeft.Value <= 0) return;
 
 			// The accused only has to have been dealt in: folding out does not launder a cheat.
 			var targetPlayer = GameMode.FindSeatedPlayer(targetClientId);
 			if (!targetPlayer || !WasDealtIn(targetPlayer)) return;
 
-			_reportsUsed[accuser] = GetReportsUsed(accuser) + 1;
+			accuserPlayer.Data.ReportsLeft.Value -= 1;
 
 			_pendingAccuser = accuser;
 			_pendingTarget = targetClientId;
@@ -267,8 +283,6 @@ namespace Game.Runtime.GameMode.Poker.Modules
 			return player.Data.IsInHand || player.Data.Status.Value == PokerPlayerStatus.Folded;
 		}
 
-		private int GetReportsUsed(ulong clientId) => _reportsUsed.GetValueOrDefault(clientId, 0);
-
 		// Empty list keeps the gate open — restriction is opt-in, per the configured stage ids.
 		private bool IsStageAllowed(List<PokerStage> stages)
 		{
@@ -290,45 +304,6 @@ namespace Game.Runtime.GameMode.Poker.Modules
 			if (_abilityWindowSeconds <= 0f || !NetworkManager) return true;
 
 			return NetworkManager.ServerTime.Time - _stageOpenedTime <= _abilityWindowSeconds;
-		}
-
-		[Rpc(SendTo.SpecifiedInParams)]
-		private void GrantAbilityRPC(FixedString32Bytes abilityId, FixedString64Bytes displayName, PokerAbilityKind kind, RpcParams rpcParams = default)
-		{
-			LocalAbilityId = abilityId.ToString();
-			LocalAbilityName = displayName.ToString();
-			LocalAbilityKind = kind;
-			LocalAbilityUsed = false;
-			LocalReportsLeft = _reportsPerRound;
-
-			OnLocalStateChanged?.Invoke();
-		}
-
-		[Rpc(SendTo.ClientsAndHost)]
-		private void ClearLocalAbilityRPC()
-		{
-			LocalAbilityId = null;
-			LocalAbilityName = null;
-			LocalAbilityUsed = false;
-
-			OnLocalStateChanged?.Invoke();
-		}
-
-		[Rpc(SendTo.SpecifiedInParams)]
-		private void ConfirmAbilityUsedRPC(RpcParams rpcParams = default)
-		{
-			LocalAbilityUsed = true;
-			OnLocalStateChanged?.Invoke();
-		}
-
-		private void HandleReportChanged(PokerReportResult previous, PokerReportResult current)
-		{
-			if (NetworkManager && current.AccuserClientId == NetworkManager.LocalClientId && LocalReportsLeft > 0)
-			{
-				LocalReportsLeft--;
-			}
-
-			OnLocalStateChanged?.Invoke();
 		}
 	}
 }

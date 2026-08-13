@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Game.Runtime.Player;
+using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -34,6 +35,19 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 		// Showdown, or anything else that decides this hand is public.
 		[HideInInspector] public NetworkVariable<bool> HandRevealed = new(false,
+			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
+
+		// The ability game's per-player state. The card is owner-read: which trick somebody drew is the
+		// whole guessing game, so the network layer keeps it from everyone else — and whether they have
+		// played it stays just as private. Riding replicated state rather than a fired-off RPC means a
+		// client that spawns late still arrives knowing its own card.
+		[HideInInspector] public NetworkVariable<FixedString64Bytes> AbilityId = new(default,
+			readPerm: NetworkVariableReadPermission.Owner, writePerm: NetworkVariableWritePermission.Server);
+
+		[HideInInspector] public NetworkVariable<bool> AbilityUsed = new(false,
+			readPerm: NetworkVariableReadPermission.Owner, writePerm: NetworkVariableWritePermission.Server);
+
+		[HideInInspector] public NetworkVariable<int> ReportsLeft = new(0,
 			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
 
 		// Replicated to everyone rather than owner-only: who may look is a display rule, so an ability
@@ -99,6 +113,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 			Status.OnValueChanged += HandleStatusChanged;
 			HasActed.OnValueChanged += HandleBoolChanged;
 			HandRevealed.OnValueChanged += HandleBoolChanged;
+			AbilityId.OnValueChanged += HandleAbilityChanged;
+			AbilityUsed.OnValueChanged += HandleBoolChanged;
+			ReportsLeft.OnValueChanged += HandleIntChanged;
 
 			HoleCards.OnListChanged += HandleHoleCardsChanged;
 		}
@@ -113,6 +130,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 			Status.OnValueChanged -= HandleStatusChanged;
 			HasActed.OnValueChanged -= HandleBoolChanged;
 			HandRevealed.OnValueChanged -= HandleBoolChanged;
+			AbilityId.OnValueChanged -= HandleAbilityChanged;
+			AbilityUsed.OnValueChanged -= HandleBoolChanged;
+			ReportsLeft.OnValueChanged -= HandleIntChanged;
 
 			HoleCards.OnListChanged -= HandleHoleCardsChanged;
 		}
@@ -143,6 +163,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 			TotalBet.Value = 0;
 			HasActed.Value = false;
 			HandRevealed.Value = false;
+			AbilityId.Value = default;
+			AbilityUsed.Value = false;
+			ReportsLeft.Value = 0;
 			HoleCards.Clear();
 		}
 
@@ -199,6 +222,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		}
 
 		private void HandleIntChanged(int previous, int current) => OnStateChanged?.Invoke();
+		private void HandleAbilityChanged(FixedString64Bytes previous, FixedString64Bytes current) => OnStateChanged?.Invoke();
 		private void HandleBoolChanged(bool previous, bool current) => OnStateChanged?.Invoke();
 		private void HandleStatusChanged(PokerPlayerStatus previous, PokerPlayerStatus current) => OnStateChanged?.Invoke();
 		private void HandleHoleCardsChanged(NetworkListEvent<CardData> changeEvent) => OnHoleCardsChanged?.Invoke(changeEvent);
