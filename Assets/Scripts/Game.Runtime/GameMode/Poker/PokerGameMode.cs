@@ -281,8 +281,22 @@ namespace Game.Runtime.GameMode.Poker
 				if (module) module.OnGameEnded();
 			}
 
+			ServerClearHands();
+
 			_data.Phase.Value = PokerPhase.Finished;
 			ClearTurn();
+		}
+
+		// The match is over, so the cards leave everyone's hands here — at the one point every ending
+		// passes through — rather than trusting whichever stage happens to run next to tidy up. Every
+		// registered player, not just the seated ones: whoever left their seat mid-hand walked off with
+		// their cards, and no stage's reset would ever reach them again.
+		private void ServerClearHands()
+		{
+			foreach (var player in PokerPlayer.All)
+			{
+				if (player && player.Data && player.Data.CardCount > 0) player.Data.HoleCards.Clear();
+			}
 		}
 
 		// Transitions are the server's alone; how they play out is the machine's business.
@@ -400,6 +414,10 @@ namespace Game.Runtime.GameMode.Poker
 					// players who pushed them out would win back nothing but their own bets.
 					_data.Pot.Value += player.Data.Bet.Value;
 					player.Data.ServerCollectBet();
+
+					// The cards go back with the seat: an unseated player is outside every stage's reset
+					// sweep, and would otherwise carry the hand around for the rest of the session.
+					player.Data.HoleCards.Clear();
 				}
 				else
 				{
