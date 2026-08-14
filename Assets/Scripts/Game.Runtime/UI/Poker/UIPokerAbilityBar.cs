@@ -43,7 +43,7 @@ namespace Game.Runtime.UI.Poker
 
 		protected override void OnBind()
 		{
-			_module = FindModule();
+			_module = GameMode.FindModule<PokerAbilityModule>();
 			if (_module == null) return;
 
 			if (_useButton) _useButton.OnClick += HandleUseClicked;
@@ -77,16 +77,6 @@ namespace Game.Runtime.UI.Poker
 			_module = null;
 
 			if (_panel) _panel.SetActive(false);
-		}
-
-		private PokerAbilityModule FindModule()
-		{
-			foreach (var module in GameMode.Modules)
-			{
-				if (module is PokerAbilityModule abilityModule) return abilityModule;
-			}
-
-			return null;
 		}
 
 		private void HandleToggleChanged(bool previous, bool current) => Refresh();

@@ -32,7 +32,7 @@ namespace Game.Runtime.GameMode.Poker.Modules
 		[Header("Report")]
 		[SerializeField] private int _reportsPerRound = 1;
 
-		[Tooltip("Moved from the loser's wallet to the winner's — a wrong accusation costs the accuser exactly what a right one would have won them.")]
+		[Tooltip("Staked when there is no report overlay to haggle over it. With one, the accused names the number themselves and this is never read.")]
 		[SerializeField] private int _reportStake = 100;
 
 		[Tooltip("Stages a report may be filed in, matched by stage id. Empty allows any moment of the hand.")]
@@ -64,6 +64,11 @@ namespace Game.Runtime.GameMode.Poker.Modules
 		[HideInInspector] public NetworkVariable<PokerReportAccusation> Accusation = new(default,
 			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
 
+		// What the accused has put up to be believed. Zero until they answer — the accuser is being asked to
+		// match a number, so it has to be on the table before they can say anything about it.
+		[HideInInspector] public NetworkVariable<int> ReportStake = new(0,
+			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
+
 		// Server-only truth. Which card each player holds and who cheated never replicate in the clear —
 		// the report game is a guessing game, and this is the answer sheet.
 		private readonly Dictionary<ulong, PokerAbility> _held = new();
@@ -78,11 +83,23 @@ namespace Game.Runtime.GameMode.Poker.Modules
 		// Clients resolve their owner-read ability id against the same pool asset the server deals from.
 		public PokerAbilityPool Pool => _pool;
 
+		// Read by the report overlay as it opens: it runs the haggling, this holds the answer sheet.
+		public bool HasPendingReport => _hasPendingReport;
+		public ulong PendingAccuserClientId => _pendingAccuser;
+		public ulong PendingTargetClientId => _pendingTarget;
+
 		public override void OnNetworkSpawn()
 		{
 			base.OnNetworkSpawn();
 
 			if (IsServer) Enabled.Value = _enabledByDefault;
+		}
+
+		// The report overlay never joins the loop, but every client renders it and reads its numbers off the
+		// clone, so it is named here rather than left to the server's push to conjure up.
+		public override void CollectReferencedStages(List<PokerStage> stages)
+		{
+			if (_reportStage) stages.Add(_reportStage);
 		}
 
 		public void SetEnabledServer(bool enabled)
@@ -226,12 +243,19 @@ namespace Game.Runtime.GameMode.Poker.Modules
 				Sequence = LastReport.Value.Sequence + 1
 			};
 
+			ReportStake.Value = 0;
+
 			if (_reportStage) GameMode.PushOverlay(_reportStage);
-			else ResolvePendingReportServer();
+			else ResolvePendingReportServer(_reportStake, true);
 		}
 
-		// Called by the report overlay as it opens — or directly, when no overlay is configured.
-		public void ResolvePendingReportServer()
+		// The verdict, once the challenge has been answered. Called by the report overlay, which is what
+		// decides the stake and whether the accuser was willing to pay it — or directly with the configured
+		// stake when no overlay is set up to haggle over one.
+		//
+		// A challenge nobody called is dropped rather than judged: the accused keeps their secret, nothing
+		// moves, and the accusation is spent all the same.
+		public void ResolvePendingReportServer(int stake, bool called)
 		{
 			if (!IsServer || !_hasPendingReport) return;
 
@@ -241,20 +265,29 @@ namespace Game.Runtime.GameMode.Poker.Modules
 			var target = GameMode.FindSeatedPlayer(_pendingTarget);
 			if (accuser == null || target == null) return;
 
-			var wasCheater = _cheaters.Contains(_pendingTarget);
-			var loser = wasCheater ? target : accuser;
-			var winner = wasCheater ? accuser : target;
+			var wasCheater = called && _cheaters.Contains(_pendingTarget);
+			var amount = 0;
 
-			var wallet = loser.Wallet;
-			var amount = Math.Min(_reportStake, wallet ? wallet.Money.Value : 0);
-			if (amount > 0 && wallet.ServerTryWithdraw(amount)) winner.Data.ServerWinChips(amount);
+			if (called)
+			{
+				var loser = wasCheater ? target : accuser;
+				var winner = wasCheater ? accuser : target;
 
-			FoldServer(loser);
+				var wallet = loser.Wallet;
+				amount = Math.Min(Math.Max(0, stake), wallet ? wallet.Money.Value : 0);
+				if (amount > 0 && wallet.ServerTryWithdraw(amount)) winner.Data.ServerWinChips(amount);
+
+				// A cheat caught in the act is out of the hand as well as out of pocket. Pointing at the wrong
+				// player only costs money: the accuser plays on, which is what keeps a hunch worth acting on
+				// at all rather than a way to talk yourself out of the hand.
+				if (wasCheater) FoldServer(target);
+			}
 
 			LastReport.Value = new PokerReportResult
 			{
 				AccuserClientId = _pendingAccuser,
 				TargetClientId = _pendingTarget,
+				Called = called,
 				WasCheater = wasCheater,
 				Amount = amount,
 				Sequence = LastReport.Value.Sequence + 1

@@ -205,6 +205,11 @@ MonoBehaviour:
       MinSecondsBetweenUpdates: 0
       MaxSecondsBetweenUpdates: 0
     m_InternalValue: 0
+  RevealedCommunityCards:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
 --- !u!114 &7373537335293292376
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -237,6 +242,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 33fb32ee3efbf8470e9dea76db19b7cd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Modules.PokerAbilityModule
+  ShowTopMostFoldoutHeaderGroup: 1
   _moduleId: 
   _pool: {fileID: 11400000, guid: 6799770125e6b7d46f8673cc18c90039, type: 2}
   _guaranteedCheatCards: 1
@@ -244,6 +250,10 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 86dc6b1ba01640a0efa8ee6f29da8dce, type: 2}
   - {fileID: 11400000, guid: bea4c8e71023088e218025c91b36b554, type: 2}
   - {fileID: 11400000, guid: 33f10e3b8fd52fa2f1a2188559023a76, type: 2}
+  - {fileID: 11400000, guid: 78346fe82aa12f548a000b4a72d79e5e, type: 2}
+  - {fileID: 11400000, guid: 43c41207e562e55449568c27d796401c, type: 2}
+  - {fileID: 11400000, guid: 82f835a9626778f4c9662cc12c8aaa3f, type: 2}
+  - {fileID: 11400000, guid: f3977933e9cfd9547b14e6cc9bd3881a, type: 2}
   _abilityWindowSeconds: 20
   _reportsPerRound: 1
   _reportStake: 1
@@ -252,5 +262,37 @@ MonoBehaviour:
   - {fileID: 11400000, guid: bea4c8e71023088e218025c91b36b554, type: 2}
   - {fileID: 11400000, guid: 33f10e3b8fd52fa2f1a2188559023a76, type: 2}
   - {fileID: 11400000, guid: c6f6aae88079259ee81b59e2f41851bd, type: 2}
+  - {fileID: 11400000, guid: 78346fe82aa12f548a000b4a72d79e5e, type: 2}
+  - {fileID: 11400000, guid: 43c41207e562e55449568c27d796401c, type: 2}
+  - {fileID: 11400000, guid: 82f835a9626778f4c9662cc12c8aaa3f, type: 2}
+  - {fileID: 11400000, guid: f3977933e9cfd9547b14e6cc9bd3881a, type: 2}
   _reportStage: {fileID: 11400000, guid: ac348855f9712a5fb0283265b90d71b4, type: 2}
   _enabledByDefault: 1
+  Enabled:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 1
+  AbilityWindowOpen:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
+  ReportWindowOpen:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
+  LastReport:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+  Accusation:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+  ReportStake:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0

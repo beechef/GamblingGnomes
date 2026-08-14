@@ -96,7 +96,9 @@ namespace Game.Runtime.UI.Poker
 				var used = i < cards.Count;
 				_communityCards[i].gameObject.SetActive(used);
 
-				if (used) _communityCards[i].SetCard(cards[i]);
+				// The board is on the table whole from the deal, so a hand that ended before the river shows
+				// the cards it never turned as backs rather than spoiling them here.
+				if (used) _communityCards[i].SetCard(cards[i], Data.IsCommunityCardVisible(i));
 			}
 		}
 	}

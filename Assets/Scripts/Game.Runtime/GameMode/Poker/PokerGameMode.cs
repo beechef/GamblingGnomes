@@ -84,7 +84,6 @@ namespace Game.Runtime.GameMode.Poker
 		public event Action<PokerStage> OnStageChanged;
 
 		private readonly List<PokerPlayer> _seatedPlayers = new();
-		private readonly List<CardData> _pendingCommunityCards = new();
 
 		private PokerStageMachine _stageMachine;
 		private GameObject _hudInstance;
@@ -187,6 +186,18 @@ namespace Game.Runtime.GameMode.Poker
 			else Destroy(_hudInstance);
 
 			_hudInstance = null;
+		}
+
+		// Modules are plugged in by the inspector, so whatever needs one goes looking for it by type rather
+		// than holding a reference to something that may not be at this table at all.
+		public T FindModule<T>() where T : PokerModule
+		{
+			foreach (var module in _modules)
+			{
+				if (module is T match) return match;
+			}
+
+			return null;
 		}
 
 		public PokerStage FindStage(string stageId) => _stageMachine.Find(stageId);
@@ -482,27 +493,30 @@ namespace Game.Runtime.GameMode.Poker
 			return NetworkManager.ServerTime.Time >= _data.StageEndTime.Value;
 		}
 
-		// The board is dealt face down at shuffle time and revealed a street at a time, so no stage can
-		// change what the river will be after seeing how the betting went.
-		public void ServerSetPendingCommunityCards(List<CardData> cards)
+		// The whole board comes off the shuffle at the deal and goes down on the table there and then, so no
+		// stage can change what the river will be after seeing how the betting went. It goes down face
+		// down: the cards are all dealt, and how much of them the table has been shown is a separate thing
+		// the streets move.
+		public void ServerDealCommunityCards(List<CardData> cards)
 		{
 			if (!IsServer) return;
 
-			_pendingCommunityCards.Clear();
-			_pendingCommunityCards.AddRange(cards);
+			_data.CommunityCards.Clear();
+			foreach (var card in cards) _data.CommunityCards.Add(card);
+
+			_data.RevealedCommunityCards.Value = 0;
 		}
 
+		// Turns the next few cards of the board over for the whole table. Nothing is dealt here — the cards
+		// have been lying there since the deal, and this only says how many of them everyone may see.
 		public void RevealCommunityCards(int amount)
 		{
 			if (!IsServer) return;
 
-			for (var i = 0; i < amount; i++)
-			{
-				var next = _data.CommunityCards.Count;
-				if (next >= _pendingCommunityCards.Count) return;
+			var revealed = Mathf.Clamp(_data.RevealedCommunityCards.Value + amount, 0, _data.CommunityCards.Count);
+			if (revealed == _data.RevealedCommunityCards.Value) return;
 
-				_data.CommunityCards.Add(_pendingCommunityCards[next]);
-			}
+			_data.RevealedCommunityCards.Value = revealed;
 		}
 
 		[Rpc(SendTo.Server)]

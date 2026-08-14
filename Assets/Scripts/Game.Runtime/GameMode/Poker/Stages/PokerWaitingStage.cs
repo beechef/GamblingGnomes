@@ -13,6 +13,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 			GameMode.ClearTurn();
 			Data.CommunityCards.Clear();
+			Data.RevealedCommunityCards.Value = 0;
 			Data.Showdown.Clear();
 			Data.Pot.Value = 0;
 			Data.CurrentBet.Value = 0;

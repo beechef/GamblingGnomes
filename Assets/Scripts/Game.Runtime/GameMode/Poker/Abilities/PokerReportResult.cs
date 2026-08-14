@@ -34,6 +34,12 @@ namespace Game.Runtime.GameMode.Poker.Abilities
 	{
 		public ulong AccuserClientId;
 		public ulong TargetClientId;
+
+		// Whether the accuser paid to see it. Unanswered, the challenge is dropped and nothing below this
+		// means anything — WasCheater is left false either way, because publishing the truth about a hand
+		// nobody paid to see would hand it to every client for free.
+		public bool Called;
+
 		public bool WasCheater;
 		public int Amount;
 		public int Sequence;
@@ -42,6 +48,7 @@ namespace Game.Runtime.GameMode.Poker.Abilities
 		{
 			serializer.SerializeValue(ref AccuserClientId);
 			serializer.SerializeValue(ref TargetClientId);
+			serializer.SerializeValue(ref Called);
 			serializer.SerializeValue(ref WasCheater);
 			serializer.SerializeValue(ref Amount);
 			serializer.SerializeValue(ref Sequence);
@@ -51,6 +58,7 @@ namespace Game.Runtime.GameMode.Poker.Abilities
 		{
 			return AccuserClientId == other.AccuserClientId
 			       && TargetClientId == other.TargetClientId
+			       && Called == other.Called
 			       && WasCheater == other.WasCheater
 			       && Amount == other.Amount
 			       && Sequence == other.Sequence;

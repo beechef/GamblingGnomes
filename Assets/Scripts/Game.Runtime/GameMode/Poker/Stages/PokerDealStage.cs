@@ -9,7 +9,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		[Header("Cards")]
 		[SerializeField] private int _holeCardsPerPlayer = 2;
 
-		[Tooltip("How much board this hand needs. Drawn up front so the streets only flip what is already decided.")]
+		[Tooltip("How much board this hand needs. Laid on the table face down here, so the streets only turn over what is already lying there.")]
 		[SerializeField] private int _communityCardCount = 5;
 
 		[Header("Blinds")]
@@ -77,11 +77,11 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			GameMode.Deck.Rebuild();
 			GameMode.Deck.Shuffle();
 
-			// The board is burned off the same shuffle up front so the deal stage owns the whole deck
-			// and the betting stages only ever flip what is already decided.
+			// The board comes off the same shuffle up front and goes straight onto the table face down, so
+			// the deal owns the whole deck and the streets only turn over what is already lying there.
 			var community = new List<CardData>();
 			for (var i = 0; i < CommunityCardCount; i++) community.Add(GameMode.Deck.Draw());
-			GameMode.ServerSetPendingCommunityCards(community);
+			GameMode.ServerDealCommunityCards(community);
 
 			foreach (var player in GameMode.SeatedPlayers)
 			{

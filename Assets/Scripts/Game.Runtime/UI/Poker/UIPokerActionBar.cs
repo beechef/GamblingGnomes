@@ -8,6 +8,9 @@ using UnityEngine.UI;
 
 namespace Game.Runtime.UI.Poker
 {
+	// What the street is asking this player for, on their clock. Only the street — anything overlaid on it
+	// asks its own questions and brings its own bar, so this one stands down rather than offering street
+	// actions to a stage that is not listening for them.
 	public class UIPokerActionBar : UIPokerView
 	{
 		[Header("Panel")]
@@ -52,6 +55,7 @@ namespace Game.Runtime.UI.Poker
 			Data.CurrentTurnClientId.OnValueChanged += HandleTurnChanged;
 			Data.CurrentBet.OnValueChanged += HandleBetChanged;
 			Data.StageId.OnValueChanged += HandleStageChanged;
+			Data.OverlayStageId.OnValueChanged += HandleStageChanged;
 			LocalData.OnStateChanged += Refresh;
 
 			Refresh();
@@ -69,6 +73,7 @@ namespace Game.Runtime.UI.Poker
 			Data.CurrentTurnClientId.OnValueChanged -= HandleTurnChanged;
 			Data.CurrentBet.OnValueChanged -= HandleBetChanged;
 			Data.StageId.OnValueChanged -= HandleStageChanged;
+			Data.OverlayStageId.OnValueChanged -= HandleStageChanged;
 			LocalData.OnStateChanged -= Refresh;
 
 			if (_panel) _panel.SetActive(false);
@@ -81,7 +86,9 @@ namespace Game.Runtime.UI.Poker
 
 		private void Refresh()
 		{
-			var ourTurn = IsLocalTurn && LocalData.CanAct;
+			// While something is overlaid on the street the turn belongs to it, and whoever is on that clock
+			// is being asked something else entirely.
+			var ourTurn = IsLocalTurn && LocalData.CanAct && Data.OverlayStageId.Value.IsEmpty;
 
 			if (_panel && _panel.activeSelf != ourTurn) _panel.SetActive(ourTurn);
 			if (!ourTurn) return;

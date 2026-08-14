@@ -46,7 +46,10 @@ namespace Game.Runtime.GameMode.Poker
 		public IReadOnlyList<PokerStage> Stages => _runtimeStages;
 
 		// Every peer builds the same list, so a client can look a running stage up by id and read its
-		// numbers — only the transitions are the server's alone.
+		// numbers — only the transitions are the server's alone. That has to cover the stages nothing in the
+		// sequence mentions too: an overlay is only ever pushed on the server, so a client that waited for
+		// Resolve to clone one would never have it, and the UI asking after a running overlay by id would be
+		// told there is no such stage.
 		public void Build(PokerStageSequence sequence, IReadOnlyList<PokerModule> modules)
 		{
 			Release();
@@ -64,11 +67,30 @@ namespace Game.Runtime.GameMode.Poker
 			{
 				if (source) _runtimeStages.Add(CreateRuntimeStage(source));
 			}
+
+			_sources.Clear();
+
+			foreach (var module in modules)
+			{
+				if (module) module.CollectReferencedStages(_sources);
+			}
+
+			foreach (var source in _sources)
+			{
+				if (!source || Find(source.StageId)) continue;
+
+				_detachedStages.Add(CreateRuntimeStage(source));
+			}
 		}
 
 		public void InitializeStages()
 		{
 			foreach (var stage in _runtimeStages)
+			{
+				if (stage) stage.Initialize(_mode);
+			}
+
+			foreach (var stage in _detachedStages)
 			{
 				if (stage) stage.Initialize(_mode);
 			}

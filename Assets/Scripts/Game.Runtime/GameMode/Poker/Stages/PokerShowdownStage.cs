@@ -144,7 +144,12 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			_evaluationBuffer.Clear();
 
 			foreach (var card in player.Data.HoleCards) _evaluationBuffer.Add(card);
-			foreach (var card in Data.CommunityCards) _evaluationBuffer.Add(card);
+
+			// The whole board sits on the table from the deal, so it is the part the table was actually
+			// shown that plays — a hand that ended early is read off a short board. The public count, not
+			// what anybody was allowed to peek at: a cheat buys a look, not a card.
+			var board = Mathf.Min(Data.RevealedCommunityCards.Value, Data.CommunityCards.Count);
+			for (var i = 0; i < board; i++) _evaluationBuffer.Add(Data.CommunityCards[i]);
 
 			return GameMode.HandEvaluator.Evaluate(_handDatabase, _evaluationBuffer);
 		}

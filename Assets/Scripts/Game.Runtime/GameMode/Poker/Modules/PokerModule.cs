@@ -40,6 +40,11 @@ namespace Game.Runtime.GameMode.Poker.Modules
 		// instead should hold its stage back and call InsertStage or PushOverlay on the mode.
 		public virtual void CollectStages(List<PokerStage> stages) { }
 
+		// The stages held back for that: they take no slot in the loop, but every peer still needs its own
+		// clone of them. Pushing one only ever happens on the server, so a client is never the one to make
+		// the clone — and a UI asking about the overlay it can see running would find nothing to ask.
+		public virtual void CollectReferencedStages(List<PokerStage> stages) { }
+
 		public virtual void OnGameStarted() { }
 		public virtual void OnGameEnded() { }
 		public virtual void OnStageStarted(PokerStage stage) { }
