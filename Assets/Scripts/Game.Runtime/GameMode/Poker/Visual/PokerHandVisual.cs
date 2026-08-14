@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Game.Runtime.GameMode.Poker.Player;
+using Game.Runtime.Player;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -25,11 +26,8 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		[SerializeField] private float _depthStep = 0.0008f;
 
 		[Header("Hand Bone")]
-		[Tooltip("Used when no anchor is assigned: the bone the cards are attached to, searched under the rig this client renders.")]
-		[SerializeField] private string _handBoneName = "Wrist_R";
-
-		[SerializeField] private string _ownerRigPath = "Models/Gnome_HandOnly";
-		[SerializeField] private string _bodyRigPath = "Models/Gnome_rig";
+		[Tooltip("Used when no anchor is assigned: the hand of the rig this client renders.")]
+		[SerializeField] private PlayerBone _handBone = PlayerBone.HandRight;
 
 		[Tooltip("Where the cards sit in the hand, relative to that bone.")]
 		[SerializeField] private Vector3 _handLocalPosition = new(0.02f, 0.01f, 0f);
@@ -38,6 +36,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 		[Header("References")]
 		[SerializeField] private PokerPlayerData _data;
+		[SerializeField] private PlayerRigController _rig;
 		[SerializeField] private PokerCardVisual _cardPrefab;
 		[SerializeField] private PokerCardDatabase _database;
 
@@ -49,6 +48,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		public override void OnNetworkSpawn()
 		{
 			if (!_data) _data = GetComponent<PokerPlayerData>();
+			if (!_rig) _rig = GetComponent<PlayerRigController>();
 			if (!_data) return;
 
 			_data.OnHoleCardsChanged += HandleHoleCardsChanged;
@@ -182,8 +182,9 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		}
 
 		// The owner renders the hand-only rig and everyone else renders the full body, so the cards hang
-		// off whichever right hand this client is actually drawing. With no anchor assigned the bone is
-		// found by name and a holder is parented to it, which keeps the cards in the hand as it animates.
+		// off whichever right hand this client is actually drawing — which rig that is stays the rig's
+		// business, not this view's. With no anchor assigned a holder is parented to the bone, which keeps
+		// the cards in the hand as it animates.
 		private Transform ResolveAnchor()
 		{
 			if (_resolvedAnchor) return _resolvedAnchor;
@@ -191,8 +192,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			var assigned = IsOwner ? _ownerCardAnchor : _cardAnchor;
 			if (assigned) return _resolvedAnchor = assigned;
 
-			var rig = transform.Find(IsOwner ? _ownerRigPath : _bodyRigPath);
-			var bone = rig ? FindBone(rig, _handBoneName) : null;
+			var bone = _rig ? _rig.GetBone(_handBone) : null;
 			if (!bone) return _resolvedAnchor = transform;
 
 			var holder = new GameObject("PokerHandAnchor").transform;
@@ -201,16 +201,6 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			holder.localRotation = Quaternion.Euler(_handLocalEuler);
 
 			return _resolvedAnchor = holder;
-		}
-
-		private static Transform FindBone(Transform root, string boneName)
-		{
-			foreach (var child in root.GetComponentsInChildren<Transform>(true))
-			{
-				if (child.name == boneName) return child;
-			}
-
-			return null;
 		}
 	}
 }

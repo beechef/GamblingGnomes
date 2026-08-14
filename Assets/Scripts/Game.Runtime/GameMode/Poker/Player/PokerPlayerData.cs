@@ -50,6 +50,12 @@ namespace Game.Runtime.GameMode.Poker.Player
 		[HideInInspector] public NetworkVariable<int> ReportsLeft = new(0,
 			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
 
+		// A peek's private half. Everybody watches the neck go across the table — both peek cards look
+		// exactly the same from outside — but whether anything was actually read stays with the holder,
+		// because that is the part a report is guessing at.
+		[HideInInspector] public NetworkVariable<bool> PeekRevealsHand = new(false,
+			readPerm: NetworkVariableReadPermission.Owner, writePerm: NetworkVariableWritePermission.Server);
+
 		// Replicated to everyone rather than owner-only: who may look is a display rule, so an ability
 		// that shows someone else's hand is a change of rule and not a change of plumbing. The trade is
 		// that a modified client can read the list, so the rule is the only thing hiding it.
@@ -70,8 +76,18 @@ namespace Game.Runtime.GameMode.Poker.Player
 			HandVisibilityProviders.Remove(provider);
 		}
 
+		// Raised by a provider whose answer has just changed. The hand it now covers has no way of noticing
+		// that on its own — nothing about that hand changed, only who is allowed to look at it.
+		public static event Action OnHandVisibilityRulesChanged;
+
+		public static void NotifyHandVisibilityRulesChanged() => OnHandVisibilityRulesChanged?.Invoke();
+
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-		private static void ResetStatics() => HandVisibilityProviders.Clear();
+		private static void ResetStatics()
+		{
+			HandVisibilityProviders.Clear();
+			OnHandVisibilityRulesChanged = null;
+		}
 
 		public event Action OnStateChanged;
 
@@ -116,8 +132,11 @@ namespace Game.Runtime.GameMode.Poker.Player
 			AbilityId.OnValueChanged += HandleAbilityChanged;
 			AbilityUsed.OnValueChanged += HandleBoolChanged;
 			ReportsLeft.OnValueChanged += HandleIntChanged;
+			PeekRevealsHand.OnValueChanged += HandleBoolChanged;
 
 			HoleCards.OnListChanged += HandleHoleCardsChanged;
+
+			OnHandVisibilityRulesChanged += HandleStateChanged;
 		}
 
 		public override void OnNetworkDespawn()
@@ -133,8 +152,11 @@ namespace Game.Runtime.GameMode.Poker.Player
 			AbilityId.OnValueChanged -= HandleAbilityChanged;
 			AbilityUsed.OnValueChanged -= HandleBoolChanged;
 			ReportsLeft.OnValueChanged -= HandleIntChanged;
+			PeekRevealsHand.OnValueChanged -= HandleBoolChanged;
 
 			HoleCards.OnListChanged -= HandleHoleCardsChanged;
+
+			OnHandVisibilityRulesChanged -= HandleStateChanged;
 		}
 
 		public void ServerTakeSeat(int seatIndex)
@@ -166,6 +188,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			AbilityId.Value = default;
 			AbilityUsed.Value = false;
 			ReportsLeft.Value = 0;
+			PeekRevealsHand.Value = false;
 			HoleCards.Clear();
 		}
 
@@ -221,6 +244,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			Bet.Value = 0;
 		}
 
+		private void HandleStateChanged() => OnStateChanged?.Invoke();
 		private void HandleIntChanged(int previous, int current) => OnStateChanged?.Invoke();
 		private void HandleAbilityChanged(FixedString64Bytes previous, FixedString64Bytes current) => OnStateChanged?.Invoke();
 		private void HandleBoolChanged(bool previous, bool current) => OnStateChanged?.Invoke();

@@ -18,6 +18,11 @@ namespace Game.Runtime.GameMode.Poker.Player
 		[Tooltip("The wallet the bets come out of. Lives beside this on the player, not on the table.")]
 		[SerializeField] private PlayerData _wallet;
 
+		[Tooltip("The rig this client renders for this player — where an ability aiming at them finds a hand or a head.")]
+		[SerializeField] private PlayerRigController _rig;
+
+		[SerializeField] private PlayerHeadStretchController _headStretch;
+
 		private static readonly List<PokerPlayer> Registry = new();
 
 		public static IReadOnlyList<PokerPlayer> All => Registry;
@@ -39,6 +44,8 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 		public PokerPlayerData Data => _data;
 		public PlayerData Wallet => _wallet;
+		public PlayerRigController Rig => _rig;
+		public PlayerHeadStretchController HeadStretch => _headStretch;
 		public ulong ClientId => OwnerClientId;
 
 		// The seat number is the fallback rather than the label: a player whose identity RPC has not
@@ -71,6 +78,8 @@ namespace Game.Runtime.GameMode.Poker.Player
 		{
 			if (!_data) _data = GetComponent<PokerPlayerData>();
 			if (!_wallet) _wallet = GetComponent<PlayerData>();
+			if (!_rig) _rig = GetComponent<PlayerRigController>();
+			if (!_headStretch) _headStretch = GetComponent<PlayerHeadStretchController>();
 
 			if (!Registry.Contains(this))
 			{

@@ -74,7 +74,7 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
+    rgba: 4283615218
   m_fontColor: {r: 0.95, g: 0.78, b: 0.32, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
@@ -87,7 +87,7 @@ MonoBehaviour:
   m_spriteAsset: {fileID: 0}
   m_tintAllSprites: 0
   m_StyleSheet: {fileID: 0}
-  m_TextStyleHashCode: 0
+  m_TextStyleHashCode: -1183493901
   m_overrideHtmlColors: 0
   m_faceColor:
     serializedVersion: 2
@@ -226,7 +226,7 @@ Canvas:
   m_SortingBucketNormalizedSize: 0
   m_VertexColorAlwaysGammaSpace: 0
   m_UseReflectionProbes: 0
-  m_AdditionalShaderChannelsFlag: 0
+  m_AdditionalShaderChannelsFlag: 25
   m_UpdateRectTransformForStandalone: 0
   m_SortingLayerID: 0
   m_SortingOrder: 0
@@ -351,6 +351,21 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 6105733973742945484, guid: 8a531d709826a264e9027ff908ced981, type: 3}
       insertIndex: -1
       addedObject: {fileID: 794951249127223663}
+    - targetCorrespondingSourceObject: {fileID: 6105733973742945484, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6016601238787419408}
+    - targetCorrespondingSourceObject: {fileID: 6105733973742945484, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1660282531610549051}
+    - targetCorrespondingSourceObject: {fileID: 6105733973742945484, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5922064733088575687}
+    - targetCorrespondingSourceObject: {fileID: 7806619952198887708, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6035996872294696300}
+    - targetCorrespondingSourceObject: {fileID: 6752715760573350914, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8595995385710170276}
   m_SourcePrefab: {fileID: 100100000, guid: 8a531d709826a264e9027ff908ced981, type: 3}
 --- !u!1 &122163979769981132 stripped
 GameObject:
@@ -370,16 +385,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Player.PokerPlayerData
   ShowTopMostFoldoutHeaderGroup: 1
+  _wallet: {fileID: 0}
   SeatIndex:
     UpdateTraits:
       MinSecondsBetweenUpdates: 0
       MaxSecondsBetweenUpdates: 0
     m_InternalValue: -1
-  Chips:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 0
   Bet:
     UpdateTraits:
       MinSecondsBetweenUpdates: 0
@@ -405,6 +416,93 @@ MonoBehaviour:
       MinSecondsBetweenUpdates: 0
       MaxSecondsBetweenUpdates: 0
     m_InternalValue: 0
+  AbilityId:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue:
+      utf8LengthInBytes: 0
+      bytes:
+        offset0000:
+          byte0000: 0
+          byte0001: 0
+          byte0002: 0
+          byte0003: 0
+          byte0004: 0
+          byte0005: 0
+          byte0006: 0
+          byte0007: 0
+          byte0008: 0
+          byte0009: 0
+          byte0010: 0
+          byte0011: 0
+          byte0012: 0
+          byte0013: 0
+          byte0014: 0
+          byte0015: 0
+        offset0016:
+          byte0000: 0
+          byte0001: 0
+          byte0002: 0
+          byte0003: 0
+          byte0004: 0
+          byte0005: 0
+          byte0006: 0
+          byte0007: 0
+          byte0008: 0
+          byte0009: 0
+          byte0010: 0
+          byte0011: 0
+          byte0012: 0
+          byte0013: 0
+          byte0014: 0
+          byte0015: 0
+        offset0032:
+          byte0000: 0
+          byte0001: 0
+          byte0002: 0
+          byte0003: 0
+          byte0004: 0
+          byte0005: 0
+          byte0006: 0
+          byte0007: 0
+          byte0008: 0
+          byte0009: 0
+          byte0010: 0
+          byte0011: 0
+          byte0012: 0
+          byte0013: 0
+          byte0014: 0
+          byte0015: 0
+        byte0048: 0
+        byte0049: 0
+        byte0050: 0
+        byte0051: 0
+        byte0052: 0
+        byte0053: 0
+        byte0054: 0
+        byte0055: 0
+        byte0056: 0
+        byte0057: 0
+        byte0058: 0
+        byte0059: 0
+        byte0060: 0
+        byte0061: 0
+  AbilityUsed:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
+  ReportsLeft:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
+  PeekRevealsHand:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
 --- !u!114 &5117715483773410859
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -420,6 +518,8 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   _data: {fileID: 6935137486891752095}
   _wallet: {fileID: 7186681382804677488}
+  _rig: {fileID: 6016601238787419408}
+  _headStretch: {fileID: 1660282531610549051}
 --- !u!114 &794951249127223663
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -438,19 +538,253 @@ MonoBehaviour:
   _cardSpacing: 0.045
   _fanAngle: 8
   _depthStep: 0.0008
-  _handBoneName: Wrist_R
-  _ownerRigPath: Models/Gnome_HandOnly
-  _bodyRigPath: Models/Gnome_rig
+  _handBone: 12
   _handLocalPosition: {x: -0.101, y: 0.021, z: -0.057}
   _handLocalEuler: {x: 0, y: 0, z: 0}
   _data: {fileID: 6935137486891752095}
+  _rig: {fileID: 6016601238787419408}
   _cardPrefab: {fileID: 2273976980707683780, guid: 766e25a6debc8fc4c95fcf20063e4f4d, type: 3}
   _database: {fileID: 11400000, guid: 81ffbfaf2b0219043836272fa19b4e8b, type: 2}
+--- !u!114 &6016601238787419408
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 122163979769981132}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 917bfe7928b428848a247b6bd5a71e27, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.PlayerRigController
+  ShowTopMostFoldoutHeaderGroup: 1
+  _fullBodyRig: {fileID: 6035996872294696300}
+  _handOnlyRig: {fileID: 8595995385710170276}
+  _fullBodyCamera: {fileID: 705969304542715900}
+  _handOnlyCamera: {fileID: 1040429552772568185}
+--- !u!114 &1660282531610549051
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 122163979769981132}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4b1c5cf126132734e87722d8eddf3add, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.PlayerHeadStretchController
+  ShowTopMostFoldoutHeaderGroup: 1
+  _lookBone: 12
+  _viewPitch: 78
+  _viewYaw: 115
+  _viewDistance: 0.55
+  _headClearance: 0.18
+  _maxReach: 2
+  _lookWeight: 1
+  _extendDuration: 0.6
+  _extendEase: 27
+  _retractDuration: 0.4
+  _retractEase: 4
+  _rig: {fileID: 6016601238787419408}
+  Target:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+--- !u!114 &5922064733088575687
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 122163979769981132}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 19f45b96cdac01f4ead1a1df310424c5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Player.PokerPeekController
+  ShowTopMostFoldoutHeaderGroup: 1
+  _data: {fileID: 6935137486891752095}
+  _headStretch: {fileID: 1660282531610549051}
+--- !u!1 &630390672051546114 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 6752715760573350914, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+  m_PrefabInstance: {fileID: 6127692432289180672}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &8595995385710170276
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 630390672051546114}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b4a80fb7cd3472b49bc47796a6964638, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.PlayerBoneRig
+  _root: {fileID: 0}
+  _bones:
+  - Bone: 0
+    Transform: {fileID: 0}
+    BoneName: Root_M
+  - Bone: 1
+    Transform: {fileID: 0}
+    BoneName: Spine1_M
+  - Bone: 2
+    Transform: {fileID: 0}
+    BoneName: Chest_M
+  - Bone: 3
+    Transform: {fileID: 0}
+    BoneName: Neck_M
+  - Bone: 4
+    Transform: {fileID: 0}
+    BoneName: Head_M
+  - Bone: 5
+    Transform: {fileID: 0}
+    BoneName: HeadEnd_M
+  - Bone: 6
+    Transform: {fileID: 0}
+    BoneName: Jaw_M
+  - Bone: 7
+    Transform: {fileID: 0}
+    BoneName: Shoulder_L
+  - Bone: 8
+    Transform: {fileID: 0}
+    BoneName: Shoulder_R
+  - Bone: 9
+    Transform: {fileID: 0}
+    BoneName: Elbow_L
+  - Bone: 10
+    Transform: {fileID: 0}
+    BoneName: Elbow_R
+  - Bone: 11
+    Transform: {fileID: 0}
+    BoneName: Wrist_L
+  - Bone: 12
+    Transform: {fileID: 0}
+    BoneName: Wrist_R
+  - Bone: 13
+    Transform: {fileID: 0}
+    BoneName: Hip_L
+  - Bone: 14
+    Transform: {fileID: 0}
+    BoneName: Hip_R
+  - Bone: 15
+    Transform: {fileID: 0}
+    BoneName: Knee_L
+  - Bone: 16
+    Transform: {fileID: 0}
+    BoneName: Knee_R
+  - Bone: 17
+    Transform: {fileID: 0}
+    BoneName: Ankle_L
+  - Bone: 18
+    Transform: {fileID: 0}
+    BoneName: Ankle_R
+  - Bone: 19
+    Transform: {fileID: 0}
+    BoneName: Toes_L
+  - Bone: 20
+    Transform: {fileID: 0}
+    BoneName: Toes_R
+--- !u!4 &705969304542715900 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6685018166527734780, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+  m_PrefabInstance: {fileID: 6127692432289180672}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &1040429552772568185 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6591500634726463609, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+  m_PrefabInstance: {fileID: 6127692432289180672}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &2295073596415903085 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5390899513882683757, guid: 8a531d709826a264e9027ff908ced981, type: 3}
   m_PrefabInstance: {fileID: 6127692432289180672}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &4134094112510477596 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7806619952198887708, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+  m_PrefabInstance: {fileID: 6127692432289180672}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &6035996872294696300
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4134094112510477596}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b4a80fb7cd3472b49bc47796a6964638, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.PlayerBoneRig
+  _root: {fileID: 0}
+  _bones:
+  - Bone: 0
+    Transform: {fileID: 0}
+    BoneName: Root_M
+  - Bone: 1
+    Transform: {fileID: 0}
+    BoneName: Spine1_M
+  - Bone: 2
+    Transform: {fileID: 0}
+    BoneName: Chest_M
+  - Bone: 3
+    Transform: {fileID: 0}
+    BoneName: Neck_M
+  - Bone: 4
+    Transform: {fileID: 0}
+    BoneName: Head_M
+  - Bone: 5
+    Transform: {fileID: 0}
+    BoneName: HeadEnd_M
+  - Bone: 6
+    Transform: {fileID: 0}
+    BoneName: Jaw_M
+  - Bone: 7
+    Transform: {fileID: 0}
+    BoneName: Shoulder_L
+  - Bone: 8
+    Transform: {fileID: 0}
+    BoneName: Shoulder_R
+  - Bone: 9
+    Transform: {fileID: 0}
+    BoneName: Elbow_L
+  - Bone: 10
+    Transform: {fileID: 0}
+    BoneName: Elbow_R
+  - Bone: 11
+    Transform: {fileID: 0}
+    BoneName: Wrist_L
+  - Bone: 12
+    Transform: {fileID: 0}
+    BoneName: Wrist_R
+  - Bone: 13
+    Transform: {fileID: 0}
+    BoneName: Hip_L
+  - Bone: 14
+    Transform: {fileID: 0}
+    BoneName: Hip_R
+  - Bone: 15
+    Transform: {fileID: 0}
+    BoneName: Knee_L
+  - Bone: 16
+    Transform: {fileID: 0}
+    BoneName: Knee_R
+  - Bone: 17
+    Transform: {fileID: 0}
+    BoneName: Ankle_L
+  - Bone: 18
+    Transform: {fileID: 0}
+    BoneName: Ankle_R
+  - Bone: 19
+    Transform: {fileID: 0}
+    BoneName: Toes_L
+  - Bone: 20
+    Transform: {fileID: 0}
+    BoneName: Toes_R
 --- !u!114 &7186681382804677488 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 3942293894947819376, guid: 8a531d709826a264e9027ff908ced981, type: 3}
