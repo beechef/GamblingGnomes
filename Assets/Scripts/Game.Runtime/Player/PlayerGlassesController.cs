@@ -14,8 +14,11 @@ namespace Game.Runtime.Player
 		[SerializeField] private string _removeActionId = PlayerActionIds.RemoveGlasses;
 
 		[Header("Prop")]
-		[Tooltip("Glasses meshes shown while the wear is on — one per rig, so the owner sees their own pair too. Optional until the art lands.")]
-		[SerializeField] private GameObject[] _glassesVisuals;
+		[Tooltip("The pair on the full body rig — what everyone else sees. Optional until the art lands.")]
+		[SerializeField] private GameObject _fullBodyVisual;
+
+		[Tooltip("The pair on the hand-only rig — what the owner sees of their own face. Optional too.")]
+		[SerializeField] private GameObject _handOnlyVisual;
 
 		[Header("References")]
 		[SerializeField] private PlayerActionAnimator _actionAnimator;
@@ -88,12 +91,18 @@ namespace Game.Runtime.Player
 
 		private void HandleWornChanged(bool previous, bool current) => ApplyProp(current);
 
+		// Only the pair on the rig this client actually renders — the same split PlayerVisual makes with
+		// the meshes. Both pairs on would put two sets of frames on the owner's screen, because disabling
+		// a rig's skinned meshes never disabled the props hung on its bones.
 		private void ApplyProp(bool worn)
 		{
-			foreach (var visual in _glassesVisuals)
-			{
-				if (visual && visual.activeSelf != worn) visual.SetActive(worn);
-			}
+			SetShown(IsOwner ? _handOnlyVisual : _fullBodyVisual, worn);
+			SetShown(IsOwner ? _fullBodyVisual : _handOnlyVisual, false);
+		}
+
+		private static void SetShown(GameObject visual, bool shown)
+		{
+			if (visual && visual.activeSelf != shown) visual.SetActive(shown);
 		}
 	}
 }
