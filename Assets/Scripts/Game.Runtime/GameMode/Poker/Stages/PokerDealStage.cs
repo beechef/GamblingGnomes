@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Game.Runtime.Player;
 using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker.Stages
@@ -44,6 +45,13 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			DealHoleCards();
 			PostAnte();
 			PostBlinds();
+
+			// A fresh hand straightens everyone back up — whoever spent last hand slumped over a fold
+			// comes off that pose here, because nothing else ever tells the gesture layer the hand ended.
+			foreach (var player in GameMode.SeatedPlayers)
+			{
+				player.ActionAnimator?.ServerPlay(PlayerActionIds.Idle);
+			}
 
 			if (_dealDuration <= 0f)
 			{

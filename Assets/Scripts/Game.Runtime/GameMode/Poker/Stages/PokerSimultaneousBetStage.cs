@@ -1,4 +1,5 @@
 using Game.Runtime.GameMode.Poker.Player;
+using Game.Runtime.Player;
 using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker.Stages
@@ -113,10 +114,12 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			{
 				case PokerActionType.Bet:
 					PlaceBet(player, amount);
+					player.ActionAnimator?.ServerPlay(PlayerActionIds.Bet);
 					break;
 
 				case PokerActionType.Fold when _allowFold:
 					player.Data.Status.Value = PokerPlayerStatus.Folded;
+					player.ActionAnimator?.ServerPlay(PlayerActionIds.Fold);
 					break;
 
 				default:
@@ -152,8 +155,16 @@ namespace Game.Runtime.GameMode.Poker.Stages
 				var data = player.Data;
 				if (!data.CanAct || data.HasActed.Value) continue;
 
-				if (_timeoutFolds) data.Status.Value = PokerPlayerStatus.Folded;
-				else if (_timeoutBetsMinimum) PlaceBet(player, MinimumBet);
+				if (_timeoutFolds)
+				{
+					data.Status.Value = PokerPlayerStatus.Folded;
+					player.ActionAnimator?.ServerPlay(PlayerActionIds.Fold);
+				}
+				else if (_timeoutBetsMinimum)
+				{
+					PlaceBet(player, MinimumBet);
+					player.ActionAnimator?.ServerPlay(PlayerActionIds.Bet);
+				}
 
 				data.HasActed.Value = true;
 			}

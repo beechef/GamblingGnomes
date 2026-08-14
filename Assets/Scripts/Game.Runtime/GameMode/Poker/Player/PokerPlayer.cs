@@ -23,6 +23,8 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 		[SerializeField] private PlayerHeadStretchController _headStretch;
 
+		[SerializeField] private PlayerActionAnimator _actionAnimator;
+
 		private static readonly List<PokerPlayer> Registry = new();
 
 		public static IReadOnlyList<PokerPlayer> All => Registry;
@@ -46,6 +48,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		public PlayerData Wallet => _wallet;
 		public PlayerRigController Rig => _rig;
 		public PlayerHeadStretchController HeadStretch => _headStretch;
+		public PlayerActionAnimator ActionAnimator => _actionAnimator;
 		public ulong ClientId => OwnerClientId;
 
 		// The seat number is the fallback rather than the label: a player whose identity RPC has not
@@ -79,7 +82,10 @@ namespace Game.Runtime.GameMode.Poker.Player
 			if (!_data) _data = GetComponent<PokerPlayerData>();
 			if (!_wallet) _wallet = GetComponent<PlayerData>();
 			if (!_rig) _rig = GetComponent<PlayerRigController>();
-			if (!_headStretch) _headStretch = GetComponent<PlayerHeadStretchController>();
+
+			// Feature components live on child objects of the player rather than piling up on the root.
+			if (!_headStretch) _headStretch = GetComponentInChildren<PlayerHeadStretchController>();
+			if (!_actionAnimator) _actionAnimator = GetComponentInChildren<PlayerActionAnimator>();
 
 			if (!Registry.Contains(this))
 			{

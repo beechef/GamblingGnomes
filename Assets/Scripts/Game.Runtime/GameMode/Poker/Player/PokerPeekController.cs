@@ -21,7 +21,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 		public override void OnNetworkSpawn()
 		{
-			if (!_data) _data = GetComponent<PokerPlayerData>();
+			if (!_data) _data = NetworkObject.GetComponent<PokerPlayerData>();
 			if (!_headStretch) _headStretch = GetComponent<PlayerHeadStretchController>();
 
 			// Only the peeker's own client is ever granted the sight, so only their copy installs the rule.

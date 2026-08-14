@@ -77,7 +77,7 @@ namespace Game.Runtime.Player
 
 		public override void OnNetworkSpawn()
 		{
-			if (!_rig) _rig = GetComponent<PlayerRigController>();
+			if (!_rig) _rig = NetworkObject.GetComponent<PlayerRigController>();
 
 			BuildChain();
 

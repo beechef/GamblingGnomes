@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Game.Runtime.GameMode.Poker.Abilities;
 using Game.Runtime.GameMode.Poker.Player;
 using Game.Runtime.GameMode.Poker.Stages;
+using Game.Runtime.Player;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -245,6 +246,11 @@ namespace Game.Runtime.GameMode.Poker.Modules
 
 			ReportStake.Value = 0;
 
+			// The accusation is a scene: the finger jabs across the table, the accused startles. Played as
+			// it is filed, so the table sees who started it before the overlay even lands.
+			accuserPlayer.ActionAnimator?.ServerPlay(PlayerActionIds.Report);
+			targetPlayer.ActionAnimator?.ServerPlay(PlayerActionIds.Reported);
+
 			if (_reportStage) GameMode.PushOverlay(_reportStage);
 			else ResolvePendingReportServer(_reportStake, true);
 		}
@@ -281,6 +287,11 @@ namespace Game.Runtime.GameMode.Poker.Modules
 				// player only costs money: the accuser plays on, which is what keeps a hunch worth acting on
 				// at all rather than a way to talk yourself out of the hand.
 				if (wasCheater) FoldServer(target);
+
+				// The verdict on their faces: whoever the money just left hangs their head, whoever it came
+				// to laughs at them.
+				accuser.ActionAnimator?.ServerPlay(wasCheater ? PlayerActionIds.Laugh : PlayerActionIds.Disappointed);
+				target.ActionAnimator?.ServerPlay(wasCheater ? PlayerActionIds.Disappointed : PlayerActionIds.Laugh);
 			}
 
 			LastReport.Value = new PokerReportResult

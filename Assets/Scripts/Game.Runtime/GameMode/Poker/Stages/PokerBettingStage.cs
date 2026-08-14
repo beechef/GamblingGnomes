@@ -1,4 +1,5 @@
 using Game.Runtime.GameMode.Poker.Player;
+using Game.Runtime.Player;
 using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker.Stages
@@ -231,8 +232,32 @@ namespace Game.Runtime.GameMode.Poker.Stages
 					return false;
 			}
 
+			PlayActionGesture(player, action);
+
 			AdvanceAfterAction();
 			return true;
+		}
+
+		// The act, seen: the fold thrown, the coin put up. Checks stay quiet — the list of gestures is the
+		// database's business, this only names which act just happened.
+		private static void PlayActionGesture(PokerPlayer player, PokerActionType action)
+		{
+			var animator = player.ActionAnimator;
+			if (!animator) return;
+
+			switch (action)
+			{
+				case PokerActionType.Fold:
+					animator.ServerPlay(PlayerActionIds.Fold);
+					break;
+
+				case PokerActionType.Call:
+				case PokerActionType.Raise:
+				case PokerActionType.AllIn:
+				case PokerActionType.Bet:
+					animator.ServerPlay(PlayerActionIds.Bet);
+					break;
+			}
 		}
 
 		private void ReopenAction(PokerPlayer raiser)
