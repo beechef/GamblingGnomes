@@ -4,55 +4,67 @@ using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker.Player
 {
-	// The sight half of a peek. While this player's head is over somebody else's cards and the card they
-	// played was the one that reads them, their own client — and nobody else's — turns that hand face up.
-	// It has to be a client side rule: the cards are replicated to everyone already, so the only thing
-	// keeping a hand secret is the decision to draw it face down, and this is where that decision is made.
-	//
-	// The sight is gated on the lean everyone can see rather than timed on its own, so it can never
-	// outlast the act that paid for it.
+	// The poker half of the neck stretch. The stretch itself is cosmetic — a neck across the table, on a
+	// clock — and everything it means here lives on this component: whether the look actually reads the
+	// hand it hangs over, held owner-read so the table sees the lean and never the strength behind it.
+	// The sight is gated on the stretch everyone can see, so it can never outlast the act that paid for
+	// it. It has to be a client side rule: the cards are replicated to everyone already, and the decision
+	// to draw them face down is the only thing keeping them secret.
 	public class PokerPeekController : NetworkBehaviour
 	{
 		[Header("References")]
-		[SerializeField] private PokerPlayerData _data;
 		[SerializeField] private PlayerHeadStretchController _headStretch;
+
+		// False on the lean that is only an act — which is the whole bluff.
+		[HideInInspector] public NetworkVariable<bool> PeekRevealsHand = new(false,
+			readPerm: NetworkVariableReadPermission.Owner, writePerm: NetworkVariableWritePermission.Server);
 
 		private bool _ruleInstalled;
 
 		public override void OnNetworkSpawn()
 		{
-			if (!_data) _data = NetworkObject.GetComponent<PokerPlayerData>();
 			if (!_headStretch) _headStretch = GetComponent<PlayerHeadStretchController>();
+			if (!_headStretch) return;
+
+			_headStretch.Target.OnValueChanged += HandleTargetChanged;
 
 			// Only the peeker's own client is ever granted the sight, so only their copy installs the rule.
-			if (!IsOwner || !_data || !_headStretch) return;
+			if (!IsOwner) return;
 
 			PokerPlayerData.AddHandVisibilityProvider(CanSeeHandOf);
-
-			_data.PeekRevealsHand.OnValueChanged += HandleRevealChanged;
-			_headStretch.Target.OnValueChanged += HandleTargetChanged;
+			PeekRevealsHand.OnValueChanged += HandleRevealChanged;
 
 			_ruleInstalled = true;
 		}
 
 		public override void OnNetworkDespawn()
 		{
+			if (_headStretch) _headStretch.Target.OnValueChanged -= HandleTargetChanged;
+
 			// Ownership can pass to the server as a client leaves, so the instance that installed the rule
 			// is the one that takes it back out — asking whether we are the owner is too late by now.
 			if (!_ruleInstalled) return;
 
 			_ruleInstalled = false;
 
-			_headStretch.Target.OnValueChanged -= HandleTargetChanged;
-			_data.PeekRevealsHand.OnValueChanged -= HandleRevealChanged;
+			PeekRevealsHand.OnValueChanged -= HandleRevealChanged;
 
 			PokerPlayerData.RemoveHandVisibilityProvider(CanSeeHandOf);
 			PokerPlayerData.NotifyHandVisibilityRulesChanged();
 		}
 
+		// The whole peek in one call: the lean the table watches, and the grant only the peeker learns.
+		public void ServerPeek(PlayerRigController target, float duration, bool revealsHand)
+		{
+			if (!IsServer || !_headStretch) return;
+
+			PeekRevealsHand.Value = revealsHand;
+			_headStretch.ServerStretchTo(target, duration);
+		}
+
 		private bool CanSeeHandOf(PokerPlayerData other)
 		{
-			if (!other || !_data.PeekRevealsHand.Value) return false;
+			if (!other || !PeekRevealsHand.Value) return false;
 
 			var target = _headStretch.TargetRig;
 
@@ -65,7 +77,11 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 		private void HandleTargetChanged(NetworkBehaviourReference previous, NetworkBehaviourReference current)
 		{
-			PokerPlayerData.NotifyHandVisibilityRulesChanged();
+			// The grant comes home with the neck. The sight is already gated on the stretch, so this only
+			// keeps a stale flag from surviving into the next lean.
+			if (IsServer && !current.TryGet(out PlayerRigController _) && PeekRevealsHand.Value) PeekRevealsHand.Value = false;
+
+			if (_ruleInstalled) PokerPlayerData.NotifyHandVisibilityRulesChanged();
 		}
 	}
 }

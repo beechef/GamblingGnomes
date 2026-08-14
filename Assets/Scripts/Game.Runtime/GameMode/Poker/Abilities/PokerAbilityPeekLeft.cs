@@ -16,14 +16,13 @@ namespace Game.Runtime.GameMode.Poker.Abilities
 
 		protected override bool OnActivateServer(PokerGameMode gameMode, PokerPlayer player)
 		{
-			var stretch = player.HeadStretch;
-			if (!stretch) return false;
+			var peek = player.GetComponentInChildren<PokerPeekController>();
+			if (!peek) return false;
 
 			var target = FindNeighbour(gameMode, player);
 			if (!target || !target.Rig) return false;
 
-			stretch.ServerStretchTo(target.Rig, _durationSeconds);
-			player.Data.PeekRevealsHand.Value = Kind == PokerAbilityKind.Cheat;
+			peek.ServerPeek(target.Rig, _durationSeconds, Kind == PokerAbilityKind.Cheat);
 
 			return true;
 		}

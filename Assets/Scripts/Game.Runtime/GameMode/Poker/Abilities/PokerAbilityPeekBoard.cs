@@ -1,5 +1,4 @@
 using Game.Runtime.GameMode.Poker.Player;
-using Game.Runtime.Player;
 using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker.Abilities
@@ -9,8 +8,8 @@ namespace Game.Runtime.GameMode.Poker.Abilities
 	// the next few face-down cards of the board, for as long as the glasses stay on. Same game as the
 	// neck: the table sees the act and has to guess what it was for.
 	//
-	// Everything the card touches lives on the glasses component, not on the table's player data — the
-	// glasses are a player piece any mode can wear, and poker only installs its own reading of them.
+	// The card talks to the peek controller, which owns everything the act means here; the glasses
+	// underneath stay cosmetic, a player piece any mode can wear.
 	[CreateAssetMenu(fileName = "Ability_Glasses", menuName = "Game/Poker/Abilities/Peek Board")]
 	public class PokerAbilityPeekBoard : PokerAbility
 	{
@@ -23,15 +22,15 @@ namespace Game.Runtime.GameMode.Poker.Abilities
 
 		protected override bool OnActivateServer(PokerGameMode gameMode, PokerPlayer player)
 		{
-			var glasses = player.GetComponentInChildren<PlayerGlassesController>();
-			if (!glasses) return false;
+			var peek = player.GetComponentInChildren<PokerBoardPeekController>();
+			if (!peek) return false;
 
 			// A board with nothing left face down gives the glasses nothing to read — and nothing to bluff
 			// about either, so the card fizzles rather than being spent on an empty look.
 			var data = gameMode.Data;
 			if (data.CommunityCards.Count <= data.RevealedCommunityCards.Value) return false;
 
-			glasses.ServerWear(_durationSeconds, Kind == PokerAbilityKind.Cheat ? Mathf.Max(1, _revealCount) : 0);
+			peek.ServerPeek(_durationSeconds, Kind == PokerAbilityKind.Cheat ? Mathf.Max(1, _revealCount) : 0);
 
 			return true;
 		}

@@ -3,10 +3,9 @@ using UnityEngine;
 
 namespace Game.Runtime.Player
 {
-	// A pair of glasses and nothing more: the wear everyone sees, and a number only the wearer's client is
-	// told. What that number buys — board cards in poker, something else in another mode — is whatever
-	// rule a mode installs against it; this component neither knows nor cares, which is what lets any
-	// mode put glasses on a player.
+	// A pair of glasses and nothing more: the gesture, the prop, and how long they stay on. Cosmetic only —
+	// whatever wearing them means is some mode's rule installed against the replicated wear state, never
+	// this component's business, which is what lets any mode put glasses on a player.
 	public class PlayerGlassesController : NetworkBehaviour
 	{
 		[Header("Animation")]
@@ -23,15 +22,10 @@ namespace Game.Runtime.Player
 		[Header("References")]
 		[SerializeField] private PlayerActionAnimator _actionAnimator;
 
-		// The public half: the act itself, replicated so every table watches the same gesture and prop for
-		// exactly as long as the wear lasts.
+		// The act itself, replicated so every table watches the same gesture and prop for exactly as long
+		// as the wear lasts.
 		[HideInInspector] public NetworkVariable<bool> IsWorn = new(false,
 			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
-
-		// The private half: what the wear secretly grants its owner. Zero on a pair that is only a prop —
-		// which is the whole bluff — and the meaning of any other number belongs to the mode that set it.
-		[HideInInspector] public NetworkVariable<int> OwnerGrant = new(0,
-			readPerm: NetworkVariableReadPermission.Owner, writePerm: NetworkVariableWritePermission.Server);
 
 		private double _releaseTime;
 		private bool _serverWearing;
@@ -55,11 +49,10 @@ namespace Game.Runtime.Player
 			_serverWearing = false;
 		}
 
-		public void ServerWear(float duration, int grant)
+		public void ServerWear(float duration)
 		{
 			if (!IsServer) return;
 
-			OwnerGrant.Value = Mathf.Max(0, grant);
 			IsWorn.Value = true;
 
 			_releaseTime = NetworkManager.ServerTime.Time + Mathf.Max(0f, duration);
@@ -74,7 +67,6 @@ namespace Game.Runtime.Player
 
 			_serverWearing = false;
 			IsWorn.Value = false;
-			OwnerGrant.Value = 0;
 
 			if (_actionAnimator) _actionAnimator.ServerPlay(_removeActionId);
 		}

@@ -189,7 +189,6 @@ namespace Game.Runtime.GameMode.Poker.Modules
 				player.Data.AbilityId.Value = default;
 				player.Data.AbilityUsed.Value = false;
 				player.Data.ReportsLeft.Value = 0;
-				player.Data.PeekRevealsHand.Value = false;
 			}
 		}
 
