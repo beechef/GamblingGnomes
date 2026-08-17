@@ -1,3 +1,4 @@
+using System;
 using Game.Runtime.Controller;
 using Game.Runtime.UI.FindLobby;
 using Game.Runtime.UI.Selection;
@@ -45,6 +46,14 @@ namespace Game.Runtime.UI.MainMenu
 		[Tooltip("Left empty, the Option entry greys out — an entry that does nothing should look like one.")]
 		[SerializeField] private GameObject _optionScreen;
 
+		[Header("Quick Start")]
+		[Tooltip("On, Host goes straight in on the settings the network manager already carries, and Find joins the first lobby it sees. A shortcut for getting to the table while it is being built — turn it off to get the setup screens back.")]
+		[SerializeField] private bool _skipSetupScreens = true;
+
+		// One way in at a time. Released in finally, or a throw would leave the menu refusing every later
+		// attempt with nothing on screen to explain why.
+		private bool _connecting;
+
 		private void OnEnable()
 		{
 			_rootGroup.OnSubmitted += HandleRootSubmitted;
@@ -77,7 +86,14 @@ namespace Game.Runtime.UI.MainMenu
 
 			// Walking out of a table never touches those callbacks when nothing was listening yet, so the
 			// menu also answers the teardown itself.
-			if (GameNetworkManager.Instance) GameNetworkManager.Instance.OnGameLeft += Show;
+			if (GameNetworkManager.Instance)
+			{
+				GameNetworkManager.Instance.OnGameLeft += Show;
+
+				// A failed attempt does not always tear anything down, so OnGameLeft can never arrive — and
+				// the menu hid itself on the way in. Without this the player is left looking at nothing.
+				GameNetworkManager.Instance.OnConnectFailed += HandleConnectFailed;
+			}
 		}
 
 		private void OnDestroy()
@@ -91,8 +107,14 @@ namespace Game.Runtime.UI.MainMenu
 				network.OnTransportFailure -= Show;
 			}
 
-			if (GameNetworkManager.Instance) GameNetworkManager.Instance.OnGameLeft -= Show;
+			if (GameNetworkManager.Instance)
+			{
+				GameNetworkManager.Instance.OnGameLeft -= Show;
+				GameNetworkManager.Instance.OnConnectFailed -= HandleConnectFailed;
+			}
 		}
+
+		private void HandleConnectFailed(string reason) => Show();
 
 		private void HandleClientStopped(bool wasHost) => Show();
 		private void HandleServerStopped(bool wasHost) => Show();
@@ -118,6 +140,12 @@ namespace Game.Runtime.UI.MainMenu
 
 		public void CreateLobby()
 		{
+			if (_skipSetupScreens)
+			{
+				StartHostDirectly();
+				return;
+			}
+
 			if (!_roomSettingUI) return;
 
 			gameObject.SetActive(false);
@@ -126,10 +154,82 @@ namespace Game.Runtime.UI.MainMenu
 
 		public void FindLobby()
 		{
+			if (_skipSetupScreens)
+			{
+				JoinFirstLobby();
+				return;
+			}
+
 			if (!_findLobbyUI) return;
 
 			gameObject.SetActive(false);
 			_findLobbyUI.gameObject.SetActive(true);
+		}
+
+		// Hosts on whatever the network manager is already carrying — the same settings the room screen
+		// would have opened with, rather than a second set of defaults written here to drift from them.
+		private async void StartHostDirectly()
+		{
+			if (_connecting) return;
+			_connecting = true;
+
+			try
+			{
+				gameObject.SetActive(false);
+
+				var network = GameNetworkManager.Instance;
+				if (network) await network.StartHost(destroyCancellationToken);
+			}
+			catch (OperationCanceledException)
+			{
+			}
+			catch (Exception exception)
+			{
+				Debug.LogException(exception);
+				Show();
+			}
+			finally
+			{
+				_connecting = false;
+			}
+		}
+
+		private async void JoinFirstLobby()
+		{
+			if (_connecting) return;
+			_connecting = true;
+
+			try
+			{
+				var network = GameNetworkManager.Instance;
+				if (!network) return;
+
+				var lobbies = await network.SearchLobby(destroyCancellationToken);
+
+				// Nothing to walk into, so the menu stays exactly where it is rather than hiding behind a
+				// screen that has nothing coming to take it down.
+				if (lobbies.Length == 0)
+				{
+					Debug.Log("[UIMainMenu] No lobby found to join.");
+					return;
+				}
+
+				gameObject.SetActive(false);
+
+				await network.JoinLobby(lobbies[0], destroyCancellationToken);
+			}
+			catch (OperationCanceledException)
+			{
+			}
+			catch (Exception exception)
+			{
+				Debug.LogException(exception);
+				Show();
+			}
+			finally
+			{
+				_connecting = false;
+			}
 		}
 
 		public void Quit()
