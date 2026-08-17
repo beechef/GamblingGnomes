@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Game.Runtime.Controller;
 using Game.Runtime.GameMode;
@@ -66,11 +67,24 @@ namespace Game.Runtime.UI.MainMenu
 				? _dropdownGameModes[Mathf.Clamp(_gameModeDropdown.value, 0, _dropdownGameModes.Count - 1)]
 				: GameModeType.Sandbox;
 
-			GameNetworkManager.Instance.ConfigureLobby(maxPlayers, isPrivate, gameMode);
-			await GameNetworkManager.Instance.StartHost();
+			try
+			{
+				GameNetworkManager.Instance.ConfigureLobby(maxPlayers, isPrivate, gameMode);
+				await GameNetworkManager.Instance.StartHost(destroyCancellationToken);
 
-			_creatingLobby = false;
-			gameObject.SetActive(false);
+				gameObject.SetActive(false);
+			}
+			catch (OperationCanceledException)
+			{
+			}
+			catch (Exception exception)
+			{
+				Debug.LogException(exception);
+			}
+			finally
+			{
+				_creatingLobby = false;
+			}
 		}
 
 		public void Close()

@@ -1,5 +1,6 @@
 using Game.Runtime.GameMode.Poker.Player;
 using Game.Runtime.Player;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker.Stages
@@ -21,10 +22,17 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 		[Header("Bet")]
 		[Tooltip("Smallest a raise may move the bet. The blind, on a normal table.")]
+		[MinValue(0)]
 		[SerializeField] private int _minimumBet = 20;
 
+		[Tooltip("What the street costs to stay in, owed by everyone the moment it opens. Zero opens it free, so the price is whatever somebody bets — set it, turn raising off and there is nothing left to say but call or fold.")]
+		[MinValue(0)]
+		[SerializeField] private int _openingBet;
+
+		[MinValue(1)]
 		[SerializeField] private int _minimumRaiseMultiplier = 2;
 		[SerializeField] private bool _allowCheckWhenNoBet = true;
+		[SerializeField] private bool _allowRaise = true;
 		[SerializeField] private bool _allowAllIn = true;
 
 		[Header("Timing")]
@@ -39,11 +47,18 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		[SerializeField] private PokerStage _handOverStage;
 
 		public int MinimumBet => Mathf.Max(0, _minimumBet);
+		public int OpeningBet => Mathf.Max(0, _openingBet);
 		public int MinimumRaiseMultiplier => Mathf.Max(1, _minimumRaiseMultiplier);
 		public bool AllowCheckWhenNoBet => _allowCheckWhenNoBet;
+		public bool AllowRaise => _allowRaise;
 		public bool AllowAllIn => _allowAllIn;
 
 		public int MinimumRaiseStep => Mathf.Max(MinimumBet, Data ? Data.LastRaise.Value * MinimumRaiseMultiplier : MinimumBet);
+
+		// A street with a price and no way to move it: the only question left is whether to pay it. The
+		// bar asks this rather than working it out from three separate flags, so what the UI shows and
+		// what the server accepts can never drift apart.
+		public bool IsCallOnly => !AllowRaise && !AllowAllIn && !AllowCheckWhenNoBet;
 
 		private const float MinimumResumedTurnSeconds = 1f;
 
@@ -62,6 +77,8 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 			if (!_keepPreviousBets) PokerTableUtility.ResetRoundBets(Data, GameMode.SeatedPlayers);
 
+			PostOpeningBet();
+
 			if (PokerTableUtility.CountInHand(GameMode.SeatedPlayers) <= 1)
 			{
 				FinishStreet();
@@ -75,6 +92,18 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			}
 
 			BeginNextTurn(FirstActorFromSeat());
+		}
+
+		// The price of staying in, put on the table by the street itself rather than by a player. Nobody
+		// has paid it yet, so everyone still in owes it — which is what leaves call and fold as the only
+		// answers. It never undercuts a price the table already stands at, so it is safe on a street that
+		// keeps the blinds in front of the players.
+		private void PostOpeningBet()
+		{
+			if (OpeningBet <= 0 || Data.CurrentBet.Value >= OpeningBet) return;
+
+			Data.CurrentBet.Value = OpeningBet;
+			Data.LastRaise.Value = Mathf.Max(Data.LastRaise.Value, OpeningBet);
 		}
 
 		// Pre-flop the blinds are already out, and the big blind is owed the last word — so the action
@@ -197,6 +226,8 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 				case PokerActionType.Raise:
 				{
+					if (!_allowRaise) return false;
+
 					var target = Mathf.Max(amount, Data.CurrentBet.Value + MinimumRaiseStep);
 					var toPay = target - data.Bet.Value;
 					if (toPay <= owed || data.Chips < toPay) return false;

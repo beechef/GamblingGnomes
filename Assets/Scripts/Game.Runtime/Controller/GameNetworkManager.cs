@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Game.Runtime.GameMode;
 using Game.Runtime.Steam;
 using Steamworks;
@@ -114,8 +115,10 @@ namespace Game.Runtime.Controller
 			LobbySettings = settings;
 		}
 
-		public async Awaitable StartHost()
+		public async Awaitable StartHost(CancellationToken ct = default)
 		{
+			ct.ThrowIfCancellationRequested();
+
 			if (!SteamClient.IsValid)
 			{
 				Debug.LogError("[GameNetworkManager] SteamClient invalid before CreateLobbyAsync");
@@ -131,6 +134,16 @@ namespace Game.Runtime.Controller
 			_gameplaySceneName = entry.SceneName;
 
 			var result = await SteamMatchmaking.CreateLobbyAsync(LobbySettings.MaxPlayers);
+
+			// Steam has no way to call a request already in flight back, and the room is up by the time
+			// this returns — so a caller that gave up gets it handed back rather than left hosting a
+			// table nobody is going to walk into.
+			if (ct.IsCancellationRequested)
+			{
+				if (result.HasValue) Shutdown();
+				ct.ThrowIfCancellationRequested();
+			}
+
 			if (!result.HasValue)
 			{
 				OnConnectFailed?.Invoke("Failed to create Steam lobby.");
@@ -188,28 +201,47 @@ namespace Game.Runtime.Controller
 			OnHostStarted?.Invoke();
 		}
 
-		public async Awaitable JoinLobby(Lobby lobby)
+		public async Awaitable JoinLobby(Lobby lobby, CancellationToken ct = default)
 		{
-			await JoinLobby(lobby.Id);
+			await JoinLobby(lobby.Id, ct);
 		}
 
-		public async Awaitable JoinLobby(SteamId lobbyId)
+		public async Awaitable JoinLobby(SteamId lobbyId, CancellationToken ct = default)
 		{
 			if (_joiningLobby) return;
 			if (CurrentLobby.HasValue) return;
+
 			_joiningLobby = true;
 
-			var lobby = await SteamMatchmaking.JoinLobbyAsync(lobbyId);
-			if (!lobby.HasValue)
+			// Released on every path, cancel included: left standing it would turn every later join
+			// into a silent no-op.
+			try
 			{
-				OnConnectFailed?.Invoke("Failed to join Steam lobby (timeout or invalid lobby).");
-			}
+				ct.ThrowIfCancellationRequested();
 
-			_joiningLobby = false;
+				var lobby = await SteamMatchmaking.JoinLobbyAsync(lobbyId);
+
+				if (ct.IsCancellationRequested)
+				{
+					if (lobby.HasValue) Shutdown();
+					ct.ThrowIfCancellationRequested();
+				}
+
+				if (!lobby.HasValue)
+				{
+					OnConnectFailed?.Invoke("Failed to join Steam lobby (timeout or invalid lobby).");
+				}
+			}
+			finally
+			{
+				_joiningLobby = false;
+			}
 		}
 
-		public async Awaitable<Lobby[]> SearchLobby()
+		public async Awaitable<Lobby[]> SearchLobby(CancellationToken ct = default)
 		{
+			ct.ThrowIfCancellationRequested();
+
 			var lobbyQuery = SteamMatchmaking.LobbyList;
 
 			foreach (var searchKeyPair in LobbySettings.GameSearchStrings)
@@ -219,6 +251,8 @@ namespace Game.Runtime.Controller
 
 			var lobbies = lobbyQuery.RequestAsync();
 			var result = await lobbies;
+
+			ct.ThrowIfCancellationRequested();
 
 			return result ?? Array.Empty<Lobby>();
 		}
@@ -309,7 +343,7 @@ namespace Game.Runtime.Controller
 		// The single way out, whatever the reason. It runs to completion even when there is no lobby or
 		// no connection left to close, because half a teardown is what stops the next host from starting:
 		// everything it touches ends up back where Awake left it.
-		public async Awaitable LeaveGame()
+		public async Awaitable LeaveGame(CancellationToken ct = default)
 		{
 			if (_leavingGame) return;
 			_leavingGame = true;
@@ -322,13 +356,14 @@ namespace Game.Runtime.Controller
 
 				if (_networkManager.IsListening) _networkManager.Shutdown();
 
-				await UnloadGameplayScene();
-
-				_gameplaySceneName = null;
-				_joiningLobby = false;
+				// Cancelling stops the waiting, never the teardown: everything this method changed is
+				// still put back below, because half a teardown is what stops the next host from starting.
+				await UnloadGameplayScene(ct);
 			}
 			finally
 			{
+				_gameplaySceneName = null;
+				_joiningLobby = false;
 				_leavingGame = false;
 			}
 
@@ -337,7 +372,7 @@ namespace Game.Runtime.Controller
 
 		// The gameplay scene comes in additively through the network scene manager, but it outlives the
 		// shutdown that just happened — so it goes out through the plain one.
-		private async Awaitable UnloadGameplayScene()
+		private async Awaitable UnloadGameplayScene(CancellationToken ct = default)
 		{
 			if (!_gameplayScene.IsValid() || !_gameplayScene.isLoaded)
 			{
@@ -350,7 +385,7 @@ namespace Game.Runtime.Controller
 
 			// Awaited rather than fired off: hosting again immediately would otherwise load the next
 			// gameplay scene on top of one still being torn down.
-			while (unload != null && !unload.isDone) await Awaitable.NextFrameAsync();
+			while (unload != null && !unload.isDone) await Awaitable.NextFrameAsync(ct);
 		}
 
 		public void Shutdown()

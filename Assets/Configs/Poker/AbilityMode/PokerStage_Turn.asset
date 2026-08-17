@@ -1,0 +1,28 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b5fd3db6bd68f62408f77b8d73be261b, type: 3}
+  m_Name: PokerStage_Turn
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Stages.PokerBettingStage
+  _stageId: Turn
+  _exitDelay: 0.75
+  _phase: 4
+  _communityCardsToReveal: 1
+  _keepPreviousBets: 0
+  _minimumBet: 1
+  _openingBet: 1
+  _minimumRaiseMultiplier: 2
+  _allowCheckWhenNoBet: 0
+  _allowRaise: 0
+  _allowAllIn: 0
+  _turnDuration: 30
+  _timeoutChecksWhenFree: 0
+  _handOverStage: {fileID: 11400000, guid: f11f7e15aadda6f4caca5e09bc283a0a, type: 2}

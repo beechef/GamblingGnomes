@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Game.Runtime.Player;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker.Stages
@@ -12,6 +13,11 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 		[Tooltip("How much board this hand needs. Laid on the table face down here, so the streets only turn over what is already lying there.")]
 		[SerializeField] private int _communityCardCount = 5;
+
+		[Header("Table")]
+		[Tooltip("What a seat costs for the hand, paid by everyone dealt in. Unlike the ante it never lands in front of the player, so the first street still asks them for its price in full — it goes straight into the pot and rides on the hand. Zero seats everyone free.")]
+		[MinValue(0)]
+		[SerializeField] private int _dealCost = 1;
 
 		[Header("Blinds")]
 		[Tooltip("Zero on both leaves the hand unforced — a table where the first street is where money first moves.")]
@@ -32,6 +38,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		public int SmallBlind => Mathf.Max(0, _smallBlind);
 		public int BigBlind => Mathf.Max(0, _bigBlind);
 		public int Ante => Mathf.Max(0, _ante);
+		public int DealCost => Mathf.Max(0, _dealCost);
 
 		protected override void OnStartStage()
 		{
@@ -43,6 +50,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 			RotateDealer();
 			DealHoleCards();
+			PokerTableUtility.CollectDealCost(Data, GameMode.SeatedPlayers, DealCost);
 			PostAnte();
 			PostBlinds();
 

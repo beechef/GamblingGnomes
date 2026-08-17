@@ -1,3 +1,4 @@
+using System;
 using Game.Runtime.Controller;
 using Game.Runtime.UI.MainMenu;
 using Steamworks.Data;
@@ -19,6 +20,9 @@ namespace Game.Runtime.UI.FindLobby
 			Refresh();
 		}
 
+		// async void because a UI callback has nowhere to hand a task back to — so it catches its own
+		// exceptions, and the guard flag comes off on every path. Left standing it would make the
+		// button dead for the rest of the session.
 		public async void Refresh()
 		{
 			if (_isRefreshing) return;
@@ -26,13 +30,25 @@ namespace Game.Runtime.UI.FindLobby
 
 			ClearItems();
 
-			var lobbies = await GameNetworkManager.Instance.SearchLobby();
-			foreach (var lobby in lobbies)
+			try
 			{
-				AddItem(lobby);
+				var lobbies = await GameNetworkManager.Instance.SearchLobby(destroyCancellationToken);
+				foreach (var lobby in lobbies)
+				{
+					AddItem(lobby);
+				}
 			}
-
-			_isRefreshing = false;
+			catch (OperationCanceledException)
+			{
+			}
+			catch (Exception exception)
+			{
+				Debug.LogException(exception);
+			}
+			finally
+			{
+				_isRefreshing = false;
+			}
 		}
 
 		public void Close()
@@ -63,10 +79,23 @@ namespace Game.Runtime.UI.FindLobby
 			if (_joiningLobby) return;
 			_joiningLobby = true;
 
-			await GameNetworkManager.Instance.JoinLobby(lobby);
+			try
+			{
+				await GameNetworkManager.Instance.JoinLobby(lobby, destroyCancellationToken);
 
-			_joiningLobby = false;
-			gameObject.SetActive(false);
+				gameObject.SetActive(false);
+			}
+			catch (OperationCanceledException)
+			{
+			}
+			catch (Exception exception)
+			{
+				Debug.LogException(exception);
+			}
+			finally
+			{
+				_joiningLobby = false;
+			}
 		}
 	}
 }

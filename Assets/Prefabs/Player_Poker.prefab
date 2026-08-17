@@ -884,11 +884,6 @@ MonoBehaviour:
       MinSecondsBetweenUpdates: 0
       MaxSecondsBetweenUpdates: 0
     m_InternalValue: 0
-  OwnerGrant:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 0
 --- !u!114 &7532137638287253186
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -903,6 +898,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Player.PokerBoardPeekController
   ShowTopMostFoldoutHeaderGroup: 1
   _glasses: {fileID: 3568529327254846380}
+  PeekCards:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
 --- !u!1 &8600174064273615394
 GameObject:
   m_ObjectHideFlags: 0
@@ -978,8 +978,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Player.PokerPeekController
   ShowTopMostFoldoutHeaderGroup: 1
-  _data: {fileID: 6935137486891752095}
   _headStretch: {fileID: 6843801274479918712}
+  PeekRevealsHand:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
 --- !u!1 &8631024348431482195
 GameObject:
   m_ObjectHideFlags: 0
@@ -1315,11 +1319,6 @@ MonoBehaviour:
       MaxSecondsBetweenUpdates: 0
     m_InternalValue: 0
   ReportsLeft:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 0
-  PeekRevealsHand:
     UpdateTraits:
       MinSecondsBetweenUpdates: 0
       MaxSecondsBetweenUpdates: 0
