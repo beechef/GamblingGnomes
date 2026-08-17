@@ -1111,6 +1111,33 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "AbilityPrevious",
+                    "type": "Button",
+                    "id": "1f3c9a20-5d41-4b0e-9a77-2c4b8e6d1a01",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "AbilityNext",
+                    "type": "Button",
+                    "id": "1f3c9a20-5d41-4b0e-9a77-2c4b8e6d1a02",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                },
+                {
+                    "name": "AbilityUse",
+                    "type": "Button",
+                    "id": "1f3c9a20-5d41-4b0e-9a77-2c4b8e6d1a03",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -1161,11 +1188,44 @@
                 {
                     "name": "",
                     "id": "8107afa8-438f-485d-824f-1ac62fc5e5b9",
-                    "path": "<Keyboard>/q",
+                    "path": "<Keyboard>/f",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
                     "action": "Ready",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "1f3c9a20-5d41-4b0e-9a77-2c4b8e6d1b01",
+                    "path": "<Keyboard>/q",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "AbilityPrevious",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "1f3c9a20-5d41-4b0e-9a77-2c4b8e6d1b02",
+                    "path": "<Keyboard>/e",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "AbilityNext",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "1f3c9a20-5d41-4b0e-9a77-2c4b8e6d1b03",
+                    "path": "<Keyboard>/enter",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "AbilityUse",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

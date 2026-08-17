@@ -14,11 +14,15 @@ namespace Game.Runtime.GameMode.Poker.Abilities
 
 		[SerializeField] private string _displayName;
 
+		[Tooltip("Shown on the wheel. A cheat and its honest twin must look identical here — the face is what the guessing game is played on.")]
+		[SerializeField] private Sprite _icon;
+
 		[Tooltip("Cheat abilities mark their user as a cheater for the round — the thing a report accuses them of.")]
 		[SerializeField] private PokerAbilityKind _kind;
 
 		public string AbilityId => string.IsNullOrEmpty(_abilityId) ? name : _abilityId;
 		public string DisplayName => string.IsNullOrEmpty(_displayName) ? name : _displayName;
+		public Sprite Icon => _icon;
 		public PokerAbilityKind Kind => _kind;
 
 		// Whether the trick actually happened — a fizzled ability is not consumed and taints nobody.

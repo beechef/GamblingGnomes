@@ -28,24 +28,24 @@ namespace Game.Runtime.GameMode.Poker.Abilities
 			return null;
 		}
 
-		// One card per seat, empty chairs included — a chair's card nobody holds is what keeps the
+		// One handful per seat, empty chairs included — a chair's cards nobody holds is what keeps the
 		// count of cheats in circulation from giving away who drew them. Exactly guaranteedCheats of
 		// them are cheats, as far as the pool can supply the kinds asked for.
-		public void DrawDeal(int seatCount, int guaranteedCheats, List<PokerAbility> buffer)
+		public void DrawDeal(int cardCount, int guaranteedCheats, List<PokerAbility> buffer)
 		{
 			buffer.Clear();
-			if (seatCount <= 0) return;
+			if (cardCount <= 0) return;
 
 			SplitByKind();
 
-			var cheats = Mathf.Clamp(guaranteedCheats, 0, seatCount);
+			var cheats = Mathf.Clamp(guaranteedCheats, 0, cardCount);
 
 			for (var i = 0; i < cheats && _cheats.Count > 0; i++)
 			{
 				buffer.Add(_cheats[Random.Range(0, _cheats.Count)]);
 			}
 
-			while (buffer.Count < seatCount)
+			while (buffer.Count < cardCount)
 			{
 				// A pool with no normal abilities left to offer falls back to cheats rather than
 				// dealing short — every chair gets a card.

@@ -4,6 +4,8 @@ using Game.Runtime.GameMode.Poker.Abilities;
 using Game.Runtime.GameMode.Poker.Player;
 using Game.Runtime.GameMode.Poker.Stages;
 using Game.Runtime.Player;
+using Sirenix.OdinInspector;
+using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -20,8 +22,13 @@ namespace Game.Runtime.GameMode.Poker.Modules
 		[Header("Deal")]
 		[SerializeField] private PokerAbilityPool _pool;
 
-		[Tooltip("Cards are dealt one per seat, empty chairs included, so the count in play never says who is holding what.")]
-		[SerializeField] private int _guaranteedCheatCards = 1;
+		[Tooltip("How many cheats are guaranteed in the deal, rolled fresh each hand between these two. A fixed count is a tell — once the table learns the number, the arithmetic does the guessing for them.")]
+		[MinMaxSlider(0, 12, true)]
+		[SerializeField] private Vector2Int _guaranteedCheatCards = new(1, 2);
+
+		[Tooltip("How many abilities each seat is dealt. The wheel is what the player picks between, so more than one is the point of having it.")]
+		[MinValue(1)]
+		[SerializeField] private int _abilitiesPerSeat = 2;
 
 		[Header("Ability Use")]
 		[Tooltip("Stages abilities may be used in, matched by stage id. Empty allows every stage.")]
@@ -72,7 +79,7 @@ namespace Game.Runtime.GameMode.Poker.Modules
 
 		// Server-only truth. Which card each player holds and who cheated never replicate in the clear —
 		// the report game is a guessing game, and this is the answer sheet.
-		private readonly Dictionary<ulong, PokerAbility> _held = new();
+		private readonly Dictionary<ulong, List<PokerAbility>> _held = new();
 		private readonly HashSet<ulong> _cheaters = new();
 		private readonly List<PokerAbility> _dealBuffer = new();
 
@@ -149,27 +156,40 @@ namespace Game.Runtime.GameMode.Poker.Modules
 			if (!Enabled.Value || !_pool) return;
 
 			var seats = GameMode.Seats;
-			_pool.DrawDeal(seats.Count, _guaranteedCheatCards, _dealBuffer);
 
-			for (var i = 0; i < seats.Count && i < _dealBuffer.Count; i++)
+			// Rolled per hand, inclusive of both ends, so the number of cheats in circulation is itself
+			// something the table cannot count on.
+			var cheats = UnityEngine.Random.Range(_guaranteedCheatCards.x, _guaranteedCheatCards.y + 1);
+
+			_pool.DrawDeal(seats.Count * _abilitiesPerSeat, cheats, _dealBuffer);
+
+			for (var i = 0; i < seats.Count; i++)
 			{
 				var seat = seats[i];
 
-				// An empty chair's card stays on the table unheld — it exists so the number of cheats
+				// An empty chair's cards stay on the table unheld — they exist so the number of cheats
 				// in circulation never betrays who drew one.
 				if (!seat || !seat.IsOccupied) continue;
 
 				var player = GameMode.FindSeatedPlayer(seat.OccupantClientId);
 				if (!player || !player.Data.IsInHand) continue;
 
-				var ability = _dealBuffer[i];
-				if (!ability) continue;
-
-				_held[player.ClientId] = ability;
-
+				var hand = new List<PokerAbility>();
 				var data = player.Data;
-				data.AbilityId.Value = ability.AbilityId;
-				data.AbilityUsed.Value = false;
+
+				for (var slot = 0; slot < _abilitiesPerSeat; slot++)
+				{
+					var index = i * _abilitiesPerSeat + slot;
+					if (index >= _dealBuffer.Count) break;
+
+					var ability = _dealBuffer[index];
+					if (!ability) continue;
+
+					hand.Add(ability);
+					data.AbilityIds.Add(ability.AbilityId);
+				}
+
+				_held[player.ClientId] = hand;
 				data.ReportsLeft.Value = _reportsPerRound;
 			}
 		}
@@ -186,14 +206,16 @@ namespace Game.Runtime.GameMode.Poker.Modules
 			{
 				if (!player || !player.Data) continue;
 
-				player.Data.AbilityId.Value = default;
-				player.Data.AbilityUsed.Value = false;
+				player.Data.AbilityIds.Clear();
 				player.Data.ReportsLeft.Value = 0;
 			}
 		}
 
+		// Named rather than implied: the player holds several and the wheel says which one they turned up,
+		// so the server is told the choice instead of inferring it from a hand it would have to assume the
+		// order of.
 		[Rpc(SendTo.Server)]
-		public void UseAbilityRPC(RpcParams rpcParams = default)
+		public void UseAbilityRPC(FixedString64Bytes abilityId, RpcParams rpcParams = default)
 		{
 			var clientId = rpcParams.Receive.SenderClientId;
 
@@ -202,15 +224,34 @@ namespace Game.Runtime.GameMode.Poker.Modules
 			if (!AbilityWindowOpen.Value) return;
 
 			var player = GameMode.FindSeatedPlayer(clientId);
-			if (!player || !player.Data.IsInHand || player.Data.AbilityUsed.Value) return;
-			if (!_held.TryGetValue(clientId, out var ability) || !ability) return;
+			if (!player || !player.Data.IsInHand) return;
+			if (!_held.TryGetValue(clientId, out var hand) || hand == null) return;
 
+			var index = hand.FindIndex(candidate => candidate && candidate.AbilityId == abilityId.ToString());
+			if (index < 0) return;
+
+			var ability = hand[index];
 			if (!ability.ActivateServer(GameMode, player)) return;
 
 			// Only the owner's replica learns the card is spent. Nobody else hears a thing — an
 			// ability is played in silence, and the report game is how it ever comes to light.
-			player.Data.AbilityUsed.Value = true;
+			hand.RemoveAt(index);
+			RemoveFirst(player.Data.AbilityIds, abilityId);
+
 			if (ability.Kind == PokerAbilityKind.Cheat) _cheaters.Add(clientId);
+		}
+
+		// One entry, not every match: a player dealt the same trick twice spends one copy and keeps the
+		// other, the same way two identical cards in a hand are still two cards.
+		private static void RemoveFirst(NetworkList<FixedString64Bytes> list, FixedString64Bytes value)
+		{
+			for (var i = 0; i < list.Count; i++)
+			{
+				if (!list[i].Equals(value)) continue;
+
+				list.RemoveAt(i);
+				return;
+			}
 		}
 
 		[Rpc(SendTo.Server)]

@@ -38,15 +38,13 @@ namespace Game.Runtime.GameMode.Poker.Player
 		[HideInInspector] public NetworkVariable<bool> HandRevealed = new(false,
 			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
 
-		// The ability game's per-player state. The card is owner-read: which trick somebody drew is the
-		// whole guessing game, so the network layer keeps it from everyone else — and whether they have
-		// played it stays just as private. Riding replicated state rather than a fired-off RPC means a
-		// client that spawns late still arrives knowing its own card.
-		[HideInInspector] public NetworkVariable<FixedString64Bytes> AbilityId = new(default,
-			readPerm: NetworkVariableReadPermission.Owner, writePerm: NetworkVariableWritePermission.Server);
-
-		[HideInInspector] public NetworkVariable<bool> AbilityUsed = new(false,
-			readPerm: NetworkVariableReadPermission.Owner, writePerm: NetworkVariableWritePermission.Server);
+		// The ability game's per-player hand. Owner-read: which tricks somebody drew is the whole guessing
+		// game, so the network layer keeps them from everyone else. A list rather than a single slot because
+		// the wheel deals several and the player picks; spending one removes it, which is why there is no
+		// separate "used" flag — what is left in the list is what is left to play. Riding replicated state
+		// rather than a fired-off RPC means a client that spawns late still arrives knowing its own hand.
+		public readonly NetworkList<FixedString64Bytes> AbilityIds = new(null,
+			NetworkVariableReadPermission.Owner, NetworkVariableWritePermission.Server);
 
 		[HideInInspector] public NetworkVariable<int> ReportsLeft = new(0,
 			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
@@ -95,6 +93,10 @@ namespace Game.Runtime.GameMode.Poker.Player
 		// Carries the change so a hand can deal one card in without disturbing the others.
 		public event Action<NetworkListEvent<CardData>> OnHoleCardsChanged;
 
+		// Separate from OnStateChanged: the wheel rebuilds its slots on this, and rebuilding a wheel every
+		// time a chip moves would fight whatever the player is currently spinning.
+		public event Action OnAbilitiesChanged;
+
 		// Money staked at the table is the same money the player owns, so there is nothing to buy in with
 		// and nothing to cash out — what is bet leaves the wallet and what is won lands back in it.
 		public int Chips => _wallet ? _wallet.Money.Value : 0;
@@ -130,11 +132,10 @@ namespace Game.Runtime.GameMode.Poker.Player
 			Status.OnValueChanged += HandleStatusChanged;
 			HasActed.OnValueChanged += HandleBoolChanged;
 			HandRevealed.OnValueChanged += HandleBoolChanged;
-			AbilityId.OnValueChanged += HandleAbilityChanged;
-			AbilityUsed.OnValueChanged += HandleBoolChanged;
 			ReportsLeft.OnValueChanged += HandleIntChanged;
 			Health.OnValueChanged += HandleIntChanged;
 
+			AbilityIds.OnListChanged += HandleAbilitiesChanged;
 			HoleCards.OnListChanged += HandleHoleCardsChanged;
 
 			OnHandVisibilityRulesChanged += HandleStateChanged;
@@ -150,11 +151,10 @@ namespace Game.Runtime.GameMode.Poker.Player
 			Status.OnValueChanged -= HandleStatusChanged;
 			HasActed.OnValueChanged -= HandleBoolChanged;
 			HandRevealed.OnValueChanged -= HandleBoolChanged;
-			AbilityId.OnValueChanged -= HandleAbilityChanged;
-			AbilityUsed.OnValueChanged -= HandleBoolChanged;
 			ReportsLeft.OnValueChanged -= HandleIntChanged;
 			Health.OnValueChanged -= HandleIntChanged;
 
+			AbilityIds.OnListChanged -= HandleAbilitiesChanged;
 			HoleCards.OnListChanged -= HandleHoleCardsChanged;
 
 			OnHandVisibilityRulesChanged -= HandleStateChanged;
@@ -186,9 +186,8 @@ namespace Game.Runtime.GameMode.Poker.Player
 			TotalBet.Value = 0;
 			HasActed.Value = false;
 			HandRevealed.Value = false;
-			AbilityId.Value = default;
-			AbilityUsed.Value = false;
 			ReportsLeft.Value = 0;
+			AbilityIds.Clear();
 			HoleCards.Clear();
 		}
 
@@ -269,7 +268,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 		private void HandleStateChanged() => OnStateChanged?.Invoke();
 		private void HandleIntChanged(int previous, int current) => OnStateChanged?.Invoke();
-		private void HandleAbilityChanged(FixedString64Bytes previous, FixedString64Bytes current) => OnStateChanged?.Invoke();
+		private void HandleAbilitiesChanged(NetworkListEvent<FixedString64Bytes> changeEvent) => OnAbilitiesChanged?.Invoke();
 		private void HandleBoolChanged(bool previous, bool current) => OnStateChanged?.Invoke();
 		private void HandleStatusChanged(PokerPlayerStatus previous, PokerPlayerStatus current) => OnStateChanged?.Invoke();
 		private void HandleHoleCardsChanged(NetworkListEvent<CardData> changeEvent) => OnHoleCardsChanged?.Invoke(changeEvent);
