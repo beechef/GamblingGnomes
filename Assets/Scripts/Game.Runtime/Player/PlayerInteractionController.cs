@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Game.Runtime.Controller;
 using Game.Runtime.Interaction;
 using Game.Runtime.UI;
@@ -42,6 +43,11 @@ namespace Game.Runtime.Player
 		private readonly RaycastHit[] _hits = new RaycastHit[8];
 		private readonly RaycastHit[] _obstructionHits = new RaycastHit[8];
 
+		// The scan runs every frame and keeps hitting the same handful of colliders, so each one is
+		// walked up to its interactable once and remembered. A miss is remembered too — most of what a
+		// player looks at is scenery, and re-walking it every frame is the same cost as never caching.
+		private readonly Dictionary<Collider, IInteractable> _interactableByCollider = new();
+
 		private IInteractable _focused;
 		private string _promptActionName;
 		private NetworkBehaviourReference _selfReference;
@@ -76,6 +82,27 @@ namespace Game.Runtime.Player
 
 			SetFocused(null);
 			DespawnPrompt();
+
+			_interactableByCollider.Clear();
+		}
+
+		private IInteractable ResolveInteractable(Collider collider)
+		{
+			if (!collider) return null;
+
+			if (_interactableByCollider.TryGetValue(collider, out var cached))
+			{
+				// A remembered miss stays a miss; a remembered hit whose object has since been
+				// despawned is walked again, in case another one moved in behind it.
+				if (cached == null || cached.Transform) return cached;
+
+				_interactableByCollider.Remove(collider);
+			}
+
+			var interactable = collider.GetComponentInParent<IInteractable>();
+			_interactableByCollider[collider] = interactable;
+
+			return interactable;
 		}
 
 		private void SpawnPrompt()
@@ -117,7 +144,6 @@ namespace Game.Runtime.Player
 		private IInteractable Scan()
 		{
 			if (!_lookOrigin) return null;
-			// if (!CursorController.IsLocked) return null;
 
 			var ray = new Ray(_lookOrigin.position, _lookOrigin.forward);
 			var count = Physics.SphereCastNonAlloc(ray,
@@ -135,7 +161,7 @@ namespace Game.Runtime.Player
 				var hit = _hits[i];
 				if (hit.distance >= bestDistance) continue;
 
-				var interactable = hit.collider.GetComponentInParent<IInteractable>();
+				var interactable = ResolveInteractable(hit.collider);
 				if (interactable == null || !interactable.Transform) continue;
 				if (interactable.Transform.IsChildOf(transform)) continue;
 				if (!interactable.CanInteract(_selfReference)) continue;
@@ -179,7 +205,7 @@ namespace Game.Runtime.Player
 			{
 				var hit = _obstructionHits[i];
 				if (hit.transform.IsChildOf(transform)) continue;
-				if (hit.collider.GetComponentInParent<IInteractable>() == interactable) continue;
+				if (ReferenceEquals(ResolveInteractable(hit.collider), interactable)) continue;
 
 				DrawDebugBlocker(hit.point);
 				return true;

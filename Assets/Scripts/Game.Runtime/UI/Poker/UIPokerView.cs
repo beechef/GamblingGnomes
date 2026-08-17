@@ -22,7 +22,9 @@ namespace Game.Runtime.UI.Poker
 
 		protected virtual bool WantsTick => false;
 
-		protected virtual void OnEnable()
+		// Not virtual, and neither is OnDisable: a subclass that overrode either and forgot base would
+		// silently stop binding. Subclass work goes in OnBind/OnUnbind, which cannot be skipped.
+		private void OnEnable()
 		{
 			PokerGameMode.OnInstanceChanged += HandleInstanceChanged;
 			PokerPlayer.OnLocalPlayerChanged += HandleLocalPlayerChanged;
@@ -30,7 +32,7 @@ namespace Game.Runtime.UI.Poker
 			Rebind();
 		}
 
-		protected virtual void OnDisable()
+		private void OnDisable()
 		{
 			PokerGameMode.OnInstanceChanged -= HandleInstanceChanged;
 			PokerPlayer.OnLocalPlayerChanged -= HandleLocalPlayerChanged;

@@ -1,3 +1,4 @@
+using System;
 using Game.Runtime.Controller;
 using Game.Runtime.Player;
 using Game.Runtime.UI.Button;
@@ -133,13 +134,27 @@ namespace Game.Runtime.UI.Pause
 
 			if (_leaveButton) _leaveButton.IsInteractable = false;
 
-			var network = GameNetworkManager.Instance;
-			if (network) await network.LeaveGame();
+			try
+			{
+				var network = GameNetworkManager.Instance;
+				if (network) await network.LeaveGame(destroyCancellationToken);
 
-			ClosePanel();
-
-			if (_leaveButton) _leaveButton.IsInteractable = true;
-			_leaving = false;
+				ClosePanel();
+			}
+			catch (OperationCanceledException)
+			{
+			}
+			catch (Exception exception)
+			{
+				Debug.LogException(exception);
+			}
+			finally
+			{
+				// Handed back whatever happened — a leave that threw must not leave the way out greyed
+				// out with the table still up.
+				if (_leaveButton) _leaveButton.IsInteractable = true;
+				_leaving = false;
+			}
 		}
 
 		private void HandleQuitClicked()

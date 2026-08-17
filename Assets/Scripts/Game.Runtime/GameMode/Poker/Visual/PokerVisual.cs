@@ -12,14 +12,16 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 		protected bool IsBound { get; private set; }
 
-		protected virtual void OnEnable()
+		// Not virtual, and neither is OnDisable: a subclass that overrode either and forgot base would
+		// silently stop binding. Subclass work goes in OnBind/OnUnbind, which cannot be skipped.
+		private void OnEnable()
 		{
 			PokerGameMode.OnInstanceChanged += HandleInstanceChanged;
 
 			Rebind();
 		}
 
-		protected virtual void OnDisable()
+		private void OnDisable()
 		{
 			PokerGameMode.OnInstanceChanged -= HandleInstanceChanged;
 
