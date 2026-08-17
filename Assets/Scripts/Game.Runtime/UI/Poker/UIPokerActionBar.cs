@@ -86,28 +86,44 @@ namespace Game.Runtime.UI.Poker
 
 		private void Refresh()
 		{
+			// What a raise costs is the running street's business, so the bar asks it rather than
+			// carrying a second copy of the numbers.
+			var stage = GameMode.FindStage(Data.StageId.Value.ToString()) as PokerBettingStage;
+
 			// While something is overlaid on the street the turn belongs to it, and whoever is on that clock
-			// is being asked something else entirely.
-			var ourTurn = IsLocalTurn && LocalData.CanAct && Data.OverlayStageId.Value.IsEmpty;
+			// is being asked something else entirely. A street that only asks call or fold has a bar of its
+			// own, so this one steps aside rather than showing two buttons out of five.
+			var ourTurn = IsLocalTurn && LocalData.CanAct && Data.OverlayStageId.Value.IsEmpty
+			              && (!stage || !stage.IsCallOnly);
 
 			if (_panel && _panel.activeSelf != ourTurn) _panel.SetActive(ourTurn);
 			if (!ourTurn) return;
 
 			var owed = Mathf.Max(0, Data.CurrentBet.Value - LocalData.Bet.Value);
 
-			// What a raise costs is the running street's business, so the bar asks it rather than
-			// carrying a second copy of the numbers.
-			var stage = GameMode.FindStage(Data.StageId.Value.ToString()) as PokerBettingStage;
 			var minimumTarget = Data.CurrentBet.Value + (stage ? stage.MinimumRaiseStep : Data.LastRaise.Value);
 			var maximumTarget = LocalData.Bet.Value + LocalData.Chips;
 
-			if (_checkButton) _checkButton.IsInteractable = owed <= 0 && (!stage || stage.AllowCheckWhenNoBet);
+			// What the street forbids is hidden; what this player merely cannot afford is dimmed. A greyed
+			// button says "not now", a missing one says "not here", and a street that never allows raising
+			// should not spend the space claiming otherwise.
+			var raiseAllowed = !stage || stage.AllowRaise;
+			var checkAllowed = !stage || stage.AllowCheckWhenNoBet;
+			var allInAllowed = !stage || stage.AllowAllIn;
+
+			SetShown(_checkButton, checkAllowed);
+			SetShown(_raiseButton, raiseAllowed);
+			SetShown(_allInButton, allInAllowed);
+			if (_raiseSlider) _raiseSlider.gameObject.SetActive(raiseAllowed);
+
+			if (_checkButton) _checkButton.IsInteractable = owed <= 0;
 			if (_callButton) _callButton.IsInteractable = owed > 0 && LocalData.Chips > 0;
 			if (_raiseButton) _raiseButton.IsInteractable = maximumTarget > minimumTarget;
-			if (_allInButton) _allInButton.IsInteractable = LocalData.Chips > 0 && (!stage || stage.AllowAllIn);
+			if (_allInButton) _allInButton.IsInteractable = LocalData.Chips > 0;
 
-			if (_raiseSlider)
+			if (_raiseSlider && raiseAllowed)
 			{
+				_raiseSlider.interactable = maximumTarget > minimumTarget;
 				_raiseSlider.minValue = minimumTarget;
 				_raiseSlider.maxValue = Mathf.Max(minimumTarget, maximumTarget);
 				_raiseSlider.wholeNumbers = true;
@@ -118,6 +134,11 @@ namespace Game.Runtime.UI.Poker
 
 			RefreshRaiseLabel();
 			RefreshTimer();
+		}
+
+		private static void SetShown(UIButton button, bool shown)
+		{
+			if (button && button.gameObject.activeSelf != shown) button.gameObject.SetActive(shown);
 		}
 
 		private void RefreshRaiseLabel()

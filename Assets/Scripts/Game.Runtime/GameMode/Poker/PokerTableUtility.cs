@@ -48,6 +48,27 @@ namespace Game.Runtime.GameMode.Poker
 			data.LastRaise.Value = 0;
 		}
 
+		// What it costs to be dealt in, as opposed to what is bet on the hand: it goes straight to the pot
+		// without ever sitting in front of a player, so the first street still asks them for its price in
+		// full. SettlePots hands it to whoever wins, the same as any bet nobody could cover.
+		public static int CollectDealCost(PokerGameData data, IReadOnlyList<PokerPlayer> players, int amount)
+		{
+			if (amount <= 0) return 0;
+
+			var collected = 0;
+
+			foreach (var player in players)
+			{
+				if (!player || !player.Data || !player.Data.CanAct) continue;
+
+				collected += player.Data.ServerPayIntoPot(amount);
+			}
+
+			if (collected > 0) data.Pot.Value += collected;
+
+			return collected;
+		}
+
 		public static void CollectBets(PokerGameData data, IReadOnlyList<PokerPlayer> players)
 		{
 			var collected = 0;

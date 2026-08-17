@@ -12,7 +12,7 @@ namespace Game.Runtime.Player
 	{
 		[Header("Wallet")]
 		[Tooltip("What a player arrives with. Tables are free to sit at, so this only has to cover the bets they want to make.")]
-		[SerializeField] private int _startingMoney = 5000;
+		[SerializeField] private int _startingMoney = 20;
 
 		[HideInInspector] public NetworkVariable<FixedString64Bytes> DisplayName = new(default,
 			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);

@@ -221,6 +221,21 @@ namespace Game.Runtime.GameMode.Poker.Player
 			return paid;
 		}
 
+		// Money that leaves a player without ever becoming a bet. It answers nothing on the street, so it
+		// must not land in front of them where a call would read it as already paid — the caller is the
+		// one that puts it in the pot.
+		public int ServerPayIntoPot(int amount)
+		{
+			if (!IsServer) return 0;
+
+			var paid = Mathf.Clamp(amount, 0, Chips);
+			if (paid > 0 && !_wallet.ServerTryWithdraw(paid)) return 0;
+
+			if (Chips <= 0) Status.Value = PokerPlayerStatus.AllIn;
+
+			return paid;
+		}
+
 		public void ServerWinChips(int amount)
 		{
 			if (!IsServer || !_wallet) return;
