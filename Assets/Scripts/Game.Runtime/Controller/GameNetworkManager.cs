@@ -43,6 +43,15 @@ namespace Game.Runtime.Controller
 		public event Action OnLobbyEnter;
 		public event Action OnHostStarted;
 
+		// Raised the moment a way into a table is taken, before Steam is asked anything. The answer can be
+		// seconds away, and OnHostStarted/OnLobbyEnter only arrive once it comes — so this is the edge
+		// anything covering the wait has to start from.
+		public event Action OnConnectStarted;
+
+		// The mirror of it on the way out: the teardown below unloads a scene, so the table is gone well
+		// before the app is back to a blank state.
+		public event Action OnGameLeaving;
+
 		// Raised once the table is fully torn down and the app is back to a blank state — whether the
 		// player walked out, the host vanished, or the transport died.
 		public event Action OnGameLeft;
@@ -121,7 +130,9 @@ namespace Game.Runtime.Controller
 
 			if (!SteamClient.IsValid)
 			{
-				Debug.LogError("[GameNetworkManager] SteamClient invalid before CreateLobbyAsync");
+				// Reported rather than only logged: every start has to end in an outcome the UI hears, or
+				// whatever covered the wait is left up with nothing coming to take it down.
+				OnConnectFailed?.Invoke("SteamClient invalid before CreateLobbyAsync.");
 				return;
 			}
 
@@ -132,6 +143,9 @@ namespace Game.Runtime.Controller
 			}
 
 			_gameplaySceneName = entry.SceneName;
+
+			// Raised past the guards, so the only starts announced are the ones that go on to answer.
+			OnConnectStarted?.Invoke();
 
 			var result = await SteamMatchmaking.CreateLobbyAsync(LobbySettings.MaxPlayers);
 
@@ -218,6 +232,8 @@ namespace Game.Runtime.Controller
 			try
 			{
 				ct.ThrowIfCancellationRequested();
+
+				OnConnectStarted?.Invoke();
 
 				var lobby = await SteamMatchmaking.JoinLobbyAsync(lobbyId);
 
@@ -347,6 +363,10 @@ namespace Game.Runtime.Controller
 		{
 			if (_leavingGame) return;
 			_leavingGame = true;
+
+			// Announced only when there is a session to take apart: Shutdown is called on paths where
+			// nothing is up, and those would otherwise put a screen over a teardown that does nothing.
+			if (IsInGame) OnGameLeaving?.Invoke();
 
 			try
 			{
