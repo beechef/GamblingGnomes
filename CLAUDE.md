@@ -68,9 +68,11 @@ Do not scatter scripts outside `Assets/Scripts/`. Do not create per-feature asmd
 - State machines: a list of stage objects + current index, `NextStage()` calling `EndStage()`/`StartStage()` on transition.
 - Event-driven sync: plain `event Action`/`event Action<T>`, subscribed in `OnNetworkSpawn`/`OnEnable`, unsubscribed symmetrically in `OnNetworkDespawn`/`OnDisable`. Prefer `NetworkVariable<T>.OnValueChanged` / `NetworkList<T>.OnListChanged` for state→view sync over manual RPC broadcasts of state.
 - RPCs: use the modern NGO attribute style `[Rpc(SendTo.Server, ...)]` / `[Rpc(SendTo.Owner, ...)]`, not legacy `[ServerRpc]`/`[ClientRpc]`. Method names keep the `RPC` suffix (`ActivateRPC`, `ReadyRPC`).
-- Async: use Unity's native `Awaitable`/`Awaitable<T>`, not UniTask or coroutines, for new async code.
+- Async: use Unity's native `Awaitable`/`Awaitable<T>`, not UniTask or coroutines, for new async code. Every async operation takes `CancellationToken ct = default` and undoes its own setup on cancel; a temporary handler subscribed inside an awaitable wrapper is unsubscribed on *every* path, cancel included. `async void` is banned except for a Unity/UI event handler, and that handler catches.
 - Tweens: cache `Tween` references in a field, `.Kill()` before restarting.
 - No DI container / service locator. Wire dependencies via `[SerializeField]` inspector refs or static `Instance` singletons.
+- **Never resolve a dependency with `FindFirstObjectByType`/`FindAnyObjectByType`/`Camera.main`** (editor tooling excepted) — a dependency arrives serialized, is handed over by its owner's lifecycle (`Initialize(owner)`), or comes from a registry that sets itself up and tears itself down in its own lifecycle (`GameCamera`, `PokerSeat`). A *spawned* prefab is the case that needs the registry: it cannot serialize a reference to the scene it lands in.
+- No polling. `Update`/`LateUpdate` is for genuinely continuous work (look smoothing, camera follow) — never for detecting that something changed, and never for `GetComponent`, `Instantiate`, `Find*` or allocation. Cache lookups in `Awake`/`Initialize`.
 - Odin Inspector (`[ValueDropdown]`, `[FoldoutGroup]`, etc.) only where plain `[SerializeField]`/`[Header]` can't express the need (dynamic dropdowns, foldout grouping) — not as the default on every class.
 
 ## Design principles
@@ -79,6 +81,10 @@ Hold code to an industry-standard design bar rather than inventing bespoke struc
 
 - **SOLID + KISS + DRY.** Split into clear modules that can be reused and assembled, not monoliths.
 - **Minimise coupling.** A component that needs a dependency takes it from an event or an injected reference rather than reaching into a concrete singleton — a module that can only work in the one place it grew up in is not reusable.
+- **Domain-agnostic mechanism, concrete domain code.** Genericity is a property of the module boundary, not of every line. A reusable mechanism carries no poker/Steam/lobby word in its name or API (`PlayerGlassesController`, `PlayerActionAnimator`, `PlayerSpawnPoint` — the mechanism is the same whatever sits in it). Code built on top of it stays explicit: `DealCardToPlayer`, `CollectBlinds`, `OnChipsWagered` — never `Assign`, `Process`, `OnValueChanged`. **A name must state its purpose on sight; that outranks genericity.** A vague name in domain code is a defect, not an abstraction.
+- **Don't over-generalize.** Structural abstraction (interface, type parameter, base hierarchy) costs something: two real uses justify it, one does not. Write the concrete case, and pull the mechanism out when the second caller actually arrives. Duplication twice is a signal, three times is a refactor.
+- **Data, logic and visual are three responsibilities, never mixed in one class.** Data owns state (`NetworkVariable`, serialized config) and no behaviour; logic owns rules and transitions and touches no `Renderer`/`Animator`/`Image`/tween; visual renders and animates and never decides a rule or writes authoritative state. Visual *reacts* to data through events and `OnValueChanged` — it never drives. `PokerGameData`/`PokerGameMode`/`PokerVisual` and `PlayerData`/`PlayerController`/`PlayerVisual` are the reference shapes.
+- **Downward references only.** `GameModeController` → `PokerGameMode` → `PokerModule`/`PokerStage`; a child never calls up, it raises an `event` the parent listens to. Cross-module talk goes through events or a small shared contract, not a reach into the other module's concrete type.
 - **Template method for extension points.** A base class keeps its own step non-virtual and calls a `protected virtual` hook from inside it, so a subclass extends behaviour without the parent ever being edited, and shared work can't be skipped by a subclass that forgets `base.Foo()`:
 
   ```csharp
@@ -94,6 +100,45 @@ Hold code to an industry-standard design bar rather than inventing bespoke struc
   The outer method carries the invariants (guards, ordering, state flags); the `OnX` hook carries only the subclass's own work. Applies to every extension point, not just tick — `Start`/`End`, `Bind`/`Unbind`, `Enable`/`Disable`. See `PokerStage` (`StartStage`/`OnStartStage`), `UIPokerView` and `PokerVisual` (`OnBind`/`OnUnbind`).
 - **Every system has an explicit lifecycle.** Bind and unbind through paired hooks — `OnEnable`/`OnDisable`, `OnNetworkSpawn`/`OnNetworkDespawn`, `OnBind`/`OnUnbind`, or a static `OnInstanceChanged`-style event. Never poll for a dependency in `Update()` and rebind when you notice it changed: that hides the binding in the per-frame path and leaves no single point where the subscription is released, so handlers leak. Unsubscribe in the reverse order of subscribing, and null a reference only after the unsubscribe that needs it.
 - **Animate with DOTween, not hand-rolled interpolation.** A per-frame `Vector3.Lerp`/`Quaternion.Slerp` toward a moving target bakes the curve into decay maths and offers no hook for "then do this". A tween makes easing, duration, delay, loops, callbacks and sequences tunable after the fact. Expose duration and `Ease` as `[SerializeField]` so they can be retuned without touching code, and prefer `SetEase` over hand-tuned constants.
+
+## Scenes and lifetimes
+
+Two lifetimes: `Bootstrap.unity` is persistent, `Gameplay_*.unity` is loaded additively and disposable.
+
+- Bootstrap owns the services that outlive a match — `NetworkManager`, `GameNetworkManager`, `SteamController`, `GameCamera` + the Cinemachine brain, `UIManager`'s canvas. Gameplay owns the mode, the table, the seats and the players.
+- **Bootstrap code must not reference gameplay types.** Gameplay consumes bootstrap services through their registered instance or an interface, never the other way round.
+- Gameplay must survive being unloaded and reloaded without leaking a handler or a static: every `+=` in a spawn/enable hook has its `-=` in the mirrored despawn/disable hook, and every static holding state resets under `[RuntimeInitializeOnLoadMethod]`.
+- Never assume gameplay is loaded from bootstrap code; go through the async load path. Scene operations in a networked session go through `NetworkManager.SceneManager`.
+- Exactly one `Camera` + `CinemachineBrain` exists, and it lives in bootstrap. Everything else — the player prefab's first-person rigs, any cutscene rig — is a `CinemachineCamera` the brain blends to. Never hand-drive `Camera.transform`.
+
+## Netcode rules
+
+- Server is authoritative for spawn/despawn and for every rule. Owner-write `NetworkVariable`s are for input-shaped state only (look angles, identity).
+- **Set `readPerm`/`writePerm` explicitly on every `NetworkVariable`** — never rely on the defaults. See `PokerAbilityModule`, `PlayerManager`.
+- Guard server-only work with `IsServer` and owner-only work with `IsOwner` at method entry, not halfway down.
+- Don't write a `NetworkVariable` every frame; throttle by a meaningful delta.
+- **Handle late join by reading the current value in `OnNetworkSpawn` and snapping to it** — a client that only subscribes to `OnValueChanged` shows nothing until the next change, which for a value set before it joined is never.
+- Teardown belongs in `OnNetworkDespawn`, not `OnDestroy`.
+
+## UI structure
+
+- `UIManager` is the single canvas, living in bootstrap and surviving additive gameplay loads. Features never ship a canvas of their own; they `Show` into a layer (`UILayer.Hud` / `Screen` / `Overlay`). The layers exist so an overlay can open without disturbing the HUD beneath it.
+- **The `CanvasScaler` lives on the `UIManager` canvas only** — one on a child canvas silently rescales everything under it. Scale With Screen Size, 1920×1080, Match Width Or Height 0.5, which survives both 21:9 and 4:3.
+- Full-screen panels anchor `(0,0)`–`(1,1)` with zero offsets; corner HUD anchors to its corner. Anything inside a layout group needs an explicit `LayoutElement` — unconstrained children are the cause of most "looked fine at 1080p" bugs.
+- **A screen with several sections splits into one component per section, never one class branching over every widget.** `UIPokerView` subclasses (`UIPokerStagePanel`, `UIPokerActionBar`, `UIPokerRankingPanel`, …) each own their own widgets and bind through `OnBind`/`OnUnbind`; the host only holds the list and fans the refresh out. A new HUD section is a new view plus a list entry, not another branch.
+- Widget logic and visual stay split, as everywhere else: `UIButton` raises state changes, a visual component plays the animation.
+- UI reads the mode's `*Data` and the stage's own methods; it never computes a rule of its own and never talks to Netcode directly beyond the mode's public API.
+
+## Inspector (Odin)
+
+**A serialized value that must match something else is picked, never typed.** A hand-typed stage id, scene name or action id is a silent runtime failure; a dropdown cannot be misspelled.
+
+- `[ValueDropdown]` wherever the valid values are knowable; where they live in an asset catalogue, bake them into a `*Database` asset and pick from that, so the list still works in a build and diffs in version control (`PlayerActionAnimationDatabase`, `GameModeDatabase`).
+- `[Required]` on any reference whose absence breaks the object at runtime; `[InfoBox]` with a condition to explain a broken setup in place rather than failing later.
+- `[MinValue]`/`[PropertyRange]` on numbers with a real valid range.
+- **When the order of a serialized list carries meaning, say so on the field** — `PokerStageSequence._stages` runs in list order, and a reorder is a behaviour change no compiler catches.
+- Reference the objects themselves, never string ids kept in sync by hand.
+- Odin is inspector UX only: never let an attribute change runtime behaviour.
 
 ## Gameplay architecture
 
@@ -114,12 +159,15 @@ Distilled while building the ability system — new features follow these.
 
 - Prefabs: `UI_` prefix for UI prefabs (`UI_Screen_<Name>` for full-screen panels, `UI_<Name>` for components). No prefix for gameplay prefabs. `Button_` prefix for button prefabs.
 - Animation clips: `Animation_<StateName>.anim`. Animator controllers: `Animator_<Context>.controller` / `.overrideController`. Keep these colocated with the prefab they belong to.
-- Scenes: short PascalCase purpose names (`Bootstrap.unity`, `Gameplay.unity`).
+- Scenes: short PascalCase purpose names (`Bootstrap.unity`, `Gameplay_Poker.unity`).
 - ScriptableObject assets: PascalCase matching the class name.
+- **A piece of the world that carries behaviour is a prefab — model, components and its authored anchors together** (`Seat_PokerChair.prefab`, `GameMode_Poker.prefab`), never a scene object assembled by hand. Retuning where cards land is then one prefab edit that reaches every seat; the scene only places instances and sets what differs per instance.
+- A spawn point sits where the spawned prefab's *root* belongs, not where the character ends up — player roots are at the feet, so a seat's point stays on the floor and the sitting animation supplies the height.
+- **Move assets with `AssetDatabase.MoveAsset`, never by moving files on disk** — it carries the `.meta` and the GUID, so references survive. After a batch move, open the affected prefabs and scenes and check for null materials and missing scripts.
 
 ## Editor settings that affect how you write code
 
-- **Domain Reload is disabled** (Scene Reload only). Static fields, static events, and singleton `Instance` properties survive between Play sessions. Every class holding static state must reset it via `[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]` — see `SteamController`, `GameNetworkManager`, `GameModeController`.
+- **Domain Reload is disabled** (Scene Reload only). Static fields, static events, and singleton `Instance` properties survive between Play sessions. Every class holding static state must reset it via `[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]` — see `SteamController`, `GameNetworkManager`, `GameModeController`, `UIManager`. A `static event` is the dangerous one: reset it to `null` there rather than trusting `OnDisable`, or it keeps handlers pointing at objects destroyed two play sessions ago. `static readonly` constants are exempt.
 - **Auto Refresh is disabled.** After writing scripts outside the Editor, trigger `AssetDatabase.Refresh()` manually before expecting a recompile.
 - **UI uses TextMeshPro**, never legacy `UnityEngine.UI.Text` — `TextMeshProUGUI`, `TMP_InputField`, `TMP_Dropdown`, and `TMP_Text` in code.
 - **Input uses `InputActionReference` serialized fields**, never string lookups like `_playerInput.actions["Look"]` — see `PlayerController`.
@@ -131,6 +179,17 @@ Distilled while building the ability system — new features follow these.
 2. Server-authoritative by default — any gameplay state that must be consistent across clients lives in a `NetworkBehaviour`/`NetworkVariable`, not in a locally-mutated field trusted from the client.
 3. No XML doc comments or comment blocks; let naming carry the meaning.
 4. Follow SOLID, KISS and DRY; prefer industry-standard patterns over bespoke structure, and keep modules loosely coupled and reusable.
-5. Extend through `protected virtual OnX` hooks called from a non-virtual base method — never edit a parent class to accommodate a subclass.
+5. Extend through `protected virtual OnX` hooks called from a non-virtual base method — never edit a parent class to accommodate a subclass. Never make a Unity message (`Awake`, `Update`, `OnDestroy`) `virtual`: a subclass forgetting `base.Awake()` is a recurring, silent bug.
 6. Every system binds and unbinds through explicit paired lifecycle hooks; never poll for a dependency in `Update()`.
 7. Animate with DOTween tweens, not hand-rolled `Lerp`/`Slerp` stepped in `Update()`.
+8. Never resolve a dependency by searching the scene (`FindFirstObjectByType`, `FindAnyObjectByType`, `Camera.main`) — serialize it, be handed it, or register it.
+9. Name a mechanism domain-agnostically and domain code explicitly; the name must state its purpose on sight. Don't abstract until a second real use exists.
+10. A serialized value that must match something else is picked from a dropdown, never typed.
+
+## Maintaining this file
+
+**Write the rule down in the same change that establishes it.** A convention agreed only in chat is gone by the next session — these rules are where the project remembers.
+
+A rule earns its place when either is true: **it repeats** (the same correction or the same shape has come up twice — don't wait for a third), or **it matters** (getting it wrong causes a silent failure, a leak, or a bug that is hard to trace back, even if it happened once). A one-off decision with no consequence stays in the code.
+
+When adding one: put it in the section it belongs to instead of appending a new one, cite the file in this repo that demonstrates it, and fix any existing rule it contradicts. A rule that disagrees with the code is worse than no rule, because it will be trusted.
