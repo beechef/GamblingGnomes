@@ -47,8 +47,8 @@ namespace Game.Runtime.UI.MainMenu
 		[SerializeField] private GameObject _optionScreen;
 
 		[Header("Quick Start")]
-		[Tooltip("On, Host goes straight in on the settings the network manager already carries, and Find joins the first lobby it sees. A shortcut for getting to the table while it is being built — turn it off to get the setup screens back.")]
-		[SerializeField] private bool _skipSetupScreens = true;
+		[Tooltip("On, Host goes straight in on the settings the network manager already carries. A shortcut for getting to a table while it is being built — turn it off to get the room setup screen back. Find Lobby always goes through its browser, which refreshes and filters on its own.")]
+		[SerializeField] private bool _hostWithoutSetup = true;
 
 		// One way in at a time. Released in finally, or a throw would leave the menu refusing every later
 		// attempt with nothing on screen to explain why.
@@ -140,7 +140,7 @@ namespace Game.Runtime.UI.MainMenu
 
 		public void CreateLobby()
 		{
-			if (_skipSetupScreens)
+			if (_hostWithoutSetup)
 			{
 				StartHostDirectly();
 				return;
@@ -154,12 +154,6 @@ namespace Game.Runtime.UI.MainMenu
 
 		public void FindLobby()
 		{
-			if (_skipSetupScreens)
-			{
-				JoinFirstLobby();
-				return;
-			}
-
 			if (!_findLobbyUI) return;
 
 			gameObject.SetActive(false);
@@ -179,44 +173,6 @@ namespace Game.Runtime.UI.MainMenu
 
 				var network = GameNetworkManager.Instance;
 				if (network) await network.StartHost(destroyCancellationToken);
-			}
-			catch (OperationCanceledException)
-			{
-			}
-			catch (Exception exception)
-			{
-				Debug.LogException(exception);
-				Show();
-			}
-			finally
-			{
-				_connecting = false;
-			}
-		}
-
-		private async void JoinFirstLobby()
-		{
-			if (_connecting) return;
-			_connecting = true;
-
-			try
-			{
-				var network = GameNetworkManager.Instance;
-				if (!network) return;
-
-				var lobbies = await network.SearchLobby(destroyCancellationToken);
-
-				// Nothing to walk into, so the menu stays exactly where it is rather than hiding behind a
-				// screen that has nothing coming to take it down.
-				if (lobbies.Length == 0)
-				{
-					Debug.Log("[UIMainMenu] No lobby found to join.");
-					return;
-				}
-
-				gameObject.SetActive(false);
-
-				await network.JoinLobby(lobbies[0], destroyCancellationToken);
 			}
 			catch (OperationCanceledException)
 			{
