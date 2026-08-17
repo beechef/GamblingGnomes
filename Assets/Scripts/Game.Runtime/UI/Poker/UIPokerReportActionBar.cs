@@ -4,6 +4,7 @@ using Game.Runtime.GameMode.Poker.Modules;
 using Game.Runtime.GameMode.Poker.Player;
 using Game.Runtime.GameMode.Poker.Stages;
 using Game.Runtime.UI.Button;
+using Game.Runtime.UI.Progress;
 using TMPro;
 using Unity.Collections;
 using UnityEngine;
@@ -39,8 +40,7 @@ namespace Game.Runtime.UI.Poker
 		[SerializeField] private UIButton _foldButton;
 
 		[Header("Turn Timer")]
-		[SerializeField] private Image _timerFill;
-		[SerializeField] private TextMeshProUGUI _timerLabel;
+		[SerializeField] private UITimerBar _timerBar;
 
 		[Tooltip("What this player has to stake with — the number both sides of this are measured against.")]
 		[SerializeField] private TextMeshProUGUI _chipsLabel;
@@ -167,8 +167,7 @@ namespace Game.Runtime.UI.Poker
 
 		private void RefreshTimer()
 		{
-			if (_timerFill) _timerFill.fillAmount = Data.TurnNormalized;
-			if (_timerLabel) _timerLabel.text = Mathf.CeilToInt(Data.TurnRemaining).ToString();
+			if (_timerBar) _timerBar.SetTime(Data.TurnRemaining, Data.TurnNormalized);
 		}
 
 		protected override void OnTick() => RefreshTimer();

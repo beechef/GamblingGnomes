@@ -13,6 +13,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 	public class PokerPlayerData : NetworkBehaviour
 	{
 		public const int NoSeat = -1;
+		public const int MaximumHealth = 10;
 
 		[Header("References")]
 		[Tooltip("What the player bets with. There is no separate stack in front of them — the wallet is the stack.")]
@@ -48,6 +49,12 @@ namespace Game.Runtime.GameMode.Poker.Player
 			readPerm: NetworkVariableReadPermission.Owner, writePerm: NetworkVariableWritePermission.Server);
 
 		[HideInInspector] public NetworkVariable<int> ReportsLeft = new(0,
+			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
+
+		// Read by everyone the way the wireframe shows it over a head: how hurt somebody is, is table
+		// information. Nothing damages it yet — abilities will, through ServerChangeHealth, so every
+		// future source of harm goes through the same clamp.
+		[HideInInspector] public NetworkVariable<int> Health = new(MaximumHealth,
 			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
 
 		// Replicated to everyone rather than owner-only: who may look is a display rule, so an ability
@@ -126,6 +133,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			AbilityId.OnValueChanged += HandleAbilityChanged;
 			AbilityUsed.OnValueChanged += HandleBoolChanged;
 			ReportsLeft.OnValueChanged += HandleIntChanged;
+			Health.OnValueChanged += HandleIntChanged;
 
 			HoleCards.OnListChanged += HandleHoleCardsChanged;
 
@@ -145,6 +153,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			AbilityId.OnValueChanged -= HandleAbilityChanged;
 			AbilityUsed.OnValueChanged -= HandleBoolChanged;
 			ReportsLeft.OnValueChanged -= HandleIntChanged;
+			Health.OnValueChanged -= HandleIntChanged;
 
 			HoleCards.OnListChanged -= HandleHoleCardsChanged;
 
@@ -241,6 +250,14 @@ namespace Game.Runtime.GameMode.Poker.Player
 			if (!IsServer || !_wallet) return;
 
 			_wallet.ServerDeposit(amount);
+		}
+
+		// Negative hurts, positive heals; the clamp lives here so no source of harm can overshoot it.
+		public void ServerChangeHealth(int delta)
+		{
+			if (!IsServer) return;
+
+			Health.Value = Mathf.Clamp(Health.Value + delta, 0, MaximumHealth);
 		}
 
 		public void ServerCollectBet()

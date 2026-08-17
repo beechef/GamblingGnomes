@@ -1,6 +1,7 @@
 using Game.Runtime.GameMode.Poker;
 using Game.Runtime.GameMode.Poker.Stages;
 using Game.Runtime.UI.Button;
+using Game.Runtime.UI.Progress;
 using TMPro;
 using Unity.Collections;
 using UnityEngine;
@@ -32,8 +33,7 @@ namespace Game.Runtime.UI.Poker
 		[SerializeField] private TextMeshProUGUI _lockedInLabel;
 
 		[Header("Timer")]
-		[SerializeField] private Image _timerFill;
-		[SerializeField] private TextMeshProUGUI _timerLabel;
+		[SerializeField] private UITimerBar _timerBar;
 
 		private PokerSimultaneousBetStage _stage;
 
@@ -149,8 +149,10 @@ namespace Game.Runtime.UI.Poker
 
 		private void RefreshTimer()
 		{
-			if (_timerFill) _timerFill.fillAmount = Data.StageTimeNormalized;
-			if (_timerLabel) _timerLabel.text = Data.HasStageTimer ? Mathf.CeilToInt(Data.StageTimeRemaining).ToString() : string.Empty;
+			if (!_timerBar) return;
+
+			if (Data.HasStageTimer) _timerBar.SetTime(Data.StageTimeRemaining, Data.StageTimeNormalized);
+			else _timerBar.Clear();
 		}
 
 		protected override void OnTick()

@@ -2,10 +2,10 @@ using Game.Runtime.GameMode.Poker.Abilities;
 using Game.Runtime.GameMode.Poker.Modules;
 using Game.Runtime.GameMode.Poker.Player;
 using Game.Runtime.GameMode.Poker.Stages;
+using Game.Runtime.UI.Progress;
 using TMPro;
 using Unity.Collections;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace Game.Runtime.UI.Poker
 {
@@ -22,9 +22,7 @@ namespace Game.Runtime.UI.Poker
 		[SerializeField] private TextMeshProUGUI _accusationLabel;
 
 		[Tooltip("Counts down whichever clock the report is running: each side's turn while they are being asked, then the verdict.")]
-		[SerializeField] private TextMeshProUGUI _timerLabel;
-
-		[SerializeField] private Image _timerFill;
+		[SerializeField] private UITimerBar _timerBar;
 
 		[Header("Verdict")]
 		[SerializeField] private GameObject _verdictRoot;
@@ -129,8 +127,7 @@ namespace Game.Runtime.UI.Poker
 			var remaining = Data.HasTurn ? Data.TurnRemaining : Data.StageTimeRemaining;
 			var normalized = Data.HasTurn ? Data.TurnNormalized : Data.StageTimeNormalized;
 
-			if (_timerLabel) _timerLabel.text = Mathf.CeilToInt(remaining).ToString();
-			if (_timerFill) _timerFill.fillAmount = normalized;
+			if (_timerBar) _timerBar.SetTime(remaining, normalized);
 		}
 
 		private bool IsReportOverlayRunning()

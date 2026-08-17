@@ -296,6 +296,10 @@ namespace Game.Runtime.GameMode.Poker
 			foreach (var player in PokerPlayer.All)
 			{
 				if (player && player.Data && player.Data.CardCount > 0) player.Data.HoleCards.Clear();
+
+				// Cards swept away face down: a peek pose held over the next deal would show a lift with
+				// nothing in it.
+				if (player && player.HandPeek) player.HandPeek.ServerSetPeeking(false);
 			}
 		}
 
@@ -558,7 +562,21 @@ namespace Game.Runtime.GameMode.Poker
 				if (module && !module.CanPlayerAct(senderClientId, action, amount)) return;
 			}
 
+			// Measured across the stage rather than trusted from the sender: the request says "call", but
+			// what that actually cost is the stage's answer, and the announcement shows the real number.
+			var actor = FindSeatedPlayer(senderClientId);
+			var betBefore = actor ? actor.Data.Bet.Value : 0;
+
 			if (ActiveStage == null || !ActiveStage.HandleAction(senderClientId, action, amount)) return;
+
+			var paid = actor ? Mathf.Max(0, actor.Data.Bet.Value - betBefore) : 0;
+			_data.ActionNotice.Value = new PokerActionNotice
+			{
+				ClientId = senderClientId,
+				Action = action,
+				Amount = paid,
+				Sequence = _data.ActionNotice.Value.Sequence + 1
+			};
 
 			foreach (var module in _modules)
 			{

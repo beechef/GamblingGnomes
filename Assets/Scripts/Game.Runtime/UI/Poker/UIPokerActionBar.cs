@@ -1,6 +1,7 @@
 using Game.Runtime.GameMode.Poker;
 using Game.Runtime.GameMode.Poker.Stages;
 using Game.Runtime.UI.Button;
+using Game.Runtime.UI.Progress;
 using TMPro;
 using Unity.Collections;
 using UnityEngine;
@@ -32,8 +33,7 @@ namespace Game.Runtime.UI.Poker
 		[SerializeField] private Slider _raiseSlider;
 
 		[Header("Turn Timer")]
-		[SerializeField] private Image _timerFill;
-		[SerializeField] private TextMeshProUGUI _timerLabel;
+		[SerializeField] private UITimerBar _timerBar;
 
 		// The only thing here that changes every frame is the clock, and only while it is our turn.
 		protected override bool WantsTick => IsLocalTurn;
@@ -148,8 +148,7 @@ namespace Game.Runtime.UI.Poker
 
 		private void RefreshTimer()
 		{
-			if (_timerFill) _timerFill.fillAmount = Data.TurnNormalized;
-			if (_timerLabel) _timerLabel.text = Mathf.CeilToInt(Data.TurnRemaining).ToString();
+			if (_timerBar) _timerBar.SetTime(Data.TurnRemaining, Data.TurnNormalized);
 		}
 
 		protected override void OnTick() => RefreshTimer();

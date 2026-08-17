@@ -40,6 +40,22 @@ namespace Game.Runtime.UI.Button
 
 		private bool _selected;
 
+		// Held down by something that is not the pointer — a key bound to this button. It resolves at the
+		// same priority as a pointer press, so a key and a click are indistinguishable to every visual.
+		public bool IsPressedByKey
+		{
+			get => _keyPressed;
+			set
+			{
+				if (_keyPressed == value) return;
+
+				_keyPressed = value;
+				RefreshState();
+			}
+		}
+
+		private bool _keyPressed;
+
 		public bool IsInteractable
 		{
 			get
@@ -104,6 +120,11 @@ namespace Game.Runtime.UI.Button
 			_button.onClick.RemoveListener(Click);
 		}
 
+		// Clicked by something that is not the pointer — a key bound to this button, a tutorial driving it.
+		// It runs the same guard and raises the same event, so nothing downstream can tell the two apart,
+		// and callers never have to reach past this component to the uGUI Button underneath.
+		public void Submit() => Click();
+
 		private void Click()
 		{
 			if (!IsInteractable) return;
@@ -151,6 +172,9 @@ namespace Game.Runtime.UI.Button
 		{
 			_hovering = false;
 			_pressed = false;
+
+			// A key held as the button is switched off would otherwise still be held when it comes back.
+			_keyPressed = false;
 		}
 
 		private void RefreshState()
@@ -172,7 +196,7 @@ namespace Game.Runtime.UI.Button
 		private UIButtonState Resolve()
 		{
 			if (!_initialized || !_button.interactable) return UIButtonState.Disabled;
-			if (_pressed) return UIButtonState.Pressed;
+			if (_pressed || _keyPressed) return UIButtonState.Pressed;
 			if (_selected) return UIButtonState.Selected;
 			if (_hovering) return UIButtonState.Hovered;
 

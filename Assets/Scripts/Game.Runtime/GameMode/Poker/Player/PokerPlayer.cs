@@ -25,6 +25,8 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 		[SerializeField] private PlayerActionAnimator _actionAnimator;
 
+		[SerializeField] private PlayerHandPeekController _handPeek;
+
 		private static readonly List<PokerPlayer> Registry = new();
 
 		public static IReadOnlyList<PokerPlayer> All => Registry;
@@ -49,6 +51,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		public PlayerRigController Rig => _rig;
 		public PlayerHeadStretchController HeadStretch => _headStretch;
 		public PlayerActionAnimator ActionAnimator => _actionAnimator;
+		public PlayerHandPeekController HandPeek => _handPeek;
 		public ulong ClientId => OwnerClientId;
 
 		// The seat number is the fallback rather than the label: a player whose identity RPC has not
