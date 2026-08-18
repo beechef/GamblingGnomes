@@ -27,6 +27,9 @@ namespace Game.Runtime.UI.Wheel
 		[Tooltip("Where the views are parented. Empty uses this object, which is normally what you want — the anchors are only positions.")]
 		[SerializeField] private RectTransform _itemParent;
 
+		[Tooltip("On, the strip is a loop and every anchor always shows something — with fewer items than anchors the same few repeat. Off, it is a finite list: a slot with no item behind it stays blank, and the wheel stops at the ends instead of coming round again.")]
+		[SerializeField] private bool _wrapAround = true;
+
 		[Header("Motion")]
 		[MinValue(0f)]
 		[SerializeField] private float _stepDuration = 0.25f;
@@ -102,7 +105,7 @@ namespace Game.Runtime.UI.Wheel
 			{
 				var view = _views[slot];
 
-				view.Bind(_items[ItemIndexForSlot(slot)]);
+				BindSlot(slot);
 				view.SnapTo(_anchors[slot]);
 				view.SetSelected(false, true);
 			}
@@ -141,6 +144,7 @@ namespace Game.Runtime.UI.Wheel
 		public void Step(UIWheelDirection direction)
 		{
 			if (_items.Count == 0 || _views.Count < 2) return;
+			if (!CanStep(direction)) return;
 
 			// Only the latest queued turn survives: spinning the wheel faster than it animates should skip
 			// ahead, not build a backlog that keeps moving after the player stops.
@@ -151,6 +155,17 @@ namespace Game.Runtime.UI.Wheel
 			}
 
 			BeginStep(direction);
+		}
+
+		// A loop can always turn. A finite strip refuses at its ends rather than clamping, because clamping
+		// would spend a step animating a wheel to where it already is.
+		private bool CanStep(UIWheelDirection direction)
+		{
+			if (_wrapAround) return true;
+
+			var next = _index + (direction == UIWheelDirection.Forward ? 1 : -1);
+
+			return next >= 0 && next < _items.Count;
 		}
 
 		private void HandleStepped(UIWheelDirection direction) => Step(direction);
@@ -195,7 +210,7 @@ namespace Game.Runtime.UI.Wheel
 			_views.Add(recycled);
 
 			var last = _anchors.Count - 1;
-			recycled.Bind(_items[ItemIndexForSlot(last)]);
+			BindSlot(last);
 			recycled.SnapTo(_anchors[last]);
 
 			return recycled;
@@ -207,7 +222,7 @@ namespace Game.Runtime.UI.Wheel
 			_views.RemoveAt(_views.Count - 1);
 			_views.Insert(0, recycled);
 
-			recycled.Bind(_items[ItemIndexForSlot(0)]);
+			BindSlot(0);
 			recycled.SnapTo(_anchors[0]);
 
 			return recycled;
@@ -226,15 +241,34 @@ namespace Game.Runtime.UI.Wheel
 			BeginStep(next);
 		}
 
+		// Where the selection lands. A loop comes round; a finite list stops at its ends.
 		private int Wrap(int index)
 		{
 			var count = _items.Count;
 			if (count == 0) return 0;
 
+			if (!_wrapAround) return Mathf.Clamp(index, 0, count - 1);
+
 			return ((index % count) + count) % count;
 		}
 
-		private int ItemIndexForSlot(int slot) => Wrap(_index + (slot - MiddleSlot));
+		// Deliberately unclamped when the strip is finite: a slot reaching past either end has no item behind
+		// it, and saying so is the whole point. Wrapping it back into range is what fills five anchors with
+		// two abilities.
+		private int ItemIndexForSlot(int slot)
+		{
+			var index = _index + (slot - MiddleSlot);
+
+			return _wrapAround ? Wrap(index) : index;
+		}
+
+		private void BindSlot(int slot)
+		{
+			var index = ItemIndexForSlot(slot);
+
+			if (index < 0 || index >= _items.Count) _views[slot].BindEmpty();
+			else _views[slot].Bind(_items[index]);
+		}
 
 		private void KillTweens()
 		{

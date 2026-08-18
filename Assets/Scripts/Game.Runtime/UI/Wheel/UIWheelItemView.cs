@@ -9,12 +9,18 @@ namespace Game.Runtime.UI.Wheel
 	[RequireComponent(typeof(RectTransform))]
 	public class UIWheelItemView<T> : MonoBehaviour
 	{
+		[Header("Empty")]
+		[Tooltip("Faded out for a slot the wheel has no item for. Faded rather than switched off, because the slot is still travelling — deactivating it would kill the tween carrying it.")]
+		[SerializeField] private CanvasGroup _group;
+
 		public T Data { get; private set; }
 		public bool IsSelected { get; private set; }
+		public bool IsEmpty { get; private set; }
 
 		private RectTransform _rectTransform;
 		private Tween _tween;
 		private bool _applied;
+		private bool _emptyApplied;
 
 		private void Awake()
 		{
@@ -33,12 +39,39 @@ namespace Game.Runtime.UI.Wheel
 		{
 			Data = data;
 
+			SetEmpty(false);
 			OnBind(data);
 
 			_applied = true;
 
 			if (IsSelected) OnSelect(true);
 			else OnUnSelect(true);
+		}
+
+		// A slot with nothing to show. It keeps its place in the strip and keeps travelling — a wheel whose
+		// slots came and went would jump — but it is not drawn, and OnBind is never called with a default
+		// nobody asked a subclass to render.
+		public void BindEmpty()
+		{
+			Data = default;
+
+			SetEmpty(true);
+		}
+
+		private void SetEmpty(bool empty)
+		{
+			if (_emptyApplied && IsEmpty == empty) return;
+
+			IsEmpty = empty;
+			_emptyApplied = true;
+
+			if (_group)
+			{
+				_group.alpha = empty ? 0f : 1f;
+				_group.blocksRaycasts = !empty;
+			}
+
+			OnEmpty(empty);
 		}
 
 		// The first call always reaches the hook, even when the value it is given matches the field's
@@ -97,5 +130,9 @@ namespace Game.Runtime.UI.Wheel
 		protected virtual void OnBind(T data) { }
 		protected virtual void OnSelect(bool instant) { }
 		protected virtual void OnUnSelect(bool instant) { }
+
+		// For a subclass that has more to do than fade — stopping a loop, releasing a held sound. The base
+		// has already hidden the group by the time this runs.
+		protected virtual void OnEmpty(bool empty) { }
 	}
 }

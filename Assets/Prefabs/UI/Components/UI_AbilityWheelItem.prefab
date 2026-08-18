@@ -424,6 +424,7 @@ GameObject:
   m_Component:
   - component: {fileID: 5142786437367230271}
   - component: {fileID: 8380481716697214424}
+  - component: {fileID: 1864726103662961196}
   m_Layer: 0
   m_Name: UI_AbilityWheelItem
   m_TagString: Untagged
@@ -463,6 +464,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d52e9aa73369440439c00a0443ec5e55, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Poker.UIPokerAbilityWheelItem
+  _group: {fileID: 1864726103662961196}
   _icon: {fileID: 6583559363970971756}
   _nameLabel: {fileID: 3230362063415927631}
   _plate: {fileID: 107115950707197069}
@@ -476,3 +478,15 @@ MonoBehaviour:
   _pressGrowDuration: 0.07
   _pressSettleDuration: 0.13
   _fadeDuration: 0.15
+--- !u!225 &1864726103662961196
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8465760056684140494}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
