@@ -99,6 +99,7 @@ namespace Game.Runtime.Player
 		private PlayerLookMode _seatLookMode;
 		private PlayerLookMode _overrideLookMode;
 		private bool _hasLookModeOverride;
+		private bool _lookSuspended;
 		private float _constraintYaw;
 		private Vector2 _constraintYawLimits;
 		private Vector2 _activePitchLimits;
@@ -179,6 +180,17 @@ namespace Game.Runtime.Player
 		public void ClearLookModeOverride()
 		{
 			_hasLookModeOverride = false;
+		}
+
+		// Hands the look bones over to something else entirely. The neck stretch aims the head where it is
+		// going and must not be composed with a look input at the same time: two writers on one bone leave
+		// whatever the last one wrote, and on the frame the stretch lets go the look would carry on
+		// multiplying into that instead of into the pose the Animator meant.
+		//
+		// Set on every peer, like the anchor and the look mode, because the act it belongs to is replicated.
+		public void SetLookSuspended(bool suspended)
+		{
+			_lookSuspended = suspended;
 		}
 
 		// Sitting, lying down or any other anchored pose narrows what the look input is allowed to do:
@@ -512,6 +524,8 @@ namespace Game.Runtime.Player
 		// way it is facing rather than along the way it was placed.
 		private void ApplyLook(float yaw, float pitch)
 		{
+			if (_lookSuspended) return;
+
 			var lookTransform = ActiveLookTransform;
 			if (!lookTransform) return;
 

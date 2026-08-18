@@ -54,6 +54,9 @@ namespace Game.Runtime.Player
 		[Header("References")]
 		[SerializeField] private PlayerRigController _rig;
 
+		[Tooltip("Told to stop aiming the look bones while the neck is out. Two writers on one bone leave whatever the last one wrote, and the head is going where the neck sends it, not where the mouse points.")]
+		[SerializeField] private PlayerController _playerController;
+
 		// Public on purpose: the whole point of sending your neck across the table is that everyone sees
 		// you do it. What the lean earns its owner is the private half, and it is kept somewhere else.
 		[HideInInspector] public NetworkVariable<NetworkBehaviourReference> Target = new(default,
@@ -67,8 +70,10 @@ namespace Game.Runtime.Player
 		// each frame, because the thing that would read it back is the very thing that displaced it — and
 		// a skeleton's bone lengths do not change, so one measurement holds for the life of the rig.
 		private readonly List<Vector3> _chainLocalPositions = new();
+		private readonly List<Quaternion> _chainLocalRotations = new();
 
 		private Vector3 _headLocalPosition;
+		private Quaternion _headLocalRotation;
 		private Vector3 _lastReachPoint;
 		private Vector3 _lastLookPoint;
 		private bool _hasLastPoints;
@@ -89,6 +94,7 @@ namespace Game.Runtime.Player
 		public override void OnNetworkSpawn()
 		{
 			if (!_rig) _rig = NetworkObject.GetComponent<PlayerRigController>();
+			if (!_playerController) _playerController = NetworkObject.GetComponent<PlayerController>();
 
 			BuildChain();
 
@@ -108,6 +114,9 @@ namespace Game.Runtime.Player
 			_weight = 0f;
 			_weightTarget = 0f;
 			_serverStretching = false;
+
+			// Despawned mid lean, the look would never be handed back — there is no frame left to do it in.
+			if (_playerController) _playerController.SetLookSuspended(false);
 		}
 
 		public void ServerStretchTo(PlayerRigController target, float duration)
@@ -148,6 +157,11 @@ namespace Game.Runtime.Player
 			// before reading the animated pose is what stops each frame's stretch compounding on the last.
 			RestoreChain();
 
+			// The look and the neck both write the head. While the neck has it, the look lets go — and gets
+			// it back the moment the weight is home, not the moment the target cleared, or the last frames of
+			// the retract would be fought over.
+			if (_playerController) _playerController.SetLookSuspended(IsStretching);
+
 			if (!IsStretching)
 			{
 				_hasLastPoints = false;
@@ -174,18 +188,24 @@ namespace Game.Runtime.Player
 			ApplyStretch(_lastReachPoint, _lastLookPoint);
 		}
 
-		// Only worth doing while something has been displaced, so an idle player is not writing three
-		// transforms a frame for nothing.
+		// Only worth doing while something has been displaced, so an idle player is not writing to these
+		// transforms every frame for nothing.
+		//
+		// Rotation is put back as well as position, and for the same reason: whichever of these bones the
+		// clips do not animate keeps whatever was last written to it forever. A neck left spread apart is
+		// obvious; a head left turned a few degrees is a camera permanently tilted at the table, with
+		// nothing on screen to say why. Bones the Animator does drive are written again at the top of the
+		// next frame, so putting them back costs them nothing.
 		private void RestoreChain()
 		{
 			if (_restored && !IsStretching) return;
 
 			for (var i = 0; i < _chain.Count && i < _chainLocalPositions.Count; i++)
 			{
-				_chain[i].localPosition = _chainLocalPositions[i];
+				_chain[i].SetLocalPositionAndRotation(_chainLocalPositions[i], _chainLocalRotations[i]);
 			}
 
-			_head.localPosition = _headLocalPosition;
+			_head.SetLocalPositionAndRotation(_headLocalPosition, _headLocalRotation);
 
 			_restored = !IsStretching;
 		}
@@ -231,6 +251,7 @@ namespace Game.Runtime.Player
 			_chainOffsets.Clear();
 			_chainRotations.Clear();
 			_chainLocalPositions.Clear();
+			_chainLocalRotations.Clear();
 			_head = null;
 			_hasLastPoints = false;
 			_restored = true;
@@ -261,6 +282,7 @@ namespace Game.Runtime.Player
 		{
 			_restLength = 0f;
 			_headLocalPosition = _head.localPosition;
+			_headLocalRotation = _head.localRotation;
 			_restored = true;
 
 			for (var i = 0; i < _chain.Count; i++)
@@ -268,6 +290,7 @@ namespace Game.Runtime.Player
 				_chainOffsets.Add(_restLength);
 				_chainRotations.Add(Quaternion.identity);
 				_chainLocalPositions.Add(_chain[i].localPosition);
+				_chainLocalRotations.Add(_chain[i].localRotation);
 
 				var next = i + 1 < _chain.Count ? _chain[i + 1] : _head;
 				_restLength += Vector3.Distance(_chain[i].position, next.position);

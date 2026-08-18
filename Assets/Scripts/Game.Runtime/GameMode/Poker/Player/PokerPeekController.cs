@@ -12,6 +12,10 @@ namespace Game.Runtime.GameMode.Poker.Player
 	// to draw them face down is the only thing keeping them secret.
 	public class PokerPeekController : NetworkBehaviour
 	{
+		[Header("Debug")]
+		[Tooltip("Writes one line per peek saying whether this one granted sight and who it landed on. An honest card granting nothing is the bluff working, not a fault — which is exactly why the two cases are impossible to tell apart without asking.")]
+		[SerializeField] private bool _logGrants = true;
+
 		[Header("References")]
 		[SerializeField] private PlayerHeadStretchController _headStretch;
 
@@ -62,6 +66,15 @@ namespace Game.Runtime.GameMode.Poker.Player
 			_headStretch.ServerStretchTo(target, duration);
 		}
 
+		private void LogGrant(string reason)
+		{
+			if (!_logGrants || !_ruleInstalled) return;
+
+			var target = _headStretch ? _headStretch.TargetRig : null;
+
+			Debug.Log($"[PokerPeekController] {reason}: revealsHand={PeekRevealsHand.Value} target={(target ? target.name : "none")}");
+		}
+
 		private bool CanSeeHandOf(PokerPlayerData other)
 		{
 			if (!other || !PeekRevealsHand.Value) return false;
@@ -73,13 +86,20 @@ namespace Game.Runtime.GameMode.Poker.Player
 			return target && target.NetworkObjectId == other.NetworkObjectId;
 		}
 
-		private void HandleRevealChanged(bool previous, bool current) => PokerPlayerData.NotifyHandVisibilityRulesChanged();
+		private void HandleRevealChanged(bool previous, bool current)
+		{
+			LogGrant("grant changed");
+
+			PokerPlayerData.NotifyHandVisibilityRulesChanged();
+		}
 
 		private void HandleTargetChanged(NetworkBehaviourReference previous, NetworkBehaviourReference current)
 		{
 			// The grant comes home with the neck. The sight is already gated on the stretch, so this only
 			// keeps a stale flag from surviving into the next lean.
 			if (IsServer && !current.TryGet(out PlayerRigController _) && PeekRevealsHand.Value) PeekRevealsHand.Value = false;
+
+			LogGrant("target changed");
 
 			if (_ruleInstalled) PokerPlayerData.NotifyHandVisibilityRulesChanged();
 		}
