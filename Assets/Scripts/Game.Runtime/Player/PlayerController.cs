@@ -4,6 +4,7 @@ using Unity.Cinemachine;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.Serialization;
 
 namespace Game.Runtime.Player
 {
@@ -48,21 +49,44 @@ namespace Game.Runtime.Player
 		[SerializeField] private CharacterController _characterController;
 		[SerializeField] private CinemachineCamera _firstPersonCamera;
 		[SerializeField] private CinemachineCamera _ownerFirstPersonCamera;
-		[SerializeField] private Transform _pitchTransform;
-		[SerializeField] private Transform _ownerPitchTransform;
+
+		// Which bone the look aims depends on what the character is free to do, not on which rig is being
+		// rendered — so each rig supplies both, and the mode picks.
+		//
+		// On their feet, the look drives the chest: everything hanging off it comes along, the neck and the
+		// two shoulders alike, so a player looking down lowers their hands with their gaze instead of
+		// craning a head off a body that never moved. Anchored in a seat, that is too much — the chair has
+		// already decided how the body sits, and swinging the whole torso to read the table would throw the
+		// pose away. There the look drives the head alone.
+		[Tooltip("Bone the look aims while the character is free to move, on the rig everyone else renders. The chest, so head and arms both follow.")]
+		[FormerlySerializedAs("_lookTransform")]
+		[FormerlySerializedAs("_pitchTransform")]
+		[SerializeField] private Transform _bodyLookTransform;
+
+		[Tooltip("Same bone on the hand-only rig the owner renders.")]
+		[FormerlySerializedAs("_ownerLookTransform")]
+		[FormerlySerializedAs("_ownerPitchTransform")]
+		[SerializeField] private Transform _ownerBodyLookTransform;
+
+		[Tooltip("Bone the look aims once a seat has anchored the body, on the rig everyone else renders. The head alone, so the sitting pose survives.")]
+		[SerializeField] private Transform _headLookTransform;
+
+		[Tooltip("Same bone on the hand-only rig the owner renders.")]
+		[SerializeField] private Transform _ownerHeadLookTransform;
 
 		private readonly NetworkVariable<float> _pitch = new(0f,
 			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Owner);
 
-		// Standing, yaw turns the whole character and rides along on NetworkTransform. Seated, the body is
-		// anchored and only the head turns, so that yaw has nowhere to ride and needs replicating itself.
-		private readonly NetworkVariable<float> _headYaw = new(0f,
+		// Standing, yaw turns the whole character and rides along on NetworkTransform. Anchored in a seat,
+		// the character stays where the chair put it and the yaw goes to the look bone instead, so that
+		// yaw has nothing to ride and needs replicating itself.
+		private readonly NetworkVariable<float> _lookYaw = new(0f,
 			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Owner);
 
 		private float _currentPitch;
 		private float _lastSentPitch;
-		private float _currentHeadYaw;
-		private float _lastSentHeadYaw;
+		private float _currentLookYaw;
+		private float _lastSentLookYaw;
 		private float _verticalVelocity;
 		private Vector2 _moveInput;
 		private bool _sprinting;
@@ -71,7 +95,7 @@ namespace Game.Runtime.Player
 		private bool _movementEnabled = true;
 		private bool _lookConstrained;
 		private bool _constraintAllowsRotation;
-		private bool _rotateHeadOnly;
+		private bool _bodyAnchored;
 		private float _constraintYaw;
 		private Vector2 _constraintYawLimits;
 		private Vector2 _activePitchLimits;
@@ -85,22 +109,18 @@ namespace Game.Runtime.Player
 		}
 
 		private readonly List<AngleSample> _pitchHistory = new();
-		private readonly List<AngleSample> _headYawHistory = new();
-		private Quaternion _pitchRestRotation = Quaternion.identity;
-
-		// Bone axes are whatever the rig was authored with — on the gnome rig the head bone's
-		// local X runs along the character's up, so pitching around it would yaw the head. Both
-		// the rotation axis and the camera's alignment are therefore derived from the rest pose
-		// at spawn instead of assuming any particular bone orientation.
-		private Vector3 _pitchAxisInParentSpace = Vector3.right;
-
-		// Same reasoning as the pitch axis, for the character's up: seated yaw turns the head around it.
-		private Vector3 _yawAxisInParentSpace = Vector3.up;
+		private readonly List<AngleSample> _lookYawHistory = new();
 
 		// Owner sees the hand-only rig, everyone else sees the full body rig, so each side only
-		// ever drives the head bone and camera belonging to the rig it actually renders.
+		// ever drives the bone and camera belonging to the rig it actually renders.
 		private CinemachineCamera ActiveCamera => IsOwner ? _ownerFirstPersonCamera : _firstPersonCamera;
-		private Transform ActivePitchTransform => IsOwner ? _ownerPitchTransform : _pitchTransform;
+
+		// Anchored in a seat the head turns alone; free on their feet the whole chest does. Nothing needs
+		// undoing when this answer changes: the Animator rewrites both bones every frame, so the one that
+		// stops being driven is back under the clip's control on the very next one.
+		private Transform ActiveLookTransform => _bodyAnchored
+			? IsOwner ? _ownerHeadLookTransform : _headLookTransform
+			: IsOwner ? _ownerBodyLookTransform : _bodyLookTransform;
 
 		// This controller holds one release among however many are outstanding, so the toggle key frees
 		// the cursor without overriding a panel that is also holding it.
@@ -124,17 +144,23 @@ namespace Game.Runtime.Player
 			_verticalVelocity = 0f;
 		}
 
+		// Which bone the look aims is something every peer has to agree on, because a seated player's head
+		// turns on the screens of the people watching them just as much as on their own — so this is set
+		// wherever the pose is applied, while the limits below it stay the owner's business alone.
+		public void SetBodyAnchored(bool anchored)
+		{
+			_bodyAnchored = anchored;
+		}
+
 		// Sitting, lying down or any other anchored pose narrows what the look input is allowed to do:
 		// yaw is measured against the anchor's facing instead of being free, and pitch can be tightened.
-		// rotateHeadOnly is what a seat asks for: the body has been placed and must stay placed, so the yaw
-		// the player asks for turns the neck instead of the character. The yaw limits then read as how far
-		// they can crane round, measured from the pose's own facing rather than from world zero.
+		// Only the owner takes input, so only the owner needs this; what bone the result lands on is
+		// SetBodyAnchored's business and is decided on every client.
 		public void ApplyLookConstraint(float referenceYaw, bool allowRotation, Vector2 yawLimits,
-			Vector2 pitchLimits, bool rotateHeadOnly = false)
+			Vector2 pitchLimits)
 		{
 			_lookConstrained = true;
 			_constraintAllowsRotation = allowRotation;
-			_rotateHeadOnly = rotateHeadOnly;
 			_constraintYaw = referenceYaw;
 			_constraintYawLimits = yawLimits;
 			_activePitchLimits = pitchLimits;
@@ -143,24 +169,23 @@ namespace Game.Runtime.Player
 			_pitch.Value = _currentPitch;
 			_lastSentPitch = _currentPitch;
 
-			// Starts level with the seat: whatever the neck was doing on the way in is not where sitting
-			// down should leave it.
-			_currentHeadYaw = 0f;
-			_headYaw.Value = 0f;
-			_lastSentHeadYaw = 0f;
+			// Starts square with the seat: whatever the body was turned toward on the way in is not where
+			// sitting down should leave it.
+			_currentLookYaw = 0f;
+			_lookYaw.Value = 0f;
+			_lastSentLookYaw = 0f;
 		}
 
 		public void ClearLookConstraint()
 		{
 			_lookConstrained = false;
 			_constraintAllowsRotation = true;
-			_rotateHeadOnly = false;
 			_activePitchLimits = _pitchLimits;
 
-			// Standing up must not leave the head still turned — from here yaw is the body's again.
-			_currentHeadYaw = 0f;
-			_headYaw.Value = 0f;
-			_lastSentHeadYaw = 0f;
+			// Standing up must not leave the torso still turned — from here yaw is the character's again.
+			_currentLookYaw = 0f;
+			_lookYaw.Value = 0f;
+			_lastSentLookYaw = 0f;
 		}
 
 		public void Teleport(Vector3 position, Quaternion rotation)
@@ -175,19 +200,19 @@ namespace Game.Runtime.Player
 
 		public override void OnNetworkSpawn()
 		{
-			CalibrateToRestPose();
+			AlignCameraToBody();
 
 			_currentPitch = _pitch.Value;
-			_currentHeadYaw = _headYaw.Value;
-			ApplyHead(_currentHeadYaw, _currentPitch);
+			_currentLookYaw = _lookYaw.Value;
+			ApplyLook(_currentLookYaw, _currentPitch);
 
 			if (!IsOwner)
 			{
 				PushSample(_pitchHistory, _pitch.Value);
-				PushSample(_headYawHistory, _headYaw.Value);
+				PushSample(_lookYawHistory, _lookYaw.Value);
 
 				_pitch.OnValueChanged += OnPitchChanged;
-				_headYaw.OnValueChanged += OnHeadYawChanged;
+				_lookYaw.OnValueChanged += OnLookYawChanged;
 				return;
 			}
 
@@ -198,7 +223,7 @@ namespace Game.Runtime.Player
 			ActiveCamera.enabled = true;
 
 			_lastSentPitch = _currentPitch;
-			_lastSentHeadYaw = _currentHeadYaw;
+			_lastSentLookYaw = _currentLookYaw;
 
 			_moveAction.action.Enable();
 			_moveAction.action.performed += OnMovePerformed;
@@ -225,7 +250,7 @@ namespace Game.Runtime.Player
 		public override void OnNetworkDespawn()
 		{
 			_pitch.OnValueChanged -= OnPitchChanged;
-			_headYaw.OnValueChanged -= OnHeadYawChanged;
+			_lookYaw.OnValueChanged -= OnLookYawChanged;
 
 			// The input actions are one shared asset for the whole process, and ownership can pass to the
 			// server as a client leaves — so "am I the owner" is not a safe question to ask on the way
@@ -304,10 +329,10 @@ namespace Game.Runtime.Player
 
 			var yawDelta = filteredX * _lookSensitivityX;
 
-			// Anchored in a seat, the body stays where it was put and only the neck turns; free on their
-			// feet, yaw turns the whole character, so it rides along on NetworkTransform rather than
-			// needing its own NetworkVariable like pitch does.
-			if (_rotateHeadOnly) _currentHeadYaw = ConstrainHeadYaw(yawDelta);
+			// Anchored in a seat, the character stays where it was put and the yaw goes to the look bone;
+			// free on their feet, yaw turns the whole character, so it rides along on NetworkTransform
+			// rather than needing its own NetworkVariable like pitch does.
+			if (_bodyAnchored) _currentLookYaw = ConstrainLookYaw(yawDelta);
 			else transform.Rotate(Vector3.up, ConstrainYawDelta(yawDelta));
 
 			_currentPitch = Mathf.Clamp(_currentPitch + filteredY * _lookSensitivityY * -1f,
@@ -319,21 +344,22 @@ namespace Game.Runtime.Player
 				_lastSentPitch = _currentPitch;
 			}
 
-			if (Mathf.Abs(Mathf.DeltaAngle(_lastSentHeadYaw, _currentHeadYaw)) >= _minNetworkSendDeltaDegrees)
+			if (Mathf.Abs(Mathf.DeltaAngle(_lastSentLookYaw, _currentLookYaw)) >= _minNetworkSendDeltaDegrees)
 			{
-				_headYaw.Value = _currentHeadYaw;
-				_lastSentHeadYaw = _currentHeadYaw;
+				_lookYaw.Value = _currentLookYaw;
+				_lastSentLookYaw = _currentLookYaw;
 			}
 		}
 
-		// The head answers to the same two settings the body does: a pose that forbids turning forbids
-		// craning as well — a locked-in chair means facing one way, not facing one way with a free neck —
-		// and the limits are read straight off the pose's forward, which is where the neck starts from.
-		private float ConstrainHeadYaw(float yawDelta)
+		// The look bone answers to the same two settings the character does: a pose that forbids turning
+		// forbids turning the head as well — a locked-in chair means facing one way, not facing one way
+		// with a free neck — and the limits are read straight off the pose's forward, which is where the
+		// body starts from.
+		private float ConstrainLookYaw(float yawDelta)
 		{
 			if (!_constraintAllowsRotation) return 0f;
 
-			return Mathf.Clamp(_currentHeadYaw + yawDelta, _constraintYawLimits.x, _constraintYawLimits.y);
+			return Mathf.Clamp(_currentLookYaw + yawDelta, _constraintYawLimits.x, _constraintYawLimits.y);
 		}
 
 		private float ConstrainYawDelta(float yawDelta)
@@ -364,27 +390,27 @@ namespace Game.Runtime.Player
 			_characterController.Move(motion * Time.deltaTime);
 		}
 
-		// Pitch is written here rather than where the input arrives because the Animator poses the
-		// skeleton during the Update phase and would otherwise overwrite the head bone.
+		// The aim is written here rather than where the input arrives because the Animator poses the
+		// skeleton during the Update phase and would otherwise overwrite the bone.
 		private void LateUpdate()
 		{
 			if (!IsSpawned) return;
 
 			if (IsOwner)
 			{
-				ApplyHead(_currentHeadYaw, _currentPitch);
+				ApplyLook(_currentLookYaw, _currentPitch);
 				return;
 			}
 
 			var renderTime = Time.timeAsDouble - _interpolationDelay;
 
-			ApplyHead(
-				SampleHistory(_headYawHistory, renderTime, _headYaw.Value, _maxInterpolationTime),
+			ApplyLook(
+				SampleHistory(_lookYawHistory, renderTime, _lookYaw.Value, _maxInterpolationTime),
 				SampleHistory(_pitchHistory, renderTime, _pitch.Value, _maxInterpolationTime));
 		}
 
 		private void OnPitchChanged(float previous, float current) => PushSample(_pitchHistory, current);
-		private void OnHeadYawChanged(float previous, float current) => PushSample(_headYawHistory, current);
+		private void OnLookYawChanged(float previous, float current) => PushSample(_lookYawHistory, current);
 
 		private void PushSample(List<AngleSample> history, float value)
 		{
@@ -431,35 +457,44 @@ namespace Game.Runtime.Player
 			return latest.Value;
 		}
 
-		private void CalibrateToRestPose()
+		// Squares the camera with the character's forward from wherever it hangs, rather than assuming it
+		// is parented to the bone the look drives — it is not, and must not be: the neck stretch walks the
+		// chain up to whichever bone carries the camera, so the view travels with a head sent across the
+		// table. Measured against its own parent, so moving the camera up or down the skeleton needs no
+		// change here.
+		private void AlignCameraToBody()
 		{
-			var pitchTransform = ActivePitchTransform;
-			if (!pitchTransform) return;
-
-			_pitchRestRotation = pitchTransform.localRotation;
-			_pitchAxisInParentSpace = pitchTransform.parent
-				? pitchTransform.parent.InverseTransformDirection(transform.right).normalized
-				: transform.right;
-
-			_yawAxisInParentSpace = pitchTransform.parent
-				? pitchTransform.parent.InverseTransformDirection(transform.up).normalized
-				: transform.up;
-
 			var camera = ActiveCamera;
-			if (camera) camera.transform.localRotation = Quaternion.Inverse(pitchTransform.rotation) * transform.rotation;
+			if (!camera) return;
+
+			var parent = camera.transform.parent;
+			if (!parent) return;
+
+			camera.transform.localRotation = Quaternion.Inverse(parent.rotation) * transform.rotation;
 		}
 
-		// Yaw first, then pitch: pitching inside the yawed frame is what makes a head look up along the way
-		// it is facing rather than along the way the body is.
-		private void ApplyHead(float yaw, float pitch)
+		// Composed on top of whatever the Animator has just written rather than replacing it: every clip in
+		// the set poses the chest, so a look that overwrote the bone outright would flatten the sitting
+		// pose and leave the character bolt upright at the table. The axes are read fresh each frame for
+		// the same reason — the bone's parent is itself animated, so a pair cached at spawn would have the
+		// aim drift off level as the torso moves under it.
+		//
+		// Yaw first, then pitch: pitching inside the turned frame is what makes a body look up along the
+		// way it is facing rather than along the way it was placed.
+		private void ApplyLook(float yaw, float pitch)
 		{
-			var pitchTransform = ActivePitchTransform;
-			if (!pitchTransform) return;
+			var lookTransform = ActiveLookTransform;
+			if (!lookTransform) return;
 
-			pitchTransform.localRotation =
-				Quaternion.AngleAxis(yaw, _yawAxisInParentSpace)
-				* Quaternion.AngleAxis(pitch, _pitchAxisInParentSpace)
-				* _pitchRestRotation;
+			var parent = lookTransform.parent;
+
+			var yawAxis = parent ? parent.InverseTransformDirection(transform.up).normalized : Vector3.up;
+			var pitchAxis = parent ? parent.InverseTransformDirection(transform.right).normalized : Vector3.right;
+
+			lookTransform.localRotation =
+				Quaternion.AngleAxis(yaw, yawAxis)
+				* Quaternion.AngleAxis(pitch, pitchAxis)
+				* lookTransform.localRotation;
 		}
 	}
 }

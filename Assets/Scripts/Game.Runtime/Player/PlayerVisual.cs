@@ -20,13 +20,18 @@ namespace Game.Runtime.Player
 		[Header("Skins")]
 		[SerializeField] private List<PlayerSkin> _skins = new();
 
+		// A rig is however many meshes the artist cut it into — the gnome arrives as a body, a head and a
+		// piece per finger. Hiding "the body" therefore means hiding all of them: one renderer left behind
+		// is a head floating where the owner should see nothing.
 		[Header("Full Body")]
-		[SerializeField] private SkinnedMeshRenderer _bodyMeshRenderer;
+		[SerializeField] private SkinnedMeshRenderer[] _bodyMeshRenderers;
+
 		[SerializeField] private SkinnedMeshRenderer _outfitMeshRenderer;
 		[SerializeField] private MeshRenderer _hatRenderer;
 
 		[Header("Hand Only")]
-		[SerializeField] private SkinnedMeshRenderer _handOnlyBodyMeshRenderer;
+		[SerializeField] private SkinnedMeshRenderer[] _handOnlyBodyMeshRenderers;
+
 		[SerializeField] private SkinnedMeshRenderer _handOnlyOutfitMeshRenderer;
 
 		private readonly NetworkVariable<int> _skinIndex = new(0,
@@ -36,18 +41,18 @@ namespace Game.Runtime.Player
 		{
 			// Outfits ship with their own skeletons; rebinding onto the body rig lets one
 			// animated rig drive both meshes.
-			BoneRemapper.RemapBoneRenderer(_outfitMeshRenderer, _bodyMeshRenderer.rootBone);
-			BoneRemapper.RemapBoneRenderer(_handOnlyOutfitMeshRenderer, _handOnlyBodyMeshRenderer.rootBone);
+			BoneRemapper.RemapBoneRenderer(_outfitMeshRenderer, RootBoneOf(_bodyMeshRenderers));
+			BoneRemapper.RemapBoneRenderer(_handOnlyOutfitMeshRenderer, RootBoneOf(_handOnlyBodyMeshRenderers));
 		}
 
 		protected override void OnNetworkPostSpawn()
 		{
-			_bodyMeshRenderer.enabled = !IsOwner;
-			_outfitMeshRenderer.enabled = !IsOwner;
-			_hatRenderer.enabled = !IsOwner;
+			SetEnabled(_bodyMeshRenderers, !IsOwner);
+			if (_outfitMeshRenderer) _outfitMeshRenderer.enabled = !IsOwner;
+			if (_hatRenderer) _hatRenderer.enabled = !IsOwner;
 
-			_handOnlyBodyMeshRenderer.enabled = IsOwner;
-			_handOnlyOutfitMeshRenderer.enabled = IsOwner;
+			SetEnabled(_handOnlyBodyMeshRenderers, IsOwner);
+			if (_handOnlyOutfitMeshRenderer) _handOnlyOutfitMeshRenderer.enabled = IsOwner;
 
 			ApplySkin(_skinIndex.Value);
 			_skinIndex.OnValueChanged += HandleSkinIndexChanged;
@@ -77,11 +82,40 @@ namespace Game.Runtime.Player
 
 			var skin = _skins[skinIndex];
 
-			ApplyMaterial(_bodyMeshRenderer, skin.BodyMaterial);
-			ApplyMaterial(_handOnlyBodyMeshRenderer, skin.BodyMaterial);
+			ApplyMaterial(_bodyMeshRenderers, skin.BodyMaterial);
+			ApplyMaterial(_handOnlyBodyMeshRenderers, skin.BodyMaterial);
 			ApplyMaterial(_outfitMeshRenderer, skin.OutfitMaterial);
 			ApplyMaterial(_handOnlyOutfitMeshRenderer, skin.OutfitMaterial);
 			ApplyMaterial(_hatRenderer, skin.HatMaterial);
+		}
+
+		private static Transform RootBoneOf(SkinnedMeshRenderer[] renderers)
+		{
+			if (renderers == null) return null;
+
+			foreach (var renderer in renderers)
+			{
+				if (renderer && renderer.rootBone) return renderer.rootBone;
+			}
+
+			return null;
+		}
+
+		private static void SetEnabled(SkinnedMeshRenderer[] renderers, bool enabled)
+		{
+			if (renderers == null) return;
+
+			foreach (var renderer in renderers)
+			{
+				if (renderer) renderer.enabled = enabled;
+			}
+		}
+
+		private static void ApplyMaterial(SkinnedMeshRenderer[] renderers, Material material)
+		{
+			if (renderers == null) return;
+
+			foreach (var renderer in renderers) ApplyMaterial(renderer, material);
 		}
 
 		private static void ApplyMaterial(Renderer renderer, Material material)

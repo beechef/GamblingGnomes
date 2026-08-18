@@ -123,21 +123,33 @@ namespace Game.Runtime.Player
 
 			PlayAnimationState(pose.AnimationState);
 
-			if (!IsOwner || !_playerController) return;
+			if (!_playerController) return;
+
+			// Above the owner guard on purpose: the chair has decided how this body sits on every screen,
+			// so the look has to settle for turning the head on every screen too. Left below it, everyone
+			// watching would see a seated player swivel their chest while the player themselves did not.
+			_playerController.SetBodyAnchored(true);
+
+			if (!IsOwner) return;
 
 			var anchor = seat.SitAnchor;
 			_playerController.SetMovementEnabled(false);
 			_playerController.Teleport(anchor.position, anchor.rotation);
-			// Seated is head-only: the seat decided where the body faces, so the look input turns the neck.
 			_playerController.ApplyLookConstraint(anchor.eulerAngles.y, pose.AllowRotation, pose.YawLimits,
-				pose.PitchLimits, rotateHeadOnly: true);
+				pose.PitchLimits);
 		}
 
 		private void ClearSeat(SeatInteractable previousSeat)
 		{
 			PlayAnimationState(_defaultAnimationState);
 
-			if (!IsOwner || !_playerController) return;
+			if (!_playerController) return;
+
+			// Mirrors ApplySeat: standing up hands the look back to the chest on every screen, not only
+			// on the one belonging to whoever stood up.
+			_playerController.SetBodyAnchored(false);
+
+			if (!IsOwner) return;
 
 			_playerController.ClearLookConstraint();
 			_playerController.SetMovementEnabled(true);
