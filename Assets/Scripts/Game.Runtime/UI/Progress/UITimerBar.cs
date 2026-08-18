@@ -20,7 +20,8 @@ namespace Game.Runtime.UI.Progress
 		[Header("Colours")]
 		[SerializeField] private Color _normalColor = new(0.83f, 0.76f, 0.60f);
 
-		[Tooltip("Seconds left at which the bar turns urgent.")]
+		[Tooltip("Fraction of the countdown left at which the bar turns urgent. 0.25 is the last quarter, whatever the stage is worth — a threshold in seconds would mean something different on a 10-second street and a 60-second one.")]
+		[Range(0f, 1f)]
 		[SerializeField] private float _warningThresholdPercent = .25f;
 
 		[SerializeField] private Color _warningColor = new(0.90f, 0.30f, 0.30f);
@@ -40,6 +41,9 @@ namespace Game.Runtime.UI.Progress
 		private Color? _barColor;
 		private float _remaining;
 
+		// Starts full so a bar nobody has spoken to yet is not already shouting.
+		private float _normalized = 1f;
+
 		public void ClearBarColor()
 		{
 			_barColor = null;
@@ -49,6 +53,7 @@ namespace Game.Runtime.UI.Progress
 		public void SetTime(float remaining, float normalized)
 		{
 			_remaining = Mathf.Max(0f, remaining);
+			_normalized = Mathf.Clamp01(normalized);
 
 			if (_label)
 			{
@@ -56,7 +61,7 @@ namespace Game.Runtime.UI.Progress
 				_label.text = $"{seconds / 60:00}:{seconds % 60:00}";
 			}
 
-			if (_fill) _fill.fillAmount = Mathf.Clamp01(normalized);
+			if (_fill) _fill.fillAmount = _normalized;
 
 			RefreshColor();
 		}
@@ -65,6 +70,7 @@ namespace Game.Runtime.UI.Progress
 		public void Clear()
 		{
 			_remaining = 0f;
+			_normalized = 1f;
 
 			if (_label) _label.text = string.Empty;
 			if (_fill) _fill.fillAmount = 0f;
@@ -74,7 +80,7 @@ namespace Game.Runtime.UI.Progress
 		{
 			if (!_fill) return;
 
-			_fill.color = _remaining <= _warningThresholdPercent * _remaining ? _warningColor : BarColor;
+			_fill.color = _normalized <= _warningThresholdPercent ? _warningColor : BarColor;
 		}
 	}
 }
