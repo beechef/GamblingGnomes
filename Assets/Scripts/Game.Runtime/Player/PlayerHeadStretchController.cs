@@ -63,6 +63,17 @@ namespace Game.Runtime.Player
 		private readonly List<float> _chainOffsets = new();
 		private readonly List<Quaternion> _chainRotations = new();
 
+		// Where each bone sits on its parent when nothing is pulling on it. Cached rather than read back
+		// each frame, because the thing that would read it back is the very thing that displaced it — and
+		// a skeleton's bone lengths do not change, so one measurement holds for the life of the rig.
+		private readonly List<Vector3> _chainLocalPositions = new();
+
+		private Vector3 _headLocalPosition;
+		private Vector3 _lastReachPoint;
+		private Vector3 _lastLookPoint;
+		private bool _hasLastPoints;
+		private bool _restored = true;
+
 		private Transform _head;
 		private Tween _weightTween;
 		private float _weight;
@@ -129,19 +140,54 @@ namespace Game.Runtime.Player
 
 		private void LateUpdate()
 		{
-			if (!IsStretching || !_head || _chain.Count == 0) return;
+			if (!_head || _chain.Count == 0) return;
 
-			var target = TargetRig;
-			if (!target)
+			// The Animator writes rotations onto these bones and nothing else, so a neck spread apart by
+			// moving bones stays spread apart forever — the pose it would be put back to simply is not
+			// authored. Putting the offsets back by hand is what ends the lean, and doing it every frame
+			// before reading the animated pose is what stops each frame's stretch compounding on the last.
+			RestoreChain();
+
+			if (!IsStretching)
 			{
-				// Whoever was being leaned at has left the table — the neck comes back rather than hanging
-				// in the air pointing at nothing.
-				TweenWeight(0f, _retractDuration, _retractEase);
+				_hasLastPoints = false;
 				return;
 			}
 
-			var lookPoint = ResolveLookPoint(target);
-			ApplyStretch(ResolveReachPoint(target, lookPoint), lookPoint);
+			var target = TargetRig;
+			if (target)
+			{
+				_lastLookPoint = ResolveLookPoint(target);
+				_lastReachPoint = ResolveReachPoint(target, _lastLookPoint);
+				_hasLastPoints = true;
+			}
+			else
+			{
+				// The lean is over, or whoever was being leaned at has left the table. It travels home from
+				// where it was rather than snapping: the retract tween is only visible if something keeps
+				// drawing the neck while it runs.
+				TweenWeight(0f, _retractDuration, _retractEase);
+
+				if (!_hasLastPoints) return;
+			}
+
+			ApplyStretch(_lastReachPoint, _lastLookPoint);
+		}
+
+		// Only worth doing while something has been displaced, so an idle player is not writing three
+		// transforms a frame for nothing.
+		private void RestoreChain()
+		{
+			if (_restored && !IsStretching) return;
+
+			for (var i = 0; i < _chain.Count && i < _chainLocalPositions.Count; i++)
+			{
+				_chain[i].localPosition = _chainLocalPositions[i];
+			}
+
+			_head.localPosition = _headLocalPosition;
+
+			_restored = !IsStretching;
 		}
 
 		private void HandleTargetChanged(NetworkBehaviourReference previous, NetworkBehaviourReference current) => RefreshStretch();
@@ -184,7 +230,10 @@ namespace Game.Runtime.Player
 			_chain.Clear();
 			_chainOffsets.Clear();
 			_chainRotations.Clear();
+			_chainLocalPositions.Clear();
 			_head = null;
+			_hasLastPoints = false;
+			_restored = true;
 
 			var rig = _rig ? _rig.RenderedRig : null;
 			if (!rig) return;
@@ -211,11 +260,14 @@ namespace Game.Runtime.Player
 		private void MeasureRestChain()
 		{
 			_restLength = 0f;
+			_headLocalPosition = _head.localPosition;
+			_restored = true;
 
 			for (var i = 0; i < _chain.Count; i++)
 			{
 				_chainOffsets.Add(_restLength);
 				_chainRotations.Add(Quaternion.identity);
+				_chainLocalPositions.Add(_chain[i].localPosition);
 
 				var next = i + 1 < _chain.Count ? _chain[i + 1] : _head;
 				_restLength += Vector3.Distance(_chain[i].position, next.position);
