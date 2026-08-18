@@ -26,29 +26,10 @@ namespace Game.Runtime.UI.Progress
 
 		[SerializeField] private Color _warningColor = new(0.90f, 0.30f, 0.30f);
 
-		// Set by whoever owns the clock when the countdown belongs to somebody other than the local player,
-		// so the same bar can say "this one is yours" without the view reaching into the Image.
-		public Color BarColor
-		{
-			get => _barColor.HasValue ? _barColor.Value : _normalColor;
-			set
-			{
-				_barColor = value;
-				RefreshColor();
-			}
-		}
-
-		private Color? _barColor;
 		private float _remaining;
 
 		// Starts full so a bar nobody has spoken to yet is not already shouting.
 		private float _normalized = 1f;
-
-		public void ClearBarColor()
-		{
-			_barColor = null;
-			RefreshColor();
-		}
 
 		public void SetTime(float remaining, float normalized)
 		{
@@ -74,13 +55,17 @@ namespace Game.Runtime.UI.Progress
 
 			if (_label) _label.text = string.Empty;
 			if (_fill) _fill.fillAmount = 0f;
+
+			// Repainted as well as reset: leaving the urgent tone on would have the bar come back shouting
+			// about a countdown that is no longer running.
+			RefreshColor();
 		}
 
 		private void RefreshColor()
 		{
 			if (!_fill) return;
 
-			_fill.color = _normalized <= _warningThresholdPercent ? _warningColor : BarColor;
+			_fill.color = _normalized <= _warningThresholdPercent ? _warningColor : _normalColor;
 		}
 	}
 }
