@@ -37,7 +37,11 @@ namespace Game.Runtime.UI.Button
 			_button.OnStateChanged -= HandleStateChanged;
 		}
 
-		private void HandleStateChanged(UIButtonState previous, UIButtonState current) => Apply(current, false);
+		// A state that arrives without having changed is a redraw, not a transition — UIButton forces one
+		// when it resets — and there is nothing to animate from, so it snaps. The same reasoning as
+		// UIWheelItemView re-applying on bind: only a real change earns the tween.
+		private void HandleStateChanged(UIButtonState previous, UIButtonState current)
+			=> Apply(current, previous == current);
 
 		private void Apply(UIButtonState state, bool instant)
 		{

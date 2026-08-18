@@ -86,8 +86,7 @@ namespace Game.Runtime.UI.Button
 		private void OnEnable()
 		{
 			// Re-shown under the pointer or not, the button starts from a state it can prove.
-			ClearPointer();
-			RefreshState();
+			ResetState();
 		}
 
 		private void OnDisable()
@@ -125,10 +124,29 @@ namespace Game.Runtime.UI.Button
 		// and callers never have to reach past this component to the uGUI Button underneath.
 		public void Submit() => Click();
 
+		// Puts the button back to rest and redraws it, whether or not the answer has changed. Anything that
+		// takes the pointer away mid-press calls this — opening a screen, closing a panel, starting a load —
+		// because uGUI sends the release to whoever received the press, and a button that never hears it is
+		// left holding _pressed with nothing coming to clear it. The redraw is forced for the same reason
+		// UIWheelItemView re-applies on bind: a visual left mid-tween has not changed state, so a guard
+		// written as "nothing changed, nothing to do" is exactly the thing that keeps it stuck.
+		public void ResetState()
+		{
+			ClearPointer();
+			RefreshState(true);
+		}
+
 		private void Click()
 		{
 			if (!IsInteractable) return;
 			OnClick?.Invoke();
+
+			// A click is the moment a screen tends to change underneath the pointer, and uGUI delivers the
+			// release to whoever took the press — so a button whose handler opened something never hears it
+			// and is left holding the press. A key still down is left alone: holding the key must keep
+			// holding the button, which is the bracket UIButtonHotkey exists to draw.
+			// Checked for survival first, because the handler above is allowed to destroy this button.
+			if (this && !_keyPressed) ResetState();
 		}
 
 		public void OnPointerEnter(PointerEventData eventData)
@@ -177,7 +195,10 @@ namespace Game.Runtime.UI.Button
 			_keyPressed = false;
 		}
 
-		private void RefreshState()
+		// force says "redraw even if the answer is the same". Ordinary input changes leave it off, so a
+		// visual only animates on a real transition; a reset turns it on, because there the whole point is
+		// a picture that no longer matches a state which never moved.
+		private void RefreshState(bool force = false)
 		{
 			// Lazily initialised so a button asked about itself before Awake — by an editor tool, or by
 			// a group selecting its first entry as it is built — answers with its real state instead of
@@ -187,7 +208,7 @@ namespace Game.Runtime.UI.Button
 			var previous = State;
 			var current = Resolve();
 
-			if (previous == current) return;
+			if (previous == current && !force) return;
 
 			State = current;
 			OnStateChanged?.Invoke(previous, current);
