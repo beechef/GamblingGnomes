@@ -16,7 +16,7 @@ namespace Game.Runtime.UI.Poker
 		[SerializeField] private TextMeshProUGUI _nameLabel;
 		[SerializeField] private TextMeshProUGUI _actionLabel;
 
-		[Tooltip("The cost row. Hidden outright for an action that moved no money — FOLD x0 reads as a bug.")]
+		[Tooltip("The detail row — a price, or the name an accusation landed on. Hidden outright when there is nothing to put in it: FOLD x0 reads as a bug.")]
 		[SerializeField] private GameObject _amountRoot;
 
 		[SerializeField] private TextMeshProUGUI _amountLabel;
@@ -31,13 +31,19 @@ namespace Game.Runtime.UI.Poker
 		}
 
 		public void Show(string playerName, string action, int amount, float lifetime)
+			=> Show(playerName, action, amount > 0 ? $"x{amount}" : null, lifetime);
+
+		// The bottom row is whatever the announcement needs it to be — a price for a bet, a name for an
+		// accusation. Same three rows either way, because it is the same announcement to whoever is
+		// reading it across the table.
+		public void Show(string playerName, string action, string detail, float lifetime)
 		{
 			if (_nameLabel) _nameLabel.text = playerName;
 			if (_actionLabel) _actionLabel.text = action;
 
-			var showAmount = amount > 0;
+			var showAmount = !string.IsNullOrEmpty(detail);
 			if (_amountRoot && _amountRoot.activeSelf != showAmount) _amountRoot.SetActive(showAmount);
-			if (_amountLabel) _amountLabel.text = $"x{amount}";
+			if (_amountLabel) _amountLabel.text = detail;
 
 			// Unscaled and linked, like every HUD tween: the table can be paused under it.
 			_group.alpha = 0f;

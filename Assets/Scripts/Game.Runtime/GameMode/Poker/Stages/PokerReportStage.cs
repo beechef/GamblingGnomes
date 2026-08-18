@@ -1,102 +1,79 @@
+using Game.Runtime.GameMode.Poker.Abilities;
 using Game.Runtime.GameMode.Poker.Modules;
-using Game.Runtime.GameMode.Poker.Player;
 using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker.Stages
 {
-	// The moment an accusation lands: pushed on top of whatever street was running, it freezes the table
-	// and plays out as a duel between the two of them. The accused answers first, and answering is not
-	// optional — they name what they are willing to stake on being clean, or shove the lot. Then the
-	// accuser either pays to see it or backs down and lets it go.
+	// The accusation, from the arm going out to the verdict landing. Pushed on top of whatever street was
+	// running, it freezes the table and plays out in three beats: the accuser stands with a finger out and
+	// looks for a face, the one they settle on answers for it in blood, and then the table finds out.
 	//
-	// Only a challenge that was actually called gets judged, which is what makes a big number worth
-	// putting up when you are guilty. An overlay, not a sequence stage: it never takes a slot in the loop.
+	// Naming somebody is the accuser's whole move — there is no menu and no taking it back. Answering is
+	// the accused's, and the only choice they have is how much the answer is worth. An overlay, not a
+	// sequence stage: it never takes a slot in the loop.
 	[CreateAssetMenu(fileName = "PokerStage_Report", menuName = "Game/Poker/Stages/Report")]
 	public class PokerReportStage : PokerStage
 	{
-		private enum ReportPhase
-		{
-			Defence,
-			Response,
-			Verdict
-		}
-
-		[Header("Stake")]
-		[Tooltip("Smallest the accused may put up. They cannot decline the challenge, so this is the floor rather than an opening bid — a wallet too short for it stakes whatever is left.")]
-		[SerializeField] private int _minimumStake = 50;
-
 		[Header("Timing")]
-		[Tooltip("Seconds the accused gets to name their stake. Running out puts up the floor: saying nothing is not a way out of answering. Zero or less leaves them unhurried.")]
-		[SerializeField] private float _defenceDuration = 20f;
+		[Tooltip("Seconds the accuser gets to find a face. Long enough to look round the whole table, short enough that everyone else is watching it happen rather than waiting for it.")]
+		[SerializeField] private float _aimDuration = 10f;
 
-		[Tooltip("Seconds the accuser gets to answer. Running out backs down, the way silence does everywhere else at this table.")]
-		[SerializeField] private float _responseDuration = 20f;
+		[Tooltip("Seconds the accused gets to answer. Running out matches what is already on the table — saying nothing is not a way out of answering.")]
+		[SerializeField] private float _responseDuration = 15f;
 
 		[Tooltip("Seconds the verdict stays on screen before the hand resumes.")]
 		[SerializeField] private float _verdictDuration = 3f;
 
-		public int MinimumStake => Mathf.Max(0, _minimumStake);
-
 		private PokerAbilityModule _module;
-		private ReportPhase _phase;
+		private PokerReportPhase _phase;
 		private ulong _accuserClientId;
 		private ulong _targetClientId;
-		private int _stake;
-
-		// Both of them have to be able to cover the number or a call would not be a call, so the ceiling is
-		// the smaller of the two wallets. The floor gives way to it rather than the other way round: a short
-		// stack stakes what it has. Public because the bar offering the number runs the same maths — one
-		// source of it, so the client can never offer what the server will refuse.
-		public int StakeCeiling(PokerPlayer accused, PokerPlayer accuser)
-		{
-			var accusedChips = accused && accused.Data ? accused.Data.Chips : 0;
-			var accuserChips = accuser && accuser.Data ? accuser.Data.Chips : 0;
-
-			return Mathf.Max(0, Mathf.Min(accusedChips, accuserChips));
-		}
-
-		public int StakeFloor(int ceiling) => Mathf.Min(MinimumStake, ceiling);
-
-		public int ClampStake(int amount, int ceiling) => Mathf.Clamp(amount, StakeFloor(ceiling), ceiling);
 
 		protected override void OnStartStage()
 		{
 			_module = GameMode.FindModule<PokerAbilityModule>();
-			_stake = 0;
 
 			// Nothing left to try: the report settled itself on the way in, or there is no module to ask.
+			// Worth a word either way — an overlay that opens straight onto its own verdict looks from the
+			// outside like the accusation never started.
 			if (_module == null || !_module.HasPendingReport)
 			{
+				Debug.LogWarning($"[PokerReportStage] Opened with nothing to judge ({(_module == null ? "no ability module on the mode" : "no pending report")}).");
+
 				BeginVerdict();
 				return;
 			}
 
 			_accuserClientId = _module.PendingAccuserClientId;
-			_targetClientId = _module.PendingTargetClientId;
+			_targetClientId = _accuserClientId;
 
-			BeginDefence();
+			BeginAiming();
 		}
 
 		protected override void OnEndStage()
 		{
 			GameMode.ClearTurn();
 			GameMode.ClearStageTimer();
+
+			if (_module != null) _module.SetReportPhaseServer(PokerReportPhase.None);
 		}
 
 		protected override void OnTickStage(float deltaTime)
 		{
 			switch (_phase)
 			{
-				case ReportPhase.Defence:
+				case PokerReportPhase.Aiming:
 					if (!GameMode.IsTurnExpired()) return;
 
-					SubmitDefence(MinimumStake);
+					LockTarget();
 					return;
 
-				case ReportPhase.Response:
+				case PokerReportPhase.Response:
 					if (!GameMode.IsTurnExpired()) return;
 
-					SubmitResponse(false);
+					// Silence answers with what is already on the table, which is the least the accused can
+					// be in for anyway.
+					Resolve(_module.ReportStake.Value);
 					return;
 
 				default:
@@ -112,84 +89,65 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		public override bool HandleAction(ulong clientId, PokerActionType action, int amount)
 		{
 			if (!IsRunning || IsPaused) return false;
-			if (Data.CurrentTurnClientId.Value != clientId) return false;
+			if (_phase != PokerReportPhase.Response) return false;
+			if (Data.CurrentTurnClientId.Value != clientId || clientId != _targetClientId) return false;
 
-			switch (_phase)
-			{
-				case ReportPhase.Defence:
-					if (clientId != _targetClientId) return false;
+			var accuser = GameMode.FindSeatedPlayer(_accuserClientId);
+			var accused = GameMode.FindSeatedPlayer(_targetClientId);
 
-					// Folded out of the hand or not, the accused still has to answer for the accusation —
-					// so their side of this is a number, and the only choice is how big.
-					if (action == PokerActionType.AllIn) return SubmitDefence(int.MaxValue);
-					if (action == PokerActionType.Bet) return SubmitDefence(amount);
+			// Match it or shove it. Folded out of the hand or not, the accused still has to answer for the
+			// accusation — so both of their answers are a number.
+			if (action == PokerActionType.Call) return Resolve(_module.ReportStake.Value);
+			if (action == PokerActionType.AllIn) return Resolve(_module.AllInStake(accuser, accused));
 
-					return false;
-
-				case ReportPhase.Response:
-					if (clientId != _accuserClientId) return false;
-
-					if (action == PokerActionType.Call) return SubmitResponse(true);
-					if (action == PokerActionType.Fold) return SubmitResponse(false);
-
-					return false;
-
-				default:
-					return false;
-			}
+			return false;
 		}
 
-		// Either of them walking out ends it unjudged. There is no wallet left to take from and no hand left
-		// to answer for, so the accusation is let go rather than settled against somebody who has gone.
+		// Either of them walking out ends it unjudged. There is no blood left to take and no hand left to
+		// answer for, so the accusation is let go rather than settled against somebody who has gone.
 		public override void HandlePlayerLeft(ulong clientId, int seatIndex)
 		{
 			if (!IsRunning || IsPaused) return;
-			if (_phase == ReportPhase.Verdict) return;
+			if (_phase == PokerReportPhase.Verdict) return;
 			if (clientId != _accuserClientId && clientId != _targetClientId) return;
 
 			Drop();
 		}
 
-		private void BeginDefence()
+		private void BeginAiming()
 		{
-			_phase = ReportPhase.Defence;
+			SetPhase(PokerReportPhase.Aiming);
 
-			// Given by name rather than by whether they could act on a street: a player who folded out of
-			// the hand can still be accused, and still has to answer.
-			if (!GameMode.FindSeatedPlayer(_targetClientId))
+			// The arm goes out as the stage opens, not as the button was pressed: by now the table is
+			// stopped and everyone is watching.
+			_module.BeginAimServer();
+
+			// The turn is what says whose move this is, and aiming is a move: the accuser's client reads it
+			// to know that their looking is now being watched.
+			GameMode.BeginTurn(_accuserClientId, _aimDuration);
+		}
+
+		private void LockTarget()
+		{
+			if (!_module.LockReportTargetServer())
 			{
+				// Pointed at nobody. The accuser is let off rather than charged for an accusation the table
+				// never heard — and the report has to be closed out, or nobody could ever file another.
 				Drop();
 				return;
 			}
 
-			GameMode.BeginTurn(_targetClientId, _defenceDuration);
+			_targetClientId = _module.PendingTargetClientId;
+
+			SetPhase(PokerReportPhase.Response);
+			GameMode.BeginTurn(_targetClientId, _responseDuration);
 		}
 
-		private bool SubmitDefence(int amount)
-		{
-			var accused = GameMode.FindSeatedPlayer(_targetClientId);
-			var accuser = GameMode.FindSeatedPlayer(_accuserClientId);
-
-			if (!accused || !accuser)
-			{
-				Drop();
-				return true;
-			}
-
-			_stake = ClampStake(amount, StakeCeiling(accused, accuser));
-			_module.ReportStake.Value = _stake;
-
-			_phase = ReportPhase.Response;
-			GameMode.BeginTurn(_accuserClientId, _responseDuration);
-
-			return true;
-		}
-
-		private bool SubmitResponse(bool called)
+		private bool Resolve(int accusedStake)
 		{
 			GameMode.ClearTurn();
 
-			_module.ResolvePendingReportServer(called ? _stake : 0, called);
+			_module.ResolveReportServer(accusedStake);
 			BeginVerdict();
 
 			return true;
@@ -197,17 +155,24 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 		private void Drop()
 		{
-			if (_module != null) _module.ResolvePendingReportServer(0, false);
+			if (_module != null) _module.DropReportServer();
 
 			BeginVerdict();
 		}
 
 		private void BeginVerdict()
 		{
-			_phase = ReportPhase.Verdict;
+			SetPhase(PokerReportPhase.Verdict);
 
 			GameMode.ClearTurn();
 			GameMode.BeginStageTimer(Mathf.Max(0.1f, _verdictDuration));
+		}
+
+		private void SetPhase(PokerReportPhase phase)
+		{
+			_phase = phase;
+
+			if (_module != null) _module.SetReportPhaseServer(phase);
 		}
 	}
 }

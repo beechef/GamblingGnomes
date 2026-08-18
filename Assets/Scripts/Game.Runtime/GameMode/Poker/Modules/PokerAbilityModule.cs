@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using Game.Runtime.GameMode.Poker.Abilities;
 using Game.Runtime.GameMode.Poker.Player;
@@ -40,13 +39,15 @@ namespace Game.Runtime.GameMode.Poker.Modules
 		[Header("Report")]
 		[SerializeField] private int _reportsPerRound = 1;
 
-		[Tooltip("Staked when there is no report overlay to haggle over it. With one, the accused names the number themselves and this is never read.")]
-		[SerializeField] private int _reportStake = 100;
+		[Tooltip("Blood the accuser pays in as they name somebody, and the floor the accused answers with. Money is what the hand is played for; an accusation is paid for in blood.")]
+		[MinValue(1)]
+		[SerializeField] private int _reportStake = 1;
 
 		[Tooltip("Stages a report may be filed in, matched by stage id. Empty allows any moment of the hand.")]
 		[SerializeField] private List<PokerStage> _reportStages = new();
 
-		[Tooltip("Overlay shown while the verdict lands. Empty resolves on the spot with no pause.")]
+		[Tooltip("Overlay the accusation plays out in — aiming, answering, verdict. A report cannot be filed without one: there is nowhere to point from.")]
+		[Required]
 		[SerializeField] private PokerStage _reportStage;
 
 		[Header("Toggle")]
@@ -72,9 +73,15 @@ namespace Game.Runtime.GameMode.Poker.Modules
 		[HideInInspector] public NetworkVariable<PokerReportAccusation> Accusation = new(default,
 			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
 
-		// What the accused has put up to be believed. Zero until they answer — the accuser is being asked to
-		// match a number, so it has to be on the table before they can say anything about it.
+		// Blood on the table for this accusation, per side. Set as the accuser names somebody and raised if
+		// the accused shoves — the number both of them are in for, which is what the bar offers to match.
 		[HideInInspector] public NetworkVariable<int> ReportStake = new(0,
+			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
+
+		// Which step of the accusation the table is on. Replicated because each step asks a different
+		// question, and a UI working that out from whose turn it is only stays right until there is a
+		// fourth step.
+		[HideInInspector] public NetworkVariable<PokerReportPhase> ReportPhase = new(PokerReportPhase.None,
 			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
 
 		// Server-only truth. Which card each player holds and who cheated never replicate in the clear —
@@ -83,18 +90,27 @@ namespace Game.Runtime.GameMode.Poker.Modules
 		private readonly HashSet<ulong> _cheaters = new();
 		private readonly List<PokerAbility> _dealBuffer = new();
 
+		// Nobody. A sentinel rather than a bool beside the id, so there is one place the answer lives and
+		// no way for the two of them to disagree.
+		private const ulong NoAim = ulong.MaxValue;
+
 		private ulong _pendingAccuser;
 		private ulong _pendingTarget;
 		private bool _hasPendingReport;
+		private ulong _aimClientId = NoAim;
+		private int _accuserPaid;
 		private double _stageOpenedTime;
 
 		// Clients resolve their owner-read ability id against the same pool asset the server deals from.
 		public PokerAbilityPool Pool => _pool;
 
-		// Read by the report overlay as it opens: it runs the haggling, this holds the answer sheet.
+		// Read by the report overlay as it opens: it runs the accusation, this holds the answer sheet.
 		public bool HasPendingReport => _hasPendingReport;
 		public ulong PendingAccuserClientId => _pendingAccuser;
 		public ulong PendingTargetClientId => _pendingTarget;
+		public bool HasAim => _aimClientId != NoAim;
+
+		public int ReportBloodStake => Mathf.Max(1, _reportStake);
 
 		public override void OnNetworkSpawn()
 		{
@@ -200,7 +216,15 @@ namespace Game.Runtime.GameMode.Poker.Modules
 
 			_held.Clear();
 			_cheaters.Clear();
+
+			// A hand torn down mid-accusation leaves an arm across the table and somebody lit up, because
+			// nothing else is coming to put them back — the round ending is the last thing that happens.
+			EndAimServer();
+
 			_hasPendingReport = false;
+			_accuserPaid = 0;
+			ReportStake.Value = 0;
+			ReportPhase.Value = PokerReportPhase.None;
 
 			foreach (var player in GameMode.SeatedPlayers)
 			{
@@ -254,86 +278,210 @@ namespace Game.Runtime.GameMode.Poker.Modules
 			}
 		}
 
+		// Opens the accusation without naming anybody: who it lands on is decided by where the accuser
+		// looks over the next few seconds, not by a menu. The charge is spent here rather than at the
+		// moment a name is picked, so opening the floor and then pointing at nobody still costs one.
 		[Rpc(SendTo.Server)]
-		public void ReportRPC(ulong targetClientId, RpcParams rpcParams = default)
+		public void ReportRPC(RpcParams rpcParams = default)
 		{
 			var accuser = rpcParams.Receive.SenderClientId;
 
-			if (!ReportWindowOpen.Value) return;
-			if (_hasPendingReport || accuser == targetClientId) return;
+			// Refusals say which gate they came from. A report that quietly does nothing is indisting-
+			// uishable from a button that is not wired, an animation that did not import and a stage that
+			// was never pushed — and the client has already been told it may ask, so a no is worth a line.
+			if (!ReportWindowOpen.Value) { RefuseReport(accuser, "the report window is closed"); return; }
+			if (_hasPendingReport) { RefuseReport(accuser, "another report is already running"); return; }
+			if (!_reportStage) { RefuseReport(accuser, "no report stage is assigned on the module"); return; }
 
-			// A folded player has no voice left this hand — they can be accused, not accuse.
+			// Folding is not a gag order. A player out of the hand watched the same table everyone else
+			// did, and folding out does not launder a cheat on the other side either — so being dealt in
+			// is the whole test, at both ends of the finger.
 			var accuserPlayer = GameMode.FindSeatedPlayer(accuser);
-			if (!accuserPlayer || !accuserPlayer.Data.IsInHand) return;
-			if (accuserPlayer.Data.ReportsLeft.Value <= 0) return;
-
-			// The accused only has to have been dealt in: folding out does not launder a cheat.
-			var targetPlayer = GameMode.FindSeatedPlayer(targetClientId);
-			if (!targetPlayer || !WasDealtIn(targetPlayer)) return;
+			if (!accuserPlayer) { RefuseReport(accuser, "they are not seated at this table"); return; }
+			if (!WasDealtIn(accuserPlayer)) { RefuseReport(accuser, $"they were never dealt in (status {accuserPlayer.Data.Status.Value})"); return; }
+			if (accuserPlayer.Data.ReportsLeft.Value <= 0) { RefuseReport(accuser, "they have no reports left this hand"); return; }
 
 			accuserPlayer.Data.ReportsLeft.Value -= 1;
 
 			_pendingAccuser = accuser;
-			_pendingTarget = targetClientId;
+			_pendingTarget = accuser;
 			_hasPendingReport = true;
-
-			Accusation.Value = new PokerReportAccusation
-			{
-				AccuserClientId = accuser,
-				TargetClientId = targetClientId,
-				Sequence = LastReport.Value.Sequence + 1
-			};
+			_aimClientId = NoAim;
+			_accuserPaid = 0;
 
 			ReportStake.Value = 0;
 
-			// The accusation is a scene: the finger jabs across the table, the accused startles. Played as
-			// it is filed, so the table sees who started it before the overlay even lands.
-			accuserPlayer.ActionAnimator?.ServerPlay(PlayerActionIds.Report);
-			targetPlayer.ActionAnimator?.ServerPlay(PlayerActionIds.Reported);
-
-			if (_reportStage) GameMode.PushOverlay(_reportStage);
-			else ResolvePendingReportServer(_reportStake, true);
+			GameMode.PushOverlay(_reportStage);
 		}
 
-		// The verdict, once the challenge has been answered. Called by the report overlay, which is what
-		// decides the stake and whether the accuser was willing to pay it — or directly with the configured
-		// stake when no overlay is set up to haggle over one.
-		//
-		// A challenge nobody called is dropped rather than judged: the accused keeps their secret, nothing
-		// moves, and the accusation is spent all the same.
-		public void ResolvePendingReportServer(int stake, bool called)
+		// The accusation opens as a scene rather than a menu: the accuser throws an arm out and holds it
+		// there while they look for a face. The gesture starts it and the pose is what lasts, so the two
+		// are played together — and from the stage opening rather than from the click that pushed it, or
+		// the arm goes out before the table has been stopped to watch it.
+		public void BeginAimServer()
+		{
+			if (!IsServer || !_hasPendingReport) return;
+
+			var accuser = GameMode.FindSeatedPlayer(_pendingAccuser);
+			if (!accuser) return;
+
+			// Said out loud rather than skipped over: the arm not going out is the first thing anybody
+			// notices, and a null here looks exactly like a missing animator state from the outside.
+			if (!accuser.ActionAnimator) Debug.LogWarning($"[PokerAbilityModule] {accuser.DisplayName} has no PlayerActionAnimator — the report gesture cannot play.");
+			if (!accuser.Point) Debug.LogWarning($"[PokerAbilityModule] {accuser.DisplayName} has no PlayerPointController — the pointing pose cannot be held.");
+
+			accuser.ActionAnimator?.ServerPlay(PlayerActionIds.Report);
+			if (accuser.Point) accuser.Point.ServerSetPointing(true);
+		}
+
+		private static void RefuseReport(ulong accuser, string reason)
+		{
+			Debug.LogWarning($"[PokerAbilityModule] Report from client {accuser} refused: {reason}.");
+		}
+
+		// Where the accuser is looking, sent as it changes rather than every frame. Only the accuser's own
+		// client can see through their eyes, so the aim has to come from there — the server's word is on
+		// whether whoever they named can be accused at all.
+		[Rpc(SendTo.Server)]
+		public void AimReportRPC(ulong targetClientId, RpcParams rpcParams = default)
+		{
+			if (!_hasPendingReport || ReportPhase.Value != PokerReportPhase.Aiming) return;
+			if (rpcParams.Receive.SenderClientId != _pendingAccuser) return;
+
+			SetAimServer(targetClientId);
+		}
+
+		public void SetReportPhaseServer(PokerReportPhase phase)
+		{
+			if (!IsServer) return;
+
+			ReportPhase.Value = phase;
+		}
+
+		// Lit up for the whole room, not just for the accuser: the table watching a finger travel from
+		// face to face is the point of aiming out loud.
+		private void SetAimServer(ulong targetClientId)
+		{
+			var next = targetClientId != _pendingAccuser && CanBeReported(targetClientId) ? targetClientId : NoAim;
+			if (_aimClientId == next) return;
+
+			SetHighlightServer(_aimClientId, false);
+			_aimClientId = next;
+			SetHighlightServer(_aimClientId, true);
+		}
+
+		// The finger comes down where it was pointing. Aimed at nobody, the accusation is dropped rather
+		// than thrown at whoever happens to be sitting opposite — failing to pick anybody is not the same
+		// as picking wrong, and only the second one is supposed to cost blood.
+		public bool LockReportTargetServer()
+		{
+			if (!IsServer || !_hasPendingReport) return false;
+
+			var accuser = GameMode.FindSeatedPlayer(_pendingAccuser);
+			var target = _aimClientId != NoAim ? GameMode.FindSeatedPlayer(_aimClientId) : null;
+
+			EndAimServer();
+
+			if (!accuser || !target) return false;
+
+			_pendingTarget = target.ClientId;
+
+			Accusation.Value = new PokerReportAccusation
+			{
+				AccuserClientId = _pendingAccuser,
+				TargetClientId = _pendingTarget,
+				Sequence = LastReport.Value.Sequence + 1
+			};
+
+			// Paid the moment the name is said, so the accused is being asked to match something already
+			// on the table rather than to open the bidding themselves.
+			_accuserPaid = PayBlood(accuser, ReportBloodStake);
+			ReportStake.Value = _accuserPaid;
+
+			target.ActionAnimator?.ServerPlay(PlayerActionIds.Reported);
+
+			return true;
+		}
+
+		// What the accused can shove: every drop either of them has, since neither side can be in for more
+		// than the other can cover. The bar offers this number by calling the same method the server
+		// clamps with.
+		public int AllInStake(PokerPlayer accuser, PokerPlayer accused)
+		{
+			var accuserBlood = accuser && accuser.Data ? accuser.Data.Health.Value + _accuserPaid : 0;
+			var accusedBlood = accused && accused.Data ? accused.Data.Health.Value : 0;
+
+			return Mathf.Max(ReportStake.Value, Mathf.Min(accuserBlood, accusedBlood));
+		}
+
+		// The accused's answer, and the end of it: they match what was staked or shove, and either way the
+		// hand gets judged. There is no backing out of an accusation at this table — the only choice the
+		// accused has is how much blood the answer is worth.
+		public void ResolveReportServer(int accusedStake)
 		{
 			if (!IsServer || !_hasPendingReport) return;
 
 			_hasPendingReport = false;
+			EndAimServer();
 
 			var accuser = GameMode.FindSeatedPlayer(_pendingAccuser);
 			var target = GameMode.FindSeatedPlayer(_pendingTarget);
-			if (accuser == null || target == null) return;
 
-			var wasCheater = called && _cheaters.Contains(_pendingTarget);
-			var amount = 0;
-
-			if (called)
+			if (!accuser || !target)
 			{
-				var loser = wasCheater ? target : accuser;
-				var winner = wasCheater ? accuser : target;
-
-				var wallet = loser.Wallet;
-				amount = Math.Min(Math.Max(0, stake), wallet ? wallet.Money.Value : 0);
-				if (amount > 0 && wallet.ServerTryWithdraw(amount)) winner.Data.ServerWinChips(amount);
-
-				// A cheat caught in the act is out of the hand as well as out of pocket. Pointing at the wrong
-				// player only costs money: the accuser plays on, which is what keeps a hunch worth acting on
-				// at all rather than a way to talk yourself out of the hand.
-				if (wasCheater) FoldServer(target);
-
-				// The verdict on their faces: whoever the money just left hangs their head, whoever it came
-				// to laughs at them.
-				accuser.ActionAnimator?.ServerPlay(wasCheater ? PlayerActionIds.Laugh : PlayerActionIds.Disappointed);
-				target.ActionAnimator?.ServerPlay(wasCheater ? PlayerActionIds.Disappointed : PlayerActionIds.Laugh);
+				PublishReport(false, false, 0);
+				return;
 			}
 
+			// Both sides end up in for the same number, so a shove the accuser cannot cover is only worth
+			// what they can — the rest never leaves anybody.
+			var stake = Mathf.Clamp(accusedStake, ReportStake.Value, AllInStake(accuser, target));
+
+			_accuserPaid += PayBlood(accuser, stake - _accuserPaid);
+			var accusedPaid = PayBlood(target, stake);
+
+			var pot = _accuserPaid + accusedPaid;
+			ReportStake.Value = stake;
+
+			var wasCheater = _cheaters.Contains(_pendingTarget);
+			var winner = wasCheater ? accuser : target;
+
+			winner.Data.ServerChangeHealth(pot);
+
+			// A cheat caught in the act is out of the hand as well as out of blood. Pointing at the wrong
+			// player only costs blood: the accuser plays on, which is what keeps a hunch worth acting on at
+			// all rather than a way to talk yourself out of the hand.
+			if (wasCheater) FoldServer(target);
+
+			// The verdict on their faces: whoever the blood just left hangs their head, whoever it came to
+			// laughs at them.
+			accuser.ActionAnimator?.ServerPlay(wasCheater ? PlayerActionIds.Laugh : PlayerActionIds.Disappointed);
+			target.ActionAnimator?.ServerPlay(wasCheater ? PlayerActionIds.Disappointed : PlayerActionIds.Laugh);
+
+			PublishReport(true, wasCheater, pot);
+		}
+
+		// An accusation that never found a face, or whose two people are no longer both here. Nothing is
+		// judged and whatever the accuser had already put up comes back to them: they are being let off
+		// the accusation, not charged for one nobody heard.
+		public void DropReportServer()
+		{
+			if (!IsServer || !_hasPendingReport) return;
+
+			_hasPendingReport = false;
+			EndAimServer();
+
+			var accuser = GameMode.FindSeatedPlayer(_pendingAccuser);
+			if (accuser && _accuserPaid > 0) accuser.Data.ServerChangeHealth(_accuserPaid);
+
+			_accuserPaid = 0;
+			ReportStake.Value = 0;
+
+			PublishReport(false, false, 0);
+		}
+
+		private void PublishReport(bool called, bool wasCheater, int amount)
+		{
 			LastReport.Value = new PokerReportResult
 			{
 				AccuserClientId = _pendingAccuser,
@@ -343,6 +491,45 @@ namespace Game.Runtime.GameMode.Poker.Modules
 				Amount = amount,
 				Sequence = LastReport.Value.Sequence + 1
 			};
+		}
+
+		// Takes what is there rather than refusing what is not: a player answering with their last drop is
+		// answering, and the caller is told what actually moved.
+		private static int PayBlood(PokerPlayer player, int amount)
+		{
+			if (!player || !player.Data || amount <= 0) return 0;
+
+			var paid = Mathf.Min(amount, player.Data.Health.Value);
+			if (paid > 0) player.Data.ServerChangeHealth(-paid);
+
+			return paid;
+		}
+
+		// The arm comes down and the room goes dark again, whichever way the accusation went.
+		private void EndAimServer()
+		{
+			SetHighlightServer(_aimClientId, false);
+			_aimClientId = NoAim;
+
+			var accuser = GameMode.FindSeatedPlayer(_pendingAccuser);
+			if (accuser && accuser.Point) accuser.Point.ServerSetPointing(false);
+		}
+
+		private void SetHighlightServer(ulong clientId, bool highlighted)
+		{
+			if (clientId == NoAim) return;
+
+			var player = GameMode.FindSeatedPlayer(clientId);
+			if (!player || !player.Visual) return;
+
+			player.Visual.ServerSetOutlined(highlighted);
+		}
+
+		private bool CanBeReported(ulong clientId)
+		{
+			var player = GameMode.FindSeatedPlayer(clientId);
+
+			return player && WasDealtIn(player);
 		}
 
 		private void FoldServer(PokerPlayer player)

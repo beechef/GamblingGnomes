@@ -27,6 +27,11 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 		[SerializeField] private PlayerHandPeekController _handPeek;
 
+		[SerializeField] private PlayerPointController _point;
+
+		[Tooltip("Who draws this player. Marking somebody out for the whole table is a change of how they are drawn, so it is asked of the thing already holding every renderer.")]
+		[SerializeField] private PlayerVisual _visual;
+
 		private static readonly List<PokerPlayer> Registry = new();
 
 		public static IReadOnlyList<PokerPlayer> All => Registry;
@@ -52,6 +57,8 @@ namespace Game.Runtime.GameMode.Poker.Player
 		public PlayerHeadStretchController HeadStretch => _headStretch;
 		public PlayerActionAnimator ActionAnimator => _actionAnimator;
 		public PlayerHandPeekController HandPeek => _handPeek;
+		public PlayerPointController Point => _point;
+		public PlayerVisual Visual => _visual;
 		public ulong ClientId => OwnerClientId;
 
 		// The seat number is the fallback rather than the label: a player whose identity RPC has not
@@ -89,6 +96,8 @@ namespace Game.Runtime.GameMode.Poker.Player
 			// Feature components live on child objects of the player rather than piling up on the root.
 			if (!_headStretch) _headStretch = GetComponentInChildren<PlayerHeadStretchController>();
 			if (!_actionAnimator) _actionAnimator = GetComponentInChildren<PlayerActionAnimator>();
+			if (!_point) _point = GetComponentInChildren<PlayerPointController>();
+			if (!_visual) _visual = GetComponentInChildren<PlayerVisual>();
 
 			if (!Registry.Contains(this))
 			{

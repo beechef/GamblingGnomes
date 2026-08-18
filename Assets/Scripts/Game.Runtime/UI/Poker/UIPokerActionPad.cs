@@ -98,7 +98,10 @@ namespace Game.Runtime.UI.Poker
 
 		private void Refresh()
 		{
-			var visible = LocalData.IsSeated && LocalData.IsInHand;
+			// An overlay asks a different question in a different currency and brings its own pad, so this
+			// one leaves rather than sitting underneath it greyed out — two pads up at once is two control
+			// schemes up at once, and neither of them is learnable.
+			var visible = LocalData.IsSeated && LocalData.IsInHand && Data.OverlayStageId.Value.IsEmpty;
 			if (_panel && _panel.activeSelf != visible) _panel.SetActive(visible);
 			if (!visible) return;
 
@@ -127,10 +130,12 @@ namespace Game.Runtime.UI.Poker
 			if (_reportButton && _reportButton.gameObject.activeSelf != exists) _reportButton.gameObject.SetActive(exists);
 			if (!exists) return;
 
+			// Folding is not a gag order — a player out of the hand watched the same table everyone else
+			// did, and is still owed the chance to say what they saw.
 			var open = _module.Enabled.Value && _module.ReportWindowOpen.Value &&
-				LocalData.IsInHand && LocalData.ReportsLeft.Value > 0;
+				LocalData.IsSeated && LocalData.ReportsLeft.Value > 0;
 
-			if (_reportButton) _reportButton.IsInteractable = open && FindOnlyTarget() != ulong.MaxValue;
+			if (_reportButton) _reportButton.IsInteractable = open;
 		}
 
 		// Peeking is free — it costs nothing and asks the server for nothing but the pose — so the only
@@ -143,31 +148,14 @@ namespace Game.Runtime.UI.Poker
 			var peek = LocalPlayer.HandPeek;
 
 			_checkButton.IsInteractable = peek && LocalData.IsInHand;
-			_checkButton.IsSelected = peek && peek.IsPeeking.Value;
+			// _checkButton.IsSelected = peek && peek.IsPeeking.Value;
 		}
 
-		// One tap carries no choice of target, so it only fires while the table leaves exactly one — every
-		// current preset seats two players. More seats will need a picker before this button can choose.
-		private ulong FindOnlyTarget()
-		{
-			var target = ulong.MaxValue;
-
-			foreach (var player in GameMode.SeatedPlayers)
-			{
-				if (!player || player.ClientId == LocalClientId) continue;
-				if (!player.Data.IsInHand && player.Data.Status.Value != PokerPlayerStatus.Folded) continue;
-
-				if (target != ulong.MaxValue) return ulong.MaxValue;
-				target = player.ClientId;
-			}
-
-			return target;
-		}
-
+		// The tap names nobody. It stands the accuser up with an arm out and hands them the table to look
+		// at — who it lands on is decided by where they look, not by a list they picked off a menu.
 		private void HandleReport()
 		{
-			var target = FindOnlyTarget();
-			if (_module != null && target != ulong.MaxValue) _module.ReportRPC(target);
+			if (_module != null) _module.ReportRPC();
 		}
 
 		private void HandleCheckCards()

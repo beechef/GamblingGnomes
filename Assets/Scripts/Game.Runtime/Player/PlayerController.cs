@@ -96,6 +96,9 @@ namespace Game.Runtime.Player
 		private bool _lookConstrained;
 		private bool _constraintAllowsRotation;
 		private bool _bodyAnchored;
+		private PlayerLookMode _seatLookMode;
+		private PlayerLookMode _overrideLookMode;
+		private bool _hasLookModeOverride;
 		private float _constraintYaw;
 		private Vector2 _constraintYawLimits;
 		private Vector2 _activePitchLimits;
@@ -115,10 +118,13 @@ namespace Game.Runtime.Player
 		// ever drives the bone and camera belonging to the rig it actually renders.
 		private CinemachineCamera ActiveCamera => IsOwner ? _ownerFirstPersonCamera : _firstPersonCamera;
 
-		// Anchored in a seat the head turns alone; free on their feet the whole chest does. Nothing needs
-		// undoing when this answer changes: the Animator rewrites both bones every frame, so the one that
-		// stops being driven is back under the clip's control on the very next one.
-		private Transform ActiveLookTransform => _bodyAnchored
+		// An override outranks the seat's answer and puts itself back when it is done, so whatever set it
+		// never has to know what the seat had decided — and cannot get it wrong on the way out.
+		private PlayerLookMode ActiveLookMode => _hasLookModeOverride ? _overrideLookMode : _seatLookMode;
+
+		// Nothing needs undoing when this answer changes: the Animator rewrites both bones every frame, so
+		// the one that stops being driven is back under the clip's control on the very next one.
+		private Transform ActiveLookTransform => ActiveLookMode == PlayerLookMode.Head
 			? IsOwner ? _ownerHeadLookTransform : _headLookTransform
 			: IsOwner ? _ownerBodyLookTransform : _bodyLookTransform;
 
@@ -144,12 +150,35 @@ namespace Game.Runtime.Player
 			_verticalVelocity = 0f;
 		}
 
-		// Which bone the look aims is something every peer has to agree on, because a seated player's head
-		// turns on the screens of the people watching them just as much as on their own — so this is set
-		// wherever the pose is applied, while the limits below it stay the owner's business alone.
+		// Whether the body is being held where it was put — by a chair, or anything else that decided the
+		// facing. It is the answer to "where does yaw go": anchored, it turns the look bone, because the
+		// character itself must not swivel out of the pose it was placed in.
+		//
+		// Every peer has to agree on it, since a seated player's head turns on the screens of the people
+		// watching them just as much as on their own — so this is set wherever the pose is applied, while
+		// the limits below it stay the owner's business alone.
 		public void SetBodyAnchored(bool anchored)
 		{
 			_bodyAnchored = anchored;
+
+			// A chair decides how the body sits, so the look drops to the head alone; back on their feet
+			// the whole chest turns again.
+			_seatLookMode = anchored ? PlayerLookMode.Head : PlayerLookMode.Body;
+		}
+
+		// Which bone the look composes onto, for as long as some act needs a say in it. Separate from being
+		// anchored because the two genuinely come apart: an accuser pointing across the table is still held
+		// by their chair — yaw still goes to the bone rather than the body — and yet aims from the chest,
+		// because the whole torso is in the act. Set on every peer, like the anchor and for the same reason.
+		public void SetLookModeOverride(PlayerLookMode mode)
+		{
+			_hasLookModeOverride = true;
+			_overrideLookMode = mode;
+		}
+
+		public void ClearLookModeOverride()
+		{
+			_hasLookModeOverride = false;
 		}
 
 		// Sitting, lying down or any other anchored pose narrows what the look input is allowed to do:
