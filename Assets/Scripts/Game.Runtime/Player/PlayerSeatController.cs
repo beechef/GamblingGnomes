@@ -128,7 +128,9 @@ namespace Game.Runtime.Player
 			var anchor = seat.SitAnchor;
 			_playerController.SetMovementEnabled(false);
 			_playerController.Teleport(anchor.position, anchor.rotation);
-			_playerController.ApplyLookConstraint(anchor.eulerAngles.y, pose.AllowRotation, pose.YawLimits, pose.PitchLimits);
+			// Seated is head-only: the seat decided where the body faces, so the look input turns the neck.
+			_playerController.ApplyLookConstraint(anchor.eulerAngles.y, pose.AllowRotation, pose.YawLimits,
+				pose.PitchLimits, rotateHeadOnly: true);
 		}
 
 		private void ClearSeat(SeatInteractable previousSeat)

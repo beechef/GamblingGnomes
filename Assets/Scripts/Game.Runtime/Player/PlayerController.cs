@@ -54,8 +54,15 @@ namespace Game.Runtime.Player
 		private readonly NetworkVariable<float> _pitch = new(0f,
 			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Owner);
 
+		// Standing, yaw turns the whole character and rides along on NetworkTransform. Seated, the body is
+		// anchored and only the head turns, so that yaw has nowhere to ride and needs replicating itself.
+		private readonly NetworkVariable<float> _headYaw = new(0f,
+			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Owner);
+
 		private float _currentPitch;
 		private float _lastSentPitch;
+		private float _currentHeadYaw;
+		private float _lastSentHeadYaw;
 		private float _verticalVelocity;
 		private Vector2 _moveInput;
 		private bool _sprinting;
@@ -64,6 +71,7 @@ namespace Game.Runtime.Player
 		private bool _movementEnabled = true;
 		private bool _lookConstrained;
 		private bool _constraintAllowsRotation;
+		private bool _rotateHeadOnly;
 		private float _constraintYaw;
 		private Vector2 _constraintYawLimits;
 		private Vector2 _activePitchLimits;
@@ -77,6 +85,7 @@ namespace Game.Runtime.Player
 		}
 
 		private readonly List<AngleSample> _pitchHistory = new();
+		private readonly List<AngleSample> _headYawHistory = new();
 		private Quaternion _pitchRestRotation = Quaternion.identity;
 
 		// Bone axes are whatever the rig was authored with — on the gnome rig the head bone's
@@ -84,6 +93,9 @@ namespace Game.Runtime.Player
 		// the rotation axis and the camera's alignment are therefore derived from the rest pose
 		// at spawn instead of assuming any particular bone orientation.
 		private Vector3 _pitchAxisInParentSpace = Vector3.right;
+
+		// Same reasoning as the pitch axis, for the character's up: seated yaw turns the head around it.
+		private Vector3 _yawAxisInParentSpace = Vector3.up;
 
 		// Owner sees the hand-only rig, everyone else sees the full body rig, so each side only
 		// ever drives the head bone and camera belonging to the rig it actually renders.
@@ -114,10 +126,15 @@ namespace Game.Runtime.Player
 
 		// Sitting, lying down or any other anchored pose narrows what the look input is allowed to do:
 		// yaw is measured against the anchor's facing instead of being free, and pitch can be tightened.
-		public void ApplyLookConstraint(float referenceYaw, bool allowRotation, Vector2 yawLimits, Vector2 pitchLimits)
+		// rotateHeadOnly is what a seat asks for: the body has been placed and must stay placed, so the yaw
+		// the player asks for turns the neck instead of the character. The yaw limits then read as how far
+		// they can crane round, measured from the pose's own facing rather than from world zero.
+		public void ApplyLookConstraint(float referenceYaw, bool allowRotation, Vector2 yawLimits,
+			Vector2 pitchLimits, bool rotateHeadOnly = false)
 		{
 			_lookConstrained = true;
 			_constraintAllowsRotation = allowRotation;
+			_rotateHeadOnly = rotateHeadOnly;
 			_constraintYaw = referenceYaw;
 			_constraintYawLimits = yawLimits;
 			_activePitchLimits = pitchLimits;
@@ -125,13 +142,25 @@ namespace Game.Runtime.Player
 			_currentPitch = Mathf.Clamp(_currentPitch, _activePitchLimits.x, _activePitchLimits.y);
 			_pitch.Value = _currentPitch;
 			_lastSentPitch = _currentPitch;
+
+			// Starts level with the seat: whatever the neck was doing on the way in is not where sitting
+			// down should leave it.
+			_currentHeadYaw = 0f;
+			_headYaw.Value = 0f;
+			_lastSentHeadYaw = 0f;
 		}
 
 		public void ClearLookConstraint()
 		{
 			_lookConstrained = false;
 			_constraintAllowsRotation = true;
+			_rotateHeadOnly = false;
 			_activePitchLimits = _pitchLimits;
+
+			// Standing up must not leave the head still turned — from here yaw is the body's again.
+			_currentHeadYaw = 0f;
+			_headYaw.Value = 0f;
+			_lastSentHeadYaw = 0f;
 		}
 
 		public void Teleport(Vector3 position, Quaternion rotation)
@@ -149,12 +178,16 @@ namespace Game.Runtime.Player
 			CalibrateToRestPose();
 
 			_currentPitch = _pitch.Value;
-			ApplyPitch(_currentPitch);
+			_currentHeadYaw = _headYaw.Value;
+			ApplyHead(_currentHeadYaw, _currentPitch);
 
 			if (!IsOwner)
 			{
 				PushSample(_pitchHistory, _pitch.Value);
+				PushSample(_headYawHistory, _headYaw.Value);
+
 				_pitch.OnValueChanged += OnPitchChanged;
+				_headYaw.OnValueChanged += OnHeadYawChanged;
 				return;
 			}
 
@@ -165,6 +198,7 @@ namespace Game.Runtime.Player
 			ActiveCamera.enabled = true;
 
 			_lastSentPitch = _currentPitch;
+			_lastSentHeadYaw = _currentHeadYaw;
 
 			_moveAction.action.Enable();
 			_moveAction.action.performed += OnMovePerformed;
@@ -191,6 +225,7 @@ namespace Game.Runtime.Player
 		public override void OnNetworkDespawn()
 		{
 			_pitch.OnValueChanged -= OnPitchChanged;
+			_headYaw.OnValueChanged -= OnHeadYawChanged;
 
 			// The input actions are one shared asset for the whole process, and ownership can pass to the
 			// server as a client leaves — so "am I the owner" is not a safe question to ask on the way
@@ -267,9 +302,13 @@ namespace Game.Runtime.Player
 			var filteredY = Mathf.Abs(delta.y) < _inputDeadzone ? 0f : delta.y;
 			if (filteredX == 0f && filteredY == 0f) return;
 
-			// Yaw turns the whole character, so it rides along on NetworkTransform rather than
+			var yawDelta = filteredX * _lookSensitivityX;
+
+			// Anchored in a seat, the body stays where it was put and only the neck turns; free on their
+			// feet, yaw turns the whole character, so it rides along on NetworkTransform rather than
 			// needing its own NetworkVariable like pitch does.
-			transform.Rotate(Vector3.up, ConstrainYawDelta(filteredX * _lookSensitivityX));
+			if (_rotateHeadOnly) _currentHeadYaw = ConstrainHeadYaw(yawDelta);
+			else transform.Rotate(Vector3.up, ConstrainYawDelta(yawDelta));
 
 			_currentPitch = Mathf.Clamp(_currentPitch + filteredY * _lookSensitivityY * -1f,
 				_activePitchLimits.x, _activePitchLimits.y);
@@ -279,6 +318,22 @@ namespace Game.Runtime.Player
 				_pitch.Value = _currentPitch;
 				_lastSentPitch = _currentPitch;
 			}
+
+			if (Mathf.Abs(Mathf.DeltaAngle(_lastSentHeadYaw, _currentHeadYaw)) >= _minNetworkSendDeltaDegrees)
+			{
+				_headYaw.Value = _currentHeadYaw;
+				_lastSentHeadYaw = _currentHeadYaw;
+			}
+		}
+
+		// The head answers to the same two settings the body does: a pose that forbids turning forbids
+		// craning as well — a locked-in chair means facing one way, not facing one way with a free neck —
+		// and the limits are read straight off the pose's forward, which is where the neck starts from.
+		private float ConstrainHeadYaw(float yawDelta)
+		{
+			if (!_constraintAllowsRotation) return 0f;
+
+			return Mathf.Clamp(_currentHeadYaw + yawDelta, _constraintYawLimits.x, _constraintYawLimits.y);
 		}
 
 		private float ConstrainYawDelta(float yawDelta)
@@ -317,15 +372,19 @@ namespace Game.Runtime.Player
 
 			if (IsOwner)
 			{
-				ApplyPitch(_currentPitch);
+				ApplyHead(_currentHeadYaw, _currentPitch);
 				return;
 			}
 
 			var renderTime = Time.timeAsDouble - _interpolationDelay;
-			ApplyPitch(SampleHistory(_pitchHistory, renderTime, _pitch.Value, _maxInterpolationTime));
+
+			ApplyHead(
+				SampleHistory(_headYawHistory, renderTime, _headYaw.Value, _maxInterpolationTime),
+				SampleHistory(_pitchHistory, renderTime, _pitch.Value, _maxInterpolationTime));
 		}
 
 		private void OnPitchChanged(float previous, float current) => PushSample(_pitchHistory, current);
+		private void OnHeadYawChanged(float previous, float current) => PushSample(_headYawHistory, current);
 
 		private void PushSample(List<AngleSample> history, float value)
 		{
@@ -382,16 +441,25 @@ namespace Game.Runtime.Player
 				? pitchTransform.parent.InverseTransformDirection(transform.right).normalized
 				: transform.right;
 
+			_yawAxisInParentSpace = pitchTransform.parent
+				? pitchTransform.parent.InverseTransformDirection(transform.up).normalized
+				: transform.up;
+
 			var camera = ActiveCamera;
 			if (camera) camera.transform.localRotation = Quaternion.Inverse(pitchTransform.rotation) * transform.rotation;
 		}
 
-		private void ApplyPitch(float pitch)
+		// Yaw first, then pitch: pitching inside the yawed frame is what makes a head look up along the way
+		// it is facing rather than along the way the body is.
+		private void ApplyHead(float yaw, float pitch)
 		{
 			var pitchTransform = ActivePitchTransform;
 			if (!pitchTransform) return;
 
-			pitchTransform.localRotation = Quaternion.AngleAxis(pitch, _pitchAxisInParentSpace) * _pitchRestRotation;
+			pitchTransform.localRotation =
+				Quaternion.AngleAxis(yaw, _yawAxisInParentSpace)
+				* Quaternion.AngleAxis(pitch, _pitchAxisInParentSpace)
+				* _pitchRestRotation;
 		}
 	}
 }
