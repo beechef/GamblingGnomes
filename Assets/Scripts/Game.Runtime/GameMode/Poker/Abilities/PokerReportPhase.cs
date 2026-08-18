@@ -11,10 +11,16 @@ namespace Game.Runtime.GameMode.Poker.Abilities
 		// they settle on is lit up for the whole room.
 		Aiming = 1,
 
-		// A name has been said out loud and paid for in blood. The accused answers it or raises it.
+		// A name has been said out loud and paid for in blood. The accused answers it or raises it, and a
+		// raise hands the question back to the accuser.
 		Response = 2,
 
+		// Both of them are in and nobody is being asked anything. The table is left to sweat for a moment
+		// before it finds out — a verdict that lands on the same frame as the last button press is a
+		// verdict nobody watched arrive.
+		Judging = 3,
+
 		// Said and done, held on screen long enough to be read.
-		Verdict = 3
+		Verdict = 4
 	}
 }

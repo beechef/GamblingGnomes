@@ -58,7 +58,7 @@ namespace Game.Runtime.GameMode.Poker
 		public IReadOnlyList<PokerPlayer> SeatedPlayers => _seatedPlayers;
 
 		// Sitting down is free, so a seat filled is not the same as a player who can play. Only the ones
-		// with money left to stake make a hand worth dealing.
+		// still breathing and with money left to stake make a hand worth dealing.
 		public int FundedPlayerCount
 		{
 			get
@@ -67,7 +67,7 @@ namespace Game.Runtime.GameMode.Poker
 
 				foreach (var player in _seatedPlayers)
 				{
-					if (player.Data.Chips > 0) count++;
+					if (player.Data.IsAlive && player.Data.Chips > 0) count++;
 				}
 
 				return count;
@@ -569,14 +569,20 @@ namespace Game.Runtime.GameMode.Poker
 
 			if (ActiveStage == null || !ActiveStage.HandleAction(senderClientId, action, amount)) return;
 
-			var paid = actor ? Mathf.Max(0, actor.Data.Bet.Value - betBefore) : 0;
-			_data.ActionNotice.Value = new PokerActionNotice
+			// An overlay prices its moves in its own currency and announces them itself. Measuring one here
+			// would read the change in Bet, which an overlay never touches, and go out as a bare verb with
+			// nothing after it — beside the overlay's own card saying the same thing properly.
+			if (CurrentOverlay == null)
 			{
-				ClientId = senderClientId,
-				Action = action,
-				Amount = paid,
-				Sequence = _data.ActionNotice.Value.Sequence + 1
-			};
+				var paid = actor ? Mathf.Max(0, actor.Data.Bet.Value - betBefore) : 0;
+				_data.ActionNotice.Value = new PokerActionNotice
+				{
+					ClientId = senderClientId,
+					Action = action,
+					Amount = paid,
+					Sequence = _data.ActionNotice.Value.Sequence + 1
+				};
+			}
 
 			foreach (var module in _modules)
 			{

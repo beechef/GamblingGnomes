@@ -11,7 +11,9 @@ namespace Game.Runtime.UI.Poker
 {
 	// What the accused is asked, which is nothing a street ever asks: somebody has put blood on the table
 	// against them and the only question left is how much this answer is worth. Match it, or shove
-	// everything either of them has. There is no fold here — an accusation cannot be waited out.
+	// everything either of them has; there is no waiting an accusation out. The same pad then asks the
+	// accuser whether they will stand behind what they said, once a shove has handed the question back —
+	// and that is the one moment fold is on offer here.
 	//
 	// Its own pad rather than a second mode on the street's. Both the verbs and the currency change — this
 	// one is counted in blood — and a pad that quietly means something else under the same four petals is
@@ -35,7 +37,7 @@ namespace Game.Runtime.UI.Poker
 		[Tooltip("Looking at your own cards costs nothing and asks the server for nothing, so it stays lit through an accusation like it does through a street.")]
 		[SerializeField] private UIButton _checkButton;
 
-		[Tooltip("Kept in its slot and permanently dimmed. The petal exists so the four positions never move under the player's thumb; it is dimmed because an accusation cannot be waited out.")]
+		[Tooltip("Kept in its slot whether or not it is offered. The accused can never use it — an accusation cannot be waited out — but the accuser can, to walk away from a shove and leave what they staked.")]
 		[SerializeField] private UIButton _foldButton;
 
 		[Header("Turn Timer")]
@@ -62,6 +64,7 @@ namespace Game.Runtime.UI.Poker
 			if (_callButton) _callButton.OnClick += HandleCall;
 			if (_allInButton) _allInButton.OnClick += HandleAllIn;
 			if (_checkButton) _checkButton.OnClick += HandleCheckCards;
+			if (_foldButton) _foldButton.OnClick += HandleFold;
 
 			Data.CurrentTurnClientId.OnValueChanged += HandleTurnChanged;
 			_module.ReportPhase.OnValueChanged += HandlePhaseChanged;
@@ -82,6 +85,7 @@ namespace Game.Runtime.UI.Poker
 				_module.ReportPhase.OnValueChanged -= HandlePhaseChanged;
 				Data.CurrentTurnClientId.OnValueChanged -= HandleTurnChanged;
 
+				if (_foldButton) _foldButton.OnClick -= HandleFold;
 				if (_checkButton) _checkButton.OnClick -= HandleCheckCards;
 				if (_allInButton) _allInButton.OnClick -= HandleAllIn;
 				if (_callButton) _callButton.OnClick -= HandleCall;
@@ -124,8 +128,9 @@ namespace Game.Runtime.UI.Poker
 			if (_allInButton) _allInButton.IsInteractable = accused && allIn > stake;
 			if (_allInLabel) _allInLabel.text = $"All In {allIn}";
 
-			// Never available, never moved. See the field's own note: the slot is the control scheme.
-			if (_foldButton) _foldButton.IsInteractable = false;
+			// The accused cannot walk away from being named. The accuser can, once they are being asked for
+			// more than they put up — leaving their stake behind is the price of not wanting to know.
+			if (_foldButton) _foldButton.IsInteractable = !accused;
 
 			RefreshCheck();
 			RefreshTimer();
@@ -158,5 +163,6 @@ namespace Game.Runtime.UI.Poker
 
 		private void HandleCall() => Submit(PokerActionType.Call);
 		private void HandleAllIn() => Submit(PokerActionType.AllIn);
+		private void HandleFold() => Submit(PokerActionType.Fold);
 	}
 }

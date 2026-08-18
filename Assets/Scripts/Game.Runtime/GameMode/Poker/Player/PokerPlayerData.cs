@@ -112,6 +112,10 @@ namespace Game.Runtime.GameMode.Poker.Player
 		// and nothing to cash out — what is bet leaves the wallet and what is won lands back in it.
 		public int Chips => _wallet ? _wallet.Money.Value : 0;
 
+		// Derived rather than stored, so it can never disagree with the health everyone can already see —
+		// and so anything that ever heals a player brings them back without a second flag to remember.
+		public bool IsAlive => Health.Value > 0;
+
 		public bool IsSeated => SeatIndex.Value != NoSeat;
 		public bool IsInHand => Status.Value is PokerPlayerStatus.Active or PokerPlayerStatus.AllIn;
 		public bool CanAct => Status.Value == PokerPlayerStatus.Active;

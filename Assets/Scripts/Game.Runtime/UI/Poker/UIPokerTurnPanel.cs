@@ -78,7 +78,11 @@ namespace Game.Runtime.UI.Poker
 
 		private void Refresh()
 		{
-			var visible = Data.HasTurn || ShowsStageClock();
+			// An overlay runs its own clock over its own question, in the same place and the same style —
+			// so this one leaves rather than being buried under it. The overlay hands out turns of its own,
+			// which is why the turn alone is not enough to decide this: "X'S TURN" is true during an
+			// accusation and is not what the table needs to be reading.
+			var visible = (Data.HasTurn || ShowsStageClock()) && Data.OverlayStageId.Value.IsEmpty;
 
 			if (_panel && _panel.activeSelf != visible) _panel.SetActive(visible);
 

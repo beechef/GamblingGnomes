@@ -27,6 +27,9 @@ namespace Game.Runtime.UI.Poker
 		[Tooltip("{0} is the accused, {1} the accuser, {2} the blood already on the table.")]
 		[SerializeField] private string _responsePrompt = "{0} ANSWERS {1} FOR {2}";
 
+		[Tooltip("Held up while nothing is happening on purpose — both of them are in and the table is waiting to find out.")]
+		[SerializeField] private string _judgingPrompt = "SHOWING HANDS...";
+
 		private PokerAbilityModule _module;
 
 		protected override bool WantsTick => _panel && _panel.activeSelf;
@@ -68,7 +71,8 @@ namespace Game.Runtime.UI.Poker
 
 		private void Refresh()
 		{
-			var visible = _module.ReportPhase.Value == PokerReportPhase.Response;
+			var phase = _module.ReportPhase.Value;
+			var visible = phase is PokerReportPhase.Response or PokerReportPhase.Judging;
 
 			if (_panel && _panel.activeSelf != visible) _panel.SetActive(visible);
 			if (!visible) return;
@@ -77,10 +81,12 @@ namespace Game.Runtime.UI.Poker
 
 			if (_promptLabel)
 			{
-				_promptLabel.text = string.Format(_responsePrompt,
-					NameOf(accusation.TargetClientId),
-					NameOf(accusation.AccuserClientId),
-					_module.ReportStake.Value);
+				_promptLabel.text = phase == PokerReportPhase.Judging
+					? _judgingPrompt
+					: string.Format(_responsePrompt,
+						NameOf(accusation.TargetClientId),
+						NameOf(accusation.AccuserClientId),
+						_module.ReportStake.Value);
 			}
 
 			OnTick();

@@ -78,6 +78,18 @@ namespace Game.Runtime.GameMode.Poker.Modules
 		[HideInInspector] public NetworkVariable<int> ReportStake = new(0,
 			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
 
+		// Blood actually taken for this accusation, both sides together — and only ever set at the verdict.
+		// What the two of them are in for while they are still talking is ReportStake, which is a promise;
+		// this is the collection. Keeping them apart is what lets the pause mean "not settled yet".
+		[HideInInspector] public NetworkVariable<int> ReportPot = new(0,
+			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
+
+		// Each answer given inside the accusation, announced in its own right. The table's own ActionNotice
+		// cannot carry these: it prices everything in money off a change in Bet, and nothing here touches
+		// Bet — so a call for three blood would go out as "CALL" with nothing after it.
+		[HideInInspector] public NetworkVariable<PokerActionNotice> ReportAction = new(default,
+			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
+
 		// Which step of the accusation the table is on. Replicated because each step asks a different
 		// question, and a UI working that out from whose turn it is only stays right until there is a
 		// fourth step.
@@ -224,6 +236,7 @@ namespace Game.Runtime.GameMode.Poker.Modules
 			_hasPendingReport = false;
 			_accuserPaid = 0;
 			ReportStake.Value = 0;
+			ReportPot.Value = 0;
 			ReportPhase.Value = PokerReportPhase.None;
 
 			foreach (var player in GameMode.SeatedPlayers)
@@ -351,6 +364,19 @@ namespace Game.Runtime.GameMode.Poker.Modules
 			SetAimServer(targetClientId);
 		}
 
+		public void AnnounceReportActionServer(ulong clientId, PokerActionType action, int amount)
+		{
+			if (!IsServer) return;
+
+			ReportAction.Value = new PokerActionNotice
+			{
+				ClientId = clientId,
+				Action = action,
+				Amount = Mathf.Max(0, amount),
+				Sequence = ReportAction.Value.Sequence + 1
+			};
+		}
+
 		public void SetReportPhaseServer(PokerReportPhase phase)
 		{
 			if (!IsServer) return;
@@ -393,9 +419,10 @@ namespace Game.Runtime.GameMode.Poker.Modules
 				Sequence = LastReport.Value.Sequence + 1
 			};
 
-			// Paid the moment the name is said, so the accused is being asked to match something already
-			// on the table rather than to open the bidding themselves.
-			_accuserPaid = PayBlood(accuser, ReportBloodStake);
+			// Promised, not paid. Nothing leaves anybody until the verdict — blood draining out of a wallet
+			// while the two of them are still talking says the thing has already been settled, and the whole
+			// point of the pause is that it has not.
+			_accuserPaid = Mathf.Min(ReportBloodStake, accuser.Data.Health.Value);
 			ReportStake.Value = _accuserPaid;
 
 			target.ActionAnimator?.ServerPlay(PlayerActionIds.Reported);
@@ -408,15 +435,59 @@ namespace Game.Runtime.GameMode.Poker.Modules
 		// clamps with.
 		public int AllInStake(PokerPlayer accuser, PokerPlayer accused)
 		{
-			var accuserBlood = accuser && accuser.Data ? accuser.Data.Health.Value + _accuserPaid : 0;
+			// Their whole stack, not what is left after the stake: nothing has actually been taken yet.
+			var accuserBlood = accuser && accuser.Data ? accuser.Data.Health.Value : 0;
 			var accusedBlood = accused && accused.Data ? accused.Data.Health.Value : 0;
 
 			return Mathf.Max(ReportStake.Value, Mathf.Min(accuserBlood, accusedBlood));
 		}
 
-		// The accused's answer, and the end of it: they match what was staked or shove, and either way the
-		// hand gets judged. There is no backing out of an accusation at this table — the only choice the
-		// accused has is how much blood the answer is worth.
+		// A shove hands the question back. The accuser named a number and put blood behind it; being asked
+		// for more than that is a new question, and one they are allowed to refuse — which is the whole
+		// risk in shoving, and the reason a guilty player might.
+		public bool RequiresAccuserCall(int accusedStake) => accusedStake > _accuserPaid;
+
+		// What each side is now in for. Raised by a shove so the bar offers to match the shove rather than
+		// the opening stake — the accuser's own contribution is tracked separately and is what says whether
+		// they still owe anything.
+		public void SetReportStakeServer(int stake)
+		{
+			if (!IsServer) return;
+
+			ReportStake.Value = Mathf.Max(0, stake);
+		}
+
+		// The accuser walking away from a shove. Nothing is judged: the accused keeps their secret and
+		// takes what was thrown at them, which is what the accuser paid for the privilege of asking.
+		public void ConcedeReportServer()
+		{
+			if (!IsServer || !_hasPendingReport) return;
+
+			_hasPendingReport = false;
+			EndAimServer();
+
+			var accuserPlayer = GameMode.FindSeatedPlayer(_pendingAccuser);
+			var target = GameMode.FindSeatedPlayer(_pendingTarget);
+
+			// Only what the accuser put their name to actually changes hands — collected now rather than
+			// earlier, like every other way this ends.
+			var pot = PayBlood(accuserPlayer, _accuserPaid);
+			if (target) target.Data.ServerChangeHealth(pot);
+
+			_accuserPaid = 0;
+			ReportPot.Value = pot;
+
+			// Read from the other side to whoever is watching: the one who shoved is laughing.
+			var accuser = GameMode.FindSeatedPlayer(_pendingAccuser);
+			accuser?.ActionAnimator?.ServerPlay(PlayerActionIds.Disappointed);
+			target?.ActionAnimator?.ServerPlay(PlayerActionIds.Laugh);
+
+			PublishReport(false, false, pot);
+		}
+
+		// The end of it, once both of them are in for the same number: the hand gets judged. Reached either
+		// by the accused matching what was already on the table, or by the accuser standing behind their
+		// accusation after a shove.
 		public void ResolveReportServer(int accusedStake)
 		{
 			if (!IsServer || !_hasPendingReport) return;
@@ -437,11 +508,14 @@ namespace Game.Runtime.GameMode.Poker.Modules
 			// what they can — the rest never leaves anybody.
 			var stake = Mathf.Clamp(accusedStake, ReportStake.Value, AllInStake(accuser, target));
 
-			_accuserPaid += PayBlood(accuser, stake - _accuserPaid);
+			// Everything promised over the last two beats is collected here, in one go, at the one moment
+			// there is a result to collect it for.
+			_accuserPaid = PayBlood(accuser, stake);
 			var accusedPaid = PayBlood(target, stake);
 
 			var pot = _accuserPaid + accusedPaid;
 			ReportStake.Value = stake;
+			ReportPot.Value = pot;
 
 			var wasCheater = _cheaters.Contains(_pendingTarget);
 			var winner = wasCheater ? accuser : target;
@@ -453,6 +527,11 @@ namespace Game.Runtime.GameMode.Poker.Modules
 			// all rather than a way to talk yourself out of the hand.
 			if (wasCheater) FoldServer(target);
 
+			// Whoever the blood left may have had none to spare. Bleeding out ends this hand for them the
+			// same way being caught does — the seat and the table are dealt with when the next hand is.
+			var loser = wasCheater ? target : accuser;
+			if (!loser.Data.IsAlive) FoldServer(loser);
+
 			// The verdict on their faces: whoever the blood just left hangs their head, whoever it came to
 			// laughs at them.
 			accuser.ActionAnimator?.ServerPlay(wasCheater ? PlayerActionIds.Laugh : PlayerActionIds.Disappointed);
@@ -462,8 +541,8 @@ namespace Game.Runtime.GameMode.Poker.Modules
 		}
 
 		// An accusation that never found a face, or whose two people are no longer both here. Nothing is
-		// judged and whatever the accuser had already put up comes back to them: they are being let off
-		// the accusation, not charged for one nobody heard.
+		// judged and nothing is taken: the stake was only ever promised, and nobody is charged for an
+		// accusation the table never heard the end of.
 		public void DropReportServer()
 		{
 			if (!IsServer || !_hasPendingReport) return;
@@ -471,11 +550,9 @@ namespace Game.Runtime.GameMode.Poker.Modules
 			_hasPendingReport = false;
 			EndAimServer();
 
-			var accuser = GameMode.FindSeatedPlayer(_pendingAccuser);
-			if (accuser && _accuserPaid > 0) accuser.Data.ServerChangeHealth(_accuserPaid);
-
 			_accuserPaid = 0;
 			ReportStake.Value = 0;
+			ReportPot.Value = 0;
 
 			PublishReport(false, false, 0);
 		}

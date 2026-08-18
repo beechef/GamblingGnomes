@@ -82,7 +82,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			var players = GameMode.SeatedPlayers;
 			if (players.Count == 0) return;
 
-			var next = PokerTableUtility.NextPlayer(players, Data.DealerSeatIndex.Value, player => player.Data.Chips > 0)
+			var next = PokerTableUtility.NextPlayer(players, Data.DealerSeatIndex.Value, player => player.Data.IsAlive && player.Data.Chips > 0)
 			           ?? players[0];
 
 			Data.DealerSeatIndex.Value = next.Data.SeatIndex.Value;
@@ -103,6 +103,14 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			{
 				var data = player.Data;
 				data.ServerResetForHand();
+
+				// Bled out. They keep their chair and watch, but no hand from here on is dealt to them —
+				// checked before money, because being dead outranks being broke.
+				if (!data.IsAlive)
+				{
+					data.Status.Value = PokerPlayerStatus.Dead;
+					continue;
+				}
 
 				if (data.Chips <= 0)
 				{
