@@ -13,30 +13,37 @@ namespace Game.Runtime.GameMode.Poker.Player
 	public class PokerPlayerData : NetworkBehaviour
 	{
 		public const int NoSeat = -1;
-		public const int MaximumHealth = 10;
 
 		[Header("References")]
 		[Tooltip("What the player bets with. There is no separate stack in front of them — the wallet is the stack.")]
 		[SerializeField] private PlayerData _wallet;
 
+		[SerializeField] private uint _maxHealth = 10;
+
 		[HideInInspector] public NetworkVariable<int> SeatIndex = new(NoSeat,
-			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
+			readPerm: NetworkVariableReadPermission.Everyone,
+			writePerm: NetworkVariableWritePermission.Server);
 
 		[HideInInspector] public NetworkVariable<int> Bet = new(0,
-			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
+			readPerm: NetworkVariableReadPermission.Everyone,
+			writePerm: NetworkVariableWritePermission.Server);
 
 		[HideInInspector] public NetworkVariable<int> TotalBet = new(0,
-			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
+			readPerm: NetworkVariableReadPermission.Everyone,
+			writePerm: NetworkVariableWritePermission.Server);
 
 		[HideInInspector] public NetworkVariable<PokerPlayerStatus> Status = new(PokerPlayerStatus.Waiting,
-			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
+			readPerm: NetworkVariableReadPermission.Everyone,
+			writePerm: NetworkVariableWritePermission.Server);
 
 		[HideInInspector] public NetworkVariable<bool> HasActed = new(false,
-			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
+			readPerm: NetworkVariableReadPermission.Everyone,
+			writePerm: NetworkVariableWritePermission.Server);
 
 		// Showdown, or anything else that decides this hand is public.
 		[HideInInspector] public NetworkVariable<bool> HandRevealed = new(false,
-			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
+			readPerm: NetworkVariableReadPermission.Everyone,
+			writePerm: NetworkVariableWritePermission.Server);
 
 		// The ability game's per-player hand. Owner-read: which tricks somebody drew is the whole guessing
 		// game, so the network layer keeps them from everyone else. A list rather than a single slot because
@@ -44,22 +51,26 @@ namespace Game.Runtime.GameMode.Poker.Player
 		// separate "used" flag — what is left in the list is what is left to play. Riding replicated state
 		// rather than a fired-off RPC means a client that spawns late still arrives knowing its own hand.
 		public readonly NetworkList<FixedString64Bytes> AbilityIds = new(null,
-			NetworkVariableReadPermission.Owner, NetworkVariableWritePermission.Server);
+			NetworkVariableReadPermission.Owner,
+			NetworkVariableWritePermission.Server);
 
 		[HideInInspector] public NetworkVariable<int> ReportsLeft = new(0,
-			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
+			readPerm: NetworkVariableReadPermission.Everyone,
+			writePerm: NetworkVariableWritePermission.Server);
 
 		// Read by everyone the way the wireframe shows it over a head: how hurt somebody is, is table
 		// information. Nothing damages it yet — abilities will, through ServerChangeHealth, so every
 		// future source of harm goes through the same clamp.
-		[HideInInspector] public NetworkVariable<int> Health = new(MaximumHealth,
-			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
+		[HideInInspector] public NetworkVariable<int> Health = new(0,
+			readPerm: NetworkVariableReadPermission.Everyone,
+			writePerm: NetworkVariableWritePermission.Server);
 
 		// Replicated to everyone rather than owner-only: who may look is a display rule, so an ability
 		// that shows someone else's hand is a change of rule and not a change of plumbing. The trade is
 		// that a modified client can read the list, so the rule is the only thing hiding it.
 		public readonly NetworkList<CardData> HoleCards = new(null,
-			NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+			NetworkVariableReadPermission.Everyone,
+			NetworkVariableWritePermission.Server);
 
 		// Installed by whatever grants extra sight — a cheat ability, a spectator mode, a debug view.
 		// A list rather than a single slot so two of them can coexist; any one saying yes is enough.
@@ -125,6 +136,8 @@ namespace Game.Runtime.GameMode.Poker.Player
 			// The stack is the wallet now, so a view watching this player still hears about every chip
 			// that moves — it just hears it from the wallet.
 			if (_wallet) _wallet.Money.OnValueChanged += HandleIntChanged;
+
+			if (IsServer) Health.Value = (int)_maxHealth;
 
 			SeatIndex.OnValueChanged += HandleIntChanged;
 			Bet.OnValueChanged += HandleIntChanged;
@@ -256,7 +269,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		{
 			if (!IsServer) return;
 
-			Health.Value = Mathf.Clamp(Health.Value + delta, 0, MaximumHealth);
+			Health.Value = Mathf.Clamp(Health.Value + delta, 0, (int)_maxHealth);
 		}
 
 		public void ServerCollectBet()

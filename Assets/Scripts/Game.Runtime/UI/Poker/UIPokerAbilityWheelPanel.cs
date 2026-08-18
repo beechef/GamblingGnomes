@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Threading;
 using Game.Runtime.GameMode.Poker.Abilities;
 using Game.Runtime.GameMode.Poker.Modules;
 using Sirenix.OdinInspector;
@@ -35,8 +37,16 @@ namespace Game.Runtime.UI.Poker
 		[PropertyRange(0f, 1f)]
 		[SerializeField] private float _closedAlpha = 0.45f;
 
+		[Tooltip("Held between the row being punched and the ability actually going off, so the press is seen landing rather than the effect arriving out of nowhere.")]
+		[MinValue(0f)]
+		[SerializeField] private float _useDelay = 0.12f;
+
 		private PokerAbilityModule _module;
 		private readonly List<PokerAbility> _abilities = new();
+
+		// Released in finally, never on the success path alone: one throw between the punch and the send and
+		// the wheel would be dead for the rest of the session.
+		private bool _using;
 
 		private void Awake()
 		{
@@ -122,17 +132,50 @@ namespace Game.Runtime.UI.Poker
 			if (_hintLabel) _hintLabel.text = open ? string.Empty : "Not now";
 		}
 
-		private void HandleUsePressed(InputAction.CallbackContext context)
+		// async void is allowed here because this is the input handler itself, and it catches.
+		private async void HandleUsePressed(InputAction.CallbackContext context)
 		{
-			if (!IsBound || !_module || !_wheel) return;
+			try
+			{
+				await UseSelectedAsync(destroyCancellationToken);
+			}
+			catch (OperationCanceledException)
+			{
+				// The panel went away mid-press; nothing to undo, and nothing worth logging.
+			}
+		}
+
+		private async Awaitable UseSelectedAsync(CancellationToken token)
+		{
+			if (_using || !IsBound || !_module || !_wheel) return;
 			if (!_module.AbilityWindowOpen.Value || !LocalData.IsInHand) return;
 
 			var ability = _wheel.Selected;
 			if (!ability) return;
 
-			// The server is told which one by name. It holds the same hand and will refuse anything this
-			// client does not actually have, so the wheel offering it is never the thing that decides.
-			_module.UseAbilityRPC(ability.AbilityId);
+			_using = true;
+
+			try
+			{
+				if (_wheel.SelectedView is UIPokerAbilityWheelItem item) item.PlayPress();
+
+				// Unscaled, because the wait wants to be the length the press looks, and the press is a tween
+				// that keeps running while the table is stopped.
+				var until = Time.unscaledTime + _useDelay;
+				while (Time.unscaledTime < until) await Awaitable.NextFrameAsync(token);
+
+				// Re-checked after the wait: a street can close, or the hand can end, in the time the press
+				// takes to land, and the ability must not go off into a window that has since shut.
+				if (!IsBound || !_module || !_module.AbilityWindowOpen.Value || !LocalData.IsInHand) return;
+
+				// The server is told which one by name. It holds the same hand and will refuse anything this
+				// client does not actually have, so the wheel offering it is never the thing that decides.
+				_module.UseAbilityRPC(ability.AbilityId);
+			}
+			finally
+			{
+				_using = false;
+			}
 		}
 	}
 }

@@ -34,10 +34,25 @@ namespace Game.Runtime.UI.Poker
 
 		[SerializeField] private CanvasGroup _nameGroup;
 
+		[Header("Press")]
+		[Required]
+		[Tooltip("Punched when the ability is played. A child, never this object: the wheel drives the row's own scale and the two would fight over it.")]
+		[SerializeField] private RectTransform _content;
+
+		[MinValue(1f)]
+		[SerializeField] private float _pressScale = 1.12f;
+
+		[MinValue(0f)]
+		[SerializeField] private float _pressGrowDuration = 0.07f;
+
+		[MinValue(0f)]
+		[SerializeField] private float _pressSettleDuration = 0.13f;
+
 		[Header("Timing")]
 		[MinValue(0f)]
 		[SerializeField] private float _fadeDuration = 0.15f;
 
+		private Tween _pressTween;
 		private Tween _plateTween;
 		private Tween _frameTween;
 		private Tween _nameTween;
@@ -114,8 +129,25 @@ namespace Game.Runtime.UI.Poker
 				.SetLink(gameObject);
 		}
 
+		// Swells and settles back. Nothing waits on it: how long to hold before the ability actually fires is
+		// the panel's decision, so a row can be punched without the caller knowing the animation's shape.
+		public void PlayPress()
+		{
+			if (!_content) return;
+
+			_pressTween?.Kill();
+			_content.localScale = Vector3.one;
+
+			_pressTween = DOTween.Sequence()
+				.Append(_content.DOScale(_pressScale, _pressGrowDuration).SetEase(Ease.OutQuad))
+				.Append(_content.DOScale(1f, _pressSettleDuration).SetEase(Ease.OutBack))
+				.SetUpdate(true)
+				.SetLink(gameObject);
+		}
+
 		private void KillTweens()
 		{
+			_pressTween?.Kill();
 			_plateTween?.Kill();
 			_frameTween?.Kill();
 			_nameTween?.Kill();

@@ -50,6 +50,10 @@ namespace Game.Runtime.UI.Wheel
 		public bool HasItems => _items.Count > 0;
 		public T Selected => HasItems ? _items[_index] : default;
 
+		// The view standing in the middle, for whoever wants to play something on it. The data alone cannot
+		// be animated — only the slot showing it can.
+		public UIWheelItemView<T> SelectedView => _views.Count > 0 ? _views[MiddleSlot] : null;
+
 		private int MiddleSlot => _anchors.Count / 2;
 
 		private void OnEnable()
