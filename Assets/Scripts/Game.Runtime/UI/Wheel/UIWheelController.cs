@@ -100,10 +100,10 @@ namespace Game.Runtime.UI.Wheel
 
 				view.Bind(_items[ItemIndexForSlot(slot)]);
 				view.SnapTo(_anchors[slot]);
-				view.UnSelect();
+				view.SetSelected(false, true);
 			}
 
-			_views[MiddleSlot].Select();
+			_views[MiddleSlot].SetSelected(true, true);
 
 			OnSelectionChanged?.Invoke(default, Selected);
 		}
@@ -160,8 +160,8 @@ namespace Game.Runtime.UI.Wheel
 
 			_index = Wrap(_index + (forward ? 1 : -1));
 
-			_views[MiddleSlot].UnSelect();
-			_views[MiddleSlot + (forward ? 1 : -1)].Select();
+			_views[MiddleSlot].SetSelected(false);
+			_views[MiddleSlot + (forward ? 1 : -1)].SetSelected(true);
 
 			var recycled = forward ? RecycleToEnd() : RecycleToStart();
 			var travelling = 0;

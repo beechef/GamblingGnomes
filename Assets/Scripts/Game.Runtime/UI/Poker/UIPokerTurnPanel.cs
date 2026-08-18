@@ -22,11 +22,6 @@ namespace Game.Runtime.UI.Poker
 		[Header("Timer")]
 		[SerializeField] private UITimerBar _timerBar;
 
-		[Header("Colours")]
-		[SerializeField] private Color _localTurnColor = new(0.35f, 0.85f, 0.4f);
-		[SerializeField] private Color _remoteTurnColor = new(0.9f, 0.75f, 0.3f);
-		[SerializeField] private Color _stageColor = new(0.85f, 0.82f, 0.72f);
-
 		// Only the clock moves on its own, and only while there is a clock to show.
 		protected override bool WantsTick => _panel && _panel.activeSelf;
 
@@ -134,7 +129,6 @@ namespace Game.Runtime.UI.Poker
 			var onTurn = Data.HasTurn;
 
 			// The bar draws whose clock this is; the urgent tone near zero is the widget's own business.
-			_timerBar.BarColor = onTurn ? (IsLocalTurn ? _localTurnColor : _remoteTurnColor) : _stageColor;
 			_timerBar.SetTime(
 				onTurn ? Data.TurnRemaining : Data.StageTimeRemaining,
 				onTurn ? Data.TurnNormalized : Data.StageTimeNormalized);

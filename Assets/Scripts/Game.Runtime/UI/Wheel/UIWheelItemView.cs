@@ -14,6 +14,7 @@ namespace Game.Runtime.UI.Wheel
 
 		private RectTransform _rectTransform;
 		private Tween _tween;
+		private bool _applied;
 
 		private void Awake()
 		{
@@ -25,27 +26,34 @@ namespace Game.Runtime.UI.Wheel
 			KillTween();
 		}
 
+		// Repainting the selection look is part of binding, not something only a change of selection does.
+		// Every path that hands a slot new data — a rebuild, a recycle — goes through here, and each of them
+		// leaves a row that must already look right for the slot it is standing in.
 		public void Bind(T data)
 		{
 			Data = data;
 
 			OnBind(data);
+
+			_applied = true;
+
+			if (IsSelected) OnSelect(true);
+			else OnUnSelect(true);
 		}
 
-		public void Select()
+		// The first call always reaches the hook, even when the value it is given matches the field's
+		// default. A freshly built slot has never drawn itself, so "already unselected" is not the same as
+		// "already looks unselected" — skipping it leaves the row wearing whatever the prefab happened to
+		// be saved with until the wheel is turned.
+		public void SetSelected(bool selected, bool instant = false)
 		{
-			if (IsSelected) return;
+			if (_applied && IsSelected == selected) return;
 
-			IsSelected = true;
-			OnSelect();
-		}
+			IsSelected = selected;
+			_applied = true;
 
-		public void UnSelect()
-		{
-			if (!IsSelected) return;
-
-			IsSelected = false;
-			OnUnSelect();
+			if (selected) OnSelect(instant);
+			else OnUnSelect(instant);
 		}
 
 		// Used by the slot being recycled around the back: it has just been given different data and must
@@ -87,7 +95,7 @@ namespace Game.Runtime.UI.Wheel
 		}
 
 		protected virtual void OnBind(T data) { }
-		protected virtual void OnSelect() { }
-		protected virtual void OnUnSelect() { }
+		protected virtual void OnSelect(bool instant) { }
+		protected virtual void OnUnSelect(bool instant) { }
 	}
 }

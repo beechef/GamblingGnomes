@@ -8,27 +8,43 @@ using UnityEngine.UI;
 
 namespace Game.Runtime.UI.Poker
 {
-	// One ability on the wheel: its icon always, its name only while it is the one in the middle. A cheat
-	// and its honest twin share both, which is the whole point — the wheel must never be where the table
-	// could tell them apart.
+	// One ability on the wheel. Being the chosen one is drawn as a change of colour and nothing else: the
+	// rows keep their size, so the column stays a steady list rather than something that swells and shrinks
+	// under the eye every time the wheel turns. A cheat and its honest twin share icon and name, which is
+	// the whole point — the wheel must never be where the table could tell them apart.
 	public class UIPokerAbilityWheelItem : UIWheelItemView<PokerAbility>
 	{
 		[Header("References")]
 		[SerializeField] private Image _icon;
 		[SerializeField] private TextMeshProUGUI _nameLabel;
 
-		[Header("Fade")]
-		[Tooltip("How the name arrives and leaves as the wheel turns. Faded rather than switched so a fast spin does not flicker.")]
+		[Header("Tint")]
+		[Tooltip("The plate and the diamond both take these, so the whole row lights together.")]
+		[SerializeField] private Image _plate;
+
+		[SerializeField] private Image _frame;
+
+		[SerializeField] private Color _normalColor = new(0.36f, 0.28f, 0.20f);
+		[SerializeField] private Color _selectedColor = new(0.62f, 0.49f, 0.34f);
+
+		[Header("Name")]
+		[Tooltip("Unselected rows stay readable rather than blank — the list is what the player is choosing between.")]
+		[PropertyRange(0f, 1f)]
+		[SerializeField] private float _unselectedNameAlpha = 0.55f;
+
 		[SerializeField] private CanvasGroup _nameGroup;
 
+		[Header("Timing")]
 		[MinValue(0f)]
 		[SerializeField] private float _fadeDuration = 0.15f;
 
-		private Tween _fade;
+		private Tween _plateTween;
+		private Tween _frameTween;
+		private Tween _nameTween;
 
 		private void OnDestroy()
 		{
-			_fade?.Kill();
+			KillTweens();
 		}
 
 		protected override void OnBind(PokerAbility ability)
@@ -49,24 +65,60 @@ namespace Game.Runtime.UI.Poker
 				: string.Empty;
 		}
 
-		protected override void OnSelect() => FadeName(1f);
-		protected override void OnUnSelect() => FadeName(0f);
+		protected override void OnSelect(bool instant) => Draw(true, instant);
+		protected override void OnUnSelect(bool instant) => Draw(false, instant);
 
-		private void FadeName(float alpha)
+		private void Draw(bool selected, bool instant)
 		{
+			var color = selected ? _selectedColor : _normalColor;
+
+			_plateTween = Tint(_plate, color, _plateTween, instant);
+			_frameTween = Tint(_frame, color, _frameTween, instant);
+
+			FadeName(selected ? 1f : _unselectedNameAlpha, instant);
+		}
+
+		private Tween Tint(Image image, Color color, Tween running, bool instant)
+		{
+			running?.Kill();
+
+			if (!image) return null;
+
+			// Snapped when the row is being set up rather than changed: a slot has no previous colour to
+			// travel from, so animating there would show it arriving from whatever the prefab was saved with.
+			if (instant || _fadeDuration <= 0f || !isActiveAndEnabled)
+			{
+				image.color = color;
+				return null;
+			}
+
+			return DOTween.To(() => image.color, value => image.color = value, color, _fadeDuration)
+				.SetUpdate(true)
+				.SetLink(gameObject);
+		}
+
+		private void FadeName(float alpha, bool instant)
+		{
+			_nameTween?.Kill();
+
 			if (!_nameGroup) return;
 
-			_fade?.Kill();
-
-			if (_fadeDuration <= 0f || !isActiveAndEnabled)
+			if (instant || _fadeDuration <= 0f || !isActiveAndEnabled)
 			{
 				_nameGroup.alpha = alpha;
 				return;
 			}
 
-			_fade = DOTween.To(() => _nameGroup.alpha, value => _nameGroup.alpha = value, alpha, _fadeDuration)
+			_nameTween = DOTween.To(() => _nameGroup.alpha, value => _nameGroup.alpha = value, alpha, _fadeDuration)
 				.SetUpdate(true)
 				.SetLink(gameObject);
+		}
+
+		private void KillTweens()
+		{
+			_plateTween?.Kill();
+			_frameTween?.Kill();
+			_nameTween?.Kill();
 		}
 	}
 }

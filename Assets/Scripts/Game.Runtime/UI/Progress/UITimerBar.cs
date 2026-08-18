@@ -21,7 +21,7 @@ namespace Game.Runtime.UI.Progress
 		[SerializeField] private Color _normalColor = new(0.83f, 0.76f, 0.60f);
 
 		[Tooltip("Seconds left at which the bar turns urgent.")]
-		[SerializeField] private float _warningThreshold = 5f;
+		[SerializeField] private float _warningThresholdPercent = .25f;
 
 		[SerializeField] private Color _warningColor = new(0.90f, 0.30f, 0.30f);
 
@@ -74,7 +74,7 @@ namespace Game.Runtime.UI.Progress
 		{
 			if (!_fill) return;
 
-			_fill.color = _remaining <= _warningThreshold ? _warningColor : BarColor;
+			_fill.color = _remaining <= _warningThresholdPercent * _remaining ? _warningColor : BarColor;
 		}
 	}
 }
