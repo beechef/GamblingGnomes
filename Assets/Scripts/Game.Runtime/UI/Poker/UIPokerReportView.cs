@@ -32,7 +32,7 @@ namespace Game.Runtime.UI.Poker
 
 		private PokerAbilityModule _module;
 
-		protected override bool WantsTick => _panel && _panel.activeSelf;
+		protected override bool WantsTick => _panel && _panel.activeSelf && Data && (Data.HasTurn || Data.HasStageTimer);
 
 		private void Awake()
 		{
@@ -94,7 +94,15 @@ namespace Game.Runtime.UI.Poker
 
 		protected override void OnTick()
 		{
-			if (_timerBar) _timerBar.SetTime(Data.TurnRemaining, Data.TurnNormalized);
+			if (!_timerBar) return;
+
+			// Answering runs on a turn clock and judging on the stage clock — nobody is on the clock while
+			// the table waits, so reading the turn there gives a countdown frozen at 00:00.
+			var onTurn = Data.HasTurn;
+
+			_timerBar.SetTime(
+				onTurn ? Data.TurnRemaining : Data.StageTimeRemaining,
+				onTurn ? Data.TurnNormalized : Data.StageTimeNormalized);
 		}
 
 		private string NameOf(ulong clientId)

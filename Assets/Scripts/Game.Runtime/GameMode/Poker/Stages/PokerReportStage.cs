@@ -193,16 +193,20 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		// hands the question back, because the accuser is now being asked for more than they put up.
 		private bool Answer(int accusedStake, PokerActionType action)
 		{
-			_module.AnnounceReportActionServer(_targetClientId, action, accusedStake);
+			// Paid as it is offered, so the pot on screen grows with the answer rather than waiting for a
+			// result nobody has yet. The number is clamped to what both of them can actually cover.
+			var accuser = GameMode.FindSeatedPlayer(_accuserClientId);
+			var accused = GameMode.FindSeatedPlayer(_targetClientId);
+			var stake = Mathf.Clamp(accusedStake, _module.ReportStake.Value, _module.AllInStake(accuser, accused));
 
-			if (!_module.RequiresAccuserCall(accusedStake)) return Resolve(accusedStake);
+			_module.SetReportStakeServer(stake);
+			_module.CommitReportBloodServer(_targetClientId, stake);
+			_module.AnnounceReportActionServer(_targetClientId, action, stake);
 
-			_pendingStake = accusedStake;
+			if (!_module.RequiresAccuserCall(stake)) return Resolve(stake);
+
+			_pendingStake = stake;
 			_awaitingAccuser = true;
-
-			// The number on the table is now the shove, so the bar offers to match the right one — the same
-			// value the server will clamp against when the call arrives.
-			_module.SetReportStakeServer(accusedStake);
 
 			GameMode.BeginTurn(_accuserClientId, _responseDuration);
 
@@ -222,6 +226,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		// The accuser standing behind what they said, once a shove has asked them to.
 		private bool AccuserCall()
 		{
+			_module.CommitReportBloodServer(_accuserClientId, _pendingStake);
 			_module.AnnounceReportActionServer(_accuserClientId, PokerActionType.Call, _pendingStake);
 
 			return Resolve(_pendingStake);
@@ -249,7 +254,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		private void Judge()
 		{
 			if (_conceded) _module.ConcedeReportServer();
-			else _module.ResolveReportServer(_pendingStake);
+			else _module.ResolveReportServer();
 
 			BeginVerdict();
 		}
