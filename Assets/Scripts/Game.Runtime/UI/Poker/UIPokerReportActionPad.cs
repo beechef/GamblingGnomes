@@ -26,8 +26,17 @@ namespace Game.Runtime.UI.Poker
 		[SerializeField] private UIButton _callButton;
 		[SerializeField] private TextMeshProUGUI _callLabel;
 
+		[Tooltip("The accused's alone. Whoever called the report has already put their number up and can only be matched — offering them a shove would be offering to raise their own accusation.")]
 		[SerializeField] private UIButton _allInButton;
+
 		[SerializeField] private TextMeshProUGUI _allInLabel;
+
+		[Header("Always")]
+		[Tooltip("Looking at your own cards costs nothing and asks the server for nothing, so it stays lit through an accusation like it does through a street.")]
+		[SerializeField] private UIButton _checkButton;
+
+		[Tooltip("Kept in its slot and permanently dimmed. The petal exists so the four positions never move under the player's thumb; it is dimmed because an accusation cannot be waited out.")]
+		[SerializeField] private UIButton _foldButton;
 
 		[Header("Turn Timer")]
 		[SerializeField] private UITimerBar _timerBar;
@@ -52,6 +61,7 @@ namespace Game.Runtime.UI.Poker
 
 			if (_callButton) _callButton.OnClick += HandleCall;
 			if (_allInButton) _allInButton.OnClick += HandleAllIn;
+			if (_checkButton) _checkButton.OnClick += HandleCheckCards;
 
 			Data.CurrentTurnClientId.OnValueChanged += HandleTurnChanged;
 			_module.ReportPhase.OnValueChanged += HandlePhaseChanged;
@@ -72,6 +82,7 @@ namespace Game.Runtime.UI.Poker
 				_module.ReportPhase.OnValueChanged -= HandlePhaseChanged;
 				Data.CurrentTurnClientId.OnValueChanged -= HandleTurnChanged;
 
+				if (_checkButton) _checkButton.OnClick -= HandleCheckCards;
 				if (_allInButton) _allInButton.OnClick -= HandleAllIn;
 				if (_callButton) _callButton.OnClick -= HandleCall;
 			}
@@ -90,10 +101,8 @@ namespace Game.Runtime.UI.Poker
 		{
 			var accusation = _module.Accusation.Value;
 
-			// Answering is the accused's move and nobody else's, which the turn already says out loud.
-			var visible = _module.ReportPhase.Value == PokerReportPhase.Response
-				&& IsLocalTurn
-				&& LocalClientId == accusation.TargetClientId;
+			// Whose move it is comes off the turn, as everywhere else at this table.
+			var visible = _module.ReportPhase.Value == PokerReportPhase.Response && IsLocalTurn;
 
 			if (_panel && _panel.activeSelf != visible) _panel.SetActive(visible);
 			if (!visible) return;
@@ -103,15 +112,36 @@ namespace Game.Runtime.UI.Poker
 			// The same ceiling the server clamps to, read off the same module: neither of them can be
 			// offered a number the other could not cover.
 			var stake = _module.ReportStake.Value;
+			var accused = LocalClientId == accusation.TargetClientId;
 			var allIn = _module.AllInStake(PokerPlayer.Find(accusation.AccuserClientId), LocalPlayer);
 
 			if (_callButton) _callButton.IsInteractable = true;
 			if (_callLabel) _callLabel.text = $"Call {stake}";
 
-			if (_allInButton) _allInButton.IsInteractable = allIn > stake;
+			// Shoving is the accused's answer to being named. Whoever did the naming has already said what
+			// they think it is worth, so all that is left for them is to be matched — and a stack with
+			// nothing more in it than the stake has no shove in it either.
+			if (_allInButton) _allInButton.IsInteractable = accused && allIn > stake;
 			if (_allInLabel) _allInLabel.text = $"All In {allIn}";
 
+			// Never available, never moved. See the field's own note: the slot is the control scheme.
+			if (_foldButton) _foldButton.IsInteractable = false;
+
+			RefreshCheck();
 			RefreshTimer();
+		}
+
+		private void RefreshCheck()
+		{
+			if (!_checkButton) return;
+
+			var peek = LocalPlayer.HandPeek;
+			_checkButton.IsInteractable = peek && LocalData.IsInHand;
+		}
+
+		private void HandleCheckCards()
+		{
+			if (LocalPlayer.HandPeek) LocalPlayer.HandPeek.TogglePeekRPC();
 		}
 
 		private void RefreshTimer()
