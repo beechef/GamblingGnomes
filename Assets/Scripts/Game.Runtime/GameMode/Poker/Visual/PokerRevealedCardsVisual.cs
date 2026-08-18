@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using Game.Runtime.GameMode.Poker.Player;
-using Game.Runtime.Player;
+using Sirenix.OdinInspector;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -16,14 +16,12 @@ namespace Game.Runtime.GameMode.Poker.Visual
 	// that a hand made public at a showdown does not appear here: everyone can see those, and the point of
 	// this is the thing you were not owed.
 	[RequireComponent(typeof(PokerPlayerData))]
-	public class PokerRevealedCardsVisual : NetworkBehaviour, IPlayerLookPoint
+	public class PokerRevealedCardsVisual : NetworkBehaviour
 	{
 		[Header("Placement")]
-		[Tooltip("How far above the player the cards float. Measured from the root, so it clears the head whether they are standing or sitting.")]
-		[SerializeField] private float _height = 0.35f;
-
-		[Tooltip("Laid flat and face up by default: the head that came to read them arrives from above.")]
-		[SerializeField] private Vector3 _localEuler = new(90f, 0f, 0f);
+		[Tooltip("Where the cards are laid out — a real transform in the prefab, so it is dragged into place in the scene view rather than guessed at as a height. The same spot a stretched neck comes to look at.")]
+		[Required]
+		[SerializeField] private Transform _anchor;
 
 		[SerializeField] private float _cardSpacing = 0.09f;
 
@@ -37,7 +35,6 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 		private readonly List<PokerCardVisual> _cards = new();
 
-		private Transform _anchor;
 		private bool _shown;
 
 		public override void OnNetworkSpawn()
@@ -88,14 +85,11 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		{
 			Hide();
 
-			if (!_cardPrefab) return;
-
-			var anchor = ResolveAnchor();
-			if (!anchor) return;
+			if (!_cardPrefab || !_anchor) return;
 
 			for (var i = 0; i < _data.HoleCards.Count; i++)
 			{
-				var visual = Instantiate(_cardPrefab, anchor);
+				var visual = Instantiate(_cardPrefab, _anchor);
 				_cards.Add(visual);
 
 				visual.SetCard(_data.HoleCards[i], true, _database);
@@ -114,39 +108,6 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			}
 
 			_cards.Clear();
-		}
-
-		// Hung off the player root rather than the head bone. Two reasons, and both have bitten before: this
-		// rig's bones are Maya-style, so "flat and face up" authored against Head_M is ninety degrees off
-		// what it reads as; and a head that goes travelling — its own stretch, a nod, a fold animation —
-		// would take the cards with it, when the whole point is a fixed place to read them.
-		//
-		// Built once and left there: it costs one empty transform and saves rebuilding the thing every time
-		// a grant comes and goes.
-		private Transform ResolveAnchor()
-		{
-			if (_anchor) return _anchor;
-
-			var holder = new GameObject("RevealedCards").transform;
-			holder.SetParent(transform, false);
-			holder.localPosition = Vector3.up * _height;
-			holder.localRotation = Quaternion.Euler(_localEuler);
-
-			return _anchor = holder;
-		}
-
-		// Offered only while there is something laid out: a peek that granted nothing has nothing to aim at,
-		// and the neck goes back to the hand bone it would have used anyway.
-		public bool TryGetLookPoint(out Vector3 point)
-		{
-			point = transform.position;
-			if (!_shown) return false;
-
-			var anchor = ResolveAnchor();
-			if (!anchor) return false;
-
-			point = anchor.position;
-			return true;
 		}
 	}
 }
