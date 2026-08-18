@@ -39,8 +39,8 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		[Tooltip("Seconds each player gets on their turn. Zero or less leaves them unhurried.")]
 		[SerializeField] private float _turnDuration = 30f;
 
-		[Tooltip("On, a player who runs out of time checks when nothing is owed and folds otherwise. Off, they always fold.")]
-		[SerializeField] private bool _timeoutChecksWhenFree = true;
+		[Tooltip("On, running out of time throws the hand away. Off — the default — it pays what is owed, or checks when nothing is: a player who says nothing is usually reading the table, not leaving it, and folding a hand they never chose to fold is the harshest reading of a silence.")]
+		[SerializeField] private bool _timeoutFolds;
 
 		[Header("References")]
 		[Tooltip("Where the hand jumps when everyone but one player has folded.")]
@@ -190,9 +190,22 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			}
 
 			var owed = Data.CurrentBet.Value - player.Data.Bet.Value;
-			var timeoutAction = owed <= 0 && _timeoutChecksWhenFree ? PokerActionType.Check : PokerActionType.Fold;
 
-			HandleAction(clientId, timeoutAction, 0);
+			// Nothing owed makes a call a check by another name, and the announcement should say the one
+			// that happened. A short stack calling more than it holds goes in for what it has, which the
+			// call itself already clamps to.
+			var timeoutAction = _timeoutFolds
+				? PokerActionType.Fold
+				: owed <= 0
+					? PokerActionType.Check
+					: PokerActionType.Call;
+
+			// A turn has to end. Every refusal here is a rule saying the polite answer is not available —
+			// a street that forbids checking, say — and leaving the turn on the clock would tick this
+			// branch forever with the table waiting on somebody who has already stopped answering.
+			if (HandleAction(clientId, timeoutAction, 0)) return;
+
+			HandleAction(clientId, PokerActionType.Fold, 0);
 		}
 
 		public override bool HandleAction(ulong clientId, PokerActionType action, int amount)
