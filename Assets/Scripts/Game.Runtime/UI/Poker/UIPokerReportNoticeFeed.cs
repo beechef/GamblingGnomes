@@ -73,9 +73,14 @@ namespace Game.Runtime.UI.Poker
 		{
 			if (current.Sequence == 0) return;
 
+			// Only a judged accusation is allowed to say anything about the hand. Backing away from a shove
+			// is announced by the fold that caused it and nothing else: a card reading INNOCENT would be
+			// telling the table the very thing the accuser paid not to find out.
+			if (current.Outcome == PokerReportOutcome.Conceded) return;
+
 			var lifetime = VerdictDuration();
 
-			if (!current.Called && current.Amount <= 0)
+			if (current.Outcome == PokerReportOutcome.Dropped)
 			{
 				AnnounceTarget(NameOf(current.AccuserClientId), _filedAction, _droppedDetail, lifetime);
 				return;

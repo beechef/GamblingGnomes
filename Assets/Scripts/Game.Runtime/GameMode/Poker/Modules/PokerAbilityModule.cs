@@ -507,7 +507,7 @@ namespace Game.Runtime.GameMode.Poker.Modules
 
 			if (accuser && !accuser.Data.IsAlive) FoldServer(accuser);
 
-			PublishReport(false, false, pot);
+			PublishReport(PokerReportOutcome.Conceded, false, pot);
 		}
 
 		// The end of it, once both of them are in for the same number: the hand gets judged and whatever is
@@ -525,7 +525,7 @@ namespace Game.Runtime.GameMode.Poker.Modules
 
 			if (!accuser || !target)
 			{
-				PublishReport(false, false, 0);
+				PublishReport(PokerReportOutcome.Dropped, false, 0);
 				return;
 			}
 
@@ -550,7 +550,7 @@ namespace Game.Runtime.GameMode.Poker.Modules
 			accuser.ActionAnimator?.ServerPlay(wasCheater ? PlayerActionIds.Laugh : PlayerActionIds.Disappointed);
 			target.ActionAnimator?.ServerPlay(wasCheater ? PlayerActionIds.Disappointed : PlayerActionIds.Laugh);
 
-			PublishReport(true, wasCheater, pot);
+			PublishReport(PokerReportOutcome.Judged, wasCheater, pot);
 		}
 
 		// An accusation that never found a face, or whose two people are no longer both here. Nothing is
@@ -571,7 +571,7 @@ namespace Game.Runtime.GameMode.Poker.Modules
 			ReportStake.Value = 0;
 			ReportPot.Value = 0;
 
-			PublishReport(false, false, 0);
+			PublishReport(PokerReportOutcome.Dropped, false, 0);
 		}
 
 		private void Refund(ulong clientId, int amount)
@@ -582,13 +582,13 @@ namespace Game.Runtime.GameMode.Poker.Modules
 			if (player) player.Data.ServerChangeHealth(amount);
 		}
 
-		private void PublishReport(bool called, bool wasCheater, int amount)
+		private void PublishReport(PokerReportOutcome outcome, bool wasCheater, int amount)
 		{
 			LastReport.Value = new PokerReportResult
 			{
 				AccuserClientId = _pendingAccuser,
 				TargetClientId = _pendingTarget,
-				Called = called,
+				Outcome = outcome,
 				WasCheater = wasCheater,
 				Amount = amount,
 				Sequence = LastReport.Value.Sequence + 1

@@ -44,9 +44,6 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		// this says whose answer, because a shove hands the question back across the table.
 		private bool _awaitingAccuser;
 
-		// Which answer the pause is sitting on top of.
-		private bool _conceded;
-
 		protected override void OnStartStage()
 		{
 			_module = GameMode.FindModule<PokerAbilityModule>();
@@ -65,7 +62,6 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			_accuserClientId = _module.PendingAccuserClientId;
 			_targetClientId = _accuserClientId;
 			_pendingStake = 0;
-			_conceded = false;
 			_awaitingAccuser = false;
 
 			BeginAiming();
@@ -220,7 +216,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		{
 			_pendingStake = accusedStake;
 
-			return BeginJudging(false);
+			return BeginJudging();
 		}
 
 		// The accuser standing behind what they said, once a shove has asked them to.
@@ -232,18 +228,24 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			return Resolve(_pendingStake);
 		}
 
+		// Backing away from a shove ends it here, with no pause and no cards. The wait before a verdict is
+		// the table getting ready to be told something; refusing to pay is refusing to find out, so there
+		// is nothing to be told and holding everyone there would only promise one.
 		private bool Concede()
-		{
-			_module.AnnounceReportActionServer(_accuserClientId, PokerActionType.Fold, 0);
-
-			return BeginJudging(true);
-		}
-
-		private bool BeginJudging(bool conceded)
 		{
 			GameMode.ClearTurn();
 
-			_conceded = conceded;
+			_module.AnnounceReportActionServer(_accuserClientId, PokerActionType.Fold, 0);
+			_module.ConcedeReportServer();
+
+			BeginVerdict();
+
+			return true;
+		}
+
+		private bool BeginJudging()
+		{
+			GameMode.ClearTurn();
 
 			SetPhase(PokerReportPhase.Judging);
 			GameMode.BeginStageTimer(Mathf.Max(0.1f, _judgingDuration));
@@ -253,8 +255,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 		private void Judge()
 		{
-			if (_conceded) _module.ConcedeReportServer();
-			else _module.ResolveReportServer();
+			_module.ResolveReportServer();
 
 			BeginVerdict();
 		}
