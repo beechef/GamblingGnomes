@@ -13,12 +13,6 @@ namespace Game.Runtime.GameMode.Poker.Visual
 	public class PokerHandVisual : NetworkBehaviour
 	{
 		[Header("Layout")]
-		[Tooltip("Right hand of the full body rig — what everyone else sees.")]
-		[SerializeField] private Transform _cardAnchor;
-
-		[Tooltip("Right hand of the hand-only rig — what the owner sees in first person.")]
-		[SerializeField] private Transform _ownerCardAnchor;
-
 		[SerializeField] private float _cardSpacing = 0.03f;
 		[SerializeField] private float _fanAngle = 8f;
 
@@ -26,8 +20,8 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		[SerializeField] private float _depthStep = 0.0008f;
 
 		[Header("Hand Bone")]
-		[Tooltip("Used when no anchor is assigned: the hand of the rig this client renders.")]
-		[SerializeField] private PlayerBone _handBone = PlayerBone.HandRight;
+		[Tooltip("The hand of whichever rig this client renders — the owner's own, or the body everyone else sees.")]
+		[SerializeField] private PlayerBone _handBone = PlayerBone.HandLeft;
 
 		[Tooltip("Where the cards sit in the hand, relative to that bone.")]
 		[SerializeField] private Vector3 _handLocalPosition = new(0.02f, 0.01f, 0f);
@@ -185,12 +179,12 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		// off whichever right hand this client is actually drawing — which rig that is stays the rig's
 		// business, not this view's. With no anchor assigned a holder is parented to the bone, which keeps
 		// the cards in the hand as it animates.
+		// Built once under the hand of whichever rig this client renders. There is no serialized anchor to
+		// override it with: an anchor authored in the prefab would name a bone on one rig and be wrong on
+		// the other, which is why both fields it used to offer sat empty in every prefab that had them.
 		private Transform ResolveAnchor()
 		{
 			if (_resolvedAnchor) return _resolvedAnchor;
-
-			var assigned = IsOwner ? _ownerCardAnchor : _cardAnchor;
-			if (assigned) return _resolvedAnchor = assigned;
 
 			var bone = _rig ? _rig.GetBone(_handBone) : null;
 			if (!bone) return _resolvedAnchor = transform;
