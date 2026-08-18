@@ -146,7 +146,7 @@ namespace Game.Runtime.UI.Button
 			// and is left holding the press. A key still down is left alone: holding the key must keep
 			// holding the button, which is the bracket UIButtonHotkey exists to draw.
 			// Checked for survival first, because the handler above is allowed to destroy this button.
-			if (this && !_keyPressed) ResetState();
+			// if (this && !_keyPressed) ResetState();
 		}
 
 		public void OnPointerEnter(PointerEventData eventData)

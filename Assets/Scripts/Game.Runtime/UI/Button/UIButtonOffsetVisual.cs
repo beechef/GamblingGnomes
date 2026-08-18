@@ -77,11 +77,29 @@ namespace Game.Runtime.UI.Button
 			// DOTween.To rather than DOAnchorPos: that shortcut lives in DOTween's UI module, which this
 			// project does not carry. Unscaled so a button still answers while the game is stopped, and
 			// linked so the tween dies with the object rather than writing into a destroyed transform.
-			_tween = DOTween.To(() => _target.anchoredPosition, position => _target.anchoredPosition = position,
-					target, _duration)
-				.SetEase(_ease)
-				.SetUpdate(true)
-				.SetLink(gameObject);
+
+			if (state is UIButtonState.Pressed)
+			{
+				//If pressed, we want to play forward and then back to the target position, so we use a sequence.
+				
+				_tween = DOTween.Sequence()
+					.Append(DOTween.To(() => _target.anchoredPosition, position => _target.anchoredPosition = position,
+						target, _duration)
+						.SetEase(_ease))
+					.Append(DOTween.To(() => _target.anchoredPosition, position => _target.anchoredPosition = position,
+						_restPosition, _duration)
+						.SetEase(_ease))
+					.SetUpdate(true)
+					.SetLink(gameObject);
+			}
+			else
+			{
+				_tween = DOTween.To(() => _target.anchoredPosition, position => _target.anchoredPosition = position,
+						target, _duration)
+					.SetEase(_ease)
+					.SetUpdate(true)
+					.SetLink(gameObject);
+			}
 		}
 
 		private Vector2 OffsetFor(UIButtonState state) => state switch
