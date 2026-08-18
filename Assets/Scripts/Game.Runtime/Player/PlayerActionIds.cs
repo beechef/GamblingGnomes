@@ -5,7 +5,6 @@ namespace Game.Runtime.Player
 	public static class PlayerActionIds
 	{
 		public const string Idle = "Idle";
-		public const string PeekCards = "PeekCards";
 		public const string Fold = "Fold";
 		public const string Bet = "Bet";
 		public const string Report = "Report";
