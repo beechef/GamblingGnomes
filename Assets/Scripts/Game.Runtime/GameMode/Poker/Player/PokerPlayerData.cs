@@ -123,6 +123,11 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 		public bool IsHandVisible => IsOwner || HandRevealed.Value || IsHandVisibleToProvider();
 
+		// Sight somebody was granted, as opposed to a hand that is simply public. A showdown turns every hand
+		// face up for everyone; this is only true where an ability handed this client a look it was not owed,
+		// which is the difference anything drawing "what I have been shown" has to be able to see.
+		public bool IsHandVisibleByGrant => !IsOwner && !HandRevealed.Value && IsHandVisibleToProvider();
+
 		private bool IsHandVisibleToProvider()
 		{
 			foreach (var provider in HandVisibilityProviders)

@@ -278,8 +278,16 @@ namespace Game.Runtime.Player
 			for (var i = 0; i < _chainOffsets.Count; i++) _chainOffsets[i] /= _restLength;
 		}
 
+		// Whatever the other player is holding up to be read outranks the bone. A fist of cards is edge on
+		// to everyone but its owner, so a neck that travelled all that way to stare at the bone holding them
+		// arrived at the one angle they cannot be read from.
 		private Vector3 ResolveLookPoint(PlayerRigController target)
 		{
+			if (target.TryGetComponent<IPlayerLookPoint>(out var offered) && offered.TryGetLookPoint(out var point))
+			{
+				return point;
+			}
+
 			var bone = target.GetBone(_lookBone);
 			return bone ? bone.position : target.transform.position;
 		}

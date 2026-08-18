@@ -184,6 +184,7 @@ GameObject:
   - component: {fileID: 5117715483773410859}
   - component: {fileID: 794951249127223663}
   - component: {fileID: 6016601238787419408}
+  - component: {fileID: 503688790795089527}
   m_Layer: 0
   m_Name: Player_Poker
   m_TagString: Untagged
@@ -661,6 +662,26 @@ MonoBehaviour:
   _handOnlyRig: {fileID: 7373766928220626038}
   _fullBodyCamera: {fileID: 705969304542715900}
   _handOnlyCamera: {fileID: 1040429552772568185}
+--- !u!114 &503688790795089527
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 122163979769981132}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9a0ce27fc940f5449a21ab843e12ac18, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Visual.PokerRevealedCardsVisual
+  ShowTopMostFoldoutHeaderGroup: 1
+  _height: 0.35
+  _localEuler: {x: 90, y: 0, z: 0}
+  _cardSpacing: 0.09
+  _depthStep: 0.001
+  _data: {fileID: 6935137486891752095}
+  _cardPrefab: {fileID: 2273976980707683780, guid: 766e25a6debc8fc4c95fcf20063e4f4d, type: 3}
+  _database: {fileID: 11400000, guid: 81ffbfaf2b0219043836272fa19b4e8b, type: 2}
 --- !u!1 &153499166985686629
 GameObject:
   m_ObjectHideFlags: 0
