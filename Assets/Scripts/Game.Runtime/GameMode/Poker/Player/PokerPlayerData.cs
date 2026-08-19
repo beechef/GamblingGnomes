@@ -116,6 +116,10 @@ namespace Game.Runtime.GameMode.Poker.Player
 		// time a chip moves would fight whatever the player is currently spinning.
 		public event Action OnAbilitiesChanged;
 
+		// Separate from OnStateChanged for the same reason: blood is read as a body — fingers come off with
+		// it — and a hand rebuilt every time a chip moves is work on a value that did not change.
+		public event Action<int, int> OnHealthChanged;
+
 		// Money staked at the table is the same money the player owns, so there is nothing to buy in with
 		// and nothing to cash out — what is bet leaves the wallet and what is won lands back in it.
 		public int Chips => _wallet ? _wallet.Money.Value : 0;
@@ -124,9 +128,24 @@ namespace Game.Runtime.GameMode.Poker.Player
 		// and so anything that ever heals a player brings them back without a second flag to remember.
 		public bool IsAlive => Health.Value > 0;
 
-		public int StartingHealth => Mathf.Clamp(_startingHealth, 1, MaxHealth);
+		public int StartingHealth => Mathf.Clamp(_startingHealthOverride > 0 ? _startingHealthOverride : _startingHealth, 1, MaxHealth);
 
 		public int MaxHealth => Mathf.Max(1, _maxHealth);
+
+		// Whether the mode has stamped its configured stake onto this body yet. Server-only, like the
+		// override itself — the latch is what lets a late joiner be reset exactly once.
+		public bool HasConfiguredStartingStats { get; private set; }
+
+		private int _startingHealthOverride = -1;
+
+		public void ServerSetStartingStats(int money, int health)
+		{
+			if (!IsServer) return;
+
+			if (_wallet) _wallet.ServerSetStartingMoney(money);
+			_startingHealthOverride = Mathf.Max(1, health);
+			HasConfiguredStartingStats = true;
+		}
 
 		public bool IsSeated => SeatIndex.Value != NoSeat;
 		public bool IsInHand => Status.Value is PokerPlayerStatus.Active or PokerPlayerStatus.AllIn;
@@ -167,7 +186,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			HasActed.OnValueChanged += HandleBoolChanged;
 			HandRevealed.OnValueChanged += HandleBoolChanged;
 			ReportsLeft.OnValueChanged += HandleIntChanged;
-			Health.OnValueChanged += HandleIntChanged;
+			Health.OnValueChanged += HandleHealthChanged;
 
 			AbilityIds.OnListChanged += HandleAbilitiesChanged;
 			HoleCards.OnListChanged += HandleHoleCardsChanged;
@@ -186,7 +205,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			HasActed.OnValueChanged -= HandleBoolChanged;
 			HandRevealed.OnValueChanged -= HandleBoolChanged;
 			ReportsLeft.OnValueChanged -= HandleIntChanged;
-			Health.OnValueChanged -= HandleIntChanged;
+			Health.OnValueChanged -= HandleHealthChanged;
 
 			AbilityIds.OnListChanged -= HandleAbilitiesChanged;
 			HoleCards.OnListChanged -= HandleHoleCardsChanged;
@@ -352,6 +371,12 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 		private void HandleStateChanged() => OnStateChanged?.Invoke();
 		private void HandleIntChanged(int previous, int current) => OnStateChanged?.Invoke();
+
+		private void HandleHealthChanged(int previous, int current)
+		{
+			OnHealthChanged?.Invoke(previous, current);
+			OnStateChanged?.Invoke();
+		}
 		private void HandleAbilitiesChanged(NetworkListEvent<FixedString64Bytes> changeEvent) => OnAbilitiesChanged?.Invoke();
 		private void HandleBoolChanged(bool previous, bool current) => OnStateChanged?.Invoke();
 		private void HandleStatusChanged(PokerPlayerStatus previous, PokerPlayerStatus current) => OnStateChanged?.Invoke();

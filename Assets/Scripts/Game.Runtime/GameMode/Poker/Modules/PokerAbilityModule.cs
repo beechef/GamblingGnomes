@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Game.Runtime.GameMode.Config;
 using Game.Runtime.GameMode.Poker.Abilities;
 using Game.Runtime.GameMode.Poker.Player;
 using Game.Runtime.GameMode.Poker.Stages;
@@ -142,6 +143,24 @@ namespace Game.Runtime.GameMode.Poker.Modules
 		public override void CollectReferencedStages(List<PokerStage> stages)
 		{
 			if (_reportStage) stages.Add(_reportStage);
+		}
+
+		protected override void OnCollectConfigEntries(List<MatchConfigEntry> entries)
+		{
+			entries.Add(new MatchConfigInt(ModuleId, "Abilities", "AbilitiesPerSeat", "Abilities Per Seat", 1, 5, 1,
+				() => _abilitiesPerSeat, value => _abilitiesPerSeat = value));
+
+			// The range is two entries with a cross-clamp, so min and max stay ordered whichever of the
+			// two values a replicated edit lands first.
+			entries.Add(new MatchConfigInt(ModuleId, "Abilities", "CheatCardsMin", "Cheat Cards Min", 0, 12, 1,
+				() => _guaranteedCheatCards.x,
+				value => _guaranteedCheatCards = new Vector2Int(value, Mathf.Max(value, _guaranteedCheatCards.y))));
+			entries.Add(new MatchConfigInt(ModuleId, "Abilities", "CheatCardsMax", "Cheat Cards Max", 0, 12, 1,
+				() => _guaranteedCheatCards.y,
+				value => _guaranteedCheatCards = new Vector2Int(Mathf.Min(_guaranteedCheatCards.x, value), value)));
+
+			entries.Add(new MatchConfigInt(ModuleId, "Abilities", "ReportsPerHand", "Reports Per Hand", 0, 5, 1,
+				() => _reportsPerRound, value => _reportsPerRound = value));
 		}
 
 		public void SetEnabledServer(bool enabled)
