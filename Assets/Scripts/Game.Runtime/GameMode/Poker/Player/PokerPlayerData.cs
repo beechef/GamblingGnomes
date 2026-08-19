@@ -128,9 +128,24 @@ namespace Game.Runtime.GameMode.Poker.Player
 		// and so anything that ever heals a player brings them back without a second flag to remember.
 		public bool IsAlive => Health.Value > 0;
 
-		public int StartingHealth => Mathf.Clamp(_startingHealth, 1, MaxHealth);
+		public int StartingHealth => Mathf.Clamp(_startingHealthOverride > 0 ? _startingHealthOverride : _startingHealth, 1, MaxHealth);
 
 		public int MaxHealth => Mathf.Max(1, _maxHealth);
+
+		// Whether the mode has stamped its configured stake onto this body yet. Server-only, like the
+		// override itself — the latch is what lets a late joiner be reset exactly once.
+		public bool HasConfiguredStartingStats { get; private set; }
+
+		private int _startingHealthOverride = -1;
+
+		public void ServerSetStartingStats(int money, int health)
+		{
+			if (!IsServer) return;
+
+			if (_wallet) _wallet.ServerSetStartingMoney(money);
+			_startingHealthOverride = Mathf.Max(1, health);
+			HasConfiguredStartingStats = true;
+		}
 
 		public bool IsSeated => SeatIndex.Value != NoSeat;
 		public bool IsInHand => Status.Value is PokerPlayerStatus.Active or PokerPlayerStatus.AllIn;

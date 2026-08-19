@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using Game.Runtime.GameMode.Config;
 using Game.Runtime.GameMode.Poker.Player;
 using Sirenix.OdinInspector;
 using Unity.Netcode;
@@ -37,11 +39,23 @@ namespace Game.Runtime.GameMode.Poker.Modules
 		public int MoneyGained => Mathf.Max(1, _moneyGained);
 		public int MinimumHealthKept => Mathf.Max(0, _minimumHealthKept);
 
-		public override void OnNetworkSpawn()
+		// No OnNetworkSpawn seed of Enabled here: the match config owns it now, and a spawn-time write
+		// would land after the config seed by component order and stomp a pre-scene "off".
+		protected override void OnCollectConfigEntries(List<MatchConfigEntry> entries)
 		{
-			base.OnNetworkSpawn();
+			entries.Add(new MatchConfigBool(ModuleId, "Blood Exchange", "Enabled", "Enabled",
+				() => _enabledByDefault,
+				value =>
+				{
+					_enabledByDefault = value;
 
-			if (IsServer) Enabled.Value = _enabledByDefault;
+					// The rule itself keeps reading the replicated variable; only the server may say.
+					if (IsSpawned && IsServer) Enabled.Value = value;
+				}));
+			entries.Add(new MatchConfigInt(ModuleId, "Blood Exchange", "BloodSpent", "Blood Spent", 1, 5, 1,
+				() => _bloodSpent, value => _bloodSpent = value));
+			entries.Add(new MatchConfigInt(ModuleId, "Blood Exchange", "MoneyGained", "Money Gained", 1, 99, 1,
+				() => _moneyGained, value => _moneyGained = value));
 		}
 
 		public void SetEnabledServer(bool enabled)

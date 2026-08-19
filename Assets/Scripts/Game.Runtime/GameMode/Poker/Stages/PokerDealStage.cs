@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Game.Runtime.GameMode.Config;
 using Game.Runtime.Player;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -39,6 +40,12 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		public int BigBlind => Mathf.Max(0, _bigBlind);
 		public int Ante => Mathf.Max(0, _ante);
 		public int DealCost => Mathf.Max(0, _dealCost);
+
+		protected override void OnCollectConfigEntries(List<MatchConfigEntry> entries)
+		{
+			entries.Add(new MatchConfigInt(StageId, StageId, "DealCost", "Deal Cost", 0, 10, 1,
+				() => _dealCost, value => _dealCost = value));
+		}
 
 		protected override void OnStartStage()
 		{

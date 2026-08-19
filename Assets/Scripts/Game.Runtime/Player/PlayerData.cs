@@ -37,8 +37,18 @@ namespace Game.Runtime.Player
 		public event Action OnIdentityChanged;
 
 		// What a fresh purse holds. Read rather than duplicated, so whatever puts a player back to their
-		// starting position is putting them back to the number they actually arrived on.
-		public int StartingMoney => Mathf.Max(0, _startingMoney);
+		// starting position is putting them back to the number they actually arrived on. A mode may set
+		// its own configured amount over the prefab's; server-only, like every decision about money.
+		public int StartingMoney => _startingMoneyOverride >= 0 ? _startingMoneyOverride : Mathf.Max(0, _startingMoney);
+
+		private int _startingMoneyOverride = -1;
+
+		public void ServerSetStartingMoney(int amount)
+		{
+			if (!IsServer) return;
+
+			_startingMoneyOverride = Mathf.Max(0, amount);
+		}
 
 		public bool CanAfford(int amount) => Money.Value >= amount;
 

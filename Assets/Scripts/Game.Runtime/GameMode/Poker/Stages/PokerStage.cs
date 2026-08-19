@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using Game.Runtime.GameMode.Config;
 using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker.Stages
@@ -37,6 +39,12 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			OnDeInitialize();
 			GameMode = null;
 		}
+
+		// What this stage offers the host to tune. Each declares under its own StageId, which is how a
+		// sequence of four near-identical street assets still comes out as four sections in the panel.
+		public void CollectConfigEntries(List<MatchConfigEntry> entries) => OnCollectConfigEntries(entries);
+
+		protected virtual void OnCollectConfigEntries(List<MatchConfigEntry> entries) { }
 
 		// A clock that ran out during the pause gets a moment on resume rather than expiring on the
 		// first tick — the player it belongs to spent that time watching an overlay, not thinking.
