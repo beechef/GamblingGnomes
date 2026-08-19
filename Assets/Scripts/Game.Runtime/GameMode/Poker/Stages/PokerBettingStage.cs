@@ -270,7 +270,13 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 				case PokerActionType.AllIn:
 				{
-					if (!_allowAllIn || data.Chips <= 0) return false;
+					if (data.Chips <= 0) return false;
+
+					// A street can forbid shoving without being able to forbid a short stack paying what it
+					// has. The permission is about *choosing* to put everything in and move the price; a
+					// player who cannot cover the price already standing is not moving anything, and
+					// refusing them here would leave folding as their only answer to a call they can make.
+					if (!_allowAllIn && owed < data.Chips) return false;
 
 					var previousBet = Data.CurrentBet.Value;
 					PokerTableUtility.PlaceBet(Data, player, data.Chips);

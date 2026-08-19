@@ -23,11 +23,16 @@ namespace Game.Runtime.UI.Poker
 		[SerializeField] private UIButton _reportButton;
 
 		[SerializeField] private UIButton _callButton;
+
+		[Tooltip("Shares the call petal's slot: a call the player cannot fully cover is a different move with a different name, so it is a different button rather than the same one wearing another word. Exactly one of the two is ever up.")]
+		[SerializeField] private UIButton _allInButton;
+
 		[SerializeField] private UIButton _checkButton;
 		[SerializeField] private UIButton _foldButton;
 
 		[Header("Labels")]
 		[SerializeField] private TextMeshProUGUI _callLabel;
+		[SerializeField] private TextMeshProUGUI _allInLabel;
 
 		private PokerAbilityModule _module;
 
@@ -42,6 +47,7 @@ namespace Game.Runtime.UI.Poker
 
 			if (_reportButton) _reportButton.OnClick += HandleReport;
 			if (_callButton) _callButton.OnClick += HandleCall;
+			if (_allInButton) _allInButton.OnClick += HandleAllIn;
 			if (_checkButton) _checkButton.OnClick += HandleCheckCards;
 			if (_foldButton) _foldButton.OnClick += HandleFold;
 
@@ -82,6 +88,7 @@ namespace Game.Runtime.UI.Poker
 
 			if (_foldButton) _foldButton.OnClick -= HandleFold;
 			if (_checkButton) _checkButton.OnClick -= HandleCheckCards;
+			if (_allInButton) _allInButton.OnClick -= HandleAllIn;
 			if (_callButton) _callButton.OnClick -= HandleCall;
 			if (_reportButton) _reportButton.OnClick -= HandleReport;
 
@@ -118,10 +125,29 @@ namespace Game.Runtime.UI.Poker
 			var ourTurn = stage && stage.IsCallOnly && IsLocalTurn && LocalData.CanAct && Data.OverlayStageId.Value.IsEmpty;
 
 			var owed = ourTurn ? Mathf.Max(0, Data.CurrentBet.Value - LocalData.Bet.Value) : 0;
+			var chips = LocalData.Chips;
 
-			if (_callButton) _callButton.IsInteractable = ourTurn && owed > 0;
-			if (_callLabel) _callLabel.text = owed > 0 ? $"Call +{Mathf.Min(owed, LocalData.Chips)}" : "Call";
+			// One petal or the other, never one petal meaning two things. Off our turn there is no price to
+			// be short of, so the slot rests on Call — the pad reads the same when nothing is happening.
+			var allIn = chips > 0 && owed >= chips;
+
+			ShowPetal(_callButton, !allIn, ourTurn && owed > 0);
+			ShowPetal(_allInButton, allIn, ourTurn);
+
+			if (_callLabel) _callLabel.text = owed > 0 ? $"Call +{owed}" : "Call";
+			if (_allInLabel) _allInLabel.text = $"All In {chips}";
+
 			if (_foldButton) _foldButton.IsInteractable = ourTurn;
+		}
+
+		// Present decides which move this slot is offering; interactable decides whether it can be made
+		// now. Kept apart because they are different sentences — "not this move" and "not this moment".
+		private static void ShowPetal(UIButton button, bool present, bool interactable)
+		{
+			if (!button) return;
+
+			if (button.gameObject.activeSelf != present) button.gameObject.SetActive(present);
+			if (present) button.IsInteractable = interactable;
 		}
 
 		private void RefreshReport()
@@ -166,6 +192,14 @@ namespace Game.Runtime.UI.Poker
 		private void HandleCall()
 		{
 			if (GameMode) GameMode.SubmitActionRPC(PokerActionType.Call, 0);
+		}
+
+		private void HandleAllIn()
+		{
+			// Priced in rather than choosing to shove, which is why the street's ban on raising does not
+			// refuse it — the price was already standing and this player simply cannot cover it. Asked for as
+			// AllIn rather than Call so the table's notice announces the move that actually happened.
+			if (GameMode) GameMode.SubmitActionRPC(PokerActionType.AllIn, 0);
 		}
 
 		private void HandleFold()

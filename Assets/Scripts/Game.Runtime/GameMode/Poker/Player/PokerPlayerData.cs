@@ -303,7 +303,13 @@ namespace Game.Runtime.GameMode.Poker.Player
 			return paid;
 		}
 
-		public void ServerWinChips(int amount)
+		public void ServerWinChips(int amount) => ServerGainChips(amount);
+
+		// Money arriving from anywhere at all. Kept beside ServerWinChips rather than folded into it,
+		// because a pot being paid out and a house rule selling somebody a stake are the same transfer and
+		// two different events — and a call site that reads "won" for the second one is a lie the next
+		// person to read it has to untangle.
+		public void ServerGainChips(int amount)
 		{
 			if (!IsServer || !_wallet) return;
 
