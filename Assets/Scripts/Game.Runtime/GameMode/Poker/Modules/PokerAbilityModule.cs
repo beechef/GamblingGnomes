@@ -645,7 +645,10 @@ namespace Game.Runtime.GameMode.Poker.Modules
 			player.Visual.ServerSetOutlined(highlighted);
 		}
 
-		private bool CanBeReported(ulong clientId)
+		// Public because the accuser's own client asks it too, while their finger is still travelling. One
+		// rule read from one place, so the aim can never light up somebody the server would refuse — and so
+		// a player wandering the room outside the hand cannot stand between the finger and the table.
+		public bool CanBeReported(ulong clientId)
 		{
 			var player = GameMode.FindSeatedPlayer(clientId);
 
