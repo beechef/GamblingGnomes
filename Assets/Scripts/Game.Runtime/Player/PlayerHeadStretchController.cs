@@ -370,6 +370,12 @@ namespace Game.Runtime.Player
 			var lookWeight = Mathf.Clamp01(_weight * _lookWeight);
 
 			_head.SetPositionAndRotation(desired, Quaternion.Slerp(headRotation, reachRotation, lookWeight));
+
+			// The stretch decides where the view goes; the player still decides where they look from there.
+			// Given back after the aim rather than left running alongside it, so the two are one write on the
+			// bone rather than two fighting — and measured from where the look stood when it was taken, so
+			// arriving at the cards does not cost the player their bearings.
+			if (_playerController) _playerController.ComposeLookOnto(_head);
 		}
 	}
 }

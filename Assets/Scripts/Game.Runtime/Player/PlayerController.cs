@@ -43,7 +43,6 @@ namespace Game.Runtime.Player
 		[SerializeField] private InputActionReference _lookAction;
 		[SerializeField] private InputActionReference _sprintAction;
 		[SerializeField] private InputActionReference _jumpAction;
-		[SerializeField] private InputActionReference _toggleCursorAction;
 
 		[Header("References")]
 		[SerializeField] private CharacterController _characterController;
@@ -100,6 +99,10 @@ namespace Game.Runtime.Player
 		private PlayerLookMode _overrideLookMode;
 		private bool _hasLookModeOverride;
 		private bool _lookSuspended;
+		private float _appliedLookYaw;
+		private float _appliedLookPitch;
+		private float _handoverYaw;
+		private float _handoverPitch;
 		private float _constraintYaw;
 		private Vector2 _constraintYawLimits;
 		private Vector2 _activePitchLimits;
@@ -128,10 +131,6 @@ namespace Game.Runtime.Player
 		private Transform ActiveLookTransform => ActiveLookMode == PlayerLookMode.Head
 			? IsOwner ? _ownerHeadLookTransform : _headLookTransform
 			: IsOwner ? _ownerBodyLookTransform : _bodyLookTransform;
-
-		// This controller holds one release among however many are outstanding, so the toggle key frees
-		// the cursor without overriding a panel that is also holding it.
-		private bool _holdsCursorRelease;
 
 		private void Awake()
 		{
@@ -182,15 +181,43 @@ namespace Game.Runtime.Player
 			_hasLookModeOverride = false;
 		}
 
-		// Hands the look bones over to something else entirely. The neck stretch aims the head where it is
-		// going and must not be composed with a look input at the same time: two writers on one bone leave
-		// whatever the last one wrote, and on the frame the stretch lets go the look would carry on
-		// multiplying into that instead of into the pose the Animator meant.
+		// Hands the look bones over to something that is placing the view itself. The neck stretch aims the
+		// head at what it went to read, and two writers on one bone leave whatever wrote last — so the look
+		// stops writing to a bone of its own for as long as the act lasts.
+		//
+		// It is handed over rather than thrown away: whoever took it calls ComposeLookOnto with the bone it
+		// settled on, and the player can still turn their head from there.
 		//
 		// Set on every peer, like the anchor and the look mode, because the act it belongs to is replicated.
 		public void SetLookSuspended(bool suspended)
 		{
+			if (_lookSuspended == suspended) return;
+
 			_lookSuspended = suspended;
+
+			// Where the look stood when it was taken becomes the new zero, so the view starts square with
+			// whatever the taker aimed at instead of jumping by however far the player happened to already
+			// be looking. Read off the last angles applied rather than the owner's own, since a remote peer
+			// is watching this act too and only ever knows the interpolated ones.
+			if (!suspended) return;
+
+			_handoverYaw = _appliedLookYaw;
+			_handoverPitch = _appliedLookPitch;
+		}
+
+		// Given back on the bone the taker settled on, so a neck stretched across the table can still be
+		// looked around from. Composed in the camera's own frame rather than the character's: the view is
+		// out there facing whatever the act aimed it at, and on this Maya-style rig the head bone's axes are
+		// a quarter turn off the way it is looking — pitched around those, looking up would go sideways.
+		public void ComposeLookOnto(Transform bone)
+		{
+			if (!_lookSuspended || !bone) return;
+
+			var camera = ActiveCamera;
+
+			ApplyLookTo(bone, camera ? camera.transform : bone,
+				Mathf.DeltaAngle(_handoverYaw, _appliedLookYaw),
+				Mathf.DeltaAngle(_handoverPitch, _appliedLookPitch));
 		}
 
 		// Sitting, lying down or any other anchored pose narrows what the look input is allowed to do:
@@ -280,11 +307,11 @@ namespace Game.Runtime.Player
 			_jumpAction.action.Enable();
 			_jumpAction.action.performed += OnJumpPerformed;
 
-			_toggleCursorAction.action.Enable();
-			_toggleCursorAction.action.performed += OnToggleCursorPerformed;
-
 			_inputBound = true;
 
+			// Play is driven entirely from the keyboard and the mouse only turns the view, so the cursor is
+			// held for as long as this player lives. Whatever opens a panel asks for it and gives it back;
+			// there is no key that frees it, because there is nothing out here to point at.
 			CursorController.SetBaseLocked(true);
 		}
 
@@ -315,12 +342,6 @@ namespace Game.Runtime.Player
 			_jumpAction.action.performed -= OnJumpPerformed;
 			_jumpAction.action.Disable();
 
-			_toggleCursorAction.action.performed -= OnToggleCursorPerformed;
-			_toggleCursorAction.action.Disable();
-
-			// Hands back this controller's own release before dropping the lock entirely, so the count
-			// is square for whoever is still holding one when the next player spawns.
-			SetCursorReleased(false);
 			CursorController.SetBaseLocked(false);
 		}
 
@@ -342,21 +363,6 @@ namespace Game.Runtime.Player
 			{
 				_verticalVelocity = Mathf.Sqrt(_jumpHeight * -2f * _gravity);
 			}
-		}
-
-		private void OnToggleCursorPerformed(InputAction.CallbackContext ctx)
-		{
-			SetCursorReleased(!_holdsCursorRelease);
-		}
-
-		private void SetCursorReleased(bool released)
-		{
-			if (_holdsCursorRelease == released) return;
-
-			_holdsCursorRelease = released;
-
-			if (released) CursorController.RequestUnlock();
-			else CursorController.ReleaseUnlock();
 		}
 
 		private void OnLookPerformed(InputAction.CallbackContext ctx)
@@ -524,15 +530,24 @@ namespace Game.Runtime.Player
 		// way it is facing rather than along the way it was placed.
 		private void ApplyLook(float yaw, float pitch)
 		{
+			// Kept whether or not it is applied, so the frame the look is handed over has a zero to measure
+			// the player's own turn from.
+			_appliedLookYaw = yaw;
+			_appliedLookPitch = pitch;
+
 			if (_lookSuspended) return;
 
-			var lookTransform = ActiveLookTransform;
-			if (!lookTransform) return;
+			ApplyLookTo(ActiveLookTransform, transform, yaw, pitch);
+		}
+
+		private void ApplyLookTo(Transform lookTransform, Transform frame, float yaw, float pitch)
+		{
+			if (!lookTransform || !frame) return;
 
 			var parent = lookTransform.parent;
 
-			var yawAxis = parent ? parent.InverseTransformDirection(transform.up).normalized : Vector3.up;
-			var pitchAxis = parent ? parent.InverseTransformDirection(transform.right).normalized : Vector3.right;
+			var yawAxis = parent ? parent.InverseTransformDirection(frame.up).normalized : Vector3.up;
+			var pitchAxis = parent ? parent.InverseTransformDirection(frame.right).normalized : Vector3.right;
 
 			lookTransform.localRotation =
 				Quaternion.AngleAxis(yaw, yawAxis)

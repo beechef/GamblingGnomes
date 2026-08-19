@@ -14,7 +14,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 	{
 		[Header("Debug")]
 		[Tooltip("Writes one line per peek saying whether this one granted sight and who it landed on. An honest card granting nothing is the bluff working, not a fault — which is exactly why the two cases are impossible to tell apart without asking.")]
-		[SerializeField] private bool _logGrants = true;
+		[SerializeField] private bool _logGrants;
 
 		[Header("References")]
 		[SerializeField] private PlayerHeadStretchController _headStretch;
