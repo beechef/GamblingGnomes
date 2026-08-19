@@ -13,6 +13,12 @@ namespace Game.Runtime.GameMode.Poker.Stages
 	{
 		protected override void OnStartStage()
 		{
+			// Blood and money go back before the phase says the table is idle, not after. The phase and a
+			// player's purse live on different network objects and arrive in either order, so anything that
+			// wakes on "we are waiting now" and then counts what the seats are carrying should be reading
+			// numbers that have already been put right.
+			GameMode.ServerResetMatchStats();
+
 			Data.Phase.Value = PokerPhase.Waiting;
 
 			GameMode.ClearTurn();
@@ -22,8 +28,6 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			Data.Pot.Value = 0;
 			Data.CurrentBet.Value = 0;
 			Data.LastRaise.Value = 0;
-
-			GameMode.ServerResetMatchStats();
 
 			foreach (var player in GameMode.SeatedPlayers)
 			{
