@@ -33,7 +33,13 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		[SerializeField] private int _minimumRaiseMultiplier = 2;
 		[SerializeField] private bool _allowCheckWhenNoBet = true;
 		[SerializeField] private bool _allowRaise = true;
+
+		[Tooltip("On, shoving is always on offer and costs up to the maximum below. Off, the petal only lights for a player who cannot cover the price already standing — which is not a shove at all, only a call they are short of.")]
 		[SerializeField] private bool _allowAllIn = true;
+
+		[Tooltip("Most a shove may put in at once. A player short of the price already standing still pays everything they hold, because that is a call they cannot cover rather than a shove, and capping it would leave them owing on a hand they meant to answer in full.")]
+		[MinValue(1)]
+		[SerializeField] private int _maximumAllIn = 4;
 
 		[Header("Timing")]
 		[Tooltip("Seconds each player gets on their turn. Zero or less leaves them unhurried.")]
@@ -52,13 +58,40 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		public bool AllowCheckWhenNoBet => _allowCheckWhenNoBet;
 		public bool AllowRaise => _allowRaise;
 		public bool AllowAllIn => _allowAllIn;
+		public int MaximumAllIn => Mathf.Max(1, _maximumAllIn);
 
 		public int MinimumRaiseStep => Mathf.Max(MinimumBet, Data ? Data.LastRaise.Value * MinimumRaiseMultiplier : MinimumBet);
 
 		// A street with a price and no way to move it: the only question left is whether to pay it. The
-		// bar asks this rather than working it out from three separate flags, so what the UI shows and
-		// what the server accepts can never drift apart.
-		public bool IsCallOnly => !AllowRaise && !AllowAllIn && !AllowCheckWhenNoBet;
+		// bar asks this rather than working it out from separate flags, so what the UI shows and what the
+		// server accepts can never drift apart.
+		//
+		// All-in is deliberately not part of it. Raising and checking change the *question* the street is
+		// asking; a shove only changes how much of an answer is available — so a table that turns shoving
+		// on has not stopped being a call-or-fold street, and the pad must not hand its verbs back to the
+		// full bar over it.
+		public bool IsCallOnly => !AllowRaise && !AllowCheckWhenNoBet;
+
+		// What a shove costs this player right now. Everything, when the price already standing is more
+		// than they hold — that is a call they are short of, and it has to be paid in full or they are
+		// left owing. The capped amount otherwise, which is the shove the table actually offers.
+		public int AllInAmountFor(PokerPlayerData data)
+		{
+			if (!data || !Data) return 0;
+
+			var owed = Data.CurrentBet.Value - data.Bet.Value;
+
+			return owed >= data.Chips ? data.Chips : Mathf.Min(data.Chips, MaximumAllIn);
+		}
+
+		// Whether the petal is on offer at all: always, where the table allows shoving, and otherwise only
+		// to somebody who cannot cover what is owed. Read by the pad and by the server from one place.
+		public bool CanAllIn(PokerPlayerData data)
+		{
+			if (!data || !Data || data.Chips <= 0) return false;
+
+			return AllowAllIn || Data.CurrentBet.Value - data.Bet.Value >= data.Chips;
+		}
 
 		private const float MinimumResumedTurnSeconds = 1f;
 
@@ -291,16 +324,15 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 				case PokerActionType.AllIn:
 				{
-					if (data.Chips <= 0) return false;
-
 					// A street can forbid shoving without being able to forbid a short stack paying what it
 					// has. The permission is about *choosing* to put everything in and move the price; a
 					// player who cannot cover the price already standing is not moving anything, and
 					// refusing them here would leave folding as their only answer to a call they can make.
-					if (!_allowAllIn && owed < data.Chips) return false;
+					// Asked through the same method the pad lights its petal from, so the two cannot drift.
+					if (!CanAllIn(data)) return false;
 
 					var previousBet = Data.CurrentBet.Value;
-					PokerTableUtility.PlaceBet(Data, player, data.Chips);
+					PokerTableUtility.PlaceBet(Data, player, AllInAmountFor(data));
 
 					if (Data.CurrentBet.Value > previousBet)
 					{

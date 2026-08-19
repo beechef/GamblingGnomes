@@ -43,6 +43,10 @@ namespace Game.Runtime.GameMode.Poker.Modules
 		[MinValue(1)]
 		[SerializeField] private int _reportStake = 1;
 
+		[Tooltip("Most an accusation may be shoved to. Blood is scarcer than money, so a shove here is capped rather than left to swallow whoever has least of it.")]
+		[MinValue(1)]
+		[SerializeField] private int _maximumAllIn = 4;
+
 		[Tooltip("Stages a report may be filed in, matched by stage id. Empty allows any moment of the hand.")]
 		[SerializeField] private List<PokerStage> _reportStages = new();
 
@@ -124,6 +128,7 @@ namespace Game.Runtime.GameMode.Poker.Modules
 		public bool HasAim => _aimClientId != NoAim;
 
 		public int ReportBloodStake => Mathf.Max(1, _reportStake);
+		public int MaximumAllIn => Mathf.Max(1, _maximumAllIn);
 
 		public override void OnNetworkSpawn()
 		{
@@ -443,7 +448,11 @@ namespace Game.Runtime.GameMode.Poker.Modules
 			var accuserBlood = accuser && accuser.Data ? accuser.Data.Health.Value + _accuserPaid : 0;
 			var accusedBlood = accused && accused.Data ? accused.Data.Health.Value + _accusedPaid : 0;
 
-			return Mathf.Max(ReportStake.Value, Mathf.Min(accuserBlood, accusedBlood));
+			// Capped, because blood is scarcer than money and a shove with no ceiling is not a raise, it is
+			// a dare to die. Never below what is already on the table, or a stake could not even be matched.
+			var covered = Mathf.Min(Mathf.Min(accuserBlood, accusedBlood), MaximumAllIn);
+
+			return Mathf.Max(ReportStake.Value, covered);
 		}
 
 		// Blood put in, there and then. Each side is tracked against what it has already staked so a call

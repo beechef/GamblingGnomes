@@ -125,29 +125,18 @@ namespace Game.Runtime.UI.Poker
 			var ourTurn = stage && stage.IsCallOnly && IsLocalTurn && LocalData.CanAct && Data.OverlayStageId.Value.IsEmpty;
 
 			var owed = ourTurn ? Mathf.Max(0, Data.CurrentBet.Value - LocalData.Bet.Value) : 0;
-			var chips = LocalData.Chips;
 
-			// One petal or the other, never one petal meaning two things. Off our turn there is no price to
-			// be short of, so the slot rests on Call — the pad reads the same when nothing is happening.
-			var allIn = chips > 0 && owed >= chips;
+			// Every petal keeps its place and only goes dark. A cluster whose buttons come and go is a
+			// cluster nobody can learn the shape of, and the shape is the whole point of a fixed pad.
+			var canAllIn = ourTurn && stage.CanAllIn(LocalData);
+			var allInAmount = stage ? stage.AllInAmountFor(LocalData) : 0;
 
-			ShowPetal(_callButton, !allIn, ourTurn && owed > 0);
-			ShowPetal(_allInButton, allIn, ourTurn);
+			if (_callButton) _callButton.IsInteractable = ourTurn && owed > 0;
+			if (_allInButton) _allInButton.IsInteractable = canAllIn;
+			if (_foldButton) _foldButton.IsInteractable = ourTurn;
 
 			if (_callLabel) _callLabel.text = owed > 0 ? $"Call +{owed}" : "Call";
-			if (_allInLabel) _allInLabel.text = $"All In {chips}";
-
-			if (_foldButton) _foldButton.IsInteractable = ourTurn;
-		}
-
-		// Present decides which move this slot is offering; interactable decides whether it can be made
-		// now. Kept apart because they are different sentences — "not this move" and "not this moment".
-		private static void ShowPetal(UIButton button, bool present, bool interactable)
-		{
-			if (!button) return;
-
-			if (button.gameObject.activeSelf != present) button.gameObject.SetActive(present);
-			if (present) button.IsInteractable = interactable;
+			if (_allInLabel) _allInLabel.text = allInAmount > 0 ? $"All In {allInAmount}" : "All In";
 		}
 
 		private void RefreshReport()
