@@ -77,21 +77,42 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 			if (!_keepPreviousBets) PokerTableUtility.ResetRoundBets(Data, GameMode.SeatedPlayers);
 
-			PostOpeningBet();
-
 			if (PokerTableUtility.CountInHand(GameMode.SeatedPlayers) <= 1)
 			{
 				FinishStreet();
 				return;
 			}
 
-			if (PokerTableUtility.CountActive(GameMode.SeatedPlayers) <= 1 && Data.CurrentBet.Value == 0)
+			// Asked before the street posts its price, not after. Once the table is all-in but for one
+			// player there is nobody left to bet against, and a street that had already put its opening bet
+			// down would go on to charge the last player standing for the privilege — money nobody can
+			// answer, on a hand whose betting is over. The cards still turn; only the asking stops.
+			if (NothingLeftToAsk())
 			{
 				FinishStreet();
 				return;
 			}
 
+			PostOpeningBet();
+
 			BeginNextTurn(FirstActorFromSeat());
+		}
+
+		// Whether this street has a question for anybody. Two players who can still act have something to
+		// settle between them; one has nobody to settle with, and is only held here if they still owe the
+		// table — an all-in raise from the last street they have not answered yet.
+		private bool NothingLeftToAsk()
+		{
+			var players = GameMode.SeatedPlayers;
+			if (PokerTableUtility.CountActive(players) > 1) return false;
+
+			foreach (var player in players)
+			{
+				if (!player.Data.CanAct) continue;
+				if (Data.CurrentBet.Value - player.Data.Bet.Value > 0) return false;
+			}
+
+			return true;
 		}
 
 		// The price of staying in, put on the table by the street itself rather than by a player. Nobody
