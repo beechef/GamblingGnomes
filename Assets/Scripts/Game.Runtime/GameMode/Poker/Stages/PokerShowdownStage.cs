@@ -17,7 +17,10 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		[SerializeField] private float _showdownDuration = 5f;
 
 		[Header("References")]
-		[Tooltip("Where the table goes once the hand is settled. Empty simply follows the sequence, which wraps to the idle stage when showdown is last.")]
+		[Tooltip("Where the table goes when the match still has a hand in it — the deal. Empty ends the match at every showdown, which is one hand per press of start.")]
+		[SerializeField] private PokerStage _nextHandStage;
+
+		[Tooltip("Where the table goes once the match is over. Empty simply follows the sequence, which wraps to the idle stage when showdown is last.")]
 		[SerializeField] private PokerStage _idleStage;
 
 		private readonly List<CardData> _evaluationBuffer = new();
@@ -65,9 +68,19 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			FinishShowdown();
 		}
 
-		// Back to the idle table: the hand is over, so seats unlock and the host can deal again.
+		// A match runs itself out: while enough players can still be dealt in, the ranking is the whole
+		// ceremony between one hand and the next and nobody has to press anything. Only when the table is
+		// down to a single player still in it does the match end — seats unlock, everyone's stats go back,
+		// and the host gets the button again.
 		private void FinishShowdown()
 		{
+			if (_nextHandStage && GameMode.CanDealAnotherHand)
+			{
+				GameMode.EndHand();
+				FinishStage(_nextHandStage);
+				return;
+			}
+
 			GameMode.EndGame();
 			FinishStage(_idleStage);
 		}

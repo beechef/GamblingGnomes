@@ -80,6 +80,11 @@ namespace Game.Runtime.GameMode.Poker
 
 		public bool IsGameRunning => _data && _data.Phase.Value != PokerPhase.Waiting && _data.Phase.Value != PokerPhase.Finished;
 
+		// One press of start begins a match, and a match is however many hands the table can still deal.
+		// Asked at the end of each one, because a hand is exactly what takes players out of the running:
+		// the same count the host's button is gated on, so a table that could be started can be continued.
+		public bool CanDealAnotherHand => _rules && FundedPlayerCount >= _rules.MinimumPlayersToStart;
+
 		public event Action OnSeatedPlayersChanged;
 		public event Action<PokerStage> OnStageChanged;
 
@@ -272,7 +277,11 @@ namespace Game.Runtime.GameMode.Poker
 			GoToStage(0);
 		}
 
-		public void EndGame()
+		// Between two hands of the same match. Everything a hand leaves behind goes back — the cards, the
+		// turn, whatever the modules were holding for it — but the phase is deliberately left alone: the
+		// table is still mid-match, and a beat of Finished would unlock the chairs and read on every screen
+		// as the match having ended.
+		public void EndHand()
 		{
 			if (!IsServer) return;
 
@@ -282,9 +291,29 @@ namespace Game.Runtime.GameMode.Poker
 			}
 
 			ServerClearHands();
+			ClearTurn();
+		}
+
+		public void EndGame()
+		{
+			if (!IsServer) return;
+
+			EndHand();
 
 			_data.Phase.Value = PokerPhase.Finished;
-			ClearTurn();
+		}
+
+		// Blood and money are what a match is played with, so putting them back is what makes the next one
+		// a new match rather than a continuation. Every registered player, not only the seated: whoever
+		// left their chair mid-match is still carrying whatever the match did to them.
+		public void ServerResetMatchStats()
+		{
+			if (!IsServer) return;
+
+			foreach (var player in PokerPlayer.All)
+			{
+				if (player && player.Data) player.Data.ServerResetForMatch();
+			}
 		}
 
 		// The match is over, so the cards leave everyone's hands here — at the one point every ending

@@ -4,6 +4,10 @@ namespace Game.Runtime.GameMode.Poker.Stages
 {
 	// Idle table. Nothing advances it on its own — the host's start button does, which is also why
 	// this is the only stage players are free to stand up from.
+	//
+	// Reaching it is also what makes the next match a new one rather than a continuation: a match plays
+	// out over as many hands as it takes, so blood and money go back here, at the one point that is only
+	// ever arrived at with the previous match already over.
 	[CreateAssetMenu(fileName = "PokerStage_Waiting", menuName = "Game/Poker/Stages/Waiting")]
 	public class PokerWaitingStage : PokerStage
 	{
@@ -19,10 +23,11 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			Data.CurrentBet.Value = 0;
 			Data.LastRaise.Value = 0;
 
+			GameMode.ServerResetMatchStats();
+
 			foreach (var player in GameMode.SeatedPlayers)
 			{
 				var data = player.Data;
-				data.ServerResetForHand();
 				data.Status.Value = data.Chips > 0 ? PokerPlayerStatus.Waiting : PokerPlayerStatus.Busted;
 			}
 		}

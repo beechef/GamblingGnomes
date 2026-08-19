@@ -1,3 +1,4 @@
+using Sirenix.OdinInspector;
 using System;
 using System.Collections.Generic;
 using Game.Runtime.Player;
@@ -18,7 +19,14 @@ namespace Game.Runtime.GameMode.Poker.Player
 		[Tooltip("What the player bets with. There is no separate stack in front of them — the wallet is the stack.")]
 		[SerializeField] private PlayerData _wallet;
 
-		[SerializeField] private uint _maxHealth = 10;
+		[Header("Blood")]
+		[Tooltip("Blood a player sits down with, and gets back when a new match starts.")]
+		[MinValue(1)]
+		[SerializeField] private int _startingHealth = 10;
+
+		[Tooltip("Ceiling anything healing them can reach. Separate from the starting amount so a match can be begun below full and still be worth healing.")]
+		[MinValue(1)]
+		[SerializeField] private int _maxHealth = 10;
 
 		[HideInInspector] public NetworkVariable<int> SeatIndex = new(NoSeat,
 			readPerm: NetworkVariableReadPermission.Everyone,
@@ -116,6 +124,10 @@ namespace Game.Runtime.GameMode.Poker.Player
 		// and so anything that ever heals a player brings them back without a second flag to remember.
 		public bool IsAlive => Health.Value > 0;
 
+		public int StartingHealth => Mathf.Clamp(_startingHealth, 1, MaxHealth);
+
+		public int MaxHealth => Mathf.Max(1, _maxHealth);
+
 		public bool IsSeated => SeatIndex.Value != NoSeat;
 		public bool IsInHand => Status.Value is PokerPlayerStatus.Active or PokerPlayerStatus.AllIn;
 		public bool CanAct => Status.Value == PokerPlayerStatus.Active;
@@ -146,7 +158,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			// that moves — it just hears it from the wallet.
 			if (_wallet) _wallet.Money.OnValueChanged += HandleIntChanged;
 
-			if (IsServer) Health.Value = (int)_maxHealth;
+			if (IsServer) ServerResetHealthToStart();
 
 			SeatIndex.OnValueChanged += HandleIntChanged;
 			Bet.OnValueChanged += HandleIntChanged;
@@ -211,6 +223,31 @@ namespace Game.Runtime.GameMode.Poker.Player
 			ReportsLeft.Value = 0;
 			AbilityIds.Clear();
 			HoleCards.Clear();
+		}
+
+		// A new match rather than a new hand. Blood and money are what a match is played *with* — they
+		// carry from hand to hand and losing the last of either is how a player stops being dealt in — so
+		// this is the one place they go back, and it belongs to the table going idle rather than to any
+		// hand ending.
+		public void ServerResetForMatch()
+		{
+			if (!IsServer) return;
+
+			ServerResetForHand();
+
+			ServerResetHealthToStart();
+			Status.Value = PokerPlayerStatus.Waiting;
+
+			// The wallet resets itself. What a purse starts with is its own business, and reaching in to
+			// set it from here would be a second place to keep in step with the first.
+			if (_wallet) _wallet.ServerResetToStart();
+		}
+
+		public void ServerResetHealthToStart()
+		{
+			if (!IsServer) return;
+
+			Health.Value = StartingHealth;
 		}
 
 		public void ServerResetForRound()
@@ -278,7 +315,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		{
 			if (!IsServer) return;
 
-			Health.Value = Mathf.Clamp(Health.Value + delta, 0, (int)_maxHealth);
+			Health.Value = Mathf.Clamp(Health.Value + delta, 0, MaxHealth);
 		}
 
 		public void ServerCollectBet()

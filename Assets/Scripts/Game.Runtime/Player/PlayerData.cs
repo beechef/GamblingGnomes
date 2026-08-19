@@ -1,3 +1,4 @@
+using Sirenix.OdinInspector;
 using System;
 using Steamworks;
 using Unity.Collections;
@@ -11,7 +12,8 @@ namespace Game.Runtime.Player
 	public class PlayerData : NetworkBehaviour
 	{
 		[Header("Wallet")]
-		[Tooltip("What a player arrives with. Tables are free to sit at, so this only has to cover the bets they want to make.")]
+		[Tooltip("What a player arrives with, and gets back when a new match starts. A table charges its own price at the door, so this only has to cover that and the bets they want to make.")]
+		[MinValue(0)]
 		[SerializeField] private int _startingMoney = 20;
 
 		[HideInInspector] public NetworkVariable<FixedString64Bytes> DisplayName = new(default,
@@ -34,7 +36,20 @@ namespace Game.Runtime.Player
 
 		public event Action OnIdentityChanged;
 
+		// What a fresh purse holds. Read rather than duplicated, so whatever puts a player back to their
+		// starting position is putting them back to the number they actually arrived on.
+		public int StartingMoney => Mathf.Max(0, _startingMoney);
+
 		public bool CanAfford(int amount) => Money.Value >= amount;
+
+		// A player put back to how they arrived. Owned here rather than written out by whoever needs it,
+		// so a wallet that grows a second thing to reset grows it in one place.
+		public void ServerResetToStart()
+		{
+			if (!IsServer) return;
+
+			ServerSetMoney(StartingMoney);
+		}
 
 		public override void OnNetworkSpawn()
 		{
@@ -42,7 +57,7 @@ namespace Game.Runtime.Player
 			PlayerId.OnValueChanged += HandleIdChanged;
 
 			// A fresh body arrives with a fresh purse.
-			if (IsServer) ServerSetMoney(_startingMoney);
+			if (IsServer) ServerResetToStart();
 
 			// Steam only knows whoever is signed in at this machine, so each player reports their own
 			// name and id. The server cannot ask on their behalf: the transport hands it a bare number,
