@@ -10,6 +10,10 @@ namespace Game.Runtime.Player
 	// that player, so the owner watching from inside their own head and the table watching from outside
 	// are watching the same act.
 	//
+	// Where it goes and which way it faces once it is there are both read off a pose the other player
+	// offers — a transform dragged and turned in their prefab. Nothing here orbits, offsets or aims by
+	// angle: the head travels straight to that spot and arrives wearing its rotation.
+	//
 	// Ordered into the gap between PlayerController, which runs at the default zero, and the Cinemachine
 	// brain, which ships at a hundred. After the look input, so the head is aimed from the rotation it
 	// just settled on. Before the brain, because the brain samples the camera hanging off this bone in a
@@ -21,27 +25,13 @@ namespace Game.Runtime.Player
 		private const float Epsilon = 0.0001f;
 
 		[Header("Reach")]
-		[Tooltip("What the head goes over there to look at. The other player's card hand, by default.")]
+		[Tooltip("What the head goes over there to look at when that player offers no pose of their own. The other player's card hand, by default.")]
 		[SerializeField] private PlayerBone _lookBone = PlayerBone.HandRight;
-
-		[Tooltip("How high above the cards the head comes down on them. Level with them shows nothing but their backs; the steeper it looks over the top of the hand, the more of the faces there is to read.")]
-		[Range(0f, 89f)]
-		[SerializeField] private float _viewPitch = 78f;
-
-		[Tooltip("Which way round the other player the head arrives, measured off their facing. Point it at the side they hold their cards on, so the neck comes in beside them rather than through them.")]
-		[Range(-180f, 180f)]
-		[SerializeField] private float _viewYaw = 115f;
-
-		[Tooltip("How far the camera ends up from the cards, which is what decides how big they read on screen. The head itself parks nearer than this by however far the camera trails behind the bone.")]
-		[SerializeField] private float _viewDistance = 0.55f;
-
-		[Tooltip("Closest the head itself may come, whatever the view distance asks for, so it never ends up inside the hand it went to read.")]
-		[SerializeField] private float _headClearance = 0.18f;
 
 		[Tooltip("Longest the neck may get, in world units. Anything further away is leaned toward rather than reached.")]
 		[SerializeField] private float _maxReach = 2f;
 
-		[Tooltip("How far the head turns to face what it came to look at, and with it the camera hanging off it. Zero leaves the look input in charge and only the neck travels.")]
+		[Tooltip("How far the head turns onto the rotation the pose asks for, and with it the camera hanging off it. Zero leaves the look input in charge and only the neck travels.")]
 		[Range(0f, 1f)]
 		[SerializeField] private float _lookWeight = 1f;
 
@@ -75,8 +65,8 @@ namespace Game.Runtime.Player
 		private Vector3 _headLocalPosition;
 		private Quaternion _headLocalRotation;
 		private Vector3 _lastReachPoint;
-		private Vector3 _lastLookPoint;
-		private bool _hasLastPoints;
+		private Quaternion _lastReachRotation;
+		private bool _hasLastPose;
 		private bool _restored = true;
 
 		private Transform _head;
@@ -164,16 +154,15 @@ namespace Game.Runtime.Player
 
 			if (!IsStretching)
 			{
-				_hasLastPoints = false;
+				_hasLastPose = false;
 				return;
 			}
 
 			var target = TargetRig;
 			if (target)
 			{
-				_lastLookPoint = ResolveLookPoint(target);
-				_lastReachPoint = ResolveReachPoint(target, _lastLookPoint);
-				_hasLastPoints = true;
+				ResolveReachPose(target, out _lastReachPoint, out _lastReachRotation);
+				_hasLastPose = true;
 			}
 			else
 			{
@@ -182,10 +171,10 @@ namespace Game.Runtime.Player
 				// drawing the neck while it runs.
 				TweenWeight(0f, _retractDuration, _retractEase);
 
-				if (!_hasLastPoints) return;
+				if (!_hasLastPose) return;
 			}
 
-			ApplyStretch(_lastReachPoint, _lastLookPoint);
+			ApplyStretch(_lastReachPoint, _lastReachRotation);
 		}
 
 		// Only worth doing while something has been displaced, so an idle player is not writing to these
@@ -253,7 +242,7 @@ namespace Game.Runtime.Player
 			_chainLocalPositions.Clear();
 			_chainLocalRotations.Clear();
 			_head = null;
-			_hasLastPoints = false;
+			_hasLastPose = false;
 			_restored = true;
 
 			var rig = _rig ? _rig.RenderedRig : null;
@@ -304,42 +293,53 @@ namespace Game.Runtime.Player
 		// Whatever the other player is holding up to be read outranks the bone. A fist of cards is edge on
 		// to everyone but its owner, so a neck that travelled all that way to stare at the bone holding them
 		// arrived at the one angle they cannot be read from.
-		private Vector3 ResolveLookPoint(PlayerRigController target)
+		private bool TryGetOfferedPose(PlayerRigController target, out Vector3 position, out Quaternion rotation)
 		{
-			if (target.TryGetComponent<IPlayerLookPoint>(out var offered) && offered.TryGetLookPoint(out var point))
+			if (target.TryGetComponent<IPlayerLookPoint>(out var offered) && offered.TryGetLookPose(out position, out rotation))
 			{
-				return point;
+				return true;
 			}
 
-			var bone = target.GetBone(_lookBone);
-			return bone ? bone.position : target.transform.position;
+			position = default;
+			rotation = default;
+
+			return false;
 		}
 
-		// Parked on an angle around the other player rather than on the line straight over to them: coming
-		// in level reads the backs of the cards, and it is dropping onto them from above that reads faces.
-		// The angle is taken off the other player's own facing, so it stays over their shoulder however
-		// they are turned.
-		private Vector3 ResolveReachPoint(PlayerRigController target, Vector3 lookPoint)
+		// The pose says where the eye belongs, which is not where the bone belongs: the camera trails the
+		// head by a fixed offset, so the bone is placed behind the spot by exactly that much and the pose's
+		// rotation is unwound through it. Solved rather than converged on — both the offset and the twist
+		// are known, so there is nothing here to iterate toward.
+		private void ResolveReachPose(PlayerRigController target, out Vector3 reachPoint, out Quaternion reachRotation)
 		{
-			var direction = target.transform.rotation * (Quaternion.Euler(-_viewPitch, _viewYaw, 0f) * Vector3.forward);
+			if (!TryGetOfferedPose(target, out var eyePosition, out var eyeRotation))
+			{
+				// Nothing on offer: travel to the bone, aiming at it from wherever the head is standing now.
+				var bone = target.GetBone(_lookBone);
+				eyePosition = bone ? bone.position : target.transform.position;
 
-			// The camera trails the head bone, so the distance worth tuning is the one from the camera and
-			// the head is parked short of it — never so short that it arrives inside the cards.
+				var toBone = eyePosition - _head.position;
+				eyeRotation = toBone.sqrMagnitude > Epsilon * Epsilon
+					? Quaternion.LookRotation(toBone, Vector3.up)
+					: _head.rotation;
+			}
+
 			var camera = _rig ? _rig.RenderedCamera : null;
-			var trail = camera ? camera.localPosition.magnitude : 0f;
 
-			var point = lookPoint + direction * Mathf.Max(_viewDistance - trail, _headClearance);
+			reachRotation = camera ? eyeRotation * Quaternion.Inverse(camera.localRotation) : eyeRotation;
+			reachPoint = camera ? eyePosition - reachRotation * camera.localPosition : eyePosition;
 
 			var origin = _chain[0].position;
-			var toPoint = point - origin;
+			var toPoint = reachPoint - origin;
 			var distance = toPoint.magnitude;
-			if (distance <= Epsilon) return point;
+			if (distance <= Epsilon) return;
 
-			// Never pulled back inside the shoulders on a neighbour close enough that it would.
-			return origin + toPoint / distance * Mathf.Clamp(distance, _restLength, _maxReach);
+			// Never stretched past what a neck may become, nor pulled back inside the shoulders on a
+			// neighbour close enough that it would.
+			reachPoint = origin + toPoint / distance * Mathf.Clamp(distance, _restLength, _maxReach);
 		}
 
-		private void ApplyStretch(Vector3 reachPoint, Vector3 lookPoint)
+		private void ApplyStretch(Vector3 reachPoint, Quaternion reachRotation)
 		{
 			var origin = _chain[0].position;
 			var restHead = _head.position;
@@ -365,35 +365,11 @@ namespace Game.Runtime.Player
 			}
 
 			// The segments are spread apart rather than scaled up, so the neck grows without the head
-			// growing with it. The head then turns to face what it came for — the camera hangs off this
-			// bone, so that turn is what actually puts the cards in front of the player.
-			_head.SetPositionAndRotation(desired, AimHead(desired, lookPoint, headRotation));
-		}
+			// growing with it. The head then turns onto the rotation it was sent for — the camera hangs off
+			// this bone, so that turn is what actually puts the cards in front of the player.
+			var lookWeight = Mathf.Clamp01(_weight * _lookWeight);
 
-		// Taken twice, because the camera hangs off the head bone rather than sitting on it: once from the
-		// bone to find where the camera lands, and again from there, so what ends up pointed at the cards
-		// is the camera and not the neck.
-		private Quaternion AimHead(Vector3 headPosition, Vector3 lookPoint, Quaternion animated)
-		{
-			var camera = _rig ? _rig.RenderedCamera : null;
-
-			var weight = Mathf.Clamp01(_weight * _lookWeight);
-			if (!camera || weight <= Epsilon) return animated;
-
-			var offset = Quaternion.Inverse(camera.localRotation);
-
-			var aimed = LookFrom(headPosition, lookPoint, offset, animated);
-			aimed = LookFrom(headPosition + aimed * camera.localPosition, lookPoint, offset, animated);
-
-			return Quaternion.Slerp(animated, aimed, weight);
-		}
-
-		private static Quaternion LookFrom(Vector3 from, Vector3 lookPoint, Quaternion cameraOffset, Quaternion fallback)
-		{
-			var direction = lookPoint - from;
-			if (direction.sqrMagnitude <= Epsilon * Epsilon) return fallback;
-
-			return Quaternion.LookRotation(direction, Vector3.up) * cameraOffset;
+			_head.SetPositionAndRotation(desired, Quaternion.Slerp(headRotation, reachRotation, lookWeight));
 		}
 	}
 }
