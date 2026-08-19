@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using Game.Runtime.GameMode.Poker;
+using Game.Runtime.GameMode.Poker.Player;
 using Game.Runtime.UI.Button;
 using TMPro;
 using Unity.Netcode;
@@ -15,6 +17,13 @@ namespace Game.Runtime.UI.Poker
 		[SerializeField] private UIButton _startButton;
 		[SerializeField] private TextMeshProUGUI _hintLabel;
 
+		// Every seat this panel is counting. It reads blood and money off other players' objects, so it has
+		// to hear those change — the seated list only says who is at the table, never what they are
+		// carrying. A match ending restores everyone at once, which arrives as a change on each of them and
+		// on nothing this panel was listening to: the button stayed dead until somebody stood up and sat
+		// down again, because that was the only thing that made the list say something.
+		private readonly List<PokerPlayerData> _watched = new();
+
 		private void Awake()
 		{
 			if (_panel) _panel.SetActive(false);
@@ -25,9 +34,10 @@ namespace Game.Runtime.UI.Poker
 			if (_startButton) _startButton.OnClick += HandleStartClicked;
 
 			Data.Phase.OnValueChanged += HandlePhaseChanged;
-			GameMode.OnSeatedPlayersChanged += Refresh;
+			GameMode.OnSeatedPlayersChanged += HandleSeatedPlayersChanged;
 			LocalData.SeatIndex.OnValueChanged += HandleSeatChanged;
 
+			WatchSeatedPlayers();
 			Refresh();
 		}
 
@@ -35,8 +45,10 @@ namespace Game.Runtime.UI.Poker
 		{
 			if (_startButton) _startButton.OnClick -= HandleStartClicked;
 
+			UnwatchSeatedPlayers();
+
 			Data.Phase.OnValueChanged -= HandlePhaseChanged;
-			GameMode.OnSeatedPlayersChanged -= Refresh;
+			GameMode.OnSeatedPlayersChanged -= HandleSeatedPlayersChanged;
 			LocalData.SeatIndex.OnValueChanged -= HandleSeatChanged;
 
 			if (_panel) _panel.SetActive(false);
@@ -44,6 +56,35 @@ namespace Game.Runtime.UI.Poker
 
 		private void HandlePhaseChanged(PokerPhase previous, PokerPhase current) => Refresh();
 		private void HandleSeatChanged(int previous, int current) => Refresh();
+
+		private void HandleSeatedPlayersChanged()
+		{
+			WatchSeatedPlayers();
+			Refresh();
+		}
+
+		private void WatchSeatedPlayers()
+		{
+			UnwatchSeatedPlayers();
+
+			foreach (var player in GameMode.SeatedPlayers)
+			{
+				if (!player || !player.Data) continue;
+
+				player.Data.OnStateChanged += Refresh;
+				_watched.Add(player.Data);
+			}
+		}
+
+		private void UnwatchSeatedPlayers()
+		{
+			foreach (var data in _watched)
+			{
+				if (data) data.OnStateChanged -= Refresh;
+			}
+
+			_watched.Clear();
+		}
 
 		private void Refresh()
 		{

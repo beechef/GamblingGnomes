@@ -501,6 +501,13 @@ namespace Game.Runtime.GameMode.Poker
 			_data.CurrentTurnClientId.Value = clientId;
 			_data.TurnDuration.Value = duration;
 			_data.TurnEndTime.Value = NetworkManager.ServerTime.Time + duration;
+
+			// After the turn is on the table rather than before it: a module changing what this player is
+			// carrying is answering a question they can already see being asked.
+			foreach (var module in _modules)
+			{
+				if (module) module.OnTurnBegan(clientId);
+			}
 		}
 
 		public void ClearTurn()

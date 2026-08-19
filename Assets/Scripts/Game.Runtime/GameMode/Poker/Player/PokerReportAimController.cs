@@ -35,7 +35,10 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 		private const ulong NoAim = ulong.MaxValue;
 
-		private readonly RaycastHit[] _hits = new RaycastHit[16];
+		// Roomy on purpose. Everybody the cast passes through takes a slot whether or not they can be
+		// accused — the people standing about outside the hand most of all — and a buffer that fills up
+		// drops the rest of the list silently, which reads as the table simply not being there.
+		private readonly RaycastHit[] _hits = new RaycastHit[20];
 
 		private PokerGameMode _gameMode;
 		private PokerAbilityModule _module;
@@ -134,16 +137,23 @@ namespace Game.Runtime.GameMode.Poker.Player
 				// Our own body is the collider the eye is sitting inside, so it is always in the list and
 				// never the answer.
 				var isSelf = player && player.ClientId == OwnerClientId;
-				var eligible = player && !isSelf && hit.distance < bestDistance;
+
+				// Anybody not in this hand is scenery. They are free to walk about the room while it is
+				// played, and a body wandering between the accuser and the table was stopping the finger
+				// on somebody the server would have refused anyway — asked through the module so the two
+				// sides cannot disagree about who is accusable.
+				var inHand = player && !isSelf && _module.CanBeReported(player.ClientId);
+				var eligible = inHand && hit.distance < bestDistance;
 
 				log?.Append("\n  ").Append(hit.collider.name)
 					.Append(" d=").Append(hit.distance.ToString("F2"))
 					.Append(" player=").Append(player ? player.DisplayName : "none")
-					.Append(isSelf ? " (self)" : eligible ? " (taken)" : " (skipped)");
+					.Append(isSelf ? " (self)" : !player ? " (scenery)" : !inHand ? " (not in the hand)"
+						: eligible ? " (taken)" : " (further)");
 
 				if (_drawDebugRays)
 				{
-					var color = !player ? Color.red : isSelf ? Color.magenta : Color.yellow;
+					var color = !player ? Color.red : isSelf ? Color.magenta : !inHand ? Color.grey : Color.yellow;
 					Debug.DrawLine(origin, point, color);
 				}
 

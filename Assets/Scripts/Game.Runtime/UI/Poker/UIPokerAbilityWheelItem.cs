@@ -16,6 +16,7 @@ namespace Game.Runtime.UI.Poker
 	{
 		[Header("References")]
 		[SerializeField] private Image _icon;
+
 		[SerializeField] private TextMeshProUGUI _nameLabel;
 
 		[Header("Tint")]
@@ -26,6 +27,10 @@ namespace Game.Runtime.UI.Poker
 
 		[SerializeField] private Color _normalColor = new(0.36f, 0.28f, 0.20f);
 		[SerializeField] private Color _selectedColor = new(0.62f, 0.49f, 0.34f);
+
+		[SerializeField] private Color _normalAbilityColor;
+		[SerializeField] private Color _cheatAbilityColor;
+
 
 		[Header("Name")]
 		[Tooltip("Unselected rows stay readable rather than blank — the list is what the player is choosing between.")]
@@ -75,9 +80,9 @@ namespace Game.Runtime.UI.Poker
 			// Only the holder ever sees this wheel, and knowing your own card is a cheat is what makes
 			// playing it a decision. A stand-in until the art tells the two apart on the icon — nothing
 			// outside this client is told, so the guessing game is untouched.
-			_nameLabel.text = ability
-				? ability.Kind == PokerAbilityKind.Cheat ? $"{ability.DisplayName} (cheat)" : ability.DisplayName
-				: string.Empty;
+			_nameLabel.text = ability ? ability.DisplayName : string.Empty;
+
+			_icon.color = ability ? (ability.Kind == PokerAbilityKind.Cheat ? _cheatAbilityColor : _normalAbilityColor) : Color.white;
 		}
 
 		protected override void OnSelect(bool instant) => Draw(true, instant);
@@ -88,7 +93,7 @@ namespace Game.Runtime.UI.Poker
 			var color = selected ? _selectedColor : _normalColor;
 
 			_plateTween = Tint(_plate, color, _plateTween, instant);
-			_frameTween = Tint(_frame, color, _frameTween, instant);
+			// _frameTween = Tint(_frame, color, _frameTween, instant);
 
 			FadeName(selected ? 1f : _unselectedNameAlpha, instant);
 		}

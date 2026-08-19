@@ -258,6 +258,25 @@ namespace Game.Runtime.GameMode.Poker.Player
 			HasActed.Value = false;
 		}
 
+		// A hand swapped where it lies, as opposed to dealt. Clearing the list and refilling it is what a
+		// deal looks like, and it looks like one to every table: the visuals tear their cards down and flip
+		// the replacements in one at a time. That is a tell, and the one card in the game whose whole worth
+		// is that nobody noticed cannot afford it. Writing each slot raises a Value change instead, which a
+		// hand nobody may see reads as no change at all — the card was a face-down back before and is a
+		// face-down back after, so nothing moves on any screen but the owner's.
+		public void ServerReplaceHoleCards(IReadOnlyList<CardData> cards)
+		{
+			if (!IsServer) return;
+
+			var shared = Mathf.Min(cards.Count, HoleCards.Count);
+			for (var i = 0; i < shared; i++) HoleCards[i] = cards[i];
+
+			// Only reached by a caller swapping a different number of cards than are being held, which a
+			// redraw never does — kept so this cannot silently drop or keep one.
+			for (var i = HoleCards.Count - 1; i >= cards.Count; i--) HoleCards.RemoveAt(i);
+			for (var i = shared; i < cards.Count; i++) HoleCards.Add(cards[i]);
+		}
+
 		public void ServerSetHoleCards(IReadOnlyList<CardData> cards)
 		{
 			if (!IsServer) return;
@@ -303,7 +322,13 @@ namespace Game.Runtime.GameMode.Poker.Player
 			return paid;
 		}
 
-		public void ServerWinChips(int amount)
+		public void ServerWinChips(int amount) => ServerGainChips(amount);
+
+		// Money arriving from anywhere at all. Kept beside ServerWinChips rather than folded into it,
+		// because a pot being paid out and a house rule selling somebody a stake are the same transfer and
+		// two different events — and a call site that reads "won" for the second one is a lie the next
+		// person to read it has to untangle.
+		public void ServerGainChips(int amount)
 		{
 			if (!IsServer || !_wallet) return;
 

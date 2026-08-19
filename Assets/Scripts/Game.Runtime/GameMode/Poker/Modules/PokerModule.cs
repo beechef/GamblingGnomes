@@ -51,6 +51,11 @@ namespace Game.Runtime.GameMode.Poker.Modules
 		public virtual void OnStageEnded(PokerStage stage) { }
 		public virtual void OnPlayerSeated(ulong clientId, int seatIndex) { }
 		public virtual void OnPlayerLeftSeat(ulong clientId) { }
+		// The moment the table actually asks somebody for something, which is where a house rule about what
+		// they are able to answer with belongs. Raised for an overlay's turns too — whether one of those
+		// counts is the module's business, and CurrentOverlay is how it tells them apart.
+		public virtual void OnTurnBegan(ulong clientId) { }
+
 		public virtual void OnPlayerActed(ulong clientId, PokerActionType action, int amount) { }
 
 		public virtual bool CanStartGame() => true;

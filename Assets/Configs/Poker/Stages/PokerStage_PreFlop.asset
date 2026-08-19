@@ -13,13 +13,17 @@ MonoBehaviour:
   m_Name: PokerStage_PreFlop
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Stages.PokerBettingStage
   _stageId: PreFlop
+  _exitDelay: 0.75
   _phase: 2
   _communityCardsToReveal: 0
   _keepPreviousBets: 1
   _minimumBet: 20
+  _openingBet: 0
   _minimumRaiseMultiplier: 2
   _allowCheckWhenNoBet: 1
+  _allowRaise: 1
   _allowAllIn: 1
+  _maximumAllIn: 4
   _turnDuration: 30
-  _timeoutChecksWhenFree: 1
+  _timeoutFolds: 0
   _handOverStage: {fileID: 11400000, guid: b22264431582dc5408061ca2167253a6, type: 2}

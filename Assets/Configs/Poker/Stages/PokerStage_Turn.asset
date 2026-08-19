@@ -13,13 +13,17 @@ MonoBehaviour:
   m_Name: PokerStage_Turn
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Stages.PokerBettingStage
   _stageId: Turn
+  _exitDelay: 0.75
   _phase: 4
   _communityCardsToReveal: 1
   _keepPreviousBets: 0
   _minimumBet: 20
+  _openingBet: 0
   _minimumRaiseMultiplier: 2
   _allowCheckWhenNoBet: 1
+  _allowRaise: 1
   _allowAllIn: 1
+  _maximumAllIn: 4
   _turnDuration: 30
-  _timeoutChecksWhenFree: 1
+  _timeoutFolds: 0
   _handOverStage: {fileID: 11400000, guid: b22264431582dc5408061ca2167253a6, type: 2}

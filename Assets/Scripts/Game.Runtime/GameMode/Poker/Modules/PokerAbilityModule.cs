@@ -43,6 +43,10 @@ namespace Game.Runtime.GameMode.Poker.Modules
 		[MinValue(1)]
 		[SerializeField] private int _reportStake = 1;
 
+		[Tooltip("Most an accusation may be shoved to. Blood is scarcer than money, so a shove here is capped rather than left to swallow whoever has least of it.")]
+		[MinValue(1)]
+		[SerializeField] private int _maximumAllIn = 4;
+
 		[Tooltip("Stages a report may be filed in, matched by stage id. Empty allows any moment of the hand.")]
 		[SerializeField] private List<PokerStage> _reportStages = new();
 
@@ -124,6 +128,7 @@ namespace Game.Runtime.GameMode.Poker.Modules
 		public bool HasAim => _aimClientId != NoAim;
 
 		public int ReportBloodStake => Mathf.Max(1, _reportStake);
+		public int MaximumAllIn => Mathf.Max(1, _maximumAllIn);
 
 		public override void OnNetworkSpawn()
 		{
@@ -443,7 +448,11 @@ namespace Game.Runtime.GameMode.Poker.Modules
 			var accuserBlood = accuser && accuser.Data ? accuser.Data.Health.Value + _accuserPaid : 0;
 			var accusedBlood = accused && accused.Data ? accused.Data.Health.Value + _accusedPaid : 0;
 
-			return Mathf.Max(ReportStake.Value, Mathf.Min(accuserBlood, accusedBlood));
+			// Capped, because blood is scarcer than money and a shove with no ceiling is not a raise, it is
+			// a dare to die. Never below what is already on the table, or a stake could not even be matched.
+			var covered = Mathf.Min(Mathf.Min(accuserBlood, accusedBlood), MaximumAllIn);
+
+			return Mathf.Max(ReportStake.Value, covered);
 		}
 
 		// Blood put in, there and then. Each side is tracked against what it has already staked so a call
@@ -496,10 +505,12 @@ namespace Game.Runtime.GameMode.Poker.Modules
 			var accuser = GameMode.FindSeatedPlayer(_pendingAccuser);
 			var target = GameMode.FindSeatedPlayer(_pendingTarget);
 
-			// Whatever is on the table goes to the one who was not backed down from. It is already out of
-			// the accuser's veins — walking away is what decides where it lands, not whether it was paid.
-			var pot = ReportPot.Value;
-			if (target) target.Data.ServerChangeHealth(pot);
+			// The one who was not backed down from gets back exactly what they put up, and the accuser's
+			// stake is gone. Nobody wins blood off an accusation — walking away costs what you paid to ask,
+			// which is the whole price of not wanting to know.
+			if (target) target.Data.ServerChangeHealth(_accusedPaid);
+
+			var lost = _accuserPaid;
 
 			// Read from the other side to whoever is watching: the one who shoved is laughing.
 			accuser?.ActionAnimator?.ServerPlay(PlayerActionIds.Disappointed);
@@ -507,7 +518,7 @@ namespace Game.Runtime.GameMode.Poker.Modules
 
 			if (accuser && !accuser.Data.IsAlive) FoldServer(accuser);
 
-			PublishReport(PokerReportOutcome.Conceded, false, pot);
+			PublishReport(PokerReportOutcome.Conceded, false, lost);
 		}
 
 		// The end of it, once both of them are in for the same number: the hand gets judged and whatever is
@@ -529,11 +540,17 @@ namespace Game.Runtime.GameMode.Poker.Modules
 				return;
 			}
 
-			var pot = ReportPot.Value;
 			var wasCheater = _cheaters.Contains(_pendingTarget);
 			var winner = wasCheater ? accuser : target;
 
-			winner.Data.ServerChangeHealth(pot);
+			// Only what they themselves put up. Blood is not won off anybody here — being right costs
+			// nothing and being wrong costs what you staked, so the winner comes out level and the loser's
+			// stake is simply gone. Handing them the pot would make an accusation a way to *gain* blood,
+			// and a table where guessing right feeds you would be all accusation and no poker.
+			var refund = wasCheater ? _accuserPaid : _accusedPaid;
+			var lost = wasCheater ? _accusedPaid : _accuserPaid;
+
+			winner.Data.ServerChangeHealth(refund);
 
 			// A cheat caught in the act is out of the hand as well as out of blood. Pointing at the wrong
 			// player only costs blood: the accuser plays on, which is what keeps a hunch worth acting on at
@@ -550,7 +567,8 @@ namespace Game.Runtime.GameMode.Poker.Modules
 			accuser.ActionAnimator?.ServerPlay(wasCheater ? PlayerActionIds.Laugh : PlayerActionIds.Disappointed);
 			target.ActionAnimator?.ServerPlay(wasCheater ? PlayerActionIds.Disappointed : PlayerActionIds.Laugh);
 
-			PublishReport(PokerReportOutcome.Judged, wasCheater, pot);
+			// What the verdict actually cost, which is the loser's stake — the pot was never won by anyone.
+			PublishReport(PokerReportOutcome.Judged, wasCheater, lost);
 		}
 
 		// An accusation that never found a face, or whose two people are no longer both here. Nothing is
@@ -627,7 +645,10 @@ namespace Game.Runtime.GameMode.Poker.Modules
 			player.Visual.ServerSetOutlined(highlighted);
 		}
 
-		private bool CanBeReported(ulong clientId)
+		// Public because the accuser's own client asks it too, while their finger is still travelling. One
+		// rule read from one place, so the aim can never light up somebody the server would refuse — and so
+		// a player wandering the room outside the hand cannot stand between the finger and the table.
+		public bool CanBeReported(ulong clientId)
 		{
 			var player = GameMode.FindSeatedPlayer(clientId);
 

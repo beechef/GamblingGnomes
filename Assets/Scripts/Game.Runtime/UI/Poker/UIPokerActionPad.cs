@@ -23,11 +23,16 @@ namespace Game.Runtime.UI.Poker
 		[SerializeField] private UIButton _reportButton;
 
 		[SerializeField] private UIButton _callButton;
+
+		[Tooltip("Shares the call petal's slot: a call the player cannot fully cover is a different move with a different name, so it is a different button rather than the same one wearing another word. Exactly one of the two is ever up.")]
+		[SerializeField] private UIButton _allInButton;
+
 		[SerializeField] private UIButton _checkButton;
 		[SerializeField] private UIButton _foldButton;
 
 		[Header("Labels")]
 		[SerializeField] private TextMeshProUGUI _callLabel;
+		[SerializeField] private TextMeshProUGUI _allInLabel;
 
 		private PokerAbilityModule _module;
 
@@ -42,6 +47,7 @@ namespace Game.Runtime.UI.Poker
 
 			if (_reportButton) _reportButton.OnClick += HandleReport;
 			if (_callButton) _callButton.OnClick += HandleCall;
+			if (_allInButton) _allInButton.OnClick += HandleAllIn;
 			if (_checkButton) _checkButton.OnClick += HandleCheckCards;
 			if (_foldButton) _foldButton.OnClick += HandleFold;
 
@@ -82,6 +88,7 @@ namespace Game.Runtime.UI.Poker
 
 			if (_foldButton) _foldButton.OnClick -= HandleFold;
 			if (_checkButton) _checkButton.OnClick -= HandleCheckCards;
+			if (_allInButton) _allInButton.OnClick -= HandleAllIn;
 			if (_callButton) _callButton.OnClick -= HandleCall;
 			if (_reportButton) _reportButton.OnClick -= HandleReport;
 
@@ -119,9 +126,17 @@ namespace Game.Runtime.UI.Poker
 
 			var owed = ourTurn ? Mathf.Max(0, Data.CurrentBet.Value - LocalData.Bet.Value) : 0;
 
-			if (_callButton) _callButton.IsInteractable = ourTurn && owed > 0;
-			if (_callLabel) _callLabel.text = owed > 0 ? $"Call +{Mathf.Min(owed, LocalData.Chips)}" : "Call";
+			// Every petal keeps its place and only goes dark. A cluster whose buttons come and go is a
+			// cluster nobody can learn the shape of, and the shape is the whole point of a fixed pad.
+			var canAllIn = ourTurn && stage.CanAllIn(LocalData);
+			var allInAmount = stage ? stage.AllInAmountFor(LocalData) : 0;
+
+			if (_callButton) _callButton.IsInteractable = ourTurn && stage.CanCall(LocalData);
+			if (_allInButton) _allInButton.IsInteractable = canAllIn;
 			if (_foldButton) _foldButton.IsInteractable = ourTurn;
+
+			if (_callLabel) _callLabel.text = owed > 0 ? $"Call +{owed}" : "Call";
+			if (_allInLabel) _allInLabel.text = allInAmount > 0 ? $"All In {allInAmount}" : "All In";
 		}
 
 		private void RefreshReport()
@@ -166,6 +181,14 @@ namespace Game.Runtime.UI.Poker
 		private void HandleCall()
 		{
 			if (GameMode) GameMode.SubmitActionRPC(PokerActionType.Call, 0);
+		}
+
+		private void HandleAllIn()
+		{
+			// Priced in rather than choosing to shove, which is why the street's ban on raising does not
+			// refuse it — the price was already standing and this player simply cannot cover it. Asked for as
+			// AllIn rather than Call so the table's notice announces the move that actually happened.
+			if (GameMode) GameMode.SubmitActionRPC(PokerActionType.AllIn, 0);
 		}
 
 		private void HandleFold()
