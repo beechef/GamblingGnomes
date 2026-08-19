@@ -24,9 +24,11 @@ namespace Game.Runtime.UI.Poker
 		[Tooltip("Board cards are sized here for the same reason the row sizes its own: a stretched card stops looking like one.")]
 		[SerializeField] private Vector2 _communityCardSize = new(80f, 120f);
 
-		[Tooltip("How far the outermost board card leans, in degrees. The row fans evenly between the two edges so the board reads as cards laid down by hand rather than a row of tiles. Zero lays them flat; a negative angle fans the other way.")]
-		[Range(-30f, 30f)]
-		[SerializeField] private float _communityFanAngle = 5f;
+		[Tooltip("Gap between board cards, measured across the row. Their lean comes from the fan below, so this is the only thing setting how far apart they sit.")]
+		[SerializeField] private float _communityCardSpacing = 108f;
+
+		[Tooltip("How far below the row the fan is held, in pixels — where a hand would be gripping it. The cards sit on a circle of this radius, so a smaller number opens the fan wider and drops its outer cards further. Zero or less lays them flat in a straight row.")]
+		[SerializeField] private float _communityFanRadius = 1400f;
 
 		[Header("Community")]
 		[SerializeField] private RectTransform _communityContainer;
@@ -64,13 +66,38 @@ namespace Game.Runtime.UI.Poker
 
 		private void HandleCommunityCardsChanged(NetworkListEvent<CardData> change) => Refresh();
 
-		// Spread evenly between the two edges, so the middle of any board sits upright and a board of one
-		// card is not left leaning on nothing.
-		private float FanAngle(int index, int count)
+		// A fan is held somewhere below the cards; it is not each card spun about its own middle. Turning a
+		// card in place splays its top and its bottom in opposite directions, which reads as a row of
+		// skewed tiles rather than as a hand — the giveaway is the gaps opening along the bottom edge.
+		//
+		// The cards sit on a circle centred that far below the row instead, so every one of them leans away
+		// from the same point, the outer ones ride lower than the middle, and the whole thing comes out of
+		// a single number anybody can picture: how far down the hand holding it would be.
+		//
+		// Placed by hand rather than by a layout group, which owns position and would put them straight
+		// back in a line. The count is small, fixed by the rules, and entirely this panel's business.
+		private void PlaceOnFan(RectTransform card, int index, int count)
 		{
-			if (count <= 1) return 0f;
+			card.anchorMin = new Vector2(0.5f, 0.5f);
+			card.anchorMax = new Vector2(0.5f, 0.5f);
+			card.pivot = new Vector2(0.5f, 0.5f);
+			card.sizeDelta = _communityCardSize;
 
-			return Mathf.Lerp(_communityFanAngle, -_communityFanAngle, index / (float)(count - 1));
+			var offset = (index - (count - 1) * 0.5f) * _communityCardSpacing;
+
+			if (_communityFanRadius <= 0f)
+			{
+				card.anchoredPosition = new Vector2(offset, 0f);
+				card.localRotation = Quaternion.identity;
+				return;
+			}
+
+			// Clamped because a board wider than the fan is deep has no angle to sit at, and asin would
+			// hand back NaN rather than saying so.
+			var angle = Mathf.Asin(Mathf.Clamp(offset / _communityFanRadius, -1f, 1f));
+
+			card.anchoredPosition = new Vector2(offset, _communityFanRadius * (Mathf.Cos(angle) - 1f));
+			card.localRotation = Quaternion.Euler(0f, 0f, -angle * Mathf.Rad2Deg);
 		}
 
 		private void Refresh()
@@ -109,13 +136,7 @@ namespace Game.Runtime.UI.Poker
 
 			var cards = Data.CommunityCards;
 
-			while (_communityCards.Count < cards.Count)
-			{
-				var card = Instantiate(_cardPrefab, _communityContainer);
-				((RectTransform)card.transform).sizeDelta = _communityCardSize;
-
-				_communityCards.Add(card);
-			}
+			while (_communityCards.Count < cards.Count) _communityCards.Add(Instantiate(_cardPrefab, _communityContainer));
 
 			for (var i = 0; i < _communityCards.Count; i++)
 			{
@@ -124,9 +145,9 @@ namespace Game.Runtime.UI.Poker
 
 				if (!used) continue;
 
-				// Re-aimed on every pass rather than once at creation: the lean is a card's place in the
-				// fan, and a board that grows from three to five moves every card's place with it.
-				_communityCards[i].transform.localRotation = Quaternion.Euler(0f, 0f, FanAngle(i, cards.Count));
+				// Re-placed on every pass rather than once at creation: where a card sits in the fan is a
+				// function of how many there are, and a board growing from three to five moves all of them.
+				PlaceOnFan((RectTransform)_communityCards[i].transform, i, cards.Count);
 
 				// The board is on the table whole from the deal, so a hand that ended before the river shows
 				// the cards it never turned as backs rather than spoiling them here.
