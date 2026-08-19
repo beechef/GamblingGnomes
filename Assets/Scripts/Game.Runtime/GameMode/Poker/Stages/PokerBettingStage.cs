@@ -84,6 +84,23 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			return owed >= data.Chips ? data.Chips : Mathf.Min(data.Chips, MaximumAllIn);
 		}
 
+		// Whether calling is still an answer of its own. A call that would cost this player everything is
+		// not a call — it is the shove standing next to it, and offering both would be the same move under
+		// two words, one of which announces the wrong thing to the table.
+		//
+		// Asked by the pad rather than by the server: the server keeps taking Call from a short stack and
+		// paying what it can, which is what an expired turn falls back on. Refusing to *offer* something the
+		// server would still accept is the safe direction; the other way round is the one that strands a
+		// lit button on a move that gets dropped.
+		public bool CanCall(PokerPlayerData data)
+		{
+			if (!data || !Data || data.Chips <= 0) return false;
+
+			var owed = Data.CurrentBet.Value - data.Bet.Value;
+
+			return owed > 0 && owed < data.Chips;
+		}
+
 		// Whether the petal is on offer at all: always, where the table allows shoving, and otherwise only
 		// to somebody who cannot cover what is owed. Read by the pad and by the server from one place.
 		public bool CanAllIn(PokerPlayerData data)

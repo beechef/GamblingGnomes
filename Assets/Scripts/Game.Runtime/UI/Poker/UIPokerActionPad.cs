@@ -131,7 +131,7 @@ namespace Game.Runtime.UI.Poker
 			var canAllIn = ourTurn && stage.CanAllIn(LocalData);
 			var allInAmount = stage ? stage.AllInAmountFor(LocalData) : 0;
 
-			if (_callButton) _callButton.IsInteractable = ourTurn && owed > 0;
+			if (_callButton) _callButton.IsInteractable = ourTurn && stage.CanCall(LocalData);
 			if (_allInButton) _allInButton.IsInteractable = canAllIn;
 			if (_foldButton) _foldButton.IsInteractable = ourTurn;
 
