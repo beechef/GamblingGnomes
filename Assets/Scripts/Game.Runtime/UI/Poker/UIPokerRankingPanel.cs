@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using Game.Runtime.GameMode.Poker;
 using Game.Runtime.GameMode.Poker.Player;
+using Unity.Netcode;
 using UnityEngine;
 
 namespace Game.Runtime.UI.Poker
@@ -37,15 +39,26 @@ namespace Game.Runtime.UI.Poker
 		protected override void OnBind()
 		{
 			Data.OnShowdownChanged += Refresh;
+
+			// The board and what may be seen of it are separate values, and the showdown list arriving
+			// first is the ordinary case rather than the odd one — a panel that only listened for the list
+			// would draw the board exactly once, at the moment it knew least about it.
+			Data.OnCommunityCardsChanged += HandleCommunityCardsChanged;
+			Data.OnCommunityVisibilityChanged += Refresh;
+
 			Refresh();
 		}
 
 		protected override void OnUnbind()
 		{
+			Data.OnCommunityVisibilityChanged -= Refresh;
+			Data.OnCommunityCardsChanged -= HandleCommunityCardsChanged;
 			Data.OnShowdownChanged -= Refresh;
 
 			if (_panel) _panel.SetActive(false);
 		}
+
+		private void HandleCommunityCardsChanged(NetworkListEvent<CardData> change) => Refresh();
 
 		private void Refresh()
 		{

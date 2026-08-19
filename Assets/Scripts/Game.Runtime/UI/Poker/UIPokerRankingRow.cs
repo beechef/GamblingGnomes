@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Game.Runtime.GameMode.Poker;
 using Game.Runtime.GameMode.Poker.Player;
 using TMPro;
+using Unity.Netcode;
 using UnityEngine;
 
 namespace Game.Runtime.UI.Poker
@@ -27,8 +28,16 @@ namespace Game.Runtime.UI.Poker
 
 		private readonly List<UIPokerCard> _cards = new();
 
+		private PokerPlayer _player;
+
+		// The row is handed its place by the panel, and then watches the player it drew. The showdown list
+		// and the reveal it implies live on two different network objects, so they land in either order —
+		// the board arriving first and never looking again is what left the winner's hand face down on
+		// everyone else's screen.
 		public void SetEntry(PokerShowdownEntry entry, PokerPlayer player)
 		{
+			Bind(player);
+
 			if (_placeLabel) _placeLabel.text = Ordinal(entry.Rank);
 			if (_handLabel) _handLabel.text = entry.HandName.ToString();
 
@@ -37,14 +46,36 @@ namespace Game.Runtime.UI.Poker
 			// Nothing won is left blank rather than shown as a zero — a losing row should read as quiet.
 			if (_winningsLabel) _winningsLabel.text = entry.Winnings > 0 ? "+" + entry.Winnings : string.Empty;
 
-			RebuildCards(player);
+			RebuildCards();
 		}
 
-		private void RebuildCards(PokerPlayer player)
+		private void OnDisable() => Bind(null);
+
+		private void Bind(PokerPlayer player)
+		{
+			if (_player == player) return;
+
+			if (_player && _player.Data)
+			{
+				_player.Data.OnStateChanged -= RebuildCards;
+				_player.Data.OnHoleCardsChanged -= HandleHoleCardsChanged;
+			}
+
+			_player = player;
+
+			if (!_player || !_player.Data) return;
+
+			_player.Data.OnStateChanged += RebuildCards;
+			_player.Data.OnHoleCardsChanged += HandleHoleCardsChanged;
+		}
+
+		private void HandleHoleCardsChanged(NetworkListEvent<CardData> change) => RebuildCards();
+
+		private void RebuildCards()
 		{
 			if (!_cardContainer || !_cardPrefab) return;
 
-			var data = player ? player.Data : null;
+			var data = _player ? _player.Data : null;
 			var count = data ? data.CardCount : 0;
 
 			while (_cards.Count < count)
