@@ -9,9 +9,9 @@ using UnityEngine;
 
 namespace Game.Runtime.UI.Poker
 {
-	// The in-game surface of the match config: a button beside Start while the table waits, opening an
-	// overlay everyone can read and only the host can edit. Values go up through the store's RPC and
-	// come back replicated, so what a client's panel shows is what the server actually holds.
+	// The in-game surface of the match config: a button beside Start while the table waits, host only —
+	// the same gate as the start button itself. Values go up through the store's RPC and come back
+	// replicated, so what the panel shows is what the server actually holds.
 	public class UIPokerConfigPanel : UIPokerView, IMatchConfigValueAccess
 	{
 		[Header("References")]
@@ -85,12 +85,13 @@ namespace Game.Runtime.UI.Poker
 
 		private void Refresh()
 		{
-			var waiting = Data && Data.Phase.Value == PokerPhase.Waiting;
+			var isHost = NetworkManager.Singleton && NetworkManager.Singleton.IsHost;
+			var visible = isHost && Data && Data.Phase.Value == PokerPhase.Waiting;
 
-			if (_openButton && _openButton.gameObject.activeSelf != waiting) _openButton.gameObject.SetActive(waiting);
+			if (_openButton && _openButton.gameObject.activeSelf != visible) _openButton.gameObject.SetActive(visible);
 
 			// The deal starting is the table's own way of saying the rules are settled.
-			if (!waiting && IsOpen) ClosePanel();
+			if (!visible && IsOpen) ClosePanel();
 			else if (IsOpen) RefreshEditable();
 		}
 
