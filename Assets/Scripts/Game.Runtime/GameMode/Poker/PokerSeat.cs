@@ -50,9 +50,10 @@ namespace Game.Runtime.GameMode.Poker
 		{
 			if (!base.CanInteract(interactor)) return false;
 
-			// Once the cards are out the table is closed — a late arrival waits for the next hand.
-			if (GameMode && GameMode.IsGameRunning) return false;
-
+			// A running table is not a closed one. Someone arriving mid-hand sits down and waits: they are
+			// dealt in on the next one, and until then they are Waiting rather than in the hand, which every
+			// seat-order helper already reads. What being underway does forbid is *leaving*, and that is
+			// CanStand's question rather than this one.
 			return CanMeetTheStake(interactor);
 		}
 
