@@ -24,6 +24,10 @@ namespace Game.Runtime.UI.Poker
 		[Tooltip("Board cards are sized here for the same reason the row sizes its own: a stretched card stops looking like one.")]
 		[SerializeField] private Vector2 _communityCardSize = new(80f, 120f);
 
+		[Tooltip("How far the outermost board card leans, in degrees. The row fans evenly between the two edges so the board reads as cards laid down by hand rather than a row of tiles. Zero lays them flat; a negative angle fans the other way.")]
+		[Range(-30f, 30f)]
+		[SerializeField] private float _communityFanAngle = 5f;
+
 		[Header("Community")]
 		[SerializeField] private RectTransform _communityContainer;
 		[SerializeField] private UIPokerCard _cardPrefab;
@@ -59,6 +63,15 @@ namespace Game.Runtime.UI.Poker
 		}
 
 		private void HandleCommunityCardsChanged(NetworkListEvent<CardData> change) => Refresh();
+
+		// Spread evenly between the two edges, so the middle of any board sits upright and a board of one
+		// card is not left leaning on nothing.
+		private float FanAngle(int index, int count)
+		{
+			if (count <= 1) return 0f;
+
+			return Mathf.Lerp(_communityFanAngle, -_communityFanAngle, index / (float)(count - 1));
+		}
 
 		private void Refresh()
 		{
@@ -109,9 +122,15 @@ namespace Game.Runtime.UI.Poker
 				var used = i < cards.Count;
 				_communityCards[i].gameObject.SetActive(used);
 
+				if (!used) continue;
+
+				// Re-aimed on every pass rather than once at creation: the lean is a card's place in the
+				// fan, and a board that grows from three to five moves every card's place with it.
+				_communityCards[i].transform.localRotation = Quaternion.Euler(0f, 0f, FanAngle(i, cards.Count));
+
 				// The board is on the table whole from the deal, so a hand that ended before the river shows
 				// the cards it never turned as backs rather than spoiling them here.
-				if (used) _communityCards[i].SetCard(cards[i], Data.IsCommunityCardVisible(i));
+				_communityCards[i].SetCard(cards[i], Data.IsCommunityCardVisible(i));
 			}
 		}
 	}
