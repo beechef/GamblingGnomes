@@ -1,5 +1,58 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &495812580093171043
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6947697175159183131}
+  - component: {fileID: 4134882048929018770}
+  m_Layer: 0
+  m_Name: PlayerManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6947697175159183131
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 495812580093171043}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2167044627753137391}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4134882048929018770
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 495812580093171043}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5374716003b230c4588111f4847a4e67, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Controller.PlayerManager
+  ShowTopMostFoldoutHeaderGroup: 1
+  _playerPrefab: {fileID: 8037118792031602628, guid: 59e5ab48b33564b4e9e607ac9d457a0d, type: 3}
+  _spawnPoints:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
 --- !u!1 &7894337194493779765
 GameObject:
   m_ObjectHideFlags: 0
@@ -14,6 +67,7 @@ GameObject:
   - component: {fileID: 7373537335293292376}
   - component: {fileID: 8672451930287465123}
   - component: {fileID: 135968135760417175}
+  - component: {fileID: 5216713172552861770}
   m_Layer: 0
   m_Name: GameMode_Poker
   m_TagString: Untagged
@@ -33,7 +87,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 6947697175159183131}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &2214475242416655445
@@ -48,8 +103,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 1159883017
-  InScenePlacedSourceGlobalObjectIdHash: 0
+  GlobalObjectIdHash: 1428836412
+  InScenePlacedSourceGlobalObjectIdHash: 1159883017
   DeferredDespawnTick: 0
   Ownership: 1
   AlwaysReplicateAsRoot: 0
@@ -233,6 +288,7 @@ MonoBehaviour:
   _modules:
   - {fileID: 8672451930287465123}
   - {fileID: 135968135760417175}
+  - {fileID: 5216713172552861770}
   _hudPrefab: {fileID: 3807829601385342317, guid: ef9948bd034b1b74abea24c6ec82bd46, type: 3}
   _data: {fileID: 370272023844681654}
   _seats: []
@@ -335,8 +391,38 @@ MonoBehaviour:
   _moduleId: 
   _enabledByDefault: 1
   _bloodSpent: 1
-  _moneyGained: 10
+  _moneyGained: 1
   _minimumHealthKept: 1
+  Enabled:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 1
+--- !u!114 &5216713172552861770
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7894337194493779765}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ffee3b9f53d90e6439c609d8882594cc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Modules.PokerBlackoutModule
+  ShowTopMostFoldoutHeaderGroup: 1
+  _moduleId: 
+  _enabledByDefault: 1
+  _stageChances: []
+  _defaultChance: 0.5
+  _blackoutsPerHand: 1
+  _delayRange: {x: 4, y: 25}
+  _durationRange: {x: 2, y: 6}
+  IsDark:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
   Enabled:
     UpdateTraits:
       MinSecondsBetweenUpdates: 0
