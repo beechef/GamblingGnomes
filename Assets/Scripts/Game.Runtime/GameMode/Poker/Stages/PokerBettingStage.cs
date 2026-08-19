@@ -272,7 +272,17 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			// call itself already clamps to.
 			if (!_timeoutFolds)
 			{
-				if (owed > 0 && HandleAction(clientId, PokerActionType.Call, 0)) return;
+				var data = player.Data;
+
+				// Call first, and only where it is really a call — asked through the same method the pad
+				// lights that petal from, so a turn that runs out makes the move the player was being
+				// offered rather than a differently named one.
+				if (CanCall(data) && HandleAction(clientId, PokerActionType.Call, 0)) return;
+
+				// Short of the price: in for what they hold. Only ever the call they cannot cover, never a
+				// shove of their own — a silence is not a decision to put everything on the table.
+				if (owed > 0 && owed >= data.Chips && HandleAction(clientId, PokerActionType.AllIn, 0)) return;
+
 				if (HandleAction(clientId, PokerActionType.Check, 0)) return;
 				if (owed <= 0 && PassSquareTurn(player)) return;
 			}
