@@ -191,21 +191,34 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 			var owed = Data.CurrentBet.Value - player.Data.Bet.Value;
 
+			// A turn has to end, and leaving it on the clock would tick this branch forever with the table
+			// waiting on somebody who has already stopped answering. Fold is the one answer nothing can
+			// refuse — and also the harshest thing that can happen to a player who merely went quiet — so
+			// it is reached for last, after every answer that costs them nothing has been tried in turn.
+			//
 			// Nothing owed makes a call a check by another name, and the announcement should say the one
 			// that happened. A short stack calling more than it holds goes in for what it has, which the
 			// call itself already clamps to.
-			var timeoutAction = _timeoutFolds
-				? PokerActionType.Fold
-				: owed <= 0
-					? PokerActionType.Check
-					: PokerActionType.Call;
-
-			// A turn has to end. Every refusal here is a rule saying the polite answer is not available —
-			// a street that forbids checking, say — and leaving the turn on the clock would tick this
-			// branch forever with the table waiting on somebody who has already stopped answering.
-			if (HandleAction(clientId, timeoutAction, 0)) return;
+			if (!_timeoutFolds)
+			{
+				if (owed > 0 && HandleAction(clientId, PokerActionType.Call, 0)) return;
+				if (HandleAction(clientId, PokerActionType.Check, 0)) return;
+				if (owed <= 0 && PassSquareTurn(player)) return;
+			}
 
 			HandleAction(clientId, PokerActionType.Fold, 0);
+		}
+
+		// Owing nothing, this player is already square with the street and it has nothing left to ask them.
+		// A street may still forbid checking, but that rule is about choosing to tap the table instead of
+		// putting something in — applying it to a silence throws a paid-up hand away for a rule nobody
+		// wrote, which is how a call-or-fold street ended up folding everyone who stopped clicking.
+		private bool PassSquareTurn(PokerPlayer player)
+		{
+			player.Data.HasActed.Value = true;
+
+			AdvanceAfterAction();
+			return true;
 		}
 
 		public override bool HandleAction(ulong clientId, PokerActionType action, int amount)

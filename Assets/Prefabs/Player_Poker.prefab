@@ -18511,7 +18511,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.PlayerHeadStretchController
   ShowTopMostFoldoutHeaderGroup: 1
-  _lookBone: 12
+  _stretchRootBone: 3
   _maxReach: 2
   _lookWeight: 1
   _extendDuration: 0.6
@@ -18524,6 +18524,11 @@ MonoBehaviour:
     UpdateTraits:
       MinSecondsBetweenUpdates: 0
       MaxSecondsBetweenUpdates: 0
+  LookBaseline:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: {x: 0, y: 0}
 --- !u!114 &4806397848947566528
 MonoBehaviour:
   m_ObjectHideFlags: 0

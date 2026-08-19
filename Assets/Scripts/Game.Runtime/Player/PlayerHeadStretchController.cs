@@ -25,8 +25,8 @@ namespace Game.Runtime.Player
 		private const float Epsilon = 0.0001f;
 
 		[Header("Reach")]
-		[Tooltip("What the head goes over there to look at when that player offers no pose of their own. The other player's card hand, by default.")]
-		[SerializeField] private PlayerBone _lookBone = PlayerBone.HandRight;
+		[Tooltip("Where the stretch starts from. Every bone between this one and the one the camera hangs off is spread apart to make the neck; picking one further down puts more of the body into the lean.")]
+		[SerializeField] private PlayerBone _stretchRootBone = PlayerBone.Neck;
 
 		[Tooltip("Longest the neck may get, in world units. Anything further away is leaned toward rather than reached.")]
 		[SerializeField] private float _maxReach = 2f;
@@ -50,6 +50,13 @@ namespace Game.Runtime.Player
 		// Public on purpose: the whole point of sending your neck across the table is that everyone sees
 		// you do it. What the lean earns its owner is the private half, and it is kept somewhere else.
 		[HideInInspector] public NetworkVariable<NetworkBehaviourReference> Target = new(default,
+			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
+
+		// Where the leaner's look stood when the lean began. Part of the act rather than a note each client
+		// takes for itself: the player can still turn their head out there, and that turn is measured off
+		// this — so a baseline captured locally, at whatever moment each client's own copy of the stretch
+		// got going, is a different zero on every screen and the turn nobody else sees properly.
+		[HideInInspector] public NetworkVariable<Vector2> LookBaseline = new(default,
 			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
 
 		private readonly List<Transform> _chain = new();
@@ -113,6 +120,13 @@ namespace Game.Runtime.Player
 		{
 			if (!IsServer || !target || target == _rig) return;
 
+			// Captured before the act goes out, so it arrives with it and every peer measures the leaner's
+			// own turn from the same zero.
+			if (_playerController)
+			{
+				LookBaseline.Value = new Vector2(_playerController.ReplicatedLookYaw, _playerController.ReplicatedLookPitch);
+			}
+
 			Target.Value = new NetworkBehaviourReference(target);
 
 			_releaseTime = NetworkManager.ServerTime.Time + Mathf.Max(0f, duration);
@@ -159,17 +173,16 @@ namespace Game.Runtime.Player
 			}
 
 			var target = TargetRig;
-			if (target)
+			if (target && TryResolveReachPose(target, out _lastReachPoint, out _lastReachRotation))
 			{
-				ResolveReachPose(target, out _lastReachPoint, out _lastReachRotation);
 				_hasLastPose = true;
 			}
 			else
 			{
-				// The lean is over, or whoever was being leaned at has left the table. It travels home from
-				// where it was rather than snapping: the retract tween is only visible if something keeps
-				// drawing the neck while it runs.
-				TweenWeight(0f, _retractDuration, _retractEase);
+				// The lean is over, whoever was being leaned at has left the table, or they are offering
+				// nothing to come and read. It travels home from where it was rather than snapping: the
+				// retract tween is only visible if something keeps drawing the neck while it runs.
+				if (!target) TweenWeight(0f, _retractDuration, _retractEase);
 
 				if (!_hasLastPose) return;
 			}
@@ -251,13 +264,13 @@ namespace Game.Runtime.Player
 			// The neck ends in whichever bone the first person camera hangs off, so a head sent across the
 			// table takes the view with it rather than leaving the player behind watching themselves.
 			var head = _rig.RenderedHead;
-			var neck = rig.Get(PlayerBone.Neck);
-			if (!head || !neck || !head.IsChildOf(neck) || head == neck) return;
+			var root = rig.Get(_stretchRootBone);
+			if (!head || !root || !head.IsChildOf(root) || head == root) return;
 
 			for (var bone = head.parent; bone; bone = bone.parent)
 			{
 				_chain.Insert(0, bone);
-				if (bone == neck) break;
+				if (bone == root) break;
 			}
 
 			_head = head;
@@ -290,39 +303,22 @@ namespace Game.Runtime.Player
 			for (var i = 0; i < _chainOffsets.Count; i++) _chainOffsets[i] /= _restLength;
 		}
 
-		// Whatever the other player is holding up to be read outranks the bone. A fist of cards is edge on
-		// to everyone but its owner, so a neck that travelled all that way to stare at the bone holding them
-		// arrived at the one angle they cannot be read from.
-		private bool TryGetOfferedPose(PlayerRigController target, out Vector3 position, out Quaternion rotation)
-		{
-			if (target.TryGetComponent<IPlayerLookPoint>(out var offered) && offered.TryGetLookPose(out position, out rotation))
-			{
-				return true;
-			}
-
-			position = default;
-			rotation = default;
-
-			return false;
-		}
-
+		// Where the other player is holding something up to be read, said as a pose in their own prefab. No
+		// bone fallback: a fist of cards is edge on to everyone but its owner, so a neck that travelled all
+		// that way to stare at the bone holding them arrived at the one angle they cannot be read from —
+		// there is no useful answer to guess at when nothing is offered, only a lean that does not happen.
+		//
 		// The pose says where the eye belongs, which is not where the bone belongs: the camera trails the
 		// head by a fixed offset, so the bone is placed behind the spot by exactly that much and the pose's
 		// rotation is unwound through it. Solved rather than converged on — both the offset and the twist
 		// are known, so there is nothing here to iterate toward.
-		private void ResolveReachPose(PlayerRigController target, out Vector3 reachPoint, out Quaternion reachRotation)
+		private bool TryResolveReachPose(PlayerRigController target, out Vector3 reachPoint, out Quaternion reachRotation)
 		{
-			if (!TryGetOfferedPose(target, out var eyePosition, out var eyeRotation))
-			{
-				// Nothing on offer: travel to the bone, aiming at it from wherever the head is standing now.
-				var bone = target.GetBone(_lookBone);
-				eyePosition = bone ? bone.position : target.transform.position;
+			reachPoint = default;
+			reachRotation = default;
 
-				var toBone = eyePosition - _head.position;
-				eyeRotation = toBone.sqrMagnitude > Epsilon * Epsilon
-					? Quaternion.LookRotation(toBone, Vector3.up)
-					: _head.rotation;
-			}
+			if (!target.TryGetComponent<IPlayerLookPoint>(out var offered)) return false;
+			if (!offered.TryGetLookPose(out var eyePosition, out var eyeRotation)) return false;
 
 			var camera = _rig ? _rig.RenderedCamera : null;
 
@@ -332,11 +328,12 @@ namespace Game.Runtime.Player
 			var origin = _chain[0].position;
 			var toPoint = reachPoint - origin;
 			var distance = toPoint.magnitude;
-			if (distance <= Epsilon) return;
+			if (distance <= Epsilon) return true;
 
 			// Never stretched past what a neck may become, nor pulled back inside the shoulders on a
 			// neighbour close enough that it would.
 			reachPoint = origin + toPoint / distance * Mathf.Clamp(distance, _restLength, _maxReach);
+			return true;
 		}
 
 		private void ApplyStretch(Vector3 reachPoint, Quaternion reachRotation)
@@ -375,7 +372,7 @@ namespace Game.Runtime.Player
 			// Given back after the aim rather than left running alongside it, so the two are one write on the
 			// bone rather than two fighting — and measured from where the look stood when it was taken, so
 			// arriving at the cards does not cost the player their bearings.
-			if (_playerController) _playerController.ComposeLookOnto(_head);
+			if (_playerController) _playerController.ComposeLookOnto(_head, LookBaseline.Value.x, LookBaseline.Value.y);
 		}
 	}
 }

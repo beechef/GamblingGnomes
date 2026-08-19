@@ -101,8 +101,6 @@ namespace Game.Runtime.Player
 		private bool _lookSuspended;
 		private float _appliedLookYaw;
 		private float _appliedLookPitch;
-		private float _handoverYaw;
-		private float _handoverPitch;
 		private float _constraintYaw;
 		private Vector2 _constraintYawLimits;
 		private Vector2 _activePitchLimits;
@@ -191,33 +189,33 @@ namespace Game.Runtime.Player
 		// Set on every peer, like the anchor and the look mode, because the act it belongs to is replicated.
 		public void SetLookSuspended(bool suspended)
 		{
-			if (_lookSuspended == suspended) return;
-
 			_lookSuspended = suspended;
-
-			// Where the look stood when it was taken becomes the new zero, so the view starts square with
-			// whatever the taker aimed at instead of jumping by however far the player happened to already
-			// be looking. Read off the last angles applied rather than the owner's own, since a remote peer
-			// is watching this act too and only ever knows the interpolated ones.
-			if (!suspended) return;
-
-			_handoverYaw = _appliedLookYaw;
-			_handoverPitch = _appliedLookPitch;
 		}
+
+		// The angles as everyone knows them. Whatever takes the look over needs a zero to measure the
+		// player's turn from, and it has to be a number every peer agrees on — so it is read from here,
+		// replicated by the act itself, rather than each client noting down whatever it happened to be
+		// showing when its own copy of the act began.
+		public float ReplicatedLookYaw => _lookYaw.Value;
+		public float ReplicatedLookPitch => _pitch.Value;
 
 		// Given back on the bone the taker settled on, so a neck stretched across the table can still be
 		// looked around from. Composed in the camera's own frame rather than the character's: the view is
 		// out there facing whatever the act aimed it at, and on this Maya-style rig the head bone's axes are
 		// a quarter turn off the way it is looking — pitched around those, looking up would go sideways.
-		public void ComposeLookOnto(Transform bone)
+		//
+		// The baseline is handed in rather than remembered here, because it belongs to the act: measured
+		// locally it is a different number on every screen, and the turn everyone else watches drifts off
+		// the one the player is making.
+		public void ComposeLookOnto(Transform bone, float baselineYaw, float baselinePitch)
 		{
 			if (!_lookSuspended || !bone) return;
 
 			var camera = ActiveCamera;
 
 			ApplyLookTo(bone, camera ? camera.transform : bone,
-				Mathf.DeltaAngle(_handoverYaw, _appliedLookYaw),
-				Mathf.DeltaAngle(_handoverPitch, _appliedLookPitch));
+				Mathf.DeltaAngle(baselineYaw, _appliedLookYaw),
+				Mathf.DeltaAngle(baselinePitch, _appliedLookPitch));
 		}
 
 		// Sitting, lying down or any other anchored pose narrows what the look input is allowed to do:
