@@ -25,6 +25,13 @@ namespace Game.Runtime.Player
 		[HideInInspector] public NetworkVariable<int> Money = new(0,
 			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
 
+		// Which of the table's colours this player is wearing. An index rather than the colour itself, so
+		// the palette is an asset that can be restyled without touching the network — and so a client can
+		// never be looking at a colour the others are not. Handed out by whoever owns the pool of them;
+		// negative until it has been.
+		[HideInInspector] public NetworkVariable<int> ColorIndex = new(-1,
+			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
+
 		public event Action OnIdentityChanged;
 
 		public bool CanAfford(int amount) => Money.Value >= amount;
@@ -89,6 +96,13 @@ namespace Game.Runtime.Player
 			// on the way out.
 			var name = displayName ?? string.Empty;
 			DisplayName.Value = name.Length > 32 ? name[..32] : name;
+		}
+
+		public void ServerSetColorIndex(int index)
+		{
+			if (!IsServer) return;
+
+			ColorIndex.Value = index;
 		}
 
 		public void ServerSetMoney(int amount)

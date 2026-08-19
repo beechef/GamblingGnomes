@@ -35,6 +35,10 @@ namespace Game.Runtime.Player
 		[Range(0f, 1f)]
 		[SerializeField] private float _lookWeight = 1f;
 
+		[Header("Debug")]
+		[Tooltip("Writes one line per meaningful change saying what this peer is composing onto the stretched head: the baseline the act carried, the angles this peer is drawing with, and whether it is the leaner's own machine. Run it on host and client together — the two lines beside each other name which half is not moving, which no amount of reading the code will.")]
+		[SerializeField] private bool _logComposedLook;
+
 		[Header("Timing")]
 		[SerializeField] private float _extendDuration = 0.6f;
 		[SerializeField] private Ease _extendEase = Ease.OutBack;
@@ -75,6 +79,8 @@ namespace Game.Runtime.Player
 		private Quaternion _lastReachRotation;
 		private bool _hasLastPose;
 		private bool _restored = true;
+		private Vector2 _loggedLook;
+		private bool _hasLoggedLook;
 
 		private Transform _head;
 		private Tween _weightTween;
@@ -372,7 +378,31 @@ namespace Game.Runtime.Player
 			// Given back after the aim rather than left running alongside it, so the two are one write on the
 			// bone rather than two fighting — and measured from where the look stood when it was taken, so
 			// arriving at the cards does not cost the player their bearings.
-			if (_playerController) _playerController.ComposeLookOnto(_head, LookBaseline.Value.x, LookBaseline.Value.y);
+			if (!_playerController) return;
+
+			_playerController.ComposeLookOnto(_head, LookBaseline.Value.x, LookBaseline.Value.y);
+
+			LogComposedLook();
+		}
+
+		// Logged on a change rather than per frame, and a peer that never moves is exactly the case worth
+		// reading — so a first line goes out whatever it says.
+		private void LogComposedLook()
+		{
+			if (!_logComposedLook) return;
+
+			var yaw = Mathf.DeltaAngle(LookBaseline.Value.x, _playerController.AppliedLookYaw);
+			var pitch = Mathf.DeltaAngle(LookBaseline.Value.y, _playerController.AppliedLookPitch);
+
+			if (_hasLoggedLook && Mathf.Abs(Mathf.DeltaAngle(_loggedLook.x, yaw)) < 0.5f
+				&& Mathf.Abs(Mathf.DeltaAngle(_loggedLook.y, pitch)) < 0.5f) return;
+
+			_hasLoggedLook = true;
+			_loggedLook = new Vector2(yaw, pitch);
+
+			Debug.Log($"[PlayerHeadStretchController] owner={IsOwner} baseline={LookBaseline.Value} " +
+				$"applied=({_playerController.AppliedLookYaw:F1}, {_playerController.AppliedLookPitch:F1}) " +
+				$"composed=({yaw:F1}, {pitch:F1}) weight={_weight:F2} head={_head.name}");
 		}
 	}
 }

@@ -186,6 +186,7 @@ GameObject:
   - component: {fileID: 6016601238787419408}
   - component: {fileID: 503688790795089527}
   - component: {fileID: 3119346497539496029}
+  - component: {fileID: -805087061068566789}
   m_Layer: 0
   m_Name: Player_Poker
   m_TagString: Untagged
@@ -411,6 +412,11 @@ MonoBehaviour:
       MinSecondsBetweenUpdates: 0
       MaxSecondsBetweenUpdates: 0
     m_InternalValue: 0
+  ColorIndex:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: -1
 --- !u!114 &7879851542364479177
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -696,6 +702,25 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.PlayerLookTarget
   _point: {fileID: 4726230110908427231}
+--- !u!114 &-805087061068566789
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 122163979769981132}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 37cc9ebfb79d2ba47817a8fe1be01e98, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.PlayerColorVisual
+  ShowTopMostFoldoutHeaderGroup: 1
+  _renderers:
+  - {fileID: 3781415929434679501}
+  _materialIndex: 0
+  _colorProperty: _BaseColor
+  _database: {fileID: 11400000, guid: 4f081266cbc61104fb9ee674ec72a1e3, type: 2}
+  _data: {fileID: 7186681382804677488}
 --- !u!1 &153499166985686629
 GameObject:
   m_ObjectHideFlags: 0
@@ -18514,6 +18539,7 @@ MonoBehaviour:
   _stretchRootBone: 3
   _maxReach: 2
   _lookWeight: 1
+  _logComposedLook: 0
   _extendDuration: 0.6
   _extendEase: 27
   _retractDuration: 0.4
@@ -20122,6 +20148,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: Non_Gnome
       objectReference: {fileID: 0}
+    - target: {fileID: 1401619751137323546, guid: 9c3a65dfc553dc64c9d2308139ffd295, type: 3}
+      propertyPath: 'm_Materials.Array.data[0]'
+      value: 
+      objectReference: {fileID: 2100000, guid: f095a7dfaaf85f644a853fbc23d9e6a2, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []

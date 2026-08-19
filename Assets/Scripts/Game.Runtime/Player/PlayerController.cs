@@ -199,6 +199,12 @@ namespace Game.Runtime.Player
 		public float ReplicatedLookYaw => _lookYaw.Value;
 		public float ReplicatedLookPitch => _pitch.Value;
 
+		// The angles this peer last drew with, whether it drew them on a bone of its own or handed them to
+		// a taker. What a remote is actually working from, which is the one thing a "it only turns on my
+		// machine" report cannot be diagnosed without.
+		public float AppliedLookYaw => _appliedLookYaw;
+		public float AppliedLookPitch => _appliedLookPitch;
+
 		// Given back on the bone the taker settled on, so a neck stretched across the table can still be
 		// looked around from. Composed in the camera's own frame rather than the character's: the view is
 		// out there facing whatever the act aimed it at, and on this Maya-style rig the head bone's axes are

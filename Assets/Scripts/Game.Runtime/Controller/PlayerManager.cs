@@ -27,12 +27,19 @@ namespace Game.Runtime.Controller
 		// PlayerData, not for a copy kept here.
 		private readonly Dictionary<ulong, PlayerEntry> _players = new();
 
+		// Which colours are spoken for. Held as a set of claims rather than counted off the player list,
+		// because the whole point is that a player leaving mid-game leaves a *hole*: the next arrival takes
+		// the lowest free number, not the next one up, so a table that has churned all evening still has
+		// everybody in the first few colours instead of drifting off the end of the palette.
+		private readonly HashSet<int> _claimedColorIndices = new();
+
 		private readonly struct PlayerEntry
 		{
-			public PlayerEntry(NetworkObject player)
+			public PlayerEntry(NetworkObject player, int colorIndex)
 			{
 				NetworkObjectId = player.NetworkObjectId;
 				Object = player;
+				ColorIndex = colorIndex;
 			}
 
 			// Held beside the object because a destroyed one can no longer be asked for its id, and the
@@ -40,6 +47,9 @@ namespace Game.Runtime.Controller
 			public ulong NetworkObjectId { get; }
 
 			public NetworkObject Object { get; }
+
+			// Kept here for the same reason: the claim has to be given back after the body is gone.
+			public int ColorIndex { get; }
 		}
 
 		public override void OnNetworkSpawn()
@@ -95,14 +105,32 @@ namespace Game.Runtime.Controller
 				position: spawnPoint ? spawnPoint.transform.position : Vector3.zero,
 				rotation: spawnPoint ? spawnPoint.transform.rotation : Quaternion.identity);
 
+			var colorIndex = ClaimColorIndex();
+
+			// Written straight after the spawn rather than from the player's own OnNetworkSpawn: which
+			// colour is free is a question about the whole table, and only this side of it knows.
+			var data = player.GetComponent<PlayerData>();
+			if (data) data.ServerSetColorIndex(colorIndex);
+
 			Players.Add(player);
-			_players[clientId] = new PlayerEntry(player);
+			_players[clientId] = new PlayerEntry(player, colorIndex);
+		}
+
+		// Lowest free, so a seat vacated mid-game is the one the next arrival walks into.
+		private int ClaimColorIndex()
+		{
+			for (var index = 0; ; index++)
+			{
+				if (_claimedColorIndices.Add(index)) return index;
+			}
 		}
 
 		private void HandlePlayerDisconnected(ulong clientId)
 		{
 			if (!IsHost) return;
 			if (!_players.Remove(clientId, out var entry)) return;
+
+			_claimedColorIndices.Remove(entry.ColorIndex);
 
 			RemoveFromPlayers(entry.NetworkObjectId);
 
@@ -123,6 +151,7 @@ namespace Game.Runtime.Controller
 
 			_players.Clear();
 			Players.Clear();
+			_claimedColorIndices.Clear();
 		}
 
 		private void RemoveFromPlayers(ulong networkObjectId)
