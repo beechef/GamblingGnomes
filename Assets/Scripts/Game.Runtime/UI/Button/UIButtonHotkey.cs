@@ -1,3 +1,4 @@
+using Game.Runtime.Controller;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -36,6 +37,8 @@ namespace Game.Runtime.UI.Button
 				_action.action.Enable();
 			}
 
+			InputSchemeController.OnSchemeChanged += HandleSchemeChanged;
+
 			RefreshLabel();
 		}
 
@@ -49,8 +52,12 @@ namespace Game.Runtime.UI.Button
 				_action.action.Disable();
 			}
 
+			InputSchemeController.OnSchemeChanged -= HandleSchemeChanged;
+
 			Release();
 		}
+
+		private void HandleSchemeChanged(InputScheme scheme) => RefreshLabel();
 
 		private void HandleStarted(InputAction.CallbackContext context)
 		{
@@ -75,7 +82,9 @@ namespace Game.Runtime.UI.Button
 		{
 			if (!_keyLabel) return;
 
-			_keyLabel.text = _action ? _action.action.GetBindingDisplayString() : string.Empty;
+			_keyLabel.text = _action
+				? _action.action.GetBindingDisplayString(InputSchemeController.DisplayMask)
+				: string.Empty;
 		}
 	}
 }
