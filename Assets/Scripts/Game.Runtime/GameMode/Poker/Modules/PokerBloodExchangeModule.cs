@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Game.Runtime.GameMode.Config;
 using Game.Runtime.GameMode.Poker.Player;
+using Game.Runtime.GameMode.Poker.Stages;
 using Sirenix.OdinInspector;
 using Unity.Netcode;
 using UnityEngine;
@@ -65,6 +66,25 @@ namespace Game.Runtime.GameMode.Poker.Modules
 			Enabled.Value = enabled;
 		}
 
+		// Offered as the street opens rather than only to whoever is about to be asked. A player who is
+		// broke when the cards change is broke for every decision the street is about to bring, and being
+		// told so at the moment the table asks them is too late to have thought about it.
+		public override void OnStageStarted(PokerStage stage)
+		{
+			if (!IsServer || !Enabled.Value) return;
+
+			// An overlay is already staked in blood; topping players up inside one would fund an
+			// accusation with the very thing it is being paid in.
+			if (GameMode.CurrentOverlay) return;
+
+			foreach (var player in GameMode.SeatedPlayers)
+			{
+				if (player && player.Data) ExchangeServer(player);
+			}
+		}
+
+		// Kept alongside the street-opening sweep rather than replaced by it: a player only goes broke
+		// part way through a street, and this is what catches them before they are asked to answer.
 		public override void OnTurnBegan(ulong clientId)
 		{
 			if (!IsServer || !Enabled.Value) return;
