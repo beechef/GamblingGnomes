@@ -1,14 +1,17 @@
 using Game.Runtime.GameMode.Poker;
 using Game.Runtime.UI.Button;
 using Sirenix.OdinInspector;
+using Unity.Netcode;
 using UnityEngine;
 
 namespace Game.Runtime.UI.Poker
 {
 	// Looking at your own cards is not one of the street's answers, so it does not belong on the pad that
-	// carries them. It is the one thing a seated player may always do — before the deal, between hands,
-	// after folding, underneath an accusation — and living inside a pad that hides on every one of those
-	// took it away exactly when there was nothing else to do but look.
+	// carries them. It answers to the chair instead: it stays on screen for as long as the player is
+	// sitting at this table — before the deal, between hands, underneath an accusation — where living
+	// inside a pad that hides on every one of those took it away exactly when there was nothing else to
+	// do but look. It goes dark rather than away once there is no hand to look at, which is what a fold
+	// leaves behind.
 	//
 	// Its own view for that reason: the pads come and go with the moment, this answers only to the chair.
 	public class UIPokerCheckPanel : UIPokerView
@@ -32,6 +35,13 @@ namespace Game.Runtime.UI.Poker
 			if (_checkButton) _checkButton.OnClick += HandleCheckCards;
 
 			LocalData.OnStateChanged += Refresh;
+
+			// Subscribed on its own because the cards are their own event: OnStateChanged speaks for the
+			// status, and folding writes the status and clears the hand as two separate replicated changes
+			// whose order of arrival is not decided. Hearing only the first leaves the button lit over a
+			// hand that has already been mucked.
+			LocalData.OnHoleCardsChanged += HandleHoleCardsChanged;
+
 			Data.Phase.OnValueChanged += HandlePhaseChanged;
 
 			Refresh();
@@ -40,7 +50,12 @@ namespace Game.Runtime.UI.Poker
 		protected override void OnUnbind()
 		{
 			if (Data) Data.Phase.OnValueChanged -= HandlePhaseChanged;
-			if (LocalData) LocalData.OnStateChanged -= Refresh;
+
+			if (LocalData)
+			{
+				LocalData.OnHoleCardsChanged -= HandleHoleCardsChanged;
+				LocalData.OnStateChanged -= Refresh;
+			}
 
 			if (_checkButton) _checkButton.OnClick -= HandleCheckCards;
 
@@ -48,6 +63,8 @@ namespace Game.Runtime.UI.Poker
 		}
 
 		private void HandlePhaseChanged(PokerPhase previous, PokerPhase current) => Refresh();
+
+		private void HandleHoleCardsChanged(NetworkListEvent<CardData> change) => Refresh();
 
 		private void Refresh()
 		{
@@ -58,10 +75,11 @@ namespace Game.Runtime.UI.Poker
 			if (!visible) return;
 
 			// Peeking is free and asks the server for nothing but the pose, so the only gate is having
-			// something to look at.
+			// something to look at. Folding takes that away by mucking the hand, which is what stops a
+			// player who is out of the hand from going on holding nothing up to their face.
 			var peek = LocalPlayer.HandPeek;
 
-			if (_checkButton) _checkButton.IsInteractable = peek && LocalData.CardCount > 0;
+			if (_checkButton) _checkButton.IsInteractable = peek && LocalData.IsInHand && LocalData.CardCount > 0;
 		}
 
 		private void HandleCheckCards()
