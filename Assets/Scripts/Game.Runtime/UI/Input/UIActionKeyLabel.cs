@@ -1,3 +1,4 @@
+using Game.Runtime.Controller;
 using Sirenix.OdinInspector;
 using TMPro;
 using UnityEngine;
@@ -20,14 +21,27 @@ namespace Game.Runtime.UI.Input
 
 		private void OnEnable()
 		{
+			InputSchemeController.OnSchemeChanged += HandleSchemeChanged;
+
 			Refresh();
 		}
+
+		private void OnDisable()
+		{
+			InputSchemeController.OnSchemeChanged -= HandleSchemeChanged;
+		}
+
+		private void HandleSchemeChanged(InputScheme scheme) => Refresh();
 
 		public void Refresh()
 		{
 			if (!_label) return;
 
-			_label.text = _action ? _action.action.GetBindingDisplayString() : string.Empty;
+			// Masked by the scheme in hand, so picking up a pad renames the key rather than leaving the face
+			// naming a keyboard nobody is touching.
+			_label.text = _action
+				? _action.action.GetBindingDisplayString(InputSchemeController.DisplayMask)
+				: string.Empty;
 		}
 
 #if UNITY_EDITOR

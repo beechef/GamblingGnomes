@@ -330,8 +330,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			switch (action)
 			{
 				case PokerActionType.Fold:
-					data.Status.Value = PokerPlayerStatus.Folded;
-					data.HasActed.Value = true;
+					player.ServerFold();
 					break;
 
 				case PokerActionType.Check:

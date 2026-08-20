@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Game.Runtime.GameMode.Config;
 using Game.Runtime.GameMode.Poker.Player;
+using Game.Runtime.GameMode.Poker.Stages;
 using Sirenix.OdinInspector;
 using Unity.Netcode;
 using UnityEngine;
@@ -65,6 +66,30 @@ namespace Game.Runtime.GameMode.Poker.Modules
 			Enabled.Value = enabled;
 		}
 
+		// Before the stage does anything, not after. The deal takes its cost inside StartStage, so a player
+		// down to nothing was being charged the ante with their last coin and put all in on the spot —
+		// staked out of the hand before they had been dealt into it. Selling them blood has to happen while
+		// there is still a decision left to make.
+		public override void OnStageStarting(PokerStage stage)
+		{
+			if (!IsServer || !Enabled.Value) return;
+
+			// An overlay is already staked in blood; topping players up inside one would fund an
+			// accusation with the very thing it is being paid in.
+			if (GameMode.CurrentOverlay) return;
+
+			// Priced against what the stage is about to charge, not against an empty purse: a player left
+			// with nothing after the seat cost is a player who was about to be put all in by it.
+			var upfront = stage ? stage.UpfrontCostPerPlayer : 0;
+
+			foreach (var player in GameMode.SeatedPlayers)
+			{
+				if (player && player.Data) ExchangeServer(player, upfront);
+			}
+		}
+
+		// Kept alongside the street-opening sweep rather than replaced by it: a player only goes broke
+		// part way through a street, and this is what catches them before they are asked to answer.
 		public override void OnTurnBegan(ulong clientId)
 		{
 			if (!IsServer || !Enabled.Value) return;
@@ -79,14 +104,23 @@ namespace Game.Runtime.GameMode.Poker.Modules
 			ExchangeServer(player);
 		}
 
-		// Once per turn rather than in a loop up to some target: a player is asked for the price of one
-		// answer, and how far they want to go is a decision they get to make again next time round.
-		private void ExchangeServer(PokerPlayer player)
+		// Once rather than in a loop up to some target: a player is asked for the price of one answer, and
+		// how far they want to go is a decision they get to make again next time round. A seat cost larger
+		// than one sale is worth will therefore still leave them short — deliberately, since bleeding
+		// somebody repeatedly for a single hand is not a decision anybody made.
+		private void ExchangeServer(PokerPlayer player, int upfrontCost = 0)
 		{
 			var data = player.Data;
 
-			if (data.Chips > 0) return;
-			if (!data.IsAlive || !data.CanAct) return;
+			// What is left once the stage has taken its cost. With nothing to pay it is the purse itself,
+			// which is what a betting street and the top of a turn are asking about.
+			if (data.Chips - upfrontCost > 0) return;
+
+			// Seated and alive, not "able to act right now": the moment this matters most is the one just
+			// before the deal, when nobody is Active yet because the hand has not started. Asking CanAct
+			// there is asking a question whose answer is always no.
+			if (!data.IsSeated || !data.IsAlive) return;
+
 			if (data.Health.Value - BloodSpent < MinimumHealthKept) return;
 
 			data.ServerChangeHealth(-BloodSpent);

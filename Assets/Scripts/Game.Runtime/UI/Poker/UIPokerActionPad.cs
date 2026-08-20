@@ -27,7 +27,6 @@ namespace Game.Runtime.UI.Poker
 		[Tooltip("Shares the call petal's slot: a call the player cannot fully cover is a different move with a different name, so it is a different button rather than the same one wearing another word. Exactly one of the two is ever up.")]
 		[SerializeField] private UIButton _allInButton;
 
-		[SerializeField] private UIButton _checkButton;
 		[SerializeField] private UIButton _foldButton;
 
 		[Header("Labels")]
@@ -48,10 +47,8 @@ namespace Game.Runtime.UI.Poker
 			if (_reportButton) _reportButton.OnClick += HandleReport;
 			if (_callButton) _callButton.OnClick += HandleCall;
 			if (_allInButton) _allInButton.OnClick += HandleAllIn;
-			if (_checkButton) _checkButton.OnClick += HandleCheckCards;
 			if (_foldButton) _foldButton.OnClick += HandleFold;
 
-			if (LocalPlayer.HandPeek) LocalPlayer.HandPeek.IsPeeking.OnValueChanged += HandlePeekingChanged;
 
 			Data.CurrentTurnClientId.OnValueChanged += HandleTurnChanged;
 			Data.CurrentBet.OnValueChanged += HandleBetChanged;
@@ -84,10 +81,8 @@ namespace Game.Runtime.UI.Poker
 			Data.CurrentBet.OnValueChanged -= HandleBetChanged;
 			Data.CurrentTurnClientId.OnValueChanged -= HandleTurnChanged;
 
-			if (LocalPlayer.HandPeek) LocalPlayer.HandPeek.IsPeeking.OnValueChanged -= HandlePeekingChanged;
 
 			if (_foldButton) _foldButton.OnClick -= HandleFold;
-			if (_checkButton) _checkButton.OnClick -= HandleCheckCards;
 			if (_allInButton) _allInButton.OnClick -= HandleAllIn;
 			if (_callButton) _callButton.OnClick -= HandleCall;
 			if (_reportButton) _reportButton.OnClick -= HandleReport;
@@ -97,7 +92,6 @@ namespace Game.Runtime.UI.Poker
 			if (_panel) _panel.SetActive(false);
 		}
 
-		private void HandlePeekingChanged(bool previous, bool current) => RefreshCheck();
 		private void HandleTurnChanged(ulong previous, ulong current) => Refresh();
 		private void HandleBetChanged(int previous, int current) => Refresh();
 		private void HandleStageChanged(FixedString32Bytes previous, FixedString32Bytes current) => Refresh();
@@ -114,7 +108,6 @@ namespace Game.Runtime.UI.Poker
 
 			RefreshStreet();
 			RefreshReport();
-			RefreshCheck();
 		}
 
 		// Call and fold answer the street's question, so they light only on our call-only turn — on any
@@ -153,18 +146,6 @@ namespace Game.Runtime.UI.Poker
 			if (_reportButton) _reportButton.IsInteractable = open;
 		}
 
-		// Peeking is free — it costs nothing and asks the server for nothing but the pose — so the only
-		// gate is having cards to look at. Selected while the cards are up, so the petal itself says
-		// which way the next press flips them.
-		private void RefreshCheck()
-		{
-			if (!_checkButton) return;
-
-			var peek = LocalPlayer.HandPeek;
-
-			_checkButton.IsInteractable = peek && LocalData.IsInHand;
-			// _checkButton.IsSelected = peek && peek.IsPeeking.Value;
-		}
 
 		// The tap names nobody. It stands the accuser up with an arm out and hands them the table to look
 		// at — who it lands on is decided by where they look, not by a list they picked off a menu.
@@ -173,10 +154,6 @@ namespace Game.Runtime.UI.Poker
 			if (_module != null) _module.ReportRPC();
 		}
 
-		private void HandleCheckCards()
-		{
-			if (LocalPlayer.HandPeek) LocalPlayer.HandPeek.TogglePeekRPC();
-		}
 
 		private void HandleCall()
 		{

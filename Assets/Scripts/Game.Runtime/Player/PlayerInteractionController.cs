@@ -64,6 +64,7 @@ namespace Game.Runtime.Player
 
 			_interactAction.action.Enable();
 			_interactAction.action.performed += OnInteractPerformed;
+			InputSchemeController.OnSchemeChanged += HandleSchemeChanged;
 			_inputBound = true;
 
 			SpawnPrompt();
@@ -79,6 +80,7 @@ namespace Game.Runtime.Player
 
 			_interactAction.action.performed -= OnInteractPerformed;
 			_interactAction.action.Disable();
+			InputSchemeController.OnSchemeChanged -= HandleSchemeChanged;
 
 			SetFocused(null);
 			DespawnPrompt();
@@ -278,7 +280,16 @@ namespace Game.Runtime.Player
 			if (actionName == _promptActionName) return;
 
 			_promptActionName = actionName;
-			_prompt.Show(actionName, _interactAction.action.GetBindingDisplayString());
+			_prompt.Show(actionName, _interactAction.action.GetBindingDisplayString(InputSchemeController.DisplayMask));
+		}
+
+		// The guard above is about the verb changing, and the key changing is not that — clearing the
+		// remembered name is what stops a redraw from being mistaken for "nothing happened" and leaving the
+		// prompt naming a keyboard the player has just put down.
+		private void HandleSchemeChanged(InputScheme scheme)
+		{
+			_promptActionName = null;
+			RefreshPrompt();
 		}
 
 		private void OnInteractPerformed(InputAction.CallbackContext ctx)

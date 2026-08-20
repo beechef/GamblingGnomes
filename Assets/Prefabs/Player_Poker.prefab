@@ -1,5 +1,60 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1651240911300962866
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3438344367432844806}
+  - component: {fileID: 7599188654300488951}
+  m_Layer: 0
+  m_Name: Drink
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3438344367432844806
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1651240911300962866}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7915523810459036602}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &7599188654300488951
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1651240911300962866}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4058e2277d1f95d40aab9985a0ffa9fc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Player.PokerDrinkController
+  ShowTopMostFoldoutHeaderGroup: 1
+  _logGrants: 0
+  DrunkUntil:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
+  ExposedTarget:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
 --- !u!1 &5029324686189226801
 GameObject:
   m_ObjectHideFlags: 0
@@ -84,6 +139,83 @@ MonoBehaviour:
   _drawDebugRays: 0
   _logAimChanges: 0
   _lookOrigin: {fileID: 7260468181236647055}
+--- !u!1 &5501318086319530288
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8811620965672119008}
+  - component: {fileID: 1929870118816623789}
+  m_Layer: 0
+  m_Name: Fingers
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8811620965672119008
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5501318086319530288}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7915523810459036602}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1929870118816623789
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5501318086319530288}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f5d838241a78a66429997ed0c873af26, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.PlayerFingerVisual
+  _fingers:
+  - Name: Pinky_L
+    Pieces:
+    - {fileID: 4227159785660077531}
+    - {fileID: 1945477928914566645}
+  - Name: Pinky_R
+    Pieces:
+    - {fileID: 1924471173119493501}
+    - {fileID: 4243308830328434003}
+  - Name: Index_L
+    Pieces:
+    - {fileID: 897105762595861352}
+    - {fileID: 3181074348177759046}
+  - Name: Index_R
+    Pieces:
+    - {fileID: 4336335301710549314}
+    - {fileID: 2052404791878154604}
+  - Name: Middle_L
+    Pieces:
+    - {fileID: 6933601703635166358}
+    - {fileID: 4643000868209347768}
+  - Name: Middle_R
+    Pieces:
+    - {fileID: 4712309918604957700}
+    - {fileID: 7003983990658625578}
+  - Name: Thumb_L
+    Pieces:
+    - {fileID: 1020926750926629982}
+    - {fileID: 3349928029624829040}
+  - Name: Thumb_R
+    Pieces:
+    - {fileID: 6166447737884150197}
+    - {fileID: 8486405917172949403}
 --- !u!1 &6772456168868988949
 GameObject:
   m_ObjectHideFlags: 0
@@ -140,7 +272,7 @@ Transform:
   m_GameObject: {fileID: 9143877374665817519}
   serializedVersion: 2
   m_LocalRotation: {x: -0, y: 0.9870875, z: 0.1601821, w: 0}
-  m_LocalPosition: {x: 0, y: 1.2, z: 0.3}
+  m_LocalPosition: {x: 0, y: 1.046, z: 0.762}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -226,6 +358,12 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 5390899513882683757, guid: 8a531d709826a264e9027ff908ced981, type: 3}
       insertIndex: -1
       addedObject: {fileID: 8340736963894693341}
+    - targetCorrespondingSourceObject: {fileID: 5390899513882683757, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8811620965672119008}
+    - targetCorrespondingSourceObject: {fileID: 5390899513882683757, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3438344367432844806}
     - targetCorrespondingSourceObject: {fileID: 6591500634726463609, guid: 8a531d709826a264e9027ff908ced981, type: 3}
       insertIndex: -1
       addedObject: {fileID: 7260468181236647055}
@@ -245,6 +383,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 6105733973742945484, guid: 8a531d709826a264e9027ff908ced981, type: 3}
       insertIndex: -1
       addedObject: {fileID: 3119346497539496029}
+    - targetCorrespondingSourceObject: {fileID: 6105733973742945484, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4262478686658790279}
     - targetCorrespondingSourceObject: {fileID: 6736061117846939037, guid: 8a531d709826a264e9027ff908ced981, type: 3}
       insertIndex: -1
       addedObject: {fileID: 7532137638287253186}
@@ -268,6 +409,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 917bfe7928b428848a247b6bd5a71e27, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.PlayerRigController
+--- !u!1 &897105762595861352 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3133076577705292223, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+  m_PrefabInstance: {fileID: 2812995479481287383}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1020926750926629982 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2964154725486816905, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+  m_PrefabInstance: {fileID: 2812995479481287383}
+  m_PrefabAsset: {fileID: 0}
 --- !u!114 &1277917375681613223 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 3942293894947819376, guid: 8a531d709826a264e9027ff908ced981, type: 3}
@@ -290,6 +441,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 685e1405813ac0946a72b2ecc8f5722b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.PlayerGlassesController
+--- !u!1 &1924471173119493501 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4448672604798535594, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+  m_PrefabInstance: {fileID: 2812995479481287383}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &1945477928914566645 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4464894217236496162, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+  m_PrefabInstance: {fileID: 2812995479481287383}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &2052404791878154604 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4283590875452799931, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+  m_PrefabInstance: {fileID: 2812995479481287383}
+  m_PrefabAsset: {fileID: 0}
 --- !u!114 &2468990494341469443 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 381215773534263252, guid: 8a531d709826a264e9027ff908ced981, type: 3}
@@ -301,6 +467,46 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4b1c5cf126132734e87722d8eddf3add, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.PlayerHeadStretchController
+--- !u!1 &3181074348177759046 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 805218819025738129, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+  m_PrefabInstance: {fileID: 2812995479481287383}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &3349928029624829040 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 681329659906524839, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+  m_PrefabInstance: {fileID: 2812995479481287383}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &4227159785660077531 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2134749180232914700, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+  m_PrefabInstance: {fileID: 2812995479481287383}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &4243308830328434003 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 2155683368258383748, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+  m_PrefabInstance: {fileID: 2812995479481287383}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &4336335301710549314 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1955694217446724501, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+  m_PrefabInstance: {fileID: 2812995479481287383}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &4643000868209347768 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7450788648262422127, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+  m_PrefabInstance: {fileID: 2812995479481287383}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &4712309918604957700 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7380476866902923987, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+  m_PrefabInstance: {fileID: 2812995479481287383}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &6166447737884150197 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8258013986572438370, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+  m_PrefabInstance: {fileID: 2812995479481287383}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &6346432835813815847 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 9158856499958494448, guid: 8a531d709826a264e9027ff908ced981, type: 3}
@@ -326,6 +532,16 @@ MonoBehaviour:
       MinSecondsBetweenUpdates: 0
       MaxSecondsBetweenUpdates: 0
     m_InternalValue: 0
+--- !u!1 &6933601703635166358 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5129844614403237441, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+  m_PrefabInstance: {fileID: 2812995479481287383}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &7003983990658625578 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5060605795867685629, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+  m_PrefabInstance: {fileID: 2812995479481287383}
+  m_PrefabAsset: {fileID: 0}
 --- !u!114 &7776873476951557616 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 5540770343152109351, guid: 8a531d709826a264e9027ff908ced981, type: 3}
@@ -400,6 +616,11 @@ MonoBehaviour:
       MaxSecondsBetweenUpdates: 0
     m_InternalValue: 0
   HandRevealed:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
+  AbilityBusyUntil:
     UpdateTraits:
       MinSecondsBetweenUpdates: 0
       MaxSecondsBetweenUpdates: 0
@@ -490,6 +711,26 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.PlayerLookTarget
   _point: {fileID: 4726230110908427231}
+--- !u!114 &4262478686658790279
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8336770729751643675}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 19f1b6b595246d348bc4e19a42c3c004, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Player.PokerBloodFingerVisual
+  ShowTopMostFoldoutHeaderGroup: 1
+  _data: {fileID: 6935137486891752095}
+  _fingers: {fileID: 1929870118816623789}
+--- !u!1 &8486405917172949403 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5966144998291202892, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+  m_PrefabInstance: {fileID: 2812995479481287383}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &8823272510886078282 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 6736061117846939037, guid: 8a531d709826a264e9027ff908ced981, type: 3}

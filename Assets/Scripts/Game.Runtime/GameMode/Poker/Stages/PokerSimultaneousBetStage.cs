@@ -118,7 +118,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 					break;
 
 				case PokerActionType.Fold when _allowFold:
-					player.Data.Status.Value = PokerPlayerStatus.Folded;
+					player.ServerFold();
 					player.ActionAnimator?.ServerPlay(PlayerActionIds.Fold);
 					break;
 
@@ -157,7 +157,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 				if (_timeoutFolds)
 				{
-					data.Status.Value = PokerPlayerStatus.Folded;
+					player.ServerFold();
 					player.ActionAnimator?.ServerPlay(PlayerActionIds.Fold);
 				}
 				else if (_timeoutBetsMinimum)

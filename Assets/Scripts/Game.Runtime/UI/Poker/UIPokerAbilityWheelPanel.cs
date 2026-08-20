@@ -42,6 +42,7 @@ namespace Game.Runtime.UI.Poker
 		[SerializeField] private float _useDelay = 0.12f;
 
 		private PokerAbilityModule _module;
+		private bool _wasBusy;
 		private readonly List<PokerAbility> _abilities = new();
 
 		// Released in finally, never on the success path alone: one throw between the punch and the send and
@@ -69,6 +70,7 @@ namespace Game.Runtime.UI.Poker
 			{
 				_module.Enabled.OnValueChanged += HandleBoolChanged;
 				_module.AbilityWindowOpen.OnValueChanged += HandleBoolChanged;
+				LocalData.AbilityBusyUntil.OnValueChanged += HandleBusyChanged;
 			}
 
 			RebuildWheel();
@@ -79,6 +81,7 @@ namespace Game.Runtime.UI.Poker
 		{
 			if (_module)
 			{
+				LocalData.AbilityBusyUntil.OnValueChanged -= HandleBusyChanged;
 				_module.AbilityWindowOpen.OnValueChanged -= HandleBoolChanged;
 				_module.Enabled.OnValueChanged -= HandleBoolChanged;
 			}
@@ -94,6 +97,13 @@ namespace Game.Runtime.UI.Poker
 		}
 
 		private void HandleBoolChanged(bool previous, bool current) => RefreshWindow();
+
+		private void HandleBusyChanged(double previous, double current)
+		{
+			_wasBusy = _module && _module.IsBusy(LocalData);
+			RefreshWindow();
+		}
+
 		private void HandleAbilitiesChanged() => RebuildWheel();
 
 		// The ids replicate; the assets they name are looked up against the same pool the server dealt from,
@@ -126,10 +136,26 @@ namespace Game.Runtime.UI.Poker
 			if (_panel && _panel.activeSelf != visible) _panel.SetActive(visible);
 			if (!visible) return;
 
-			var open = _module.AbilityWindowOpen.Value && LocalData.IsInHand;
+			// Busy is read from the same method the server refuses on, so the wheel cannot offer a card the
+			// server is about to drop in silence.
+			var busy = _module.IsBusy(LocalData);
+			var open = _module.AbilityWindowOpen.Value && LocalData.IsInHand && !busy;
 
 			if (_canvasGroup) _canvasGroup.alpha = open ? 1f : _closedAlpha;
-			if (_hintLabel) _hintLabel.text = open ? string.Empty : "Not now";
+			if (_hintLabel) _hintLabel.text = open ? string.Empty : busy ? "Busy" : "Not now";
+		}
+
+		// A busy window ends by a clock running out, and nothing raises an event when it does — so this is
+		// the one thing here that has to be watched rather than subscribed to.
+		protected override bool WantsTick => IsBound && _module && LocalData && LocalData.AbilityBusyUntil.Value > 0d;
+
+		protected override void OnTick()
+		{
+			var busy = _module.IsBusy(LocalData);
+			if (busy == _wasBusy) return;
+
+			_wasBusy = busy;
+			RefreshWindow();
 		}
 
 		// async void is allowed here because this is the input handler itself, and it catches.
@@ -148,7 +174,7 @@ namespace Game.Runtime.UI.Poker
 		private async Awaitable UseSelectedAsync(CancellationToken token)
 		{
 			if (_using || !IsBound || !_module || !_wheel) return;
-			if (!_module.AbilityWindowOpen.Value || !LocalData.IsInHand) return;
+			if (!_module.AbilityWindowOpen.Value || !LocalData.IsInHand || _module.IsBusy(LocalData)) return;
 
 			var ability = _wheel.Selected;
 			if (!ability) return;
@@ -167,6 +193,10 @@ namespace Game.Runtime.UI.Poker
 				// Re-checked after the wait: a street can close, or the hand can end, in the time the press
 				// takes to land, and the ability must not go off into a window that has since shut.
 				if (!IsBound || !_module || !_module.AbilityWindowOpen.Value || !LocalData.IsInHand) return;
+
+				// The press itself is long enough for a previous card to still be running, so busy is
+				// asked again rather than only at the punch.
+				if (_module.IsBusy(LocalData)) return;
 
 				// The server is told which one by name. It holds the same hand and will refuse anything this
 				// client does not actually have, so the wheel offering it is never the thing that decides.

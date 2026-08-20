@@ -33,10 +33,6 @@ namespace Game.Runtime.UI.Poker
 
 		[SerializeField] private TextMeshProUGUI _allInLabel;
 
-		[Header("Always")]
-		[Tooltip("Looking at your own cards costs nothing and asks the server for nothing, so it stays lit through an accusation like it does through a street.")]
-		[SerializeField] private UIButton _checkButton;
-
 		[Tooltip("Kept in its slot whether or not it is offered. The accused can never use it — an accusation cannot be waited out — but the accuser can, to walk away from a shove and leave what they staked.")]
 		[SerializeField] private UIButton _foldButton;
 
@@ -63,7 +59,6 @@ namespace Game.Runtime.UI.Poker
 
 			if (_callButton) _callButton.OnClick += HandleCall;
 			if (_allInButton) _allInButton.OnClick += HandleAllIn;
-			if (_checkButton) _checkButton.OnClick += HandleCheckCards;
 			if (_foldButton) _foldButton.OnClick += HandleFold;
 
 			Data.CurrentTurnClientId.OnValueChanged += HandleTurnChanged;
@@ -86,7 +81,6 @@ namespace Game.Runtime.UI.Poker
 				Data.CurrentTurnClientId.OnValueChanged -= HandleTurnChanged;
 
 				if (_foldButton) _foldButton.OnClick -= HandleFold;
-				if (_checkButton) _checkButton.OnClick -= HandleCheckCards;
 				if (_allInButton) _allInButton.OnClick -= HandleAllIn;
 				if (_callButton) _callButton.OnClick -= HandleCall;
 			}
@@ -116,7 +110,7 @@ namespace Game.Runtime.UI.Poker
 			// The same ceiling the server clamps to, read off the same module: neither of them can be
 			// offered a number the other could not cover.
 			var stake = _module.ReportStake.Value;
-			var accused = LocalClientId == accusation.TargetClientId;
+			var accused = LocalClientId == accusation.TargetClientId;	
 			var allIn = _module.AllInStake(PokerPlayer.Find(accusation.AccuserClientId), LocalPlayer);
 
 			if (_callButton) _callButton.IsInteractable = true;
@@ -132,22 +126,10 @@ namespace Game.Runtime.UI.Poker
 			// more than they put up — leaving their stake behind is the price of not wanting to know.
 			if (_foldButton) _foldButton.IsInteractable = !accused;
 
-			RefreshCheck();
 			RefreshTimer();
 		}
 
-		private void RefreshCheck()
-		{
-			if (!_checkButton) return;
 
-			var peek = LocalPlayer.HandPeek;
-			_checkButton.IsInteractable = peek && LocalData.IsInHand;
-		}
-
-		private void HandleCheckCards()
-		{
-			if (LocalPlayer.HandPeek) LocalPlayer.HandPeek.TogglePeekRPC();
-		}
 
 		private void RefreshTimer()
 		{

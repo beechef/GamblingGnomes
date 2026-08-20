@@ -114,7 +114,7 @@ namespace Game.Runtime.GameMode.Poker
 
 			Instance = this;
 
-			_stageMachine = new PokerStageMachine(this, NotifyStageStarted, NotifyStageEnded);
+			_stageMachine = new PokerStageMachine(this, NotifyStageStarting, NotifyStageStarted, NotifyStageEnded);
 		}
 
 		public override void OnDestroy()
@@ -475,6 +475,16 @@ namespace Game.Runtime.GameMode.Poker
 			_stageMachine.PopOverlay();
 		}
 
+		private void NotifyStageStarting(PokerStage stage)
+		{
+			if (!stage) return;
+
+			foreach (var module in _modules)
+			{
+				if (module) module.OnStageStarting(stage);
+			}
+		}
+
 		private void NotifyStageStarted(PokerStage stage)
 		{
 			if (!stage) return;
@@ -499,10 +509,8 @@ namespace Game.Runtime.GameMode.Poker
 
 		public bool CanLeaveSeat(ulong clientId)
 		{
-			// Sitting down commits the player to the hand — they are only released once the table is
-			// idle again, or if they were never dealt in.
 			var player = FindSeatedPlayer(clientId);
-			if (IsGameRunning && player && player.Data.IsInHand) return false;
+			if (IsGameRunning && player && player.Data && IsCommittedToMatch(player.Data)) return false;
 
 			foreach (var module in _modules)
 			{
@@ -510,6 +518,23 @@ namespace Game.Runtime.GameMode.Poker
 			}
 
 			return true;
+		}
+
+		// Being collected into a match commits the player to the match, not to the hand: folding is a
+		// decision about these cards, and standing up afterwards with the stake still on them would make
+		// folding a way out of the game. What releases them is having nothing left to play with — the same
+		// funded test the deal uses to decide who is still in the running — so somebody out of money or
+		// out of blood may go, and nobody else may. Never dealt in at all is the other way out: a player
+		// who took a free chair mid hand is Waiting and was never collected.
+		private static bool IsCommittedToMatch(PokerPlayerData data)
+		{
+			// Still holding cards, which includes all in — a stack at zero is not a way out while the
+			// money is still in the pot.
+			if (data.IsInHand) return true;
+
+			if (data.Status.Value == PokerPlayerStatus.Waiting) return false;
+
+			return data.IsAlive && data.Chips > 0;
 		}
 
 		public void HandleSeatOccupied(PokerSeat seat, ulong clientId)
@@ -539,8 +564,7 @@ namespace Game.Runtime.GameMode.Poker
 			{
 				if (IsGameRunning && player.Data.IsInHand)
 				{
-					player.Data.Status.Value = PokerPlayerStatus.Folded;
-					player.Data.HasActed.Value = true;
+					player.ServerFold();
 
 					// The chips they had in front of them stay behind as dead money — collected now,
 					// because once their object despawns no street-end sweep will ever see them, and the

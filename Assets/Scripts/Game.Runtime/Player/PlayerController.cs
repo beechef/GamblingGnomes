@@ -18,8 +18,19 @@ namespace Game.Runtime.Player
 		[SerializeField] private float _gravity = -18f;
 
 		[Header("Look")]
+		[Tooltip("Mouse only: a multiplier on the pixels moved this frame. A delta already carries the time it took, so it is never scaled by deltaTime.")]
 		[SerializeField] private float _lookSensitivityX = 1f;
+
 		[SerializeField] private float _lookSensitivityY = 1f;
+
+		[Tooltip("Gamepad only: degrees per second at full deflection. A stick reports where it is being held, not how far it moved, so it is a rate and the mouse numbers above mean nothing to it.")]
+		[SerializeField] private float _gamepadLookSpeedX = 220f;
+
+		[SerializeField] private float _gamepadLookSpeedY = 160f;
+
+		[Tooltip("Curve on stick deflection. 1 is linear, which makes a small aiming correction travel as fast as a full sweep.")]
+		[Range(1f, 3f)]
+		[SerializeField] private float _gamepadLookExponent = 2f;
 		[SerializeField] private Vector2 _pitchLimits = new(-60f, 60f);
 
 		[Header("Noise filtering")]
@@ -301,8 +312,10 @@ namespace Game.Runtime.Player
 			_moveAction.action.performed += OnMovePerformed;
 			_moveAction.action.canceled += OnMovePerformed;
 
+			// Read in Update rather than subscribed: a Value action only raises performed when its value
+			// *changes*, which suits a mouse delta and is useless for a stick — held at full deflection it
+			// stops reporting, so the view turns about a degree and then simply stops.
 			_lookAction.action.Enable();
-			_lookAction.action.performed += OnLookPerformed;
 
 			_sprintAction.action.Enable();
 			_sprintAction.action.performed += OnSprintPerformed;
@@ -336,7 +349,6 @@ namespace Game.Runtime.Player
 			_moveAction.action.canceled -= OnMovePerformed;
 			_moveAction.action.Disable();
 
-			_lookAction.action.performed -= OnLookPerformed;
 			_lookAction.action.Disable();
 
 			_sprintAction.action.performed -= OnSprintPerformed;
@@ -369,16 +381,31 @@ namespace Game.Runtime.Player
 			}
 		}
 
-		private void OnLookPerformed(InputAction.CallbackContext ctx)
+		// The two devices are read as the different things they are. A mouse reports how far it moved since
+		// the last update, which is already a per-frame amount and must not be scaled by time again. A stick
+		// reports how far it is being held, which is a rate and means nothing until it is multiplied by the
+		// length of the frame. Feeding a stick through the mouse path is what makes it crawl.
+		private void ReadLookInput()
 		{
-			if (!CursorController.IsLocked) return;
+			if (!_inputBound || !CursorController.IsLocked) return;
 
-			var delta = ctx.ReadValue<Vector2>();
-			var filteredX = Mathf.Abs(delta.x) < _inputDeadzone ? 0f : delta.x;
-			var filteredY = Mathf.Abs(delta.y) < _inputDeadzone ? 0f : delta.y;
+			var value = _lookAction.action.ReadValue<Vector2>();
+			var filteredX = Mathf.Abs(value.x) < _inputDeadzone ? 0f : value.x;
+			var filteredY = Mathf.Abs(value.y) < _inputDeadzone ? 0f : value.y;
 			if (filteredX == 0f && filteredY == 0f) return;
 
-			var yawDelta = filteredX * _lookSensitivityX;
+			if (InputSchemeController.IsGamepad)
+			{
+				filteredX = Curved(filteredX) * _gamepadLookSpeedX * Time.deltaTime;
+				filteredY = Curved(filteredY) * _gamepadLookSpeedY * Time.deltaTime;
+			}
+			else
+			{
+				filteredX *= _lookSensitivityX;
+				filteredY *= _lookSensitivityY;
+			}
+
+			var yawDelta = filteredX;
 
 			// Anchored in a seat, the character stays where it was put and the yaw goes to the look bone;
 			// free on their feet, yaw turns the whole character, so it rides along on NetworkTransform
@@ -386,7 +413,7 @@ namespace Game.Runtime.Player
 			if (_bodyAnchored) _currentLookYaw = ConstrainLookYaw(yawDelta);
 			else transform.Rotate(Vector3.up, ConstrainYawDelta(yawDelta));
 
-			_currentPitch = Mathf.Clamp(_currentPitch + filteredY * _lookSensitivityY * -1f,
+			_currentPitch = Mathf.Clamp(_currentPitch + filteredY * -1f,
 				_activePitchLimits.x, _activePitchLimits.y);
 
 			if (Mathf.Abs(Mathf.DeltaAngle(_lastSentPitch, _currentPitch)) >= _minNetworkSendDeltaDegrees)
@@ -401,6 +428,10 @@ namespace Game.Runtime.Player
 				_lastSentLookYaw = _currentLookYaw;
 			}
 		}
+
+		// Sticks are aimed with, and a linear one makes the small correction that lands on a face travel as
+		// fast as the sweep across the table. The sign is kept so the curve bends both ways.
+		private float Curved(float value) => Mathf.Sign(value) * Mathf.Pow(Mathf.Abs(value), _gamepadLookExponent);
 
 		// The look bone answers to the same two settings the character does: a pose that forbids turning
 		// forbids turning the head as well — a locked-in chair means facing one way, not facing one way
@@ -426,7 +457,12 @@ namespace Game.Runtime.Player
 
 		private void Update()
 		{
-			if (!IsOwner || !IsSpawned || !_movementEnabled) return;
+			if (!IsOwner || !IsSpawned) return;
+
+			// Ahead of the movement gate on purpose: a player held in a chair still turns to read the table.
+			ReadLookInput();
+
+			if (!_movementEnabled) return;
 
 			var speed = _sprinting ? _sprintSpeed : _walkSpeed;
 			var horizontalMove = (transform.forward * _moveInput.y + transform.right * _moveInput.x).normalized * speed;

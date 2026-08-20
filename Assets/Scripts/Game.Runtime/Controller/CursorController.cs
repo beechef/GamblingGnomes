@@ -20,6 +20,8 @@ namespace Game.Runtime.Controller
 		private static bool _baseLocked;
 		private static int _unlockRequests;
 		private static bool _applied;
+		private static bool _appliedLocked;
+		private static bool _appliedVisible;
 
 		// Domain Reload is disabled, so statics survive between play sessions.
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -29,7 +31,20 @@ namespace Game.Runtime.Controller
 			_unlockRequests = 0;
 			_applied = false;
 			OnLockChanged = null;
+
+			InputSchemeController.OnSchemeChanged -= HandleSchemeChanged;
 		}
+
+		// AfterSceneLoad, so this cannot be wiped by InputSchemeController's own reset — the order between
+		// two SubsystemRegistration methods is undefined.
+		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+		private static void Install()
+		{
+			InputSchemeController.OnSchemeChanged -= HandleSchemeChanged;
+			InputSchemeController.OnSchemeChanged += HandleSchemeChanged;
+		}
+
+		private static void HandleSchemeChanged(InputScheme scheme) => Apply();
 
 		// Set by whatever owns the first person view for as long as it lives. Off, nothing below it
 		// matters and the cursor stays free.
@@ -64,14 +79,25 @@ namespace Game.Runtime.Controller
 		private static void Apply()
 		{
 			var locked = IsLocked;
-			if (_applied && Cursor.lockState == (locked ? CursorLockMode.Locked : CursorLockMode.None)) return;
+
+			// A pointer left floating over a menu being driven by a stick is the clearest sign a game only
+			// half supports a pad — the pad moves the selection and the arrow sits there answering nobody.
+			var visible = !locked && !InputSchemeController.IsGamepad;
+
+			// Visibility is compared as well as the lock, or picking up a pad while a panel is open would
+			// change nothing: the lock state has not moved, and only the arrow was supposed to.
+			if (_applied && _appliedLocked == locked && _appliedVisible == visible) return;
+
+			var lockChanged = !_applied || _appliedLocked != locked;
 
 			_applied = true;
+			_appliedLocked = locked;
+			_appliedVisible = visible;
 
 			Cursor.lockState = locked ? CursorLockMode.Locked : CursorLockMode.None;
-			Cursor.visible = !locked;
+			Cursor.visible = visible;
 
-			OnLockChanged?.Invoke(locked);
+			if (lockChanged) OnLockChanged?.Invoke(locked);
 		}
 	}
 }
