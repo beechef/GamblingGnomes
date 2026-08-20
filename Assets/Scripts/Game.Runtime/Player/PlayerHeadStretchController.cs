@@ -35,6 +35,15 @@ namespace Game.Runtime.Player
 		[Range(0f, 1f)]
 		[SerializeField] private float _lookWeight = 1f;
 
+		[Header("Curve")]
+		[Tooltip("How far the neck carries on along its own rest direction before it starts turning, as a fraction of the distance to the target. Zero leaves the shoulders in a straight line at the target; larger arcs it up out of the body first.")]
+		[Range(0f, 1f)]
+		[SerializeField] private float _curveOutHandle = 0.4f;
+
+		[Tooltip("How far in front of the target the curve straightens onto the gaze, as a fraction of the same distance. This is what makes the head arrive facing the cards rather than swinging in from the side.")]
+		[Range(0f, 1f)]
+		[SerializeField] private float _curveInHandle = 0.4f;
+
 		[Header("Debug")]
 		[Tooltip("Writes one line per meaningful change saying what this peer is composing onto the stretched head: the baseline the act carried, the angles this peer is drawing with, and whether it is the leaner's own machine. Run it on host and client together — the two lines beside each other name which half is not moving, which no amount of reading the code will.")]
 		[SerializeField] private bool _logComposedLook;
@@ -63,9 +72,20 @@ namespace Game.Runtime.Player
 		[HideInInspector] public NetworkVariable<Vector2> LookBaseline = new(default,
 			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
 
+		// Enough to keep the arc table honest on a neck's worth of curvature without costing anything worth
+		// measuring — it is rebuilt once per frame, over a handful of joints.
+		private const int CurveSamples = 24;
+
 		private readonly List<Transform> _chain = new();
 		private readonly List<float> _chainOffsets = new();
 		private readonly List<Quaternion> _chainRotations = new();
+		private readonly List<Vector3> _chainRestPositions = new();
+		private readonly List<float> _arcLengths = new();
+
+		private Vector3 _curveStart;
+		private Vector3 _curveOut;
+		private Vector3 _curveIn;
+		private Vector3 _curveEnd;
 
 		// Where each bone sits on its parent when nothing is pulling on it. Cached rather than read back
 		// each frame, because the thing that would read it back is the very thing that displaced it — and
@@ -258,6 +278,8 @@ namespace Game.Runtime.Player
 			_chain.Clear();
 			_chainOffsets.Clear();
 			_chainRotations.Clear();
+			_chainRestPositions.Clear();
+			_arcLengths.Clear();
 			_chainLocalPositions.Clear();
 			_chainLocalRotations.Clear();
 			_head = null;
@@ -297,6 +319,7 @@ namespace Game.Runtime.Player
 			{
 				_chainOffsets.Add(_restLength);
 				_chainRotations.Add(Quaternion.identity);
+				_chainRestPositions.Add(Vector3.zero);
 				_chainLocalPositions.Add(_chain[i].localPosition);
 				_chainLocalRotations.Add(_chain[i].localRotation);
 
@@ -345,32 +368,48 @@ namespace Game.Runtime.Player
 		private void ApplyStretch(Vector3 reachPoint, Quaternion reachRotation)
 		{
 			var origin = _chain[0].position;
+
+			// Read the animated pose out first: moving a bone drags its children with it, so once the first
+			// one is written the rest no longer report where the animation put them. This is also what the
+			// weight blends back toward, which is why rest is read every frame rather than cached.
+			for (var i = 0; i < _chain.Count; i++)
+			{
+				_chainRestPositions[i] = _chain[i].position;
+				_chainRotations[i] = _chain[i].rotation;
+			}
+
 			var restHead = _head.position;
 			var headRotation = _head.rotation;
 
-			var desired = Vector3.LerpUnclamped(restHead, reachPoint, _weight);
-			var toDesired = desired - origin;
-			if (toDesired.sqrMagnitude <= Epsilon * Epsilon) return;
+			var restDirection = restHead - origin;
+			if (restDirection.sqrMagnitude <= Epsilon * Epsilon) return;
 
-			// One delta rotation for the whole chain, so whatever turn the animation put into the neck
-			// rides along instead of being flattened out of it.
-			var aim = Quaternion.FromToRotation(restHead - origin, toDesired);
-			var direction = toDesired.normalized;
-			var length = toDesired.magnitude;
+			restDirection.Normalize();
 
-			// Read the animated pose out first: moving a bone drags its children with it, and the rotation
-			// they came in with is the one that has to be turned.
-			for (var i = 0; i < _chain.Count; i++) _chainRotations[i] = _chain[i].rotation;
+			BuildCurve(origin, restDirection, reachPoint, reachRotation);
 
 			for (var i = 0; i < _chain.Count; i++)
 			{
-				_chain[i].SetPositionAndRotation(origin + direction * (length * _chainOffsets[i]), aim * _chainRotations[i]);
+				var t = CurveParameterAtArc(_chainOffsets[i]);
+
+				// Every joint gets its own aim off the tangent where it actually sits, rather than the whole
+				// chain sharing one — that difference is the entire reason this reads as a neck bending and
+				// not as a row of beads on a wire. The animated rotation is still what is turned, so the
+				// twist the clip put into the neck rides along instead of being flattened out.
+				var aim = Quaternion.FromToRotation(restDirection, CurveTangent(t));
+
+				_chain[i].SetPositionAndRotation(
+					Vector3.LerpUnclamped(_chainRestPositions[i], CurvePoint(t), _weight),
+					Quaternion.SlerpUnclamped(_chainRotations[i], aim * _chainRotations[i], _weight));
 			}
 
-			// The segments are spread apart rather than scaled up, so the neck grows without the head
-			// growing with it. The head then turns onto the rotation it was sent for — the camera hangs off
-			// this bone, so that turn is what actually puts the cards in front of the player.
+			// The segments are spread along the curve rather than scaled up, so the neck grows without the
+			// head growing with it. The head then turns onto the rotation it was sent for — the camera hangs
+			// off this bone, so that turn is what actually puts the cards in front of the player. The curve
+			// arrives along that same rotation, so the last joint is already pointing where the head is
+			// about to face and there is no kink at the end of the reach.
 			var lookWeight = Mathf.Clamp01(_weight * _lookWeight);
+			var desired = Vector3.LerpUnclamped(restHead, reachPoint, _weight);
 
 			_head.SetPositionAndRotation(desired, Quaternion.Slerp(headRotation, reachRotation, lookWeight));
 
@@ -383,6 +422,94 @@ namespace Game.Runtime.Player
 			_playerController.ComposeLookOnto(_head, LookBaseline.Value.x, LookBaseline.Value.y);
 
 			LogComposedLook();
+		}
+
+		// A cubic laid between the two things that are already known: where the neck leaves the shoulders,
+		// and how the head will be facing when it arrives. Leaving along the neck's own rest direction is
+		// what stops it snapping sideways out of the body on the first frame, and arriving backwards along
+		// the gaze is what brings it in front of the cards rather than swinging at them from the side.
+		//
+		// Handles are fractions of the straight-line distance, so the same numbers describe the same shape
+		// whether the target is across the table or next to it.
+		private void BuildCurve(Vector3 origin, Vector3 restDirection, Vector3 reachPoint, Quaternion reachRotation)
+		{
+			var chord = Vector3.Distance(origin, reachPoint);
+
+			_curveStart = origin;
+			_curveEnd = reachPoint;
+			_curveOut = origin + restDirection * (chord * _curveOutHandle);
+			_curveIn = reachPoint - reachRotation * Vector3.forward * (chord * _curveInHandle);
+
+			BuildArcTable();
+		}
+
+		// Sampled because a Bezier's parameter is not its arc length: stepping t evenly bunches the joints
+		// wherever the curve bends hardest, which is exactly where a neck must not bunch. The table maps
+		// distance travelled back to t so the joints keep the spacing the rig was built with.
+		private void BuildArcTable()
+		{
+			_arcLengths.Clear();
+			_arcLengths.Add(0f);
+
+			var previous = CurvePoint(0f);
+			var total = 0f;
+
+			for (var i = 1; i <= CurveSamples; i++)
+			{
+				var point = CurvePoint((float)i / CurveSamples);
+				total += Vector3.Distance(previous, point);
+				_arcLengths.Add(total);
+				previous = point;
+			}
+
+			if (total <= Epsilon) return;
+
+			for (var i = 0; i < _arcLengths.Count; i++) _arcLengths[i] /= total;
+		}
+
+		private float CurveParameterAtArc(float arc)
+		{
+			if (_arcLengths.Count < 2) return arc;
+
+			arc = Mathf.Clamp01(arc);
+
+			for (var i = 1; i < _arcLengths.Count; i++)
+			{
+				if (_arcLengths[i] < arc) continue;
+
+				var span = _arcLengths[i] - _arcLengths[i - 1];
+				var within = span <= Epsilon ? 0f : (arc - _arcLengths[i - 1]) / span;
+
+				return (i - 1 + within) / CurveSamples;
+			}
+
+			return 1f;
+		}
+
+		private Vector3 CurvePoint(float t)
+		{
+			var inverse = 1f - t;
+
+			return inverse * inverse * inverse * _curveStart
+				+ 3f * inverse * inverse * t * _curveOut
+				+ 3f * inverse * t * t * _curveIn
+				+ t * t * t * _curveEnd;
+		}
+
+		// The derivative, normalized. It degenerates only where two control points coincide, which the
+		// handle fractions cannot produce unless the target is already inside the shoulders — and that is
+		// the case the reach clamp exists to keep out.
+		private Vector3 CurveTangent(float t)
+		{
+			var inverse = 1f - t;
+
+			var derivative = 3f * inverse * inverse * (_curveOut - _curveStart)
+				+ 6f * inverse * t * (_curveIn - _curveOut)
+				+ 3f * t * t * (_curveEnd - _curveIn);
+
+			return derivative.sqrMagnitude <= Epsilon * Epsilon
+				? (_curveEnd - _curveStart).normalized
+				: derivative.normalized;
 		}
 
 		// Logged on a change rather than per frame, and a peer that never moves is exactly the case worth
