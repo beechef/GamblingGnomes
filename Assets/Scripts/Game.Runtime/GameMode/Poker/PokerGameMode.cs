@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Game.Runtime.GameMode.Config;
 using Game.Runtime.GameMode.Poker.Hands;
 using Game.Runtime.GameMode.Poker.Modules;
 using Game.Runtime.GameMode.Poker.Player;
@@ -11,10 +12,18 @@ using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker
 {
-	public class PokerGameMode : NetworkBehaviour, IGameMode
+	public class PokerGameMode : NetworkBehaviour, IGameMode, IMatchConfigProvider
 	{
 		[Header("Rules")]
 		[SerializeField] private PokerRuleSettings _rules;
+
+		[Header("Match")]
+		[Tooltip("Money every player starts a match with. The player prefab's own value is only the fallback for a table without a mode.")]
+		[SerializeField] private int _startingMoney = 10;
+
+		[Tooltip("Blood every player starts a match with. Capped at 8 — PokerBloodFingerVisual draws MaxHealth minus health as severed fingers, and the model has eight.")]
+		[Range(1, 8)]
+		[SerializeField] private int _startingHealth = 8;
 
 		[Header("Stages")]
 		[Tooltip("The round loop as a preset. Swap this asset to change the game — modules still add to it, and any stage can be interrupted at runtime by InsertStage or PushOverlay.")]
@@ -28,8 +37,9 @@ namespace Game.Runtime.GameMode.Poker
 		[Tooltip("Spawned locally on every peer while the mode is alive. Presentation only, so it is a plain prefab and never travels over the network.")]
 		[SerializeField] private GameObject _hudPrefab;
 
-		[Header("References")] 
+		[Header("References")]
 		[SerializeField] private PokerGameData _data;
+		[SerializeField] private MatchConfigData _configData;
 		[SerializeField] private List<PokerSeat> _seats = new();
 
 		public static PokerGameMode Instance { get; private set; }
@@ -45,6 +55,7 @@ namespace Game.Runtime.GameMode.Poker
 		}
 
 		public PokerGameData Data => _data;
+		public MatchConfigData ConfigData => _configData;
 		public PokerRuleSettings Rules => _rules;
 		public PokerStageSequence Sequence => _sequence;
 		public PokerDeck Deck { get; } = new();
@@ -126,6 +137,8 @@ namespace Game.Runtime.GameMode.Poker
 			}
 
 			_stageMachine.InitializeStages();
+
+			RegisterMatchConfigs();
 
 			PokerPlayer.OnRegistryChanged += RefreshSeatedPlayers;
 			RefreshSeatedPlayers();
@@ -239,6 +252,10 @@ namespace Game.Runtime.GameMode.Poker
 
 			_seatedPlayers.Sort((left, right) => left.Data.SeatIndex.Value.CompareTo(right.Data.SeatIndex.Value));
 			OnSeatedPlayersChanged?.Invoke();
+
+			// A body that arrived after the config seed still gets the configured stake — the prefab's own
+			// self-reset at spawn only knows the authored default.
+			ServerApplyStartingValues(resetPlayers: false);
 		}
 
 		public PokerPlayer FindSeatedPlayer(ulong clientId)
@@ -249,6 +266,89 @@ namespace Game.Runtime.GameMode.Poker
 			}
 
 			return null;
+		}
+
+		// The room screen's view of this mode, taken off the prefab asset before any scene is loaded.
+		// The entries built here are read for metadata and defaults only — the sequence walk hands out
+		// the authored stage assets, and applying a value to those would write the asset itself.
+		public void CollectAuthoredConfigEntries(List<MatchConfigEntry> entries)
+		{
+			CollectModeConfigEntries(entries);
+
+			var stages = new List<PokerStage>();
+			if (_sequence) _sequence.CollectStages(stages);
+
+			foreach (var stage in stages)
+			{
+				if (stage) stage.CollectConfigEntries(entries);
+			}
+
+			foreach (var module in _modules)
+			{
+				if (module) module.CollectConfigEntries(entries);
+			}
+		}
+
+		// The live registration, over the per-peer stage clones instead of the assets — the numbers the
+		// pad and the server read sit on those clones, so that is where a replicated value has to land.
+		private void RegisterMatchConfigs()
+		{
+			if (!_configData) return;
+
+			var entries = new List<MatchConfigEntry>();
+			CollectModeConfigEntries(entries);
+
+			foreach (var stage in _stageMachine.Stages)
+			{
+				if (stage) stage.CollectConfigEntries(entries);
+			}
+
+			foreach (var module in _modules)
+			{
+				if (module) module.CollectConfigEntries(entries);
+			}
+
+			_configData.RegisterEntries(entries, () => _data && _data.Phase.Value == PokerPhase.Waiting);
+		}
+
+		private void CollectModeConfigEntries(List<MatchConfigEntry> entries)
+		{
+			entries.Add(new MatchConfigInt("Match", "Match", "StartingMoney", "Starting Money", 1, 99, 1,
+				() => _startingMoney,
+				value =>
+				{
+					_startingMoney = value;
+					ServerApplyStartingValues(resetPlayers: true);
+				}));
+			entries.Add(new MatchConfigInt("Match", "Match", "StartingHealth", "Starting Health", 1, 8, 1,
+				() => _startingHealth,
+				value =>
+				{
+					_startingHealth = value;
+					ServerApplyStartingValues(resetPlayers: true);
+				}));
+		}
+
+		// An edit while the table is waiting re-resets every body on the spot, so the readouts and the
+		// start button's funded count answer to the new numbers without anyone re-seating. Mid-match only
+		// a body that never got the configured stats at all is touched — a fresh one is not in a hand.
+		private void ServerApplyStartingValues(bool resetPlayers)
+		{
+			if (!IsServer || !IsSpawned) return;
+
+			foreach (var player in PokerPlayer.All)
+			{
+				if (!player || !player.Data) continue;
+
+				var firstTime = !player.Data.HasConfiguredStartingStats;
+
+				player.Data.ServerSetStartingStats(_startingMoney, _startingHealth);
+
+				if (firstTime || (resetPlayers && _data && _data.Phase.Value == PokerPhase.Waiting))
+				{
+					player.Data.ServerResetForMatch();
+				}
+			}
 		}
 
 		public void StartGame()

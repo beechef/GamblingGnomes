@@ -20,6 +20,9 @@ namespace Game.Runtime.GameMode
 
 			public string DisplayName;
 
+			[Tooltip("Mode prefab the room screen reads match settings from before any scene is loaded. Left empty, the mode simply offers none.")]
+			public GameObject ModePrefab;
+
 			private bool IsSceneMissing => !string.IsNullOrEmpty(SceneName) && !BuildSettingsScenes.Contains(SceneName);
 
 			private static List<string> BuildSettingsScenes

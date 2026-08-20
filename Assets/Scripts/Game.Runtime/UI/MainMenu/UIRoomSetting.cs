@@ -2,14 +2,19 @@ using System;
 using System.Collections.Generic;
 using Game.Runtime.Controller;
 using Game.Runtime.GameMode;
+using Game.Runtime.GameMode.Config;
 using Game.Runtime.UI.Button;
+using Game.Runtime.UI.Config;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace Game.Runtime.UI.MainMenu
 {
-	public class UIRoomSetting : MonoBehaviour
+	// Also the pre-scene surface of the match config: the selected mode's prefab is asked for its
+	// tunables and the host's choices land in PendingMatchConfig, which the mode consumes when it
+	// spawns. Nothing here ever writes the prefab or the stage assets the entries were built from.
+	public class UIRoomSetting : MonoBehaviour, IMatchConfigValueAccess
 	{
 		[SerializeField] private GameModeDatabase _gameModeDatabase;
 
@@ -18,6 +23,7 @@ namespace Game.Runtime.UI.MainMenu
 		[SerializeField] private TMP_InputField _maxPlayersField;
 		[SerializeField] private Toggle _isPrivateToggle;
 		[SerializeField] private TMP_Dropdown _gameModeDropdown;
+		[SerializeField] private UIMatchConfigList _configList;
 		[SerializeField] private UIButton _confirmButton;
 		[SerializeField] private UIButton _cancelButton;
 
@@ -39,7 +45,54 @@ namespace Game.Runtime.UI.MainMenu
 		private void OnEnable()
 		{
 			PopulateGameModeDropdown();
+
+			_gameModeDropdown.onValueChanged.AddListener(HandleGameModeChanged);
+
+			RebuildConfigList();
 		}
+
+		private void OnDisable()
+		{
+			_gameModeDropdown.onValueChanged.RemoveListener(HandleGameModeChanged);
+		}
+
+		public float GetValue(MatchConfigEntry entry) =>
+			PendingMatchConfig.TryGet(entry.Id, out var value) ? value : entry.ReadValue();
+
+		public void SetValue(MatchConfigEntry entry, float value) =>
+			PendingMatchConfig.Set(entry.Id, entry.ClampValue(value));
+
+		private void HandleGameModeChanged(int index) => RebuildConfigList();
+
+		private void RebuildConfigList()
+		{
+			if (!_configList) return;
+
+			// A different mode is a different rulebook — nothing chosen for the last one carries over.
+			PendingMatchConfig.Clear();
+
+			var entries = new List<MatchConfigEntry>();
+			var selected = SelectedGameMode();
+
+			foreach (var entry in _gameModeDatabase.Entries)
+			{
+				if (entry.GameModeType != selected || !entry.ModePrefab) continue;
+
+				if (entry.ModePrefab.TryGetComponent<IMatchConfigProvider>(out var provider))
+				{
+					provider.CollectAuthoredConfigEntries(entries);
+				}
+
+				break;
+			}
+
+			_configList.Build(entries, this);
+			_configList.SetEditable(true);
+		}
+
+		private GameModeType SelectedGameMode() => _dropdownGameModes.Count > 0
+			? _dropdownGameModes[Mathf.Clamp(_gameModeDropdown.value, 0, _dropdownGameModes.Count - 1)]
+			: GameModeType.Sandbox;
 
 		private void PopulateGameModeDropdown()
 		{
@@ -63,9 +116,7 @@ namespace Game.Runtime.UI.MainMenu
 
 			var maxPlayers = int.TryParse(_maxPlayersField.text, out var parsed) ? Mathf.Max(2, parsed) : 6;
 			var isPrivate = _isPrivateToggle.isOn;
-			var gameMode = _dropdownGameModes.Count > 0
-				? _dropdownGameModes[Mathf.Clamp(_gameModeDropdown.value, 0, _dropdownGameModes.Count - 1)]
-				: GameModeType.Sandbox;
+			var gameMode = SelectedGameMode();
 
 			try
 			{

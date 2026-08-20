@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Game.Runtime.GameMode.Config;
 using Game.Runtime.GameMode.Poker.Stages;
 using Sirenix.OdinInspector;
 using Unity.Netcode;
@@ -83,6 +84,19 @@ namespace Game.Runtime.GameMode.Poker.Modules
 			Enabled.Value = enabled;
 
 			if (!enabled) EndBlackoutServer();
+		}
+
+		// Chance zero is the off switch — ArmFor already refuses to arm on it, so no separate toggle.
+		protected override void OnCollectConfigEntries(List<MatchConfigEntry> entries)
+		{
+			entries.Add(new MatchConfigFloat(ModuleId, "Blackout", "Chance", "Chance", 0f, 1f, 0.05f,
+				() => _defaultChance, value => _defaultChance = value, "0%"));
+			entries.Add(new MatchConfigFloat(ModuleId, "Blackout", "DurationMin", "Duration Min", 0.5f, 20f, 0.5f,
+				() => _durationRange.x,
+				value => _durationRange = new Vector2(value, Mathf.Max(value, _durationRange.y)), "0.#"));
+			entries.Add(new MatchConfigFloat(ModuleId, "Blackout", "DurationMax", "Duration Max", 0.5f, 20f, 0.5f,
+				() => _durationRange.y,
+				value => _durationRange = new Vector2(Mathf.Min(_durationRange.x, value), value), "0.#"));
 		}
 
 		// Every stage gets its own shot. The per-hand budget is reset on the deal rather than on the game

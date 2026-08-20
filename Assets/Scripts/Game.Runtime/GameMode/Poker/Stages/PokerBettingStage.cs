@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using Game.Runtime.GameMode.Config;
 using Game.Runtime.GameMode.Poker.Player;
 using Game.Runtime.Player;
 using Sirenix.OdinInspector;
@@ -108,6 +110,18 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			if (!data || !Data || data.Chips <= 0) return false;
 
 			return AllowAllIn || Data.CurrentBet.Value - data.Bet.Value >= data.Chips;
+		}
+
+		protected override void OnCollectConfigEntries(List<MatchConfigEntry> entries)
+		{
+			entries.Add(new MatchConfigInt(StageId, StageId, "OpeningBet", "Opening Bet", 0, 20, 1,
+				() => _openingBet, value => _openingBet = value));
+			entries.Add(new MatchConfigBool(StageId, StageId, "AllowAllIn", "Allow All-In",
+				() => _allowAllIn, value => _allowAllIn = value));
+			entries.Add(new MatchConfigInt(StageId, StageId, "MaximumAllIn", "Max All-In", 1, 99, 1,
+				() => _maximumAllIn, value => _maximumAllIn = value));
+			entries.Add(new MatchConfigFloat(StageId, StageId, "TurnDuration", "Turn Seconds", 5f, 120f, 5f,
+				() => _turnDuration, value => _turnDuration = value, "0"));
 		}
 
 		private const float MinimumResumedTurnSeconds = 1f;

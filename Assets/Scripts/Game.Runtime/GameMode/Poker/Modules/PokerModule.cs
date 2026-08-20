@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Game.Runtime.GameMode.Config;
 using Game.Runtime.GameMode.Poker.Stages;
 using Unity.Collections;
 using Unity.Netcode;
@@ -44,6 +45,12 @@ namespace Game.Runtime.GameMode.Poker.Modules
 		// clone of them. Pushing one only ever happens on the server, so a client is never the one to make
 		// the clone — and a UI asking about the overlay it can see running would find nothing to ask.
 		public virtual void CollectReferencedStages(List<PokerStage> stages) { }
+
+		// What this module offers the host to tune, declared under its ModuleId. A new module that
+		// declares here appears in the match-config panel with no UI work of its own.
+		public void CollectConfigEntries(List<MatchConfigEntry> entries) => OnCollectConfigEntries(entries);
+
+		protected virtual void OnCollectConfigEntries(List<MatchConfigEntry> entries) { }
 
 		public virtual void OnGameStarted() { }
 		public virtual void OnGameEnded() { }
