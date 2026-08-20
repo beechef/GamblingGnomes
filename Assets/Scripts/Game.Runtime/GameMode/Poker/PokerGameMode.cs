@@ -114,7 +114,7 @@ namespace Game.Runtime.GameMode.Poker
 
 			Instance = this;
 
-			_stageMachine = new PokerStageMachine(this, NotifyStageStarted, NotifyStageEnded);
+			_stageMachine = new PokerStageMachine(this, NotifyStageStarting, NotifyStageStarted, NotifyStageEnded);
 		}
 
 		public override void OnDestroy()
@@ -473,6 +473,16 @@ namespace Game.Runtime.GameMode.Poker
 			if (!IsServer) return;
 
 			_stageMachine.PopOverlay();
+		}
+
+		private void NotifyStageStarting(PokerStage stage)
+		{
+			if (!stage) return;
+
+			foreach (var module in _modules)
+			{
+				if (module) module.OnStageStarting(stage);
+			}
 		}
 
 		private void NotifyStageStarted(PokerStage stage)

@@ -54,6 +54,11 @@ namespace Game.Runtime.GameMode.Poker.Modules
 
 		public virtual void OnGameStarted() { }
 		public virtual void OnGameEnded() { }
+		// Before the stage touches anything. The deal takes its ante inside StartStage, so a house rule
+		// about what a player is carrying belongs here rather than in OnStageStarted, which is already too
+		// late to have been asked.
+		public virtual void OnStageStarting(PokerStage stage) { }
+
 		public virtual void OnStageStarted(PokerStage stage) { }
 		public virtual void OnStageEnded(PokerStage stage) { }
 		public virtual void OnPlayerSeated(ulong clientId, int seatIndex) { }

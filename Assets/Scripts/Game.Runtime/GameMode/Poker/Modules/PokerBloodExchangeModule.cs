@@ -66,10 +66,11 @@ namespace Game.Runtime.GameMode.Poker.Modules
 			Enabled.Value = enabled;
 		}
 
-		// Offered as the street opens rather than only to whoever is about to be asked. A player who is
-		// broke when the cards change is broke for every decision the street is about to bring, and being
-		// told so at the moment the table asks them is too late to have thought about it.
-		public override void OnStageStarted(PokerStage stage)
+		// Before the stage does anything, not after. The deal takes its cost inside StartStage, so a player
+		// down to nothing was being charged the ante with their last coin and put all in on the spot —
+		// staked out of the hand before they had been dealt into it. Selling them blood has to happen while
+		// there is still a decision left to make.
+		public override void OnStageStarting(PokerStage stage)
 		{
 			if (!IsServer || !Enabled.Value) return;
 
@@ -106,7 +107,12 @@ namespace Game.Runtime.GameMode.Poker.Modules
 			var data = player.Data;
 
 			if (data.Chips > 0) return;
-			if (!data.IsAlive || !data.CanAct) return;
+
+			// Seated and alive, not "able to act right now": the moment this matters most is the one just
+			// before the deal, when nobody is Active yet because the hand has not started. Asking CanAct
+			// there is asking a question whose answer is always no.
+			if (!data.IsSeated || !data.IsAlive) return;
+
 			if (data.Health.Value - BloodSpent < MinimumHealthKept) return;
 
 			data.ServerChangeHealth(-BloodSpent);

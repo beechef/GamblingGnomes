@@ -17,6 +17,10 @@ namespace Game.Runtime.GameMode.Poker
 	public class PokerStageMachine
 	{
 		private readonly PokerGameMode _mode;
+		// Raised before the stage does any of its own work, which is a different moment from having
+		// started: the deal takes the ante inside StartStage, so a house rule that changes what somebody
+		// is carrying has to run ahead of it or it is answering a question already asked.
+		private readonly Action<PokerStage> _onStageStarting;
 		private readonly Action<PokerStage> _onStageStarted;
 		private readonly Action<PokerStage> _onStageEnded;
 
@@ -32,9 +36,10 @@ namespace Game.Runtime.GameMode.Poker
 
 		private int _nextStageIndex;
 
-		public PokerStageMachine(PokerGameMode mode, Action<PokerStage> onStageStarted, Action<PokerStage> onStageEnded)
+		public PokerStageMachine(PokerGameMode mode, Action<PokerStage> onStageStarting, Action<PokerStage> onStageStarted, Action<PokerStage> onStageEnded)
 		{
 			_mode = mode;
+			_onStageStarting = onStageStarting;
 			_onStageStarted = onStageStarted;
 			_onStageEnded = onStageEnded;
 		}
@@ -214,6 +219,7 @@ namespace Game.Runtime.GameMode.Poker
 			_overlayStack.Add(overlay);
 			_mode.Data.OverlayStageId.Value = overlay.StageId;
 
+			_onStageStarting?.Invoke(overlay);
 			overlay.StartStage();
 			_onStageStarted?.Invoke(overlay);
 		}
@@ -242,6 +248,7 @@ namespace Game.Runtime.GameMode.Poker
 
 			if (!stage) return;
 
+			_onStageStarting?.Invoke(stage);
 			stage.StartStage();
 			_onStageStarted?.Invoke(stage);
 		}
