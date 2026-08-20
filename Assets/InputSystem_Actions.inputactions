@@ -1138,6 +1138,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "CloseRanking",
+                    "type": "Button",
+                    "id": "08acbc0d-48f2-4eb3-95b4-762cfa7c5561",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -1336,6 +1345,28 @@
                     "processors": "",
                     "groups": "Gamepad",
                     "action": "AbilityUse",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "ab8cd611-a648-401b-8b49-716d064d6643",
+                    "path": "<Keyboard>/escape",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard&Mouse",
+                    "action": "CloseRanking",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "c79af825-10a4-48d4-8063-7956ccfae5b9",
+                    "path": "<Gamepad>/buttonEast",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Gamepad",
+                    "action": "CloseRanking",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
