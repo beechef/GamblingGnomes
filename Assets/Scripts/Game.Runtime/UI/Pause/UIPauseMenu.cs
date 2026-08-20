@@ -76,8 +76,17 @@ namespace Game.Runtime.UI.Pause
 
 		private void HandlePausePressed(InputAction.CallbackContext ctx)
 		{
-			if (IsOpen) Close();
-			else Open();
+			if (IsOpen)
+			{
+				Close();
+				return;
+			}
+
+			// Escape closes the newest thing that is open before it opens anything of its own — this menu is
+			// what the key falls through to, not what it always means.
+			if (UIEscapeStack.DismissTop()) return;
+
+			Open();
 		}
 
 		public void Open()

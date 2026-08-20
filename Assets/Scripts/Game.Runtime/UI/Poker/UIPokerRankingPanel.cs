@@ -75,6 +75,8 @@ namespace Game.Runtime.UI.Poker
 
 			if (_closeButton) _closeButton.OnClick -= HandleClose;
 
+			UIEscapeStack.Remove(HandleClose);
+
 			if (_panel) _panel.SetActive(false);
 		}
 
@@ -129,6 +131,11 @@ namespace Game.Runtime.UI.Poker
 			if (showdown.Count == 0) _dismissed = false;
 
 			var visible = showdown.Count > 0 && !_dismissed;
+
+			// On the stack for as long as it is up, so Escape reaches this board before the pause menu.
+			// Push de-duplicates, so calling it on every refresh only ever moves it back to the top.
+			if (visible) UIEscapeStack.Push(HandleClose);
+			else UIEscapeStack.Remove(HandleClose);
 
 			if (_panel && _panel.activeSelf != visible) _panel.SetActive(visible);
 			if (!visible) return;
