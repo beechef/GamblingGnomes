@@ -14,6 +14,10 @@ namespace Game.Runtime.GameMode.Poker.Abilities
 		[Tooltip("How long the head stays over there. Whatever sight the card grants lasts exactly as long, and not a moment past the lean everyone can see.")]
 		[SerializeField] private float _durationSeconds = 5f;
 
+		// The lockout is the lean: the card holds the player for exactly as long as the table can see
+		// them doing it, so there is one number and nothing to keep in step.
+		public override float BusySeconds => _durationSeconds;
+
 		protected override bool OnActivateServer(PokerGameMode gameMode, PokerPlayer player)
 		{
 			var peek = player.GetComponentInChildren<PokerPeekController>();

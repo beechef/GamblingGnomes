@@ -1,4 +1,5 @@
 using Game.Runtime.GameMode.Poker.Player;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker.Abilities
@@ -19,6 +20,14 @@ namespace Game.Runtime.GameMode.Poker.Abilities
 
 		[Tooltip("Cheat abilities mark their user as a cheater for the round — the thing a report accuses them of.")]
 		[SerializeField] private PokerAbilityKind _kind;
+
+		[Tooltip("How long the holder is busy with this card. Nothing else can be played until it is over — a trick that puts somebody on show for five seconds cannot be covered by a second one played behind it. Zero resolves at once.")]
+		[MinValue(0f)]
+		[SerializeField] private float _busySeconds;
+
+		// Virtual so a card whose act already has a length answers with that one number rather than
+		// carrying a second field beside it for somebody to forget to keep in step.
+		public virtual float BusySeconds => Mathf.Max(0f, _busySeconds);
 
 		public string AbilityId => string.IsNullOrEmpty(_abilityId) ? name : _abilityId;
 		public string DisplayName => string.IsNullOrEmpty(_displayName) ? name : _displayName;

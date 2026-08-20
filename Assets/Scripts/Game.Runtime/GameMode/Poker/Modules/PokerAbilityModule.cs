@@ -271,6 +271,7 @@ namespace Game.Runtime.GameMode.Poker.Modules
 
 				player.Data.AbilityIds.Clear();
 				player.Data.ReportsLeft.Value = 0;
+				player.Data.AbilityBusyUntil.Value = 0d;
 			}
 		}
 
@@ -293,8 +294,22 @@ namespace Game.Runtime.GameMode.Poker.Modules
 			var index = hand.FindIndex(candidate => candidate && candidate.AbilityId == abilityId.ToString());
 			if (index < 0) return;
 
+			// A card that puts its holder on show for a few seconds cannot be covered by a second one
+			// played behind it — the act is the only thing the table gets to read, so one at a time.
+			if (IsBusy(player.Data))
+			{
+				Debug.LogWarning($"[{ModuleId}] Refused ability '{abilityId}' from client {clientId}: still busy with the last one.");
+				return;
+			}
+
 			var ability = hand[index];
 			if (!ability.ActivateServer(GameMode, player)) return;
+
+			// Written after the activation, so a card that fizzles costs nothing and locks nothing.
+			if (ability.BusySeconds > 0f)
+			{
+				player.Data.AbilityBusyUntil.Value = NetworkManager.ServerTime.Time + ability.BusySeconds;
+			}
 
 			// Only the owner's replica learns the card is spent. Nobody else hears a thing — an
 			// ability is played in silence, and the report game is how it ever comes to light.
@@ -303,6 +318,11 @@ namespace Game.Runtime.GameMode.Poker.Modules
 
 			if (ability.Kind == PokerAbilityKind.Cheat) _cheaters.Add(clientId);
 		}
+
+		// Asked of the same replicated value the owner's wheel reads, so the button that greys out and the
+		// server that refuses can never disagree about who is mid-trick.
+		public bool IsBusy(PokerPlayerData data) =>
+			data && NetworkManager && NetworkManager.ServerTime.Time < data.AbilityBusyUntil.Value;
 
 		// One entry, not every match: a player dealt the same trick twice spends one copy and keeps the
 		// other, the same way two identical cards in a hand are still two cards.
@@ -679,8 +699,7 @@ namespace Game.Runtime.GameMode.Poker.Modules
 			// Already folded — the report only costs them the stake.
 			if (!player.Data.IsInHand) return;
 
-			player.Data.Status.Value = PokerPlayerStatus.Folded;
-			player.Data.HasActed.Value = true;
+			player.ServerFold();
 
 			// Folded from outside their own action path: a street waiting on them would wait forever,
 			// so it hears the same thing a departure would tell it. Under the report overlay the turn
