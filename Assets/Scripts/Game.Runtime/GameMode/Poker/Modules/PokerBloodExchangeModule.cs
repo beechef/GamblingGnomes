@@ -78,9 +78,13 @@ namespace Game.Runtime.GameMode.Poker.Modules
 			// accusation with the very thing it is being paid in.
 			if (GameMode.CurrentOverlay) return;
 
+			// Priced against what the stage is about to charge, not against an empty purse: a player left
+			// with nothing after the seat cost is a player who was about to be put all in by it.
+			var upfront = stage ? stage.UpfrontCostPerPlayer : 0;
+
 			foreach (var player in GameMode.SeatedPlayers)
 			{
-				if (player && player.Data) ExchangeServer(player);
+				if (player && player.Data) ExchangeServer(player, upfront);
 			}
 		}
 
@@ -100,13 +104,17 @@ namespace Game.Runtime.GameMode.Poker.Modules
 			ExchangeServer(player);
 		}
 
-		// Once per turn rather than in a loop up to some target: a player is asked for the price of one
-		// answer, and how far they want to go is a decision they get to make again next time round.
-		private void ExchangeServer(PokerPlayer player)
+		// Once rather than in a loop up to some target: a player is asked for the price of one answer, and
+		// how far they want to go is a decision they get to make again next time round. A seat cost larger
+		// than one sale is worth will therefore still leave them short — deliberately, since bleeding
+		// somebody repeatedly for a single hand is not a decision anybody made.
+		private void ExchangeServer(PokerPlayer player, int upfrontCost = 0)
 		{
 			var data = player.Data;
 
-			if (data.Chips > 0) return;
+			// What is left once the stage has taken its cost. With nothing to pay it is the purse itself,
+			// which is what a betting street and the top of a turn are asking about.
+			if (data.Chips - upfrontCost > 0) return;
 
 			// Seated and alive, not "able to act right now": the moment this matters most is the one just
 			// before the deal, when nobody is Active yet because the hand has not started. Asking CanAct

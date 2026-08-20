@@ -129,6 +129,11 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			OnTickStage(deltaTime);
 		}
 
+		// What this stage takes off every player before anybody is asked anything — the deal's seat cost is
+		// the only one today. Declared here so a house rule can price a player against what is about to be
+		// charged rather than against an empty purse, which is one moment too late to help them.
+		public virtual int UpfrontCostPerPlayer => 0;
+
 		public virtual bool HandleAction(ulong clientId, PokerActionType action, int amount) => false;
 
 		// A player left the table mid stage. The seat index comes along because the player object may

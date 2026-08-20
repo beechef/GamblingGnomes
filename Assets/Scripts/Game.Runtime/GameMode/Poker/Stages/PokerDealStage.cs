@@ -41,6 +41,10 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		public int Ante => Mathf.Max(0, _ante);
 		public int DealCost => Mathf.Max(0, _dealCost);
 
+		// The seat cost is exactly what a player has to be able to cover before this stage runs, so it is
+		// the same number rather than a second one kept in step.
+		public override int UpfrontCostPerPlayer => DealCost;
+
 		protected override void OnCollectConfigEntries(List<MatchConfigEntry> entries)
 		{
 			entries.Add(new MatchConfigInt(StageId, StageId, "DealCost", "Deal Cost", 0, 10, 1,
