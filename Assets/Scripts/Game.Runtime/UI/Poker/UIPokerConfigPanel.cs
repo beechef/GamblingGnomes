@@ -88,7 +88,7 @@ namespace Game.Runtime.UI.Poker
 			var isHost = NetworkManager.Singleton && NetworkManager.Singleton.IsHost;
 			var visible = isHost && Data && Data.Phase.Value == PokerPhase.Waiting;
 
-			if (_openButton && _openButton.gameObject.activeSelf != visible) _openButton.gameObject.SetActive(visible);
+			// if (_openButton && _openButton.gameObject.activeSelf != visible) _openButton.gameObject.SetActive(visible);
 
 			// The deal starting is the table's own way of saying the rules are settled.
 			if (!visible && IsOpen) ClosePanel();

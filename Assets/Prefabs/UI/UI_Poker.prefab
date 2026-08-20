@@ -7662,7 +7662,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 16}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!114 &909558821783746234
 MonoBehaviour:
@@ -10783,6 +10783,10 @@ PrefabInstance:
       propertyPath: m_text
       value: Close
       objectReference: {fileID: 0}
+    - target: {fileID: 7842552576817173887, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
+      propertyPath: m_fontSize
+      value: 20.6
+      objectReference: {fileID: 0}
     - target: {fileID: 8775369202157300117, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
       propertyPath: m_Name
       value: Button_Close
@@ -11017,9 +11021,17 @@ PrefabInstance:
       propertyPath: m_text
       value: Settings
       objectReference: {fileID: 0}
+    - target: {fileID: 7842552576817173887, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
+      propertyPath: m_fontSize
+      value: 20.6
+      objectReference: {fileID: 0}
     - target: {fileID: 8775369202157300117, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
       propertyPath: m_Name
       value: Button_Config
+      objectReference: {fileID: 0}
+    - target: {fileID: 8775369202157300117, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
@@ -12041,6 +12053,14 @@ PrefabInstance:
     - target: {fileID: 1399311785776108001, guid: f60c5cdc9f4a7d84b96bc9a34cb40db5, type: 3}
       propertyPath: m_text
       value: MATCH SETTINGS
+      objectReference: {fileID: 0}
+    - target: {fileID: 1399311785776108001, guid: f60c5cdc9f4a7d84b96bc9a34cb40db5, type: 3}
+      propertyPath: m_fontColor32.rgba
+      value: 4288524228
+      objectReference: {fileID: 0}
+    - target: {fileID: 1399311785776108001, guid: f60c5cdc9f4a7d84b96bc9a34cb40db5, type: 3}
+      propertyPath: m_TextStyleHashCode
+      value: -1183493901
       objectReference: {fileID: 0}
     - target: {fileID: 5131578427707704104, guid: f60c5cdc9f4a7d84b96bc9a34cb40db5, type: 3}
       propertyPath: m_Pivot.x
