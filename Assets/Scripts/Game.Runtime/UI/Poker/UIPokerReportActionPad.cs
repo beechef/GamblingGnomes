@@ -116,7 +116,7 @@ namespace Game.Runtime.UI.Poker
 			// The same ceiling the server clamps to, read off the same module: neither of them can be
 			// offered a number the other could not cover.
 			var stake = _module.ReportStake.Value;
-			var accused = LocalClientId == accusation.TargetClientId;
+			var accused = LocalClientId == accusation.TargetClientId;	
 			var allIn = _module.AllInStake(PokerPlayer.Find(accusation.AccuserClientId), LocalPlayer);
 
 			if (_callButton) _callButton.IsInteractable = true;
