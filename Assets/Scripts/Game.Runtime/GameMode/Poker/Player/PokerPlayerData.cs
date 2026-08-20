@@ -62,6 +62,14 @@ namespace Game.Runtime.GameMode.Poker.Player
 			NetworkVariableReadPermission.Owner,
 			NetworkVariableWritePermission.Server);
 
+		// Server time this player is free to play another card. Owner-read for the same reason the hand is:
+		// "somebody is busy" would say that somebody just played something, and the whole guessing game is
+		// that only the act itself ever tells the table anything. Absolute rather than a countdown, so a
+		// client arriving mid-trick reads how long is left instead of starting the clock again.
+		[HideInInspector] public NetworkVariable<double> AbilityBusyUntil = new(0d,
+			readPerm: NetworkVariableReadPermission.Owner,
+			writePerm: NetworkVariableWritePermission.Server);
+
 		[HideInInspector] public NetworkVariable<int> ReportsLeft = new(0,
 			readPerm: NetworkVariableReadPermission.Everyone,
 			writePerm: NetworkVariableWritePermission.Server);
@@ -231,6 +239,18 @@ namespace Game.Runtime.GameMode.Poker.Player
 			ServerResetForHand();
 		}
 
+		// Mucking, as opposed to a swap: a clear is exactly what putting the cards down looks like on the
+		// wire, and PokerHandVisual plays its tear-down off the Clear event. ServerReplaceHoleCards writes
+		// slots instead for the opposite reason — a cheat must not read as a deal.
+		public void ServerFold()
+		{
+			if (!IsServer || !IsInHand) return;
+
+			Status.Value = PokerPlayerStatus.Folded;
+			HasActed.Value = true;
+			HoleCards.Clear();
+		}
+
 		public void ServerResetForHand()
 		{
 			if (!IsServer) return;
@@ -240,6 +260,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			HasActed.Value = false;
 			HandRevealed.Value = false;
 			ReportsLeft.Value = 0;
+			AbilityBusyUntil.Value = 0d;
 			AbilityIds.Clear();
 			HoleCards.Clear();
 		}

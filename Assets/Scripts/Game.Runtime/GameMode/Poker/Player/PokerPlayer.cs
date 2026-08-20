@@ -61,6 +61,22 @@ namespace Game.Runtime.GameMode.Poker.Player
 		public PlayerVisual Visual => _visual;
 		public ulong ClientId => OwnerClientId;
 
+		// Folding is putting the cards down, and that is three things that must not come apart: the status
+		// the rules read, the cards themselves, and the pose the player is holding them in. One method for
+		// all three, because a hand mucked while its owner is still bent over studying it is a player
+		// reading a hand they no longer have — and the two fold paths that existed before this each did
+		// only the first part.
+		public void ServerFold()
+		{
+			if (!IsServer || !_data || !_data.IsInHand) return;
+
+			_data.ServerFold();
+
+			// Dropped rather than left standing. The bool drives the animator on both rigs, so lowering it
+			// is what the table watches the cards go face down.
+			if (_handPeek) _handPeek.ServerSetPeeking(false);
+		}
+
 		// The seat number is the fallback rather than the label: a player whose identity RPC has not
 		// landed yet still has a chair, and a name that arrives late replaces it on the next redraw.
 		public string DisplayName
