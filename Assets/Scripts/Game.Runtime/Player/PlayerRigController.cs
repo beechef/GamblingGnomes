@@ -27,14 +27,23 @@ namespace Game.Runtime.Player
 
 		public Transform RenderedCamera => IsOwner ? _handOnlyCamera : _fullBodyCamera;
 
-		// The bone the view is really tied to. A head that moves without this moving with it is a head the
-		// player is left watching from the outside.
+		// The head itself — the bone the mesh is skinned to and the one anything posing a head has to
+		// drive. The camera does not hang off it directly: there is a pivot in between (Head_M/Offset/
+		// Camera) holding the eye's offset, so taking the camera's parent hands back that pivot instead.
+		// Aiming the pivot turns the view and leaves the head where the clip left it, which reads as
+		// correct from inside the player's own eyes and as a head that never moves from every other seat
+		// at the table. The camera is a descendant either way, so the view still travels with the bone.
+		//
+		// The camera's parent is only the fallback, for a rig whose head bone is not named in its map.
 		public Transform RenderedHead
 		{
 			get
 			{
+				var bone = GetBone(PlayerBone.Head);
+				if (bone) return bone;
+
 				var camera = RenderedCamera;
-				return camera && camera.parent ? camera.parent : GetBone(PlayerBone.Head);
+				return camera ? camera.parent : null;
 			}
 		}
 
