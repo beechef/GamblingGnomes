@@ -272,6 +272,10 @@ namespace Game.Runtime.GameMode.Poker.Modules
 				player.Data.AbilityIds.Clear();
 				player.Data.ReportsLeft.Value = 0;
 				player.Data.AbilityBusyUntil.Value = 0d;
+
+				// A round torn down mid-swallow leaves somebody drunk over a table that is not there any
+				// more, and a look at a hand that has already been put away.
+				player.GetComponentInChildren<PokerDrinkController>()?.ServerClear();
 			}
 		}
 
