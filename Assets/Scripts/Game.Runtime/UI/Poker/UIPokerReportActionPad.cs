@@ -97,8 +97,6 @@ namespace Game.Runtime.UI.Poker
 
 		private void Refresh()
 		{
-			var accusation = _module.Accusation.Value;
-
 			// Whose move it is comes off the turn, as everywhere else at this table.
 			var visible = _module.ReportPhase.Value == PokerReportPhase.Response && IsLocalTurn;
 
@@ -107,24 +105,18 @@ namespace Game.Runtime.UI.Poker
 
 			if (_bloodLabel) _bloodLabel.text = LocalData.Health.Value.ToString();
 
-			// The same ceiling the server clamps to, read off the same module: neither of them can be
-			// offered a number the other could not cover.
+			// Every number and every permission comes off the module — the same code the server settles
+			// with — so what this pad lights and what the RPC accepts cannot drift apart.
 			var stake = _module.ReportStake.Value;
-			var accused = LocalClientId == accusation.TargetClientId;	
-			var allIn = _module.AllInStake(PokerPlayer.Find(accusation.AccuserClientId), LocalPlayer);
+			var allIn = _module.CurrentAllInStake();
 
 			if (_callButton) _callButton.IsInteractable = true;
 			if (_callLabel) _callLabel.text = $"Call {stake}";
 
-			// Shoving is the accused's answer to being named. Whoever did the naming has already said what
-			// they think it is worth, so all that is left for them is to be matched — and a stack with
-			// nothing more in it than the stake has no shove in it either.
-			if (_allInButton) _allInButton.IsInteractable = accused && allIn > stake;
+			if (_allInButton) _allInButton.IsInteractable = _module.CanReportAllIn(LocalClientId);
 			if (_allInLabel) _allInLabel.text = $"All In {allIn}";
 
-			// The accused cannot walk away from being named. The accuser can, once they are being asked for
-			// more than they put up — leaving their stake behind is the price of not wanting to know.
-			if (_foldButton) _foldButton.IsInteractable = !accused;
+			if (_foldButton) _foldButton.IsInteractable = _module.CanReportFold(LocalClientId);
 
 			RefreshTimer();
 		}

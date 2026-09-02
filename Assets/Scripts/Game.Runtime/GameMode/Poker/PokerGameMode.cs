@@ -25,6 +25,9 @@ namespace Game.Runtime.GameMode.Poker
 		[Range(1, 8)]
 		[SerializeField] private int _startingHealth = 8;
 
+		[Tooltip("What a unit of the players' money is. Types are drawn into each wallet as money arrives, and a bet spends the front of the wallet. Empty plays plain chips — the money game unchanged.")]
+		[SerializeField] private Mushrooms.PokerMushroomDatabase _mushroomDatabase;
+
 		[Header("Stages")]
 		[Tooltip("The round loop as a preset. Swap this asset to change the game — modules still add to it, and any stage can be interrupted at runtime by InsertStage or PushOverlay.")]
 		[SerializeField] private PokerStageSequence _sequence;
@@ -56,6 +59,7 @@ namespace Game.Runtime.GameMode.Poker
 
 		public PokerGameData Data => _data;
 		public MatchConfigData ConfigData => _configData;
+		public Mushrooms.PokerMushroomDatabase MushroomDatabase => _mushroomDatabase;
 		public PokerRuleSettings Rules => _rules;
 		public PokerStageSequence Sequence => _sequence;
 		public PokerDeck Deck { get; } = new();
@@ -342,6 +346,9 @@ namespace Game.Runtime.GameMode.Poker
 
 				var firstTime = !player.Data.HasConfiguredStartingStats;
 
+				// Before the stats, so the money the reset hands out is typed by the table's own catalogue
+				// rather than falling back to plain chips for the first seeding.
+				player.Data.ServerSetStakeItemSource(_mushroomDatabase);
 				player.Data.ServerSetStartingStats(_startingMoney, _startingHealth);
 
 				if (firstTime || (resetPlayers && _data && _data.Phase.Value == PokerPhase.Waiting))
@@ -569,8 +576,7 @@ namespace Game.Runtime.GameMode.Poker
 					// The chips they had in front of them stay behind as dead money — collected now,
 					// because once their object despawns no street-end sweep will ever see them, and the
 					// players who pushed them out would win back nothing but their own bets.
-					_data.Pot.Value += player.Data.Bet.Value;
-					player.Data.ServerCollectBet();
+					PokerTableUtility.ForfeitBet(_data, player);
 
 					// The cards go back with the seat: an unseated player is outside every stage's reset
 					// sweep, and would otherwise carry the hand around for the rest of the session.

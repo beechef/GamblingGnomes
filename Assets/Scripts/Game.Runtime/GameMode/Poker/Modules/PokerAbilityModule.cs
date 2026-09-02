@@ -498,6 +498,30 @@ namespace Game.Runtime.GameMode.Poker.Modules
 			return Mathf.Max(ReportStake.Value, covered);
 		}
 
+		// The shove the standing accusation offers, measured between its own two sides — what the pad
+		// prints on the petal, off the same clamp the server settles with.
+		public int CurrentAllInStake()
+		{
+			var accusation = Accusation.Value;
+
+			return AllInStake(GameMode.FindSeatedPlayer(accusation.AccuserClientId),
+				GameMode.FindSeatedPlayer(accusation.TargetClientId));
+		}
+
+		// Shoving is the accused's answer to being named. Whoever did the naming has already said what
+		// they think it is worth, so all that is left for them is to be matched — and a stack with
+		// nothing more in it than the stake has no shove in it either.
+		public bool CanReportAllIn(ulong clientId)
+		{
+			if (clientId != Accusation.Value.TargetClientId) return false;
+
+			return CurrentAllInStake() > ReportStake.Value;
+		}
+
+		// The accused cannot walk away from being named. The accuser can, once they are being asked for
+		// more than they put up — leaving their stake behind is the price of not wanting to know.
+		public bool CanReportFold(ulong clientId) => clientId != Accusation.Value.TargetClientId;
+
 		// Blood put in, there and then. Each side is tracked against what it has already staked so a call
 		// after a shove pays only the difference, and a second call pays nothing.
 		public int CommitReportBloodServer(ulong clientId, int stake)

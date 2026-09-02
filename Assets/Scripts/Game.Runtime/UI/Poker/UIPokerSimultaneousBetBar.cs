@@ -1,4 +1,6 @@
+using System.Collections.Generic;
 using Game.Runtime.GameMode.Poker;
+using Game.Runtime.GameMode.Poker.Player;
 using Game.Runtime.GameMode.Poker.Stages;
 using Game.Runtime.UI.Button;
 using Game.Runtime.UI.Progress;
@@ -37,6 +39,11 @@ namespace Game.Runtime.UI.Poker
 
 		private PokerSimultaneousBetStage _stage;
 
+		// The locked-in count reads other players' state, so this bar has to hear those change — the
+		// seated list only says who is at the table, never whether they have answered. Same shape as
+		// UIPokerStartPanel, for the same reason.
+		private readonly List<PokerPlayerData> _watched = new();
+
 		protected override bool WantsTick => _stage && Data && Data.HasStageTimer;
 
 		private void Awake()
@@ -53,8 +60,10 @@ namespace Game.Runtime.UI.Poker
 
 			Data.StageId.OnValueChanged += HandleStageChanged;
 			Data.OverlayStageId.OnValueChanged += HandleStageChanged;
+			GameMode.OnSeatedPlayersChanged += HandleSeatedPlayersChanged;
 			LocalData.OnStateChanged += Refresh;
 
+			WatchSeatedPlayers();
 			Refresh();
 		}
 
@@ -64,14 +73,46 @@ namespace Game.Runtime.UI.Poker
 			if (_foldButton) _foldButton.OnClick -= HandleFold;
 			if (_amountSlider) _amountSlider.onValueChanged.RemoveListener(HandleAmountChanged);
 
+			UnwatchSeatedPlayers();
+
 			Data.OverlayStageId.OnValueChanged -= HandleStageChanged;
 			Data.StageId.OnValueChanged -= HandleStageChanged;
+			GameMode.OnSeatedPlayersChanged -= HandleSeatedPlayersChanged;
 			LocalData.OnStateChanged -= Refresh;
 
 			_stage = null;
 
 			if (_panel) _panel.SetActive(false);
 			if (_waitingPanel) _waitingPanel.SetActive(false);
+		}
+
+		private void HandleSeatedPlayersChanged()
+		{
+			WatchSeatedPlayers();
+			Refresh();
+		}
+
+		private void WatchSeatedPlayers()
+		{
+			UnwatchSeatedPlayers();
+
+			foreach (var player in GameMode.SeatedPlayers)
+			{
+				if (!player || !player.Data) continue;
+
+				player.Data.OnStateChanged += Refresh;
+				_watched.Add(player.Data);
+			}
+		}
+
+		private void UnwatchSeatedPlayers()
+		{
+			foreach (var data in _watched)
+			{
+				if (data) data.OnStateChanged -= Refresh;
+			}
+
+			_watched.Clear();
 		}
 
 		private void HandleStageChanged(FixedString32Bytes previous, FixedString32Bytes current) => Refresh();
@@ -133,16 +174,9 @@ namespace Game.Runtime.UI.Poker
 		{
 			if (!_lockedInLabel) return;
 
-			var total = 0;
-			var lockedIn = 0;
-
-			foreach (var player in GameMode.SeatedPlayers)
-			{
-				if (!player.Data.IsInHand) continue;
-
-				total++;
-				if (!player.Data.CanAct || player.Data.HasActed.Value) lockedIn++;
-			}
+			// Counted the way the stage counts it, and only when somebody's state changes — the number
+			// cannot move between changes, so there is nothing for a per-frame recount to find.
+			var (lockedIn, total) = PokerTableUtility.CountLockedIn(GameMode.SeatedPlayers);
 
 			_lockedInLabel.text = $"{lockedIn}/{total}";
 		}
@@ -155,11 +189,7 @@ namespace Game.Runtime.UI.Poker
 			else _timerBar.Clear();
 		}
 
-		protected override void OnTick()
-		{
-			RefreshTimer();
-			RefreshLockedIn();
-		}
+		protected override void OnTick() => RefreshTimer();
 
 		private int SelectedAmount()
 		{
