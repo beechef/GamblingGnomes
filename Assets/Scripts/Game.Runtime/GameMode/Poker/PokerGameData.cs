@@ -26,6 +26,12 @@ namespace Game.Runtime.GameMode.Poker
 		[HideInInspector] public NetworkVariable<int> Pot = new(0,
 			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
 
+		// The pot, itemised: one entry per unit staked, so what the scalar can only total stays
+		// queryable — who fed the pot, on which street, and what kind of unit it was. Mirrors the
+		// scalar exactly and only PokerTableUtility writes either, so the two cannot drift.
+		public readonly NetworkList<PokerBetItem> PotItems = new(null,
+			NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+
 		[HideInInspector] public NetworkVariable<int> CurrentBet = new(0,
 			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
 
@@ -124,6 +130,10 @@ namespace Game.Runtime.GameMode.Poker
 		// instead of rebuilding a board whose other cards are mid animation.
 		public event Action<NetworkListEvent<CardData>> OnCommunityCardsChanged;
 
+		// Same shape for the pot's items: a view can animate the one unit that arrived rather than
+		// rebuilding a pile that is mid flight.
+		public event Action<NetworkListEvent<PokerBetItem>> OnPotItemsChanged;
+
 		// The board did not change, but what may be seen of it did — a street opening, or a rule granting
 		// somebody a look. Carries nothing: a view has to re-ask about every card either way.
 		public event Action OnCommunityVisibilityChanged;
@@ -162,6 +172,7 @@ namespace Game.Runtime.GameMode.Poker
 		{
 			CommunityCards.OnListChanged += HandleCommunityCardsChanged;
 			Showdown.OnListChanged += HandleShowdownChanged;
+			PotItems.OnListChanged += HandlePotItemsChanged;
 			RevealedCommunityCards.OnValueChanged += HandleRevealedCountChanged;
 
 			OnCommunityVisibilityRulesChanged += HandleVisibilityRulesChanged;
@@ -172,11 +183,13 @@ namespace Game.Runtime.GameMode.Poker
 			OnCommunityVisibilityRulesChanged -= HandleVisibilityRulesChanged;
 
 			RevealedCommunityCards.OnValueChanged -= HandleRevealedCountChanged;
+			PotItems.OnListChanged -= HandlePotItemsChanged;
 			CommunityCards.OnListChanged -= HandleCommunityCardsChanged;
 			Showdown.OnListChanged -= HandleShowdownChanged;
 		}
 
 		private void HandleCommunityCardsChanged(NetworkListEvent<CardData> changeEvent) => OnCommunityCardsChanged?.Invoke(changeEvent);
+		private void HandlePotItemsChanged(NetworkListEvent<PokerBetItem> changeEvent) => OnPotItemsChanged?.Invoke(changeEvent);
 		private void HandleShowdownChanged(NetworkListEvent<PokerShowdownEntry> changeEvent) => OnShowdownChanged?.Invoke();
 		private void HandleRevealedCountChanged(int previous, int current) => OnCommunityVisibilityChanged?.Invoke();
 		private void HandleVisibilityRulesChanged() => OnCommunityVisibilityChanged?.Invoke();

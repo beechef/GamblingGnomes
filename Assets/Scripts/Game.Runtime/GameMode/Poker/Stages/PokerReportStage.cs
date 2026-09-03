@@ -137,9 +137,10 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			var accused = GameMode.FindSeatedPlayer(_targetClientId);
 
 			// Match it or shove it. Folded out of the hand or not, the accused still has to answer for the
-			// accusation — so both of their answers are a number.
+			// accusation — so both of their answers are a number. The shove is gated by the same method
+			// the pad lights its petal from: one that adds nothing to the stake is a call, not a shove.
 			if (action == PokerActionType.Call) return Answer(_module.ReportStake.Value, PokerActionType.Call);
-			if (action == PokerActionType.AllIn) return Answer(_module.AllInStake(accuser, accused), PokerActionType.AllIn);
+			if (action == PokerActionType.AllIn && _module.CanReportAllIn(clientId)) return Answer(_module.AllInStake(accuser, accused), PokerActionType.AllIn);
 
 			return false;
 		}

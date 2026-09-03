@@ -92,44 +92,43 @@ namespace Game.Runtime.UI.Poker
 
 			// While something is overlaid on the street the turn belongs to it, and whoever is on that clock
 			// is being asked something else entirely. A street that only asks call or fold has a bar of its
-			// own, so this one steps aside rather than showing two buttons out of five.
+			// own, so this one steps aside rather than showing two buttons out of five — and a stage that is
+			// not a betting street at all has no verbs for this bar to offer, so no stage means no bar
+			// rather than a bar running on a rulebook of its own.
 			var ourTurn = IsLocalTurn && LocalData.CanAct && Data.OverlayStageId.Value.IsEmpty
-			              && (!stage || !stage.IsCallOnly);
+			              && stage && !stage.IsCallOnly;
 
 			if (_panel && _panel.activeSelf != ourTurn) _panel.SetActive(ourTurn);
 			if (!ourTurn) return;
 
-			var owed = Mathf.Max(0, Data.CurrentBet.Value - LocalData.Bet.Value);
-
-			var minimumTarget = Data.CurrentBet.Value + (stage ? stage.MinimumRaiseStep : Data.LastRaise.Value);
-			var maximumTarget = LocalData.Bet.Value + LocalData.Chips;
+			// Every number and every permission comes off the running stage, never re-derived here: the
+			// stage is what the server accepts with, and a second copy is a copy that drifts.
+			var owed = stage.OwedBy(LocalData);
+			var minimumTarget = stage.MinimumRaiseTarget;
+			var maximumTarget = stage.MaximumRaiseTargetFor(LocalData);
 
 			// What the street forbids is hidden; what this player merely cannot afford is dimmed. A greyed
 			// button says "not now", a missing one says "not here", and a street that never allows raising
 			// should not spend the space claiming otherwise.
-			var raiseAllowed = !stage || stage.AllowRaise;
-			var checkAllowed = !stage || stage.AllowCheckWhenNoBet;
-			var allInAllowed = !stage || stage.AllowAllIn;
+			SetShown(_checkButton, stage.AllowCheckWhenNoBet);
+			SetShown(_raiseButton, stage.AllowRaise);
+			SetShown(_allInButton, stage.AllowAllIn);
+			if (_raiseSlider) _raiseSlider.gameObject.SetActive(stage.AllowRaise);
 
-			SetShown(_checkButton, checkAllowed);
-			SetShown(_raiseButton, raiseAllowed);
-			SetShown(_allInButton, allInAllowed);
-			if (_raiseSlider) _raiseSlider.gameObject.SetActive(raiseAllowed);
+			if (_checkButton) _checkButton.IsInteractable = stage.CanCheck(LocalData);
+			if (_callButton) _callButton.IsInteractable = stage.CanCall(LocalData);
+			if (_raiseButton) _raiseButton.IsInteractable = stage.CanRaise(LocalData);
+			if (_allInButton) _allInButton.IsInteractable = stage.CanAllIn(LocalData);
 
-			if (_checkButton) _checkButton.IsInteractable = owed <= 0;
-			if (_callButton) _callButton.IsInteractable = owed > 0 && LocalData.Chips > 0;
-			if (_raiseButton) _raiseButton.IsInteractable = maximumTarget > minimumTarget;
-			if (_allInButton) _allInButton.IsInteractable = LocalData.Chips > 0;
-
-			if (_raiseSlider && raiseAllowed)
+			if (_raiseSlider && stage.AllowRaise)
 			{
-				_raiseSlider.interactable = maximumTarget > minimumTarget;
+				_raiseSlider.interactable = stage.CanRaise(LocalData);
 				_raiseSlider.minValue = minimumTarget;
 				_raiseSlider.maxValue = Mathf.Max(minimumTarget, maximumTarget);
 				_raiseSlider.wholeNumbers = true;
 			}
 
-			if (_callLabel) _callLabel.text = owed > 0 ? $"Call {Mathf.Min(owed, LocalData.Chips)}" : "Call";
+			if (_callLabel) _callLabel.text = owed > 0 ? $"Call {stage.CallCostFor(LocalData)}" : "Call";
 			if (_chipsLabel) _chipsLabel.text = LocalData.Chips.ToString();
 
 			RefreshRaiseLabel();

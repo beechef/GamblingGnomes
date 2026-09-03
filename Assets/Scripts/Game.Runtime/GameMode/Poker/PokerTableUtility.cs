@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Game.Runtime.GameMode.Poker.Mushrooms;
 using Game.Runtime.GameMode.Poker.Player;
 using UnityEngine;
 
@@ -13,12 +14,14 @@ namespace Game.Runtime.GameMode.Poker
 		// statics survive between play sessions with Domain Reload off.
 		private static readonly List<int> CapBuffer = new();
 		private static readonly List<PokerPlayer> WinnerBuffer = new();
+		private static readonly List<byte> TypeBuffer = new();
 
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
 		private static void ResetStatics()
 		{
 			CapBuffer.Clear();
 			WinnerBuffer.Clear();
+			TypeBuffer.Clear();
 		}
 
 		public static PokerPlayer NextPlayer(IReadOnlyList<PokerPlayer> seatOrder, int fromSeatIndex, Func<PokerPlayer, bool> predicate)
@@ -61,7 +64,10 @@ namespace Game.Runtime.GameMode.Poker
 			{
 				if (!player || !player.Data || !player.Data.CanAct) continue;
 
-				collected += player.Data.ServerPayIntoPot(amount);
+				TypeBuffer.Clear();
+				var paid = player.Data.ServerPayIntoPot(amount, TypeBuffer);
+				if (paid > 0) AddPotItems(data, player.ClientId, TypeBuffer);
+				collected += paid;
 			}
 
 			if (collected > 0) data.Pot.Value += collected;
@@ -75,7 +81,14 @@ namespace Game.Runtime.GameMode.Poker
 
 			foreach (var player in players)
 			{
-				collected += player.Data.Bet.Value;
+				var bet = player.Data.Bet.Value;
+				if (bet > 0)
+				{
+					player.Data.ServerTakeCommittedItemTypes(bet, TypeBuffer);
+					AddPotItems(data, player.ClientId, TypeBuffer);
+				}
+
+				collected += bet;
 				player.Data.ServerCollectBet();
 			}
 
@@ -83,6 +96,69 @@ namespace Game.Runtime.GameMode.Poker
 
 			data.CurrentBet.Value = 0;
 			data.LastRaise.Value = 0;
+		}
+
+		// Dead money from a seat abandoned mid-hand: swept into the pot now, because once the player's
+		// object despawns no street-end sweep will ever see it. The one write to the pot that does not
+		// happen at a street's end, which is exactly why it lives here beside the others.
+		public static void ForfeitBet(PokerGameData data, PokerPlayer player)
+		{
+			var bet = player.Data.Bet.Value;
+			if (bet <= 0) return;
+
+			player.Data.ServerTakeCommittedItemTypes(bet, TypeBuffer);
+			AddPotItems(data, player.ClientId, TypeBuffer);
+			data.Pot.Value += bet;
+			player.Data.ServerCollectBet();
+		}
+
+		public static void ResetPot(PokerGameData data)
+		{
+			data.Pot.Value = 0;
+			data.PotItems.Clear();
+		}
+
+		// The pot's itemised half. One entry per unit staked, stamped with who fed it, on which street,
+		// and what it is — the types were drawn off the front of the owner's wallet when the stake was
+		// placed. Only ever written beside the scalar, in this class, so the two cannot disagree.
+		private static void AddPotItems(PokerGameData data, ulong ownerClientId, List<byte> itemTypes)
+		{
+			foreach (var itemType in itemTypes)
+			{
+				data.PotItems.Add(new PokerBetItem
+				{
+					OwnerClientId = ownerClientId,
+					Phase = data.Phase.Value,
+					ItemTypeIndex = itemType
+				});
+			}
+		}
+
+		// The loser-eats settlement: the pot is not won, it is swallowed. Every unit goes down the
+		// eaters' throats in pot order — ties share the plate unit by unit — and each one does whatever
+		// its kind does. Nothing is ever paid out: winning here is worth exactly not having to eat,
+		// the same shape as the report's "an accusation costs the loser; it never pays the winner".
+		public static void FeedPot(PokerGameData data, IReadOnlyList<PokerPlayer> eaters,
+			PokerMushroomDatabase database, PokerGameMode gameMode)
+		{
+			var pot = data.Pot.Value;
+			data.Pot.Value = 0;
+
+			if (pot > 0 && eaters.Count > 0)
+			{
+				for (var i = 0; i < data.PotItems.Count; i++)
+				{
+					var eater = eaters[i % eaters.Count];
+					if (!eater || !eater.Data) continue;
+
+					if (database && database.TryGetEntry(data.PotItems[i].ItemTypeIndex, out var entry) && entry.Effect)
+					{
+						entry.Effect.ConsumeServer(gameMode, eater);
+					}
+				}
+			}
+
+			data.PotItems.Clear();
 		}
 
 		// A player is done when they have had a say and are square with the current bet. All in players
@@ -119,6 +195,7 @@ namespace Game.Runtime.GameMode.Poker
 
 			var pot = data.Pot.Value;
 			data.Pot.Value = 0;
+			data.PotItems.Clear();
 
 			if (pot <= 0 || contenders.Count == 0) return;
 
@@ -218,6 +295,24 @@ namespace Game.Runtime.GameMode.Poker
 			}
 
 			return count;
+		}
+
+		// The completion readout a simultaneous street shows: everyone still in the hand, and how many of
+		// them are held to an answer — locked in by having acted, or by having nothing left to act with.
+		public static (int LockedIn, int Total) CountLockedIn(IReadOnlyList<PokerPlayer> players)
+		{
+			var total = 0;
+			var lockedIn = 0;
+
+			foreach (var player in players)
+			{
+				if (!player || !player.Data || !player.Data.IsInHand) continue;
+
+				total++;
+				if (!player.Data.CanAct || player.Data.HasActed.Value) lockedIn++;
+			}
+
+			return (lockedIn, total);
 		}
 
 		public static int CountActive(IReadOnlyList<PokerPlayer> players)
