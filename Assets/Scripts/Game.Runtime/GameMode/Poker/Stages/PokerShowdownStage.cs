@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Game.Runtime.GameMode.Poker.Hands;
+using Game.Runtime.GameMode.Poker.Mushrooms;
 using Game.Runtime.GameMode.Poker.Player;
 using UnityEngine;
 
@@ -11,6 +12,13 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		[Header("Hands")]
 		[Tooltip("Which hands this showdown recognises and how they rank. Swap the asset to change the ranking wholesale.")]
 		[SerializeField] private PokerHandDatabase _handDatabase;
+
+		[Header("Settlement")]
+		[Tooltip("Off, the strongest hand wins the pot — poker. On, the pot is a plate: the weakest hand still in it eats every unit, effects and all, and nobody wins anything. Folding out of the hand is what escapes the plate.")]
+		[SerializeField] private bool _loserEatsPot;
+
+		[Tooltip("What each unit in the pot is when eaten. Only read while the plate is on.")]
+		[SerializeField] private PokerMushroomDatabase _mushroomDatabase;
 
 		[Header("Timing")]
 		[Tooltip("Seconds the winning hand stays up before the table resets.")]
@@ -27,6 +35,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		private readonly List<Contender> _ranking = new();
 		private readonly List<(PokerPlayer Player, int RankGroup)> _contenders = new();
 		private readonly Dictionary<ulong, int> _winnings = new();
+		private readonly List<PokerPlayer> _eaters = new();
 
 		private readonly struct Contender
 		{
@@ -47,7 +56,10 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			PokerTableUtility.CollectBets(Data, GameMode.SeatedPlayers);
 
 			ResolveContenders();
-			PokerTableUtility.SettlePots(Data, GameMode.SeatedPlayers, _contenders, _winnings);
+
+			if (_loserEatsPot) SettleByEating();
+			else PokerTableUtility.SettlePots(Data, GameMode.SeatedPlayers, _contenders, _winnings);
+
 			PublishRanking();
 
 			Data.LastWinnerClientId.Value = _contenders.Count > 0 ? _contenders[0].Player.ClientId : PokerGameData.NoTurn;
@@ -83,6 +95,28 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 			GameMode.EndGame();
 			FinishStage(_idleStage);
+		}
+
+		// Eaten by the weakest hand rather than won by the best; ties at the bottom share the plate. A
+		// hand that ends with a single player standing has nobody who lost to anybody, so the pot is
+		// thrown away rather than fed to the only survivor — everyone else folding out of the plate is
+		// exactly what folding is for here.
+		private void SettleByEating()
+		{
+			_winnings.Clear();
+			_eaters.Clear();
+
+			if (_contenders.Count > 1)
+			{
+				var worstGroup = _contenders[^1].RankGroup;
+
+				foreach (var (player, rankGroup) in _contenders)
+				{
+					if (rankGroup == worstGroup) _eaters.Add(player);
+				}
+			}
+
+			PokerTableUtility.FeedPot(Data, _eaters, _mushroomDatabase, GameMode);
 		}
 
 		private void ResolveContenders()

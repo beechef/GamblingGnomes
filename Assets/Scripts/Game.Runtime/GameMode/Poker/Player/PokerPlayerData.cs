@@ -1,6 +1,7 @@
 using Sirenix.OdinInspector;
 using System;
 using System.Collections.Generic;
+using Game.Runtime.GameMode.Poker.Mushrooms;
 using Game.Runtime.Player;
 using Unity.Collections;
 using Unity.Netcode;
@@ -74,6 +75,15 @@ namespace Game.Runtime.GameMode.Poker.Player
 			readPerm: NetworkVariableReadPermission.Everyone,
 			writePerm: NetworkVariableWritePermission.Server);
 
+		// The wallet, itemised: one type per unit of money, in the order they will be staked — a bet
+		// takes from the front, so which mushrooms it spends is the wallet's order and never a choice,
+		// and a player can read off the front what their next call will put on the table. Mirrors
+		// PlayerData.Money the way PotItems mirrors the pot: the scalar stays what every rule computes
+		// with, and the server re-syncs this list on every change of it, whoever moved the money.
+		public readonly NetworkList<byte> StakeItems = new(null,
+			NetworkVariableReadPermission.Everyone,
+			NetworkVariableWritePermission.Server);
+
 		// Read by everyone the way the wireframe shows it over a head: how hurt somebody is, is table
 		// information. Nothing damages it yet — abilities will, through ServerChangeHealth, so every
 		// future source of harm goes through the same clamp.
@@ -127,6 +137,18 @@ namespace Game.Runtime.GameMode.Poker.Player
 		// Separate from OnStateChanged for the same reason: blood is read as a body — fingers come off with
 		// it — and a hand rebuilt every time a chip moves is work on a value that did not change.
 		public event Action<int, int> OnHealthChanged;
+
+		// The wallet's itemised half changed — a unit drawn in, or spent off the front.
+		public event Action OnStakeItemsChanged;
+
+		// Stamped by the mode, the same way the configured starting stats are. Empty draws plain chips.
+		private PokerMushroomDatabase _stakeItemSource;
+
+		// Types of the units currently standing in front of the player as Bet, in the order they were
+		// staked. Server-only scratch: the pot ledger is what replicates, and it takes these at collect.
+		private readonly List<byte> _committedItemTypes = new();
+
+		private readonly List<byte> _drawBuffer = new();
 
 		// Money staked at the table is the same money the player owns, so there is nothing to buy in with
 		// and nothing to cash out — what is bet leaves the wallet and what is won lands back in it.
@@ -182,10 +204,15 @@ namespace Game.Runtime.GameMode.Poker.Player
 			if (!_wallet) _wallet = GetComponent<PlayerData>();
 
 			// The stack is the wallet now, so a view watching this player still hears about every chip
-			// that moves — it just hears it from the wallet.
-			if (_wallet) _wallet.Money.OnValueChanged += HandleIntChanged;
+			// that moves — it just hears it from the wallet. The same change is what keeps the itemised
+			// wallet in step: money arriving draws its types there and then.
+			if (_wallet) _wallet.Money.OnValueChanged += HandleMoneyChanged;
 
-			if (IsServer) ServerResetHealthToStart();
+			if (IsServer)
+			{
+				ServerResetHealthToStart();
+				ServerSyncStakeItems();
+			}
 
 			SeatIndex.OnValueChanged += HandleIntChanged;
 			Bet.OnValueChanged += HandleIntChanged;
@@ -198,13 +225,14 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 			AbilityIds.OnListChanged += HandleAbilitiesChanged;
 			HoleCards.OnListChanged += HandleHoleCardsChanged;
+			StakeItems.OnListChanged += HandleStakeItemsChanged;
 
 			OnHandVisibilityRulesChanged += HandleStateChanged;
 		}
 
 		public override void OnNetworkDespawn()
 		{
-			if (_wallet) _wallet.Money.OnValueChanged -= HandleIntChanged;
+			if (_wallet) _wallet.Money.OnValueChanged -= HandleMoneyChanged;
 
 			SeatIndex.OnValueChanged -= HandleIntChanged;
 			Bet.OnValueChanged -= HandleIntChanged;
@@ -217,6 +245,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 			AbilityIds.OnListChanged -= HandleAbilitiesChanged;
 			HoleCards.OnListChanged -= HandleHoleCardsChanged;
+			StakeItems.OnListChanged -= HandleStakeItemsChanged;
 
 			OnHandVisibilityRulesChanged -= HandleStateChanged;
 		}
@@ -257,6 +286,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 			Bet.Value = 0;
 			TotalBet.Value = 0;
+			_committedItemTypes.Clear();
 			HasActed.Value = false;
 			HandRevealed.Value = false;
 			ReportsLeft.Value = 0;
@@ -296,6 +326,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 			Bet.Value = 0;
 			HasActed.Value = false;
+			_committedItemTypes.Clear();
 		}
 
 		// A hand swapped where it lies, as opposed to dealt. Clearing the list and refilling it is what a
@@ -337,7 +368,12 @@ namespace Game.Runtime.GameMode.Poker.Player
 			if (!IsServer) return 0;
 
 			var paid = Mathf.Clamp(amount, 0, Chips);
-			if (paid > 0 && !_wallet.ServerTryWithdraw(paid)) return 0;
+			if (paid > 0)
+			{
+				if (!ServerDrawAndWithdraw(paid)) return 0;
+
+				_committedItemTypes.AddRange(_drawBuffer);
+			}
 
 			Bet.Value += paid;
 			TotalBet.Value += paid;
@@ -349,17 +385,92 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 		// Money that leaves a player without ever becoming a bet. It answers nothing on the street, so it
 		// must not land in front of them where a call would read it as already paid — the caller is the
-		// one that puts it in the pot.
-		public int ServerPayIntoPot(int amount)
+		// one that puts it in the pot, and the types drawn off the wallet go with it.
+		public int ServerPayIntoPot(int amount, List<byte> drawnTypes = null)
 		{
 			if (!IsServer) return 0;
 
 			var paid = Mathf.Clamp(amount, 0, Chips);
-			if (paid > 0 && !_wallet.ServerTryWithdraw(paid)) return 0;
+			if (paid > 0)
+			{
+				if (!ServerDrawAndWithdraw(paid)) return 0;
+
+				drawnTypes?.AddRange(_drawBuffer);
+			}
 
 			if (Chips <= 0) Status.Value = PokerPlayerStatus.AllIn;
 
 			return paid;
+		}
+
+		// The units leave the front of the wallet in the same act as the money, so which mushrooms a
+		// stake spends is the wallet's order and never a choice. A refused withdrawal puts them back
+		// where they were — the draw and the money move together or not at all.
+		private bool ServerDrawAndWithdraw(int amount)
+		{
+			_drawBuffer.Clear();
+
+			for (var i = 0; i < amount; i++)
+			{
+				if (StakeItems.Count > 0)
+				{
+					_drawBuffer.Add(StakeItems[0]);
+					StakeItems.RemoveAt(0);
+				}
+				else
+				{
+					_drawBuffer.Add(PokerMushroomDatabase.PlainChip);
+				}
+			}
+
+			if (_wallet.ServerTryWithdraw(amount)) return true;
+
+			for (var i = _drawBuffer.Count - 1; i >= 0; i--) StakeItems.Insert(0, _drawBuffer[i]);
+			return false;
+		}
+
+		// The types standing in front of this player as Bet, handed over as the money is collected. The
+		// scalar is the authority: a count the committed list cannot cover is padded with plain chips
+		// rather than dropped, so the pot ledger never loses a unit to a path that bypassed PlaceBet.
+		public void ServerTakeCommittedItemTypes(int expected, List<byte> into)
+		{
+			into.Clear();
+			if (!IsServer) return;
+
+			for (var i = 0; i < expected; i++)
+			{
+				into.Add(i < _committedItemTypes.Count ? _committedItemTypes[i] : PokerMushroomDatabase.PlainChip);
+			}
+
+			_committedItemTypes.Clear();
+		}
+
+		// A new source re-types the whole wallet: the body spawned and self-seeded plain chips before the
+		// mode could say what a unit is here, and topping up around those would leave the starting stake
+		// untyped forever. Guarded on an actual change, because the mode re-stamps on every roster
+		// refresh and a re-deal mid-match would shuffle what a player already knows they are holding.
+		public void ServerSetStakeItemSource(PokerMushroomDatabase database)
+		{
+			if (!IsServer || _stakeItemSource == database) return;
+
+			_stakeItemSource = database;
+			StakeItems.Clear();
+			ServerSyncStakeItems();
+		}
+
+		// Money arriving from anywhere — a won pot, a house rule's sale, a match reset — is given its
+		// types here, which is what "assigned as it enters the wallet" means. Trims from the back on
+		// the way down, because the front is the spending order and only a real stake may take it.
+		public void ServerSyncStakeItems()
+		{
+			if (!IsServer) return;
+
+			while (StakeItems.Count < Chips)
+			{
+				StakeItems.Add(_stakeItemSource ? _stakeItemSource.DrawItemType() : PokerMushroomDatabase.PlainChip);
+			}
+
+			while (StakeItems.Count > Chips) StakeItems.RemoveAt(StakeItems.Count - 1);
 		}
 
 		public void ServerWinChips(int amount) => ServerGainChips(amount);
@@ -392,6 +503,15 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 		private void HandleStateChanged() => OnStateChanged?.Invoke();
 		private void HandleIntChanged(int previous, int current) => OnStateChanged?.Invoke();
+
+		private void HandleMoneyChanged(int previous, int current)
+		{
+			if (IsServer) ServerSyncStakeItems();
+
+			OnStateChanged?.Invoke();
+		}
+
+		private void HandleStakeItemsChanged(NetworkListEvent<byte> changeEvent) => OnStakeItemsChanged?.Invoke();
 
 		private void HandleHealthChanged(int previous, int current)
 		{

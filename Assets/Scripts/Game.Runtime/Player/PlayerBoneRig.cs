@@ -21,14 +21,15 @@ namespace Game.Runtime.Player
 		}
 
 		// The skeleton this project ships with, filled in when the component is added. A model built on
-		// anything else overrides the names, or has its bones dropped in by hand.
+		// anything else overrides the names, or has its bones dropped in by hand — the hand-only rig is
+		// exactly that case, since its FBX still calls these two Neck7_M and Head_M.
 		private static readonly (PlayerBone Bone, string Name)[] DefaultBoneNames =
 		{
 			(PlayerBone.Root, "Root_M"),
 			(PlayerBone.Spine, "Spine1_M"),
 			(PlayerBone.Chest, "Chest_M"),
 			(PlayerBone.Neck, "Neck_M"),
-			(PlayerBone.Head, "Head_M"),
+			(PlayerBone.Head, "Head1_M"),
 			(PlayerBone.HeadTop, "HeadEnd_M"),
 			(PlayerBone.Jaw, "Jaw_M"),
 			(PlayerBone.ShoulderLeft, "Shoulder_L"),

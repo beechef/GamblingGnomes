@@ -57,7 +57,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			GameMode.ClearTurn();
 			Data.CommunityCards.Clear();
 			Data.Showdown.Clear();
-			Data.Pot.Value = 0;
+			PokerTableUtility.ResetPot(Data);
 
 			RotateDealer();
 			DealHoleCards();

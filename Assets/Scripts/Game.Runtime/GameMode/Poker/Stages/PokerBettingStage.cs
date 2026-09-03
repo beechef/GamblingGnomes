@@ -112,6 +112,30 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			return AllowAllIn || Data.CurrentBet.Value - data.Bet.Value >= data.Chips;
 		}
 
+		// The street's own arithmetic, offered so the bar never carries a second copy of it. Every
+		// number a slider or a label shows comes off these; the server clamps with the same code, so
+		// what is offered and what is accepted cannot drift apart.
+		public int OwedBy(PokerPlayerData data)
+		{
+			if (!data || !Data) return 0;
+
+			return Mathf.Max(0, Data.CurrentBet.Value - data.Bet.Value);
+		}
+
+		// What calling actually takes off this player — a short stack pays what it holds.
+		public int CallCostFor(PokerPlayerData data) => !data ? 0 : Mathf.Min(OwedBy(data), data.Chips);
+
+		public bool CanCheck(PokerPlayerData data) => AllowCheckWhenNoBet && data && OwedBy(data) <= 0;
+
+		// The floor a raise must reach, and the most this player could push it to. The raise petal and
+		// its slider light only where the second clears the first.
+		public int MinimumRaiseTarget => Data ? Data.CurrentBet.Value + MinimumRaiseStep : 0;
+
+		public int MaximumRaiseTargetFor(PokerPlayerData data) => data && Data ? data.Bet.Value + data.Chips : 0;
+
+		public bool CanRaise(PokerPlayerData data) =>
+			AllowRaise && data && Data && MaximumRaiseTargetFor(data) > MinimumRaiseTarget;
+
 		protected override void OnCollectConfigEntries(List<MatchConfigEntry> entries)
 		{
 			entries.Add(new MatchConfigInt(StageId, StageId, "OpeningBet", "Opening Bet", 0, 20, 1,
@@ -334,7 +358,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 					break;
 
 				case PokerActionType.Check:
-					if (owed > 0 || !_allowCheckWhenNoBet) return false;
+					if (!CanCheck(data)) return false;
 					data.HasActed.Value = true;
 					break;
 
@@ -348,7 +372,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 				{
 					if (!_allowRaise) return false;
 
-					var target = Mathf.Max(amount, Data.CurrentBet.Value + MinimumRaiseStep);
+					var target = Mathf.Max(amount, MinimumRaiseTarget);
 					var toPay = target - data.Bet.Value;
 					if (toPay <= owed || data.Chips < toPay) return false;
 
