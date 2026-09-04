@@ -736,7 +736,8 @@ namespace Game.Runtime.GameMode.Poker.Modules
 
 			var seatIndex = player.Data.SeatIndex.Value;
 			GameMode.ClearTurn();
-			GameMode.ActiveStage?.HandlePlayerLeft(player.ClientId, seatIndex);
+			var stage = GameMode.ActiveStage;
+			if (stage) stage.HandlePlayerLeft(player.ClientId, seatIndex);
 		}
 
 		private static bool WasDealtIn(PokerPlayer player)

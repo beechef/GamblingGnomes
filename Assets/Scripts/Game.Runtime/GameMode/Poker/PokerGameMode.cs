@@ -592,7 +592,7 @@ namespace Game.Runtime.GameMode.Poker
 
 			RefreshSeatedPlayers();
 
-			ActiveStage?.HandlePlayerLeft(clientId, seat ? seat.SeatIndex : -1);
+			if (ActiveStage) ActiveStage.HandlePlayerLeft(clientId, seat ? seat.SeatIndex : -1);
 
 			foreach (var module in _modules)
 			{
@@ -621,7 +621,7 @@ namespace Game.Runtime.GameMode.Poker
 
 			// Clearing the turn is not enough on its own — a street waiting on a player who has gone
 			// waits forever, and the table freezes for everyone still in it.
-			ActiveStage?.HandlePlayerLeft(clientId, seatIndex);
+			if (ActiveStage) ActiveStage.HandlePlayerLeft(clientId, seatIndex);
 		}
 
 		public void BeginTurn(ulong clientId, float duration)
