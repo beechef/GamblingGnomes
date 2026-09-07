@@ -16,6 +16,10 @@ namespace Game.Runtime.GameMode.Poker.Player
 	{
 		public const int NoSeat = -1;
 
+		// The ceiling is the scale: the bar reads as a percentage, so it is a constant rather than
+		// something to tune, and every gain is a number of points out of this.
+		public const int MaxHallucination = 100;
+
 		[Header("References")]
 		[Tooltip("What the player bets with. There is no separate stack in front of them — the wallet is the stack.")]
 		[SerializeField] private PlayerData _wallet;
@@ -84,6 +88,36 @@ namespace Game.Runtime.GameMode.Poker.Player
 			NetworkVariableReadPermission.Everyone,
 			NetworkVariableWritePermission.Server);
 
+		// How far gone this player is, 0 to 100. Public, the way the health above it is: both of the
+		// round's real decisions — which mushroom to wager, who to feed the Colorful one — are choices
+		// about who is closest to going under, so hiding the number would only make the table count in
+		// their heads. Only ever rises, except where an item brings it down.
+		[HideInInspector] public NetworkVariable<int> HallucinationRate = new(0,
+			readPerm: NetworkVariableReadPermission.Everyone,
+			writePerm: NetworkVariableWritePermission.Server);
+
+		// One bit per mushroom kind this player has swallowed this match, so a kind they have met before
+		// costs them less than a new one. Public for the same reason the rate is, and a bitmask rather
+		// than a list because the question asked of it is only ever "has this one been eaten".
+		[HideInInspector] public NetworkVariable<int> EatenMushroomTypes = new(0,
+			readPerm: NetworkVariableReadPermission.Everyone,
+			writePerm: NetworkVariableWritePermission.Server);
+
+		// Which of this hand's slots their holder has picked up. Read by **everyone**, because lifting a
+		// card off the table is an act the whole table watches — the same split the cheat abilities make:
+		// the act is public, what it tells you is not. The faces stay hidden by IsHoleCardVisible, which
+		// asks IsOwner; this only says which cards are in a hand rather than lying face down.
+		[HideInInspector] public NetworkVariable<int> LookedAtHoleCards = new(0,
+			readPerm: NetworkVariableReadPermission.Everyone,
+			writePerm: NetworkVariableWritePermission.Server);
+
+		// How many of their own cards a player is allowed to turn over. Zero or less is a hand held the
+		// ordinary way, where the holder sees all of it — which is what Hold'em wants and what this
+		// reduces to when nothing sets it.
+		[HideInInspector] public NetworkVariable<int> ViewableHoleCards = new(0,
+			readPerm: NetworkVariableReadPermission.Everyone,
+			writePerm: NetworkVariableWritePermission.Server);
+
 		// Read by everyone the way the wireframe shows it over a head: how hurt somebody is, is table
 		// information. Nothing damages it yet — abilities will, through ServerChangeHealth, so every
 		// future source of harm goes through the same clamp.
@@ -138,6 +172,11 @@ namespace Game.Runtime.GameMode.Poker.Player
 		// it — and a hand rebuilt every time a chip moves is work on a value that did not change.
 		public event Action<int, int> OnHealthChanged;
 
+		// Separate from OnStateChanged for the same reason blood is: the effects a rate crosses into are
+		// picked on the change itself, and rebuilding them every time a chip moves would re-roll a
+		// hallucination nobody caused.
+		public event Action<int, int> OnHallucinationChanged;
+
 		// The wallet's itemised half changed — a unit drawn in, or spent off the front.
 		public event Action OnStakeItemsChanged;
 
@@ -154,9 +193,11 @@ namespace Game.Runtime.GameMode.Poker.Player
 		// and nothing to cash out — what is bet leaves the wallet and what is won lands back in it.
 		public int Chips => _wallet ? _wallet.Money.Value : 0;
 
-		// Derived rather than stored, so it can never disagree with the health everyone can already see —
-		// and so anything that ever heals a player brings them back without a second flag to remember.
-		public bool IsAlive => Health.Value > 0;
+		// Derived rather than stored, so it can never disagree with the number everyone can already see —
+		// and so anything that ever sobers a player brings them back without a second flag to remember.
+		// Hallucination is the only way out of this game: blood is still tracked and still drawn on the
+		// body, but running out of it is not what ends a player here.
+		public bool IsAlive => HallucinationRate.Value < MaxHallucination;
 
 		public int StartingHealth => Mathf.Clamp(_startingHealthOverride > 0 ? _startingHealthOverride : _startingHealth, 1, MaxHealth);
 
@@ -183,6 +224,52 @@ namespace Game.Runtime.GameMode.Poker.Player
 		public int CardCount => HoleCards.Count;
 
 		public bool IsHandVisible => IsOwner || HandRevealed.Value || IsHandVisibleToProvider();
+
+		// The same question asked of one card. A hand held face down to its own holder — five dealt, three
+		// they may turn — is the only case where these two answers differ, and they differ *for the owner*:
+		// everyone else is told exactly what IsHandVisible tells them. Views ask this one, so a table that
+		// never limits the looking behaves as it always did.
+		public bool IsHoleCardVisible(int slot)
+		{
+			if (HandRevealed.Value || IsHandVisibleToProvider()) return true;
+			if (!IsOwner) return false;
+
+			return !HasLookLimit || HasLookedAt(slot);
+		}
+
+		public bool HasLookLimit => ViewableHoleCards.Value > 0;
+
+		public bool HasLookedAt(int slot) => slot >= 0 && slot < 31 && (LookedAtHoleCards.Value & (1 << slot)) != 0;
+
+		// Where this card physically is. A card lifted off the table is in its holder's hand until the
+		// hand is shown, at which point everything goes back down for the table to read — which is why
+		// this is derived rather than replicated: the two facts it needs are already on the wire.
+		public bool IsHoleCardInHand(int slot) => !HandRevealed.Value && HasLookedAt(slot);
+
+		public int LookedAtCount
+		{
+			get
+			{
+				var count = 0;
+				for (var slot = 0; slot < HoleCards.Count && slot < 31; slot++)
+				{
+					if (HasLookedAt(slot)) count++;
+				}
+
+				return count;
+			}
+		}
+
+		// Whether this player may still turn one over. Read by the server before it grants a look and by
+		// the view that draws the cards, so the two cannot offer different answers.
+		public bool CanLookAt(int slot)
+		{
+			if (!HasLookLimit) return false;
+			if (slot < 0 || slot >= HoleCards.Count) return false;
+			if (HasLookedAt(slot)) return false;
+
+			return LookedAtCount < ViewableHoleCards.Value;
+		}
 
 		// Sight somebody was granted, as opposed to a hand that is simply public. A showdown turns every hand
 		// face up for everyone; this is only true where an ability handed this client a look it was not owed,
@@ -222,6 +309,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 			HandRevealed.OnValueChanged += HandleBoolChanged;
 			ReportsLeft.OnValueChanged += HandleIntChanged;
 			Health.OnValueChanged += HandleHealthChanged;
+			LookedAtHoleCards.OnValueChanged += HandleLookedAtChanged;
+			HallucinationRate.OnValueChanged += HandleHallucinationChanged;
+			EatenMushroomTypes.OnValueChanged += HandleIntChanged;
 
 			AbilityIds.OnListChanged += HandleAbilitiesChanged;
 			HoleCards.OnListChanged += HandleHoleCardsChanged;
@@ -242,6 +332,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 			HandRevealed.OnValueChanged -= HandleBoolChanged;
 			ReportsLeft.OnValueChanged -= HandleIntChanged;
 			Health.OnValueChanged -= HandleHealthChanged;
+			EatenMushroomTypes.OnValueChanged -= HandleIntChanged;
+			HallucinationRate.OnValueChanged -= HandleHallucinationChanged;
+			LookedAtHoleCards.OnValueChanged -= HandleLookedAtChanged;
 
 			AbilityIds.OnListChanged -= HandleAbilitiesChanged;
 			HoleCards.OnListChanged -= HandleHoleCardsChanged;
@@ -290,9 +383,15 @@ namespace Game.Runtime.GameMode.Poker.Player
 			HasActed.Value = false;
 			HandRevealed.Value = false;
 			ReportsLeft.Value = 0;
-			AbilityBusyUntil.Value = 0d;
-			AbilityIds.Clear();
 			HoleCards.Clear();
+
+			// What a player is carrying is PokerAbilityModule's, not this class's: a table whose items are
+			// meant to be stockpiled across hands had its inventory swept here regardless, which made that
+			// module's own setting a lie. The match reset below still empties it, because a stockpile
+			// belongs to the match it was built up in.
+
+			// A new hand is fresh cards nobody has dared to look at yet.
+			LookedAtHoleCards.Value = 0;
 		}
 
 		// A new match rather than a new hand. Blood and money are what a match is played *with* — they
@@ -305,7 +404,12 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 			ServerResetForHand();
 
+			AbilityIds.Clear();
+			AbilityBusyUntil.Value = 0d;
+
 			ServerResetHealthToStart();
+			HallucinationRate.Value = 0;
+			EatenMushroomTypes.Value = 0;
 			Status.Value = PokerPlayerStatus.Waiting;
 
 			// The wallet resets itself. What a purse starts with is its own business, and reaching in to
@@ -354,6 +458,29 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 			HoleCards.Clear();
 			foreach (var card in cards) HoleCards.Add(card);
+		}
+
+		// Turning one of your own cards over. Asked of the server rather than decided locally: the limit is
+		// a rule, and a client that lied about it would be reading a card the round says it may not.
+		[Rpc(SendTo.Server)]
+		public void LookAtHoleCardRPC(int slot)
+		{
+			if (!CanLookAt(slot)) return;
+
+			LookedAtHoleCards.Value |= 1 << slot;
+
+			// Reaching for a card is something the table watches, so the gesture is played on the server for
+			// everyone rather than locally by whoever pressed. A state the art has not landed yet is skipped
+			// silently by PlayerActionAnimator, so this can be wired before there is anything to play.
+			GetComponent<PokerPlayer>()?.ActionAnimator?.ServerPlay(PlayerActionIds.PickUpCard);
+		}
+
+		// The mode stamps this beside the starting stats: how many of the five its round lets a player see.
+		public void ServerSetViewableHoleCards(int count)
+		{
+			if (!IsServer) return;
+
+			ViewableHoleCards.Value = Mathf.Max(0, count);
 		}
 
 		public void ServerRevealHand()
@@ -486,6 +613,42 @@ namespace Game.Runtime.GameMode.Poker.Player
 			_wallet.ServerDeposit(amount);
 		}
 
+		// Eating one mushroom. Which kind decides the price: one this player has met before costs the
+		// smaller gain, and a kind they have never swallowed costs the larger — which is what makes the
+		// winner's choice of what to wager an attack rather than an amount. The bitmask is written here
+		// too, so the record and the price it sets can never come apart.
+		public void ServerEatMushroom(byte itemType, int newTypeGain, int repeatGain)
+		{
+			if (!IsServer) return;
+
+			var bit = MushroomTypeBit(itemType);
+			var wasEatenBefore = (EatenMushroomTypes.Value & bit) != 0;
+
+			EatenMushroomTypes.Value |= bit;
+			ServerChangeHallucination(wasEatenBefore ? repeatGain : newTypeGain);
+		}
+
+		// Negative sobers, positive sends them further under; the clamp lives here for the same reason
+		// the health one does. Passing the ceiling is death, and IsAlive reads that off this number.
+		public void ServerChangeHallucination(int delta)
+		{
+			if (!IsServer) return;
+
+			HallucinationRate.Value = Mathf.Clamp(HallucinationRate.Value + delta, 0, MaxHallucination);
+		}
+
+		// A kind with no bit of its own — anything past the mask's width, or the plain chip that stands
+		// for a unit with no identity — is treated as one this player has never met, so an unconfigured
+		// table charges the full gain rather than silently charging the smaller one for everything.
+		public bool HasEatenMushroomType(byte itemType) => (EatenMushroomTypes.Value & MushroomTypeBit(itemType)) != 0;
+
+		public static int MushroomTypeBit(byte itemType)
+		{
+			if (itemType == PokerMushroomDatabase.PlainChip || itemType > 31) return 0;
+
+			return 1 << (itemType - 1);
+		}
+
 		// Negative hurts, positive heals; the clamp lives here so no source of harm can overshoot it.
 		public void ServerChangeHealth(int delta)
 		{
@@ -518,6 +681,16 @@ namespace Game.Runtime.GameMode.Poker.Player
 			OnHealthChanged?.Invoke(previous, current);
 			OnStateChanged?.Invoke();
 		}
+		// Turning a card over changes no card — only who may look at one — so this is the visibility rule
+		// changing rather than the hand. OnStateChanged carries it to the views that redraw on it.
+		private void HandleLookedAtChanged(int previous, int current) => OnStateChanged?.Invoke();
+
+		private void HandleHallucinationChanged(int previous, int current)
+		{
+			OnHallucinationChanged?.Invoke(previous, current);
+			OnStateChanged?.Invoke();
+		}
+
 		private void HandleAbilitiesChanged(NetworkListEvent<FixedString64Bytes> changeEvent) => OnAbilitiesChanged?.Invoke();
 		private void HandleBoolChanged(bool previous, bool current) => OnStateChanged?.Invoke();
 		private void HandleStatusChanged(PokerPlayerStatus previous, PokerPlayerStatus current) => OnStateChanged?.Invoke();

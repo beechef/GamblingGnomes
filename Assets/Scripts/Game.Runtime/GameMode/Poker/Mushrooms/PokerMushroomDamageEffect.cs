@@ -13,7 +13,7 @@ namespace Game.Runtime.GameMode.Poker.Mushrooms
 		[MinValue(0)]
 		[SerializeField] private int _damage = 1;
 
-		protected override void OnConsumeServer(PokerGameMode gameMode, PokerPlayer eater)
+		protected override void OnConsumeServer(PokerGameMode gameMode, PokerPlayer eater, byte itemType)
 		{
 			eater.Data.ServerChangeHealth(-Mathf.Max(0, _damage));
 		}

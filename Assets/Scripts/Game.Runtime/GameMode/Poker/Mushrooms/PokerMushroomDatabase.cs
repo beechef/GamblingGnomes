@@ -30,11 +30,15 @@ namespace Game.Runtime.GameMode.Poker.Mushrooms
 			[Tooltip("What eating one does. Empty is a mushroom that only costs the swallowing.")]
 			[SerializeField] private PokerMushroomEffect _effect;
 
+			[Tooltip("Off, this kind can never be wagered — it is only ever fed to somebody on purpose. The Colorful cap is the case.")]
+			[SerializeField] private bool _wagerable = true;
+
 			public string DisplayName => _displayName;
 			public Sprite Icon => _icon;
 			public Color Color => _color;
 			public int Weight => Mathf.Max(0, _weight);
 			public PokerMushroomEffect Effect => _effect;
+			public bool Wagerable => _wagerable;
 		}
 
 		[InfoBox("Order carries meaning: a unit replicates as its position here, one-based. Reordering or removing an entry silently re-types every stake already dealt — append instead.")]
@@ -49,7 +53,8 @@ namespace Game.Runtime.GameMode.Poker.Mushrooms
 			var totalWeight = 0;
 			foreach (var entry in _entries)
 			{
-				if (entry != null) totalWeight += entry.Weight;
+				// A kind nobody may wager is not one the table deals at random either.
+				if (entry != null && entry.Wagerable) totalWeight += entry.Weight;
 			}
 
 			if (totalWeight <= 0) return PlainChip;
@@ -59,6 +64,8 @@ namespace Game.Runtime.GameMode.Poker.Mushrooms
 			for (var i = 0; i < _entries.Count && i < byte.MaxValue; i++)
 			{
 				if (_entries[i] == null) continue;
+
+				if (!_entries[i].Wagerable) continue;
 
 				roll -= _entries[i].Weight;
 				if (roll < 0) return (byte)(i + 1);
