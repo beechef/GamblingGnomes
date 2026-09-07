@@ -18,6 +18,10 @@ namespace Game.Runtime.GameMode.Poker
 		// reaction to. Nobody holds a turn here — the table is waiting on all of them, not one of them.
 		Looking = 10,
 
+		// The consequence, taken one cap at a time. Its own phase because the UI has to be able to say the
+		// hand is over and something is still happening.
+		Eating = 11,
+
 		Showdown = 6,
 		Finished = 7
 	}
