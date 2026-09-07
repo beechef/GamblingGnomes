@@ -42,8 +42,8 @@ namespace Game.Runtime.GameMode.Poker.Player
 		{
 			if (!IsOwner) return;
 
-			if (!_data) _data = GetComponent<PokerPlayerData>();
-			if (!_handVisual) _handVisual = GetComponent<PokerHandVisual>();
+			if (!_data) _data = GetComponentInParent<PokerPlayerData>();
+			if (!_handVisual) _handVisual = GetComponentInParent<PokerHandVisual>();
 
 			if (_pickAction && _pickAction.action != null)
 			{

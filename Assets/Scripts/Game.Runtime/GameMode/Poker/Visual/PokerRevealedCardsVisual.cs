@@ -15,7 +15,6 @@ namespace Game.Runtime.GameMode.Poker.Visual
 	// hands out a look at a hand gets this for free and never has to know the display exists. It follows
 	// that a hand made public at a showdown does not appear here: everyone can see those, and the point of
 	// this is the thing you were not owed.
-	[RequireComponent(typeof(PokerPlayerData))]
 	public class PokerRevealedCardsVisual : NetworkBehaviour
 	{
 		[Header("Placement")]
@@ -39,7 +38,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 		public override void OnNetworkSpawn()
 		{
-			if (!_data) _data = GetComponent<PokerPlayerData>();
+			if (!_data) _data = GetComponentInParent<PokerPlayerData>();
 			if (!_data) return;
 
 			_data.OnStateChanged += Refresh;
