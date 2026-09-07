@@ -80,7 +80,7 @@ namespace Game.Runtime.UI.Poker
 		}
 
 		private void HandleTurnChanged(ulong previous, ulong current) => Refresh();
-		private void HandleStageChanged(FixedString64Bytes previous, FixedString64Bytes current) => Refresh();
+		private void HandleStageChanged(FixedString32Bytes previous, FixedString32Bytes current) => Refresh();
 
 		// Rebuilt on bind rather than on every refresh: the database does not change while a table runs,
 		// and re-instantiating a row of buttons under the pointer is how a click lands on nothing.
