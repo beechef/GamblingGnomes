@@ -1,7 +1,7 @@
 using Sirenix.OdinInspector;
 using System;
 using System.Collections.Generic;
-using Game.Runtime.GameMode.Poker.Mushrooms;
+using Game.Runtime.GameMode.Poker.Items;
 using Game.Runtime.Player;
 using Unity.Collections;
 using Unity.Netcode;
@@ -88,6 +88,17 @@ namespace Game.Runtime.GameMode.Poker.Player
 			NetworkVariableReadPermission.Everyone,
 			NetworkVariableWritePermission.Server);
 
+		// What this player still has to swallow, in the order it goes down. Everyone-read, because the
+		// whole point of the eating is that the table watches it happen — and a plate somebody is still
+		// working through is the clearest read of how badly the hand went for them.
+		//
+		// Queued at the settlement rather than eaten there: the effects used to land in the same frame the
+		// showdown resolved, so a round's entire consequence happened while the ranking board was still up
+		// and nobody saw a thing.
+		public readonly NetworkList<byte> PendingItems = new(null,
+			NetworkVariableReadPermission.Everyone,
+			NetworkVariableWritePermission.Server);
+
 		// How far gone this player is, 0 to 100. Public, the way the health above it is: both of the
 		// round's real decisions — which mushroom to wager, who to feed the Colorful one — are choices
 		// about who is closest to going under, so hiding the number would only make the table count in
@@ -99,7 +110,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		// One bit per mushroom kind this player has swallowed this match, so a kind they have met before
 		// costs them less than a new one. Public for the same reason the rate is, and a bitmask rather
 		// than a list because the question asked of it is only ever "has this one been eaten".
-		[HideInInspector] public NetworkVariable<int> EatenMushroomTypes = new(0,
+		[HideInInspector] public NetworkVariable<int> EatenItemTypes = new(0,
 			readPerm: NetworkVariableReadPermission.Everyone,
 			writePerm: NetworkVariableWritePermission.Server);
 
@@ -181,7 +192,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		public event Action OnStakeItemsChanged;
 
 		// Stamped by the mode, the same way the configured starting stats are. Empty draws plain chips.
-		private PokerMushroomDatabase _stakeItemSource;
+		private PokerItemDatabase _stakeItemSource;
 
 		// Types of the units currently standing in front of the player as Bet, in the order they were
 		// staked. Server-only scratch: the pot ledger is what replicates, and it takes these at collect.
@@ -311,7 +322,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			Health.OnValueChanged += HandleHealthChanged;
 			LookedAtHoleCards.OnValueChanged += HandleLookedAtChanged;
 			HallucinationRate.OnValueChanged += HandleHallucinationChanged;
-			EatenMushroomTypes.OnValueChanged += HandleIntChanged;
+			EatenItemTypes.OnValueChanged += HandleIntChanged;
 
 			AbilityIds.OnListChanged += HandleAbilitiesChanged;
 			HoleCards.OnListChanged += HandleHoleCardsChanged;
@@ -332,7 +343,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			HandRevealed.OnValueChanged -= HandleBoolChanged;
 			ReportsLeft.OnValueChanged -= HandleIntChanged;
 			Health.OnValueChanged -= HandleHealthChanged;
-			EatenMushroomTypes.OnValueChanged -= HandleIntChanged;
+			EatenItemTypes.OnValueChanged -= HandleIntChanged;
 			HallucinationRate.OnValueChanged -= HandleHallucinationChanged;
 			LookedAtHoleCards.OnValueChanged -= HandleLookedAtChanged;
 
@@ -407,9 +418,13 @@ namespace Game.Runtime.GameMode.Poker.Player
 			AbilityIds.Clear();
 			AbilityBusyUntil.Value = 0d;
 
+			// A plate belongs to the match it was served in. Not swept per hand: the eating happens between
+			// one hand and the next, so a hand reset would clear the very caps that beat is about to serve.
+			PendingItems.Clear();
+
 			ServerResetHealthToStart();
 			HallucinationRate.Value = 0;
-			EatenMushroomTypes.Value = 0;
+			EatenItemTypes.Value = 0;
 			Status.Value = PokerPlayerStatus.Waiting;
 
 			// The wallet resets itself. What a purse starts with is its own business, and reaching in to
@@ -490,6 +505,28 @@ namespace Game.Runtime.GameMode.Poker.Player
 			HandRevealed.Value = true;
 		}
 
+		// Put on the plate. The kind rather than the effect, the same trade every stake makes: a cap
+		// replicates as its index and the database turns it back into what eating it does.
+		public void ServerQueueItem(byte itemType)
+		{
+			if (!IsServer) return;
+
+			PendingItems.Add(itemType);
+		}
+
+		// The next bite, taken off the plate as it is swallowed rather than after — the list is what the
+		// visual draws, so a cap still on it while its effect has already landed is a cap the table can
+		// see that nobody is going to eat.
+		public bool ServerTakeNextItem(out byte itemType)
+		{
+			itemType = Items.PokerItemDatabase.PlainChip;
+			if (!IsServer || PendingItems.Count == 0) return false;
+
+			itemType = PendingItems[0];
+			PendingItems.RemoveAt(0);
+			return true;
+		}
+
 		public int ServerPlaceBet(int amount)
 		{
 			if (!IsServer) return 0;
@@ -546,7 +583,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 				}
 				else
 				{
-					_drawBuffer.Add(PokerMushroomDatabase.PlainChip);
+					_drawBuffer.Add(PokerItemDatabase.PlainChip);
 				}
 			}
 
@@ -566,7 +603,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 			for (var i = 0; i < expected; i++)
 			{
-				into.Add(i < _committedItemTypes.Count ? _committedItemTypes[i] : PokerMushroomDatabase.PlainChip);
+				into.Add(i < _committedItemTypes.Count ? _committedItemTypes[i] : PokerItemDatabase.PlainChip);
 			}
 
 			_committedItemTypes.Clear();
@@ -576,7 +613,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		// mode could say what a unit is here, and topping up around those would leave the starting stake
 		// untyped forever. Guarded on an actual change, because the mode re-stamps on every roster
 		// refresh and a re-deal mid-match would shuffle what a player already knows they are holding.
-		public void ServerSetStakeItemSource(PokerMushroomDatabase database)
+		public void ServerSetStakeItemSource(PokerItemDatabase database)
 		{
 			if (!IsServer || _stakeItemSource == database) return;
 
@@ -594,7 +631,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 			while (StakeItems.Count < Chips)
 			{
-				StakeItems.Add(_stakeItemSource ? _stakeItemSource.DrawItemType() : PokerMushroomDatabase.PlainChip);
+				StakeItems.Add(_stakeItemSource ? _stakeItemSource.DrawItemType() : PokerItemDatabase.PlainChip);
 			}
 
 			while (StakeItems.Count > Chips) StakeItems.RemoveAt(StakeItems.Count - 1);
@@ -617,14 +654,14 @@ namespace Game.Runtime.GameMode.Poker.Player
 		// smaller gain, and a kind they have never swallowed costs the larger — which is what makes the
 		// winner's choice of what to wager an attack rather than an amount. The bitmask is written here
 		// too, so the record and the price it sets can never come apart.
-		public void ServerEatMushroom(byte itemType, int newTypeGain, int repeatGain)
+		public void ServerConsumeItem(byte itemType, int newTypeGain, int repeatGain)
 		{
 			if (!IsServer) return;
 
-			var bit = MushroomTypeBit(itemType);
-			var wasEatenBefore = (EatenMushroomTypes.Value & bit) != 0;
+			var bit = ItemTypeBit(itemType);
+			var wasEatenBefore = (EatenItemTypes.Value & bit) != 0;
 
-			EatenMushroomTypes.Value |= bit;
+			EatenItemTypes.Value |= bit;
 			ServerChangeHallucination(wasEatenBefore ? repeatGain : newTypeGain);
 		}
 
@@ -640,11 +677,11 @@ namespace Game.Runtime.GameMode.Poker.Player
 		// A kind with no bit of its own — anything past the mask's width, or the plain chip that stands
 		// for a unit with no identity — is treated as one this player has never met, so an unconfigured
 		// table charges the full gain rather than silently charging the smaller one for everything.
-		public bool HasEatenMushroomType(byte itemType) => (EatenMushroomTypes.Value & MushroomTypeBit(itemType)) != 0;
+		public bool HasConsumedItemType(byte itemType) => (EatenItemTypes.Value & ItemTypeBit(itemType)) != 0;
 
-		public static int MushroomTypeBit(byte itemType)
+		public static int ItemTypeBit(byte itemType)
 		{
-			if (itemType == PokerMushroomDatabase.PlainChip || itemType > 31) return 0;
+			if (itemType == PokerItemDatabase.PlainChip || itemType > 31) return 0;
 
 			return 1 << (itemType - 1);
 		}

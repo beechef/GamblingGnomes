@@ -9,7 +9,6 @@ namespace Game.Runtime.GameMode.Poker.Visual
 	// Lives on the player so the cards travel with the gnome holding them. Cards are dealt in one at a
 	// time and only re-read wholesale on a late join; a showdown flips the cards already in hand rather
 	// than replacing them.
-	[RequireComponent(typeof(PokerPlayerData))]
 	public class PokerHandVisual : NetworkBehaviour
 	{
 		[Header("Layout")]
@@ -48,8 +47,8 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 		public override void OnNetworkSpawn()
 		{
-			if (!_data) _data = GetComponent<PokerPlayerData>();
-			if (!_rig) _rig = GetComponent<PlayerRigController>();
+			if (!_data) _data = GetComponentInParent<PokerPlayerData>();
+			if (!_rig) _rig = GetComponentInParent<PlayerRigController>();
 			if (!_data) return;
 
 			_data.OnHoleCardsChanged += HandleHoleCardsChanged;
@@ -111,18 +110,20 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			var inHand = CurrentInHandMask();
 			if (faceUp == _shownFaceUpMask && inHand == _shownInHandMask) return;
 
-			var facesChanged = faceUp != _shownFaceUpMask;
+			// Exactly the slots whose face changed. Redrawing the whole hand plays the flip on every card
+			// in it, so turning one over made the other four flip along with it — a change-guard on the
+			// hand answers "did anything change", and what has to be redrawn is "which one".
+			var turned = faceUp ^ _shownFaceUpMask;
 
 			_shownFaceUpMask = faceUp;
 			_shownInHandMask = inHand;
 
-			if (facesChanged)
+			for (var i = 0; i < _cards.Count && i < 31; i++)
 			{
-				for (var i = 0; i < _cards.Count; i++)
-				{
-					var visible = IsVisible(i);
-					if (_cards[i]) _cards[i].SetCard(visible ? CardAt(i) : CardData.None, visible, _database, true);
-				}
+				if ((turned & (1 << i)) == 0) continue;
+
+				var visible = IsVisible(i);
+				if (_cards[i]) _cards[i].SetCard(visible ? CardAt(i) : CardData.None, visible, _database, true);
 			}
 
 			// Lifted into the hand, or put back down on the table: either way the two groups have to be
@@ -296,10 +297,10 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		private Vector3 RowPosition(int slot, int count)
 		{
 			var offset = (slot - (count - 1) * 0.5f) * _tableSpacing;
-			// Positive, unlike the fan: the anchor lies flat with its forward pointing up, so a negative step
-			// sinks each later card *into* the table — three of five ended up under the surface. A card put
-			// down later resting on the ones already there is also what a hand dealt onto a table looks like.
-			return new Vector3(offset, 0f, slot * _depthStep);
+			// Negative, like the fan and like everything else that lifts a card: a sprite is read from its
+			// own -Z, so that is the side the table anchor points at the ceiling and the direction anything
+			// coming off the table has to travel. A card dealt later rests on the ones already there.
+			return new Vector3(offset, 0f, -slot * _depthStep);
 		}
 
 		// The seat this player is in owns where their cards lie: it is authored in the chair prefab, so
