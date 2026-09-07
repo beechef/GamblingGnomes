@@ -157,7 +157,7 @@ namespace Game.Runtime.GameMode.Poker.Modules
 			}
 		}
 
-		public override void OnGameEnded() => ClearRoundServer();
+		public override void OnHandEnded() => ClearRoundServer();
 
 		// A NetworkBehaviour update, not a poll for a dependency: the window closes on a clock, and
 		// somebody has to notice the moment it does.

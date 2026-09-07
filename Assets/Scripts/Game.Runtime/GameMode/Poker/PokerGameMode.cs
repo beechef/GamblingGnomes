@@ -463,7 +463,7 @@ namespace Game.Runtime.GameMode.Poker
 
 			foreach (var module in _modules)
 			{
-				if (module) module.OnGameEnded();
+				if (module) module.OnHandEnded();
 			}
 
 			ServerClearHands();
@@ -475,6 +475,13 @@ namespace Game.Runtime.GameMode.Poker
 			if (!IsServer) return;
 
 			EndHand();
+
+			// After the hand, so a module tearing down its match state is doing it over a table that has
+			// already put the hand away.
+			foreach (var module in _modules)
+			{
+				if (module) module.OnMatchEnded();
+			}
 
 			_data.Phase.Value = PokerPhase.Finished;
 		}
