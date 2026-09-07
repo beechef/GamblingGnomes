@@ -44,6 +44,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		// leave the rest as backs. A single flag could only ever say "the whole hand" — which is what
 		// this was, and what a round dealing more cards than a player may look at breaks.
 		private int _shownFaceUpMask;
+		private int _shownInHandMask;
 
 		public override void OnNetworkSpawn()
 		{
@@ -97,20 +98,49 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 		// Asked per card: a showdown turns the whole hand over at once, and a holder allowed to look at
 		// only three of five turns those three and leaves the others backs.
+		//
+		// Two masks, not one. Which cards are face up and which are up in the hand are different questions
+		// with different answers — a hand revealed at a showdown goes back down on the table while staying
+		// face up — and a guard built on the face alone left a picked-up card turned over but still lying
+		// where it was, which is the whole pickup nobody could see happen.
 		private void HandleStateChanged()
 		{
 			if (!_data) return;
 
-			var mask = CurrentFaceUpMask();
-			if (mask == _shownFaceUpMask) return;
+			var faceUp = CurrentFaceUpMask();
+			var inHand = CurrentInHandMask();
+			if (faceUp == _shownFaceUpMask && inHand == _shownInHandMask) return;
 
-			_shownFaceUpMask = mask;
+			var facesChanged = faceUp != _shownFaceUpMask;
 
-			for (var i = 0; i < _cards.Count; i++)
+			_shownFaceUpMask = faceUp;
+			_shownInHandMask = inHand;
+
+			if (facesChanged)
 			{
-				var visible = IsVisible(i);
-				if (_cards[i]) _cards[i].SetCard(visible ? CardAt(i) : CardData.None, visible, _database, true);
+				for (var i = 0; i < _cards.Count; i++)
+				{
+					var visible = IsVisible(i);
+					if (_cards[i]) _cards[i].SetCard(visible ? CardAt(i) : CardData.None, visible, _database, true);
+				}
 			}
+
+			// Lifted into the hand, or put back down on the table: either way the two groups have to be
+			// laid out again among their own members, so picking one card up closes the gap it left.
+			Layout();
+		}
+
+		private int CurrentInHandMask()
+		{
+			var mask = 0;
+			if (!_data) return mask;
+
+			for (var i = 0; i < _cards.Count && i < 31; i++)
+			{
+				if (IsInHand(i)) mask |= 1 << i;
+			}
+
+			return mask;
 		}
 
 		private bool IsVisible(int index) => _data && _data.IsHoleCardVisible(index);
@@ -149,6 +179,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			var visible = IsVisible(index);
 			visual.SetCard(visible ? card : CardData.None, visible, _database, animate);
 			_shownFaceUpMask = CurrentFaceUpMask();
+			_shownInHandMask = CurrentInHandMask();
 		}
 
 		private void RemoveCard(int index)
@@ -168,6 +199,11 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			}
 
 			_cards.Clear();
+
+			// The masks describe what is drawn, and nothing is: leaving them set would make the first card of
+			// the next hand look like no change at all.
+			_shownFaceUpMask = 0;
+			_shownInHandMask = 0;
 		}
 
 		private void UpdateCard(int index, CardData card)
@@ -260,7 +296,10 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		private Vector3 RowPosition(int slot, int count)
 		{
 			var offset = (slot - (count - 1) * 0.5f) * _tableSpacing;
-			return new Vector3(offset, 0f, -slot * _depthStep);
+			// Positive, unlike the fan: the anchor lies flat with its forward pointing up, so a negative step
+			// sinks each later card *into* the table — three of five ended up under the surface. A card put
+			// down later resting on the ones already there is also what a hand dealt onto a table looks like.
+			return new Vector3(offset, 0f, slot * _depthStep);
 		}
 
 		// The seat this player is in owns where their cards lie: it is authored in the chair prefab, so
