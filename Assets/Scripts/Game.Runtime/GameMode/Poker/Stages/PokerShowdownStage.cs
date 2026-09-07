@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Game.Runtime.GameMode.Poker.Hands;
-using Game.Runtime.GameMode.Poker.Mushrooms;
 using Game.Runtime.GameMode.Poker.Player;
 using UnityEngine;
 
@@ -14,11 +13,11 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		[SerializeField] private PokerHandDatabase _handDatabase;
 
 		[Header("Settlement")]
-		[Tooltip("Off, the strongest hand wins the pot — poker. On, the pot is a plate: the weakest hand still in it eats every unit, effects and all, and nobody wins anything. Folding out of the hand is what escapes the plate.")]
-		[SerializeField] private bool _loserEatsPot;
+		[Tooltip("How the hand pays out. Poker hands the pot to the best hand; the plate feeds it to the worst; the mushroom round feeds the winner's own wager to everybody who lost.")]
+		[SerializeField] private PokerSettlement _settlement = PokerSettlement.WinnerTakesPot;
 
-		[Tooltip("What each unit in the pot is when eaten. Only read while the plate is on.")]
-		[SerializeField] private PokerMushroomDatabase _mushroomDatabase;
+		[Tooltip("Which wager a folder is made to eat their own copy of. The first, by the design — folding after seeing three cards still costs what was put up before them.")]
+		[SerializeField] private PokerPhase _foldPhase = PokerPhase.FirstWager;
 
 		[Header("Timing")]
 		[Tooltip("Seconds the winning hand stays up before the table resets.")]
@@ -57,12 +56,29 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 			ResolveContenders();
 
-			if (_loserEatsPot) SettleByEating();
-			else PokerTableUtility.SettlePots(Data, GameMode.SeatedPlayers, _contenders, _winnings);
+			// The winner is named before the settlement, because one of the settlements is about what the
+			// winner put up and would otherwise have nobody to ask.
+			var winner = _contenders.Count > 0 ? _contenders[0].Player : null;
+			Data.LastWinnerClientId.Value = winner ? winner.ClientId : PokerGameData.NoTurn;
+
+			switch (_settlement)
+			{
+				case PokerSettlement.LoserEatsPot:
+					SettleByEating();
+					break;
+
+				case PokerSettlement.LosersEatWinnersWager:
+					PokerTableUtility.FeedFromWinner(Data, winner, GameMode.SeatedPlayers,
+						GameMode.MushroomDatabase, GameMode, _foldPhase,
+						GameMode.FindModule<Modules.PokerAbilityModule>());
+					break;
+
+				default:
+					PokerTableUtility.SettlePots(Data, GameMode.SeatedPlayers, _contenders, _winnings);
+					break;
+			}
 
 			PublishRanking();
-
-			Data.LastWinnerClientId.Value = _contenders.Count > 0 ? _contenders[0].Player.ClientId : PokerGameData.NoTurn;
 
 			if (_showdownDuration <= 0f)
 			{
@@ -116,7 +132,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 				}
 			}
 
-			PokerTableUtility.FeedPot(Data, _eaters, _mushroomDatabase, GameMode);
+			PokerTableUtility.FeedPot(Data, _eaters, GameMode.MushroomDatabase, GameMode);
 		}
 
 		private void ResolveContenders()

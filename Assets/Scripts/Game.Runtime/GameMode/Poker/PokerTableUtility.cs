@@ -118,6 +118,65 @@ namespace Game.Runtime.GameMode.Poker
 			data.PotItems.Clear();
 		}
 
+		// A wagered cap goes onto the plate as one unit. No money moves: a wager in this round has no size,
+		// so Pot is a count of caps rather than a sum, and the ledger beside it is what says which kinds are
+		// there to be eaten. Written here with every other pot write, so the scalar and the ledger cannot
+		// drift apart.
+		public static void WagerMushroom(PokerGameData data, PokerPlayer player, byte itemType)
+		{
+			if (!data || !player || !player.Data) return;
+
+			TypeBuffer.Clear();
+			TypeBuffer.Add(itemType);
+			AddPotItems(data, player.ClientId, TypeBuffer);
+
+			data.Pot.Value += 1;
+		}
+
+		// The round's own settlement: what the winner put up is what every loser swallows, a full copy each
+		// rather than a share — the point of choosing a kind is that it is aimed at the whole table. A player
+		// who folded escapes that and eats only their own opening cap, which is what folding costs.
+		// Nothing is ever won: the losers' own caps are simply gone.
+		public static void FeedFromWinner(PokerGameData data, PokerPlayer winner, IReadOnlyList<PokerPlayer> players,
+			PokerMushroomDatabase database, PokerGameMode gameMode, PokerPhase foldPhase,
+			Modules.PokerAbilityModule abilities = null)
+		{
+			if (!data || database == null) { ResetPot(data); return; }
+
+			foreach (var player in players)
+			{
+				if (!player || !player.Data) continue;
+				if (winner && player == winner) continue;
+				if (!player.Data.IsSeated) continue;
+
+				// Losing is what earns an item, folding included: coming last is the round's own reward, and
+				// a table where only the eaters are compensated punishes folding twice.
+				abilities?.GiveLossRewardServer(player);
+
+				var folded = player.Data.Status.Value == PokerPlayerStatus.Folded;
+
+				for (var i = 0; i < data.PotItems.Count; i++)
+				{
+					var item = data.PotItems[i];
+
+					// A folder eats their own opening cap and nothing else; everyone still in eats every cap
+					// the winner put up.
+					var theirs = folded
+						? item.OwnerClientId == player.ClientId && item.Phase == foldPhase
+						: winner && item.OwnerClientId == winner.ClientId;
+
+					if (!theirs) continue;
+
+					if (database.TryGetEntry(item.ItemTypeIndex, out var entry) && entry.Effect)
+					{
+						entry.Effect.ConsumeServer(gameMode, player, item.ItemTypeIndex);
+					}
+				}
+			}
+
+			ResetPot(data);
+		}
+
 		// The pot's itemised half. One entry per unit staked, stamped with who fed it, on which street,
 		// and what it is — the types were drawn off the front of the owner's wallet when the stake was
 		// placed. Only ever written beside the scalar, in this class, so the two cannot disagree.
@@ -153,7 +212,7 @@ namespace Game.Runtime.GameMode.Poker
 
 					if (database && database.TryGetEntry(data.PotItems[i].ItemTypeIndex, out var entry) && entry.Effect)
 					{
-						entry.Effect.ConsumeServer(gameMode, eater);
+						entry.Effect.ConsumeServer(gameMode, eater, data.PotItems[i].ItemTypeIndex);
 					}
 				}
 			}
