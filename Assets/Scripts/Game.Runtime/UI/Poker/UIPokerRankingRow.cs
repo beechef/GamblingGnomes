@@ -27,8 +27,10 @@ namespace Game.Runtime.UI.Poker
 		[SerializeField] private Vector2 _cardSize = new(44f, 66f);
 
 		private readonly List<UIPokerCard> _cards = new();
+		private readonly List<CardData> _snapshot = new();
 
 		private PokerPlayer _player;
+		private bool _snapshotRevealed;
 
 		// The row is handed its place by the panel, and then watches the player it drew. The showdown list
 		// and the reveal it implies live on two different network objects, so they land in either order —
@@ -37,6 +39,11 @@ namespace Game.Runtime.UI.Poker
 		public void SetEntry(PokerShowdownEntry entry, PokerPlayer player)
 		{
 			Bind(player);
+
+			// A new showdown is a new record: the old one must not be left to stand in for a hand that was
+			// mucked and has nothing to show.
+			_snapshot.Clear();
+			_snapshotRevealed = false;
 
 			if (_placeLabel) _placeLabel.text = Ordinal(entry.Rank);
 			if (_handLabel) _handLabel.text = entry.HandName.ToString();
@@ -71,14 +78,29 @@ namespace Game.Runtime.UI.Poker
 
 		private void HandleHoleCardsChanged(NetworkListEvent<CardData> change) => RebuildCards();
 
+		// The board is a record of a hand that is already over, so it keeps its own copy of what was in
+		// it. The next deal calls ServerResetForHand and clears the very list this used to read, which
+		// emptied a board still on screen the moment the countdown ran out. A hand still holding cards
+		// refreshes the record — that is the reveal landing after the showdown list — and one that has
+		// put them down can no longer erase it.
+		private void TakeSnapshot()
+		{
+			var data = _player ? _player.Data : null;
+			if (!data || data.CardCount == 0) return;
+
+			_snapshot.Clear();
+			foreach (var card in data.HoleCards) _snapshot.Add(card);
+
+			_snapshotRevealed = data.IsHandVisible;
+		}
+
 		private void RebuildCards()
 		{
 			if (!_cardContainer || !_cardPrefab) return;
 
-			var data = _player ? _player.Data : null;
-			var count = data ? data.CardCount : 0;
+			TakeSnapshot();
 
-			while (_cards.Count < count)
+			while (_cards.Count < _snapshot.Count)
 			{
 				var card = Instantiate(_cardPrefab, _cardContainer);
 				((RectTransform)card.transform).sizeDelta = _cardSize;
@@ -88,12 +110,12 @@ namespace Game.Runtime.UI.Poker
 
 			for (var i = 0; i < _cards.Count; i++)
 			{
-				var visible = i < count;
+				var visible = i < _snapshot.Count;
 				_cards[i].gameObject.SetActive(visible);
 
 				// A hand that never had to show — a win by folds — keeps its back on the board too;
 				// drawing it face up here would undo the reveal rule the server just applied.
-				if (visible) _cards[i].SetCard(data.HoleCards[i], data.IsHandVisible);
+				if (visible) _cards[i].SetCard(_snapshot[i], _snapshotRevealed);
 			}
 		}
 
