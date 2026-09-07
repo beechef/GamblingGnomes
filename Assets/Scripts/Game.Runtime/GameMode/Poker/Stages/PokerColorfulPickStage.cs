@@ -1,4 +1,4 @@
-using Game.Runtime.GameMode.Poker.Mushrooms;
+using Game.Runtime.GameMode.Poker.Items;
 using Game.Runtime.GameMode.Poker.Player;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -68,7 +68,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			// A turn on a clock must always end, and this one has no polite answer to fall back on — so
 			// the winner who says nothing feeds it to themselves. Silence should not let them aim it.
 			var winner = GameMode.FindSeatedPlayer(Data.CurrentTurnClientId.Value);
-			if (winner) Feed(winner);
+			if (winner) Serve(winner);
 			else FinishStage(_nextStage);
 		}
 
@@ -81,7 +81,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			var target = FindSeatedPlayerAtSeat(amount);
 			if (!target || !CanBeFed(target)) return false;
 
-			Feed(target);
+			Serve(target);
 			return true;
 		}
 
@@ -99,15 +99,17 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			return null;
 		}
 
-		private void Feed(PokerPlayer target)
+		private void Serve(PokerPlayer target)
 		{
 			_picked = true;
 			GameMode.ClearTurn();
 
-			var database = GameMode.MushroomDatabase;
-			if (database && database.TryGetEntry(ColorfulItemType, out var entry) && entry.Effect)
+			// Served onto the plate, not swallowed here: the eating is its own beat, and a cap that took effect
+			// during the announcement of who got it is a cap nobody watched go down.
+			var database = GameMode.ItemDatabase;
+			if (database && database.TryGetEntry(ColorfulItemType, out _))
 			{
-				entry.Effect.ConsumeServer(GameMode, target, ColorfulItemType);
+				target.Data.ServerQueueItem(ColorfulItemType);
 			}
 			else
 			{

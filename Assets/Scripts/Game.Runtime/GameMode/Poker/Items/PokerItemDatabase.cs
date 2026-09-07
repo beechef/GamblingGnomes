@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace Game.Runtime.GameMode.Poker.Mushrooms
+namespace Game.Runtime.GameMode.Poker.Items
 {
 	// What a unit of stake can be. A unit replicates as an index into this asset — the same trade
 	// PlayerColorDatabase makes — so the mushrooms can be renamed, recoloured and retuned without a
 	// word of it reaching the network, and two clients can never disagree about what is in the pot.
-	[CreateAssetMenu(fileName = "PokerMushroomDatabase", menuName = "Game/Poker/Mushroom Database")]
-	public class PokerMushroomDatabase : ScriptableObject
+	[CreateAssetMenu(fileName = "PokerItemDatabase", menuName = "Game/Poker/Item Database")]
+	public class PokerItemDatabase : ScriptableObject
 	{
 		// Index zero stays the plain chip — a unit with no identity — so a ledger written before this
 		// asset existed still means what it always meant, and a table with no database wired plays
@@ -23,12 +23,15 @@ namespace Game.Runtime.GameMode.Poker.Mushrooms
 			[SerializeField] private Sprite _icon;
 			[SerializeField] private Color _color = Color.white;
 
+			[Tooltip("What this kind looks like on the table. Its own model per kind rather than one shape recoloured: a cap is a thing, and telling two of them apart by tint is a placeholder, not a design.")]
+			[SerializeField] private GameObject _worldPrefab;
+
 			[Tooltip("Rarity, against the other entries' weights. Zero never comes up without the entry losing its place in the list.")]
 			[MinValue(0)]
 			[SerializeField] private int _weight = 1;
 
 			[Tooltip("What eating one does. Empty is a mushroom that only costs the swallowing.")]
-			[SerializeField] private PokerMushroomEffect _effect;
+			[SerializeField] private PokerItemEffect _effect;
 
 			[Tooltip("Off, this kind can never be wagered — it is only ever fed to somebody on purpose. The Colorful cap is the case.")]
 			[SerializeField] private bool _wagerable = true;
@@ -36,8 +39,9 @@ namespace Game.Runtime.GameMode.Poker.Mushrooms
 			public string DisplayName => _displayName;
 			public Sprite Icon => _icon;
 			public Color Color => _color;
+			public GameObject WorldPrefab => _worldPrefab;
 			public int Weight => Mathf.Max(0, _weight);
-			public PokerMushroomEffect Effect => _effect;
+			public PokerItemEffect Effect => _effect;
 			public bool Wagerable => _wagerable;
 		}
 

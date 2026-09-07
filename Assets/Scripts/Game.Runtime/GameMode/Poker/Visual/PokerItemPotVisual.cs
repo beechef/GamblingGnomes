@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using DG.Tweening;
-using Game.Runtime.GameMode.Poker.Mushrooms;
+using Game.Runtime.GameMode.Poker.Items;
 using Sirenix.OdinInspector;
 using Unity.Netcode;
 using UnityEngine;
@@ -17,16 +17,13 @@ namespace Game.Runtime.GameMode.Poker.Visual
 	//
 	// Driven off PotItems, the ledger PokerTableUtility already writes beside the scalar, so there is no
 	// second seeder and a late join replicates the plate as it stands.
-	//
-	// Placeholder art: one prefab tinted with the kind's own colour. A cap per kind is a prefab field on
-	// the database entry the day the models arrive.
-	public class PokerMushroomPotVisual : PokerVisual
+	public class PokerItemPotVisual : PokerVisual
 	{
 		[Header("Cap")]
-		[Tooltip("Placeholder cap. Tinted per kind from the table's mushroom database.")]
-		[SerializeField] private GameObject _capPrefab;
+		[SerializeField] private PokerItemDatabase _database;
 
-		[SerializeField] private PokerMushroomDatabase _database;
+		[Tooltip("Stands in for a kind whose own model has not landed yet. Each kind names its prefab on the database; this is only the last resort.")]
+		[SerializeField] private GameObject _fallbackPrefab;
 
 		[SerializeField] private float _capScale = 1f;
 
@@ -97,42 +94,58 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 		private void AddCap(PokerBetItem item, bool animate)
 		{
-			if (!_capPrefab) return;
-
 			var seat = FindSeat(item.OwnerClientId);
 			if (!seat) return;
 
-			var anchor = seat.MushroomAnchor;
+			var anchor = seat.ItemAnchor;
 			if (!anchor) return;
+
+			// Resolved before the seat's counter moves: a kind with no model must not burn the slot the
+			// next cap is going to land in.
+			var prefab = PrefabFor(item.ItemTypeIndex);
+			if (!prefab) return;
 
 			_capsPerSeat.TryGetValue(seat.SeatIndex, out var placed);
 			_capsPerSeat[seat.SeatIndex] = placed + 1;
 
-			var cap = Instantiate(_capPrefab, anchor);
+			var cap = Instantiate(prefab, anchor);
 			_caps.Add(cap);
 
 			cap.transform.localScale = Vector3.one * _capScale;
 			cap.transform.localRotation = Quaternion.identity;
 
-			Tint(cap, item.ItemTypeIndex);
+			var resting = SlotPosition(placed);
 
-			// The anchor lies flat with its forward pointing up, the same frame the cards are laid out in:
-			// local X runs across the seat and local Y runs away from whoever is sitting there.
-			var column = placed % Mathf.Max(1, _capsPerRow);
-			var row = placed / Mathf.Max(1, _capsPerRow);
-			var resting = new Vector3(
-				(column - (Mathf.Max(1, _capsPerRow) - 1) * 0.5f) * _capSpacing,
-				row * _rowSpacing,
-				0f);
-
+			// The item anchor stands upright, unlike the card one: a prop is a thing that sits on the table
+			// the right way up, so it is instantiated unrotated and dropped straight down.
 			if (!animate || _dropDuration <= 0f)
 			{
 				cap.transform.localPosition = resting;
 				return;
 			}
 
-			cap.transform.localPosition = resting + Vector3.forward * _dropHeight;
+			cap.transform.localPosition = resting + Vector3.up * _dropHeight;
 			cap.transform.DOLocalMove(resting, _dropDuration).SetEase(_dropEase);
+		}
+
+		private Vector3 SlotPosition(int slot)
+		{
+			var perRow = Mathf.Max(1, _capsPerRow);
+			var column = slot % perRow;
+			var row = slot / perRow;
+
+			return new Vector3((column - (perRow - 1) * 0.5f) * _capSpacing, 0f, row * _rowSpacing);
+		}
+
+		// The kind's own model, looked up by type. A cap is a thing, not a colour: two mushrooms that
+		// differ only in tint are a placeholder, and the database is where the difference belongs.
+		private GameObject PrefabFor(byte itemType)
+		{
+			if (_database && _database.TryGetEntry(itemType, out var entry) && entry.WorldPrefab) return entry.WorldPrefab;
+
+			// A kind whose model has not landed yet still has to be *there*: a pot that quietly draws
+			// nothing reads as a broken pot rather than as missing art.
+			return _fallbackPrefab;
 		}
 
 		// The seat rather than the player: a cap already on the table belongs to the chair that put it
@@ -154,24 +167,6 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			return null;
 		}
 
-		private void Tint(GameObject cap, byte itemType)
-		{
-			if (!_database || !_database.TryGetEntry(itemType, out var entry)) return;
-
-			// A property block rather than a material instance: every cap of a kind is the same material,
-			// and one instance per cap on the plate is a leak nobody would notice.
-			var block = new MaterialPropertyBlock();
-
-			foreach (var renderer in cap.GetComponentsInChildren<Renderer>(true))
-			{
-				if (!renderer.sharedMaterial || !renderer.sharedMaterial.HasProperty(BaseColor)) continue;
-
-				renderer.GetPropertyBlock(block);
-				block.SetColor(BaseColor, entry.Color);
-				renderer.SetPropertyBlock(block);
-			}
-		}
-
 		private void ClearCaps()
 		{
 			foreach (var cap in _caps)
@@ -185,7 +180,5 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			_caps.Clear();
 			_capsPerSeat.Clear();
 		}
-
-		private static readonly int BaseColor = Shader.PropertyToID("_BaseColor");
 	}
 }

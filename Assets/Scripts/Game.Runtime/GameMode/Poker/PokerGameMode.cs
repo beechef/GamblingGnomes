@@ -28,7 +28,7 @@ namespace Game.Runtime.GameMode.Poker
 		[SerializeField] private int _startingHealth = 8;
 
 		[Tooltip("What a unit of the players' money is. Types are drawn into each wallet as money arrives, and a bet spends the front of the wallet. Empty plays plain chips — the money game unchanged.")]
-		[SerializeField] private Mushrooms.PokerMushroomDatabase _mushroomDatabase;
+		[SerializeField] private Items.PokerItemDatabase _itemDatabase;
 
 		[Header("Stages")]
 		[Tooltip("The round loop as a preset. Swap this asset to change the game — modules still add to it, and any stage can be interrupted at runtime by InsertStage or PushOverlay.")]
@@ -61,7 +61,7 @@ namespace Game.Runtime.GameMode.Poker
 
 		public PokerGameData Data => _data;
 		public MatchConfigData ConfigData => _configData;
-		public Mushrooms.PokerMushroomDatabase MushroomDatabase => _mushroomDatabase;
+		public Items.PokerItemDatabase ItemDatabase => _itemDatabase;
 		public PokerRuleSettings Rules => _rules;
 		public PokerStageSequence Sequence => _sequence;
 		public PokerDeck Deck { get; } = new();
@@ -443,7 +443,7 @@ namespace Game.Runtime.GameMode.Poker
 
 				// Before the stats, so the money the reset hands out is typed by the table's own catalogue
 				// rather than falling back to plain chips for the first seeding.
-				player.Data.ServerSetStakeItemSource(_mushroomDatabase);
+				player.Data.ServerSetStakeItemSource(_itemDatabase);
 				player.Data.ServerSetStartingStats(_startingMoney, _startingHealth);
 
 				if (firstTime || (resetPlayers && _data && _data.Phase.Value == PokerPhase.Waiting))

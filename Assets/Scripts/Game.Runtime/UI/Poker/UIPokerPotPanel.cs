@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Game.Runtime.GameMode.Poker;
-using Game.Runtime.GameMode.Poker.Mushrooms;
+using Game.Runtime.GameMode.Poker.Items;
 using TMPro;
 using Unity.Collections;
 using Unity.Netcode;
@@ -25,7 +25,7 @@ namespace Game.Runtime.UI.Poker
 		[SerializeField] private TextMeshProUGUI _breakdownLabel;
 
 		[Tooltip("Names and colours the breakdown by ItemTypeIndex. Only read when the breakdown label is set.")]
-		[SerializeField] private PokerMushroomDatabase _mushroomDatabase;
+		[SerializeField] private PokerItemDatabase _itemDatabase;
 
 		private readonly Dictionary<byte, int> _typeCounts = new();
 		private readonly StringBuilder _breakdown = new();
@@ -77,13 +77,13 @@ namespace Game.Runtime.UI.Poker
 		// and a pot of nothing but chips reads as the money pot it is.
 		private string BuildBreakdown()
 		{
-			if (!_mushroomDatabase) return string.Empty;
+			if (!_itemDatabase) return string.Empty;
 
 			_typeCounts.Clear();
 
 			foreach (var item in Data.PotItems)
 			{
-				if (item.ItemTypeIndex == PokerMushroomDatabase.PlainChip) continue;
+				if (item.ItemTypeIndex == PokerItemDatabase.PlainChip) continue;
 
 				_typeCounts.TryGetValue(item.ItemTypeIndex, out var count);
 				_typeCounts[item.ItemTypeIndex] = count + 1;
@@ -93,12 +93,12 @@ namespace Game.Runtime.UI.Poker
 
 			_breakdown.Clear();
 
-			for (var i = 1; i <= _mushroomDatabase.Entries.Count && i <= byte.MaxValue; i++)
+			for (var i = 1; i <= _itemDatabase.Entries.Count && i <= byte.MaxValue; i++)
 			{
 				var itemType = (byte)i;
 
 				if (!_typeCounts.TryGetValue(itemType, out var count)) continue;
-				if (!_mushroomDatabase.TryGetEntry(itemType, out var entry)) continue;
+				if (!_itemDatabase.TryGetEntry(itemType, out var entry)) continue;
 
 				if (_breakdown.Length > 0) _breakdown.Append("  ");
 

@@ -16,7 +16,7 @@ namespace Game.Runtime.UI.Poker
 	//
 	// Placeholder art: the button prefab is the project's plain one, tinted with the kind's own colour
 	// and labelled with its name.
-	public class UIPokerMushroomWagerBar : UIPokerView
+	public class UIPokerItemWagerBar : UIPokerView
 	{
 		[Header("Panel")]
 		[SerializeField] private GameObject _panel;
@@ -88,7 +88,7 @@ namespace Game.Runtime.UI.Poker
 		{
 			ClearKindButtons();
 
-			var database = GameMode ? GameMode.MushroomDatabase : null;
+			var database = GameMode ? GameMode.ItemDatabase : null;
 			if (!database || !_buttonPrefab || !_buttonRow) return;
 
 			for (var i = 0; i < database.Entries.Count; i++)
@@ -135,7 +135,7 @@ namespace Game.Runtime.UI.Poker
 			// Resolved from the replicated stage id, never from GameMode.ActiveStage: that is written only by
 			// the server's own stage machine, so on a client it is null forever and the bar never appears —
 			// right on the host, missing everywhere else.
-			var stage = GameMode ? GameMode.FindStage(Data.StageId.Value.ToString()) as PokerMushroomWagerStage : null;
+			var stage = GameMode ? GameMode.FindStage(Data.StageId.Value.ToString()) as PokerItemWagerStage : null;
 
 			// An overlay hands out turns of its own, and whoever is on that clock is being asked something
 			// else entirely.

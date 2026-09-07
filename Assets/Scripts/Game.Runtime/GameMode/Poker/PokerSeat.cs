@@ -24,14 +24,14 @@ namespace Game.Runtime.GameMode.Poker
 
 
 		[Tooltip("Where this seat's wagered caps are put down on the table. Falls back to the card anchor, which is at least in front of the right chair.")]
-		[SerializeField] private Transform _mushroomAnchor;
+		[SerializeField] private Transform _itemAnchor;
 
 		public int SeatIndex => _seatIndex;
 		public Transform CardAnchor => _cardAnchor ? _cardAnchor : SitAnchor;
 
 		// Where a stake lands belongs to the chair for the same reason where the cards lie does: it is a spot
 		// on the table in front of one player, authored once in the chair prefab and right at every seat.
-		public Transform MushroomAnchor => _mushroomAnchor ? _mushroomAnchor : CardAnchor;
+		public Transform ItemAnchor => _itemAnchor ? _itemAnchor : CardAnchor;
 
 		private PokerGameMode GameMode => PokerGameMode.Instance;
 

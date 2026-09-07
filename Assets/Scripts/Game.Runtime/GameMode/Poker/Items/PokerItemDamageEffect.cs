@@ -2,12 +2,12 @@ using Game.Runtime.GameMode.Poker.Player;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace Game.Runtime.GameMode.Poker.Mushrooms
+namespace Game.Runtime.GameMode.Poker.Items
 {
 	// The poison cap: eating one costs blood. Routed through ServerChangeHealth like every other
 	// source of harm, so the clamp, the finger count and dying at zero all come for free.
-	[CreateAssetMenu(fileName = "MushroomEffect_Damage", menuName = "Game/Poker/Mushroom Effects/Damage")]
-	public class PokerMushroomDamageEffect : PokerMushroomEffect
+	[CreateAssetMenu(fileName = "ItemEffect_Damage", menuName = "Game/Poker/Item Effects/Damage")]
+	public class PokerItemDamageEffect : PokerItemEffect
 	{
 		[Tooltip("Blood one bite takes. Per unit eaten — three of these in the pot is three bites.")]
 		[MinValue(0)]

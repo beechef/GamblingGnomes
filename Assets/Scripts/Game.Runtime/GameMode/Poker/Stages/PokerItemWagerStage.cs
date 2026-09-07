@@ -10,8 +10,8 @@ namespace Game.Runtime.GameMode.Poker.Stages
 	//
 	// Turns rather than everyone at once, because the player after you has seen what you put up: that is
 	// the whole reason the order matters and the reason a hand's winner is given a place in it.
-	[CreateAssetMenu(fileName = "PokerStage_MushroomWager", menuName = "Game/Poker/Stages/Mushroom Wager")]
-	public class PokerMushroomWagerStage : PokerStage
+	[CreateAssetMenu(fileName = "PokerStage_ItemWager", menuName = "Game/Poker/Stages/Item Wager")]
+	public class PokerItemWagerStage : PokerStage
 	{
 		[Header("Street")]
 		[Tooltip("Which of the two wagers this is. The UI routes on it, and only the second offers folding.")]
@@ -19,7 +19,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 		[Tooltip("How many caps of the chosen kind go up. The player still chooses only the kind — this is the size of the stake, set by the table rather than by whoever is acting.")]
 		[MinValue(1)]
-		[SerializeField] private int _mushroomsPerWager = 1;
+		[SerializeField] private int _itemsPerWager = 1;
 
 		[Tooltip("On, a player may put the cards down instead of wagering. The design gives this to the second wager only.")]
 		[SerializeField] private bool _allowFold;
@@ -38,7 +38,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		private float _turnElapsed;
 
 		public bool AllowFold => _allowFold;
-		public int MushroomsPerWager => Mathf.Max(1, _mushroomsPerWager);
+		public int ItemsPerWager => Mathf.Max(1, _itemsPerWager);
 
 		protected override void OnStartStage()
 		{
@@ -90,8 +90,8 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			// A turn on a clock must always end, and there is no polite answer to "which kind" — so the
 			// table wagers for them rather than folding somebody who merely went quiet.
 			var clientId = Data.CurrentTurnClientId.Value;
-			var database = GameMode.MushroomDatabase;
-			var fallback = database ? database.DrawItemType() : Mushrooms.PokerMushroomDatabase.PlainChip;
+			var database = GameMode.ItemDatabase;
+			var fallback = database ? database.DrawItemType() : Items.PokerItemDatabase.PlainChip;
 
 			HandleAction(clientId, PokerActionType.Wager, fallback);
 		}
@@ -111,9 +111,9 @@ namespace Game.Runtime.GameMode.Poker.Stages
 					// The pot ledger is the only record of who put up what: PokerBetItem already stamps the
 					// owner and the kind, and a second copy on the player would be one the deal's own
 					// ServerResetForHand wipes halfway through the round.
-					for (var i = 0; i < MushroomsPerWager; i++)
+					for (var i = 0; i < ItemsPerWager; i++)
 					{
-						PokerTableUtility.WagerMushroom(Data, player, (byte)amount);
+						PokerTableUtility.WagerItem(Data, player, (byte)amount);
 					}
 					break;
 
@@ -156,7 +156,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		{
 			if (itemType <= 0 || itemType > byte.MaxValue) return false;
 
-			var database = GameMode ? GameMode.MushroomDatabase : null;
+			var database = GameMode ? GameMode.ItemDatabase : null;
 
 			// A kind that exists is not necessarily a kind that may be put up: the Colorful cap is only ever
 			// handed to somebody, never staked.
