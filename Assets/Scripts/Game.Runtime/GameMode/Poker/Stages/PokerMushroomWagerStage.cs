@@ -48,7 +48,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			// wager would find everyone already marked from the first and end before asking anybody.
 			PokerTableUtility.ResetRoundBets(Data, GameMode.SeatedPlayers);
 
-			if (PokerTableUtility.CountInHand(GameMode.SeatedPlayers) <= 1)
+			if (CountWagerers() <= 1)
 			{
 				FinishStreet();
 				return;
@@ -101,7 +101,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			if (clientId != Data.CurrentTurnClientId.Value) return false;
 
 			var player = GameMode.FindSeatedPlayer(clientId);
-			if (!player || !player.Data.CanAct) return false;
+			if (!player || !CanWager(player.Data)) return false;
 
 			switch (action)
 			{
@@ -132,6 +132,24 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			return true;
 		}
 
+		// Who this street has a question for. Deliberately not IsInHand: the first wager runs **before**
+		// the deal, so nobody is Active yet and a hand-based count reads as "everybody has folded" — which
+		// sent the round straight to the reveal, every time, and looped there. Seated and conscious is what
+		// is actually being asked; folding is the only thing that takes somebody out of it afterwards.
+		private static bool CanWager(PokerPlayerData data) =>
+			data && data.IsSeated && data.IsAlive && data.Status.Value != PokerPlayerStatus.Folded;
+
+		private int CountWagerers()
+		{
+			var count = 0;
+			foreach (var player in GameMode.SeatedPlayers)
+			{
+				if (player && CanWager(player.Data)) count++;
+			}
+
+			return count;
+		}
+
 		// Asked here so the bar and the server size the offer through the same code: a kind the database
 		// does not carry is one the UI can never light and the server will never take.
 		public bool IsWagerable(int itemType)
@@ -154,7 +172,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 		private void AdvanceTurn(int fromSeatIndex)
 		{
-			if (PokerTableUtility.CountInHand(GameMode.SeatedPlayers) <= 1)
+			if (CountWagerers() <= 1)
 			{
 				FinishStreet();
 				return;
@@ -166,7 +184,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		private void BeginNextTurn(int fromSeatIndex)
 		{
 			var next = PokerTableUtility.NextPlayer(GameMode.SeatedPlayers, fromSeatIndex,
-				player => player.Data.CanAct && !player.Data.HasActed.Value);
+				player => CanWager(player.Data) && !player.Data.HasActed.Value);
 
 			if (next == null)
 			{
@@ -182,7 +200,9 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		{
 			GameMode.ClearTurn();
 
-			var handOver = PokerTableUtility.CountInHand(GameMode.SeatedPlayers) <= 1;
+			// Same count as the one that opened the street, for the same reason: before the deal nobody is
+			// in a hand, and reading it that way declared the hand over before it had started.
+			var handOver = CountWagerers() <= 1;
 			FinishStage(handOver ? _handOverStage : null);
 		}
 	}
