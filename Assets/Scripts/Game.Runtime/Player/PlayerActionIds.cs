@@ -14,6 +14,7 @@ namespace Game.Runtime.Player
 		public const string WearGlasses = "WearGlasses";
 		public const string RemoveGlasses = "RemoveGlasses";
 		public const string ShuffleCards = "ShuffleCards";
+		public const string PickUpCard = "PickUpCard";
 		public const string Drink = "Drink";
 		public const string Spill = "Spill";
 	}

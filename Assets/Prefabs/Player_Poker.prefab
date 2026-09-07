@@ -386,6 +386,15 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 6105733973742945484, guid: 8a531d709826a264e9027ff908ced981, type: 3}
       insertIndex: -1
       addedObject: {fileID: 4262478686658790279}
+    - targetCorrespondingSourceObject: {fileID: 6105733973742945484, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4150968837335945767}
+    - targetCorrespondingSourceObject: {fileID: 6105733973742945484, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5317439116845872267}
+    - targetCorrespondingSourceObject: {fileID: 6105733973742945484, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3438439457700035025}
     - targetCorrespondingSourceObject: {fileID: 6736061117846939037, guid: 8a531d709826a264e9027ff908ced981, type: 3}
       insertIndex: -1
       addedObject: {fileID: 7532137638287253186}
@@ -630,6 +639,26 @@ MonoBehaviour:
       MinSecondsBetweenUpdates: 0
       MaxSecondsBetweenUpdates: 0
     m_InternalValue: 0
+  HallucinationRate:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
+  EatenMushroomTypes:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
+  LookedAtHoleCards:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
+  ViewableHoleCards:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
   Health:
     UpdateTraits:
       MinSecondsBetweenUpdates: 0
@@ -671,6 +700,7 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   _cardSpacing: 0.045
   _fanAngle: 10
+  _tableSpacing: 0.06
   _depthStep: 0.01
   _handBone: 11
   _handLocalPosition: {x: 0.0657, y: -0.019, z: 0.034}
@@ -726,6 +756,56 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   _data: {fileID: 6935137486891752095}
   _fingers: {fileID: 1929870118816623789}
+--- !u!114 &4150968837335945767
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8336770729751643675}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 06c807126281cf84bb10b1845c2b0e71, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Controller.TableCursorController
+  _holdLookAction: {fileID: -2873660443980403870, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+--- !u!114 &5317439116845872267
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8336770729751643675}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 574d01275851a9c439070101a307366d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Player.PokerCardPickController
+  ShowTopMostFoldoutHeaderGroup: 1
+  _data: {fileID: 6935137486891752095}
+  _handVisual: {fileID: 794951249127223663}
+  _pickAction: {fileID: -5630367516989439448, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+  _cardMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  _maxDistance: 4
+  _hoverLift: 0.015
+--- !u!114 &3438439457700035025
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8336770729751643675}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 05c4731300282f44a92e6a9c53433ade, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Hallucination.PokerHallucinationController
+  ShowTopMostFoldoutHeaderGroup: 1
+  _player: {fileID: 5117715483773410859}
+  _data: {fileID: 6935137486891752095}
+  _tiers: {fileID: 11400000, guid: 06ed31c2c8dc1494d86b2b14f75d0da3, type: 2}
 --- !u!1 &8734185068247193769 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 6791370475833793150, guid: 8a531d709826a264e9027ff908ced981, type: 3}

@@ -52,6 +52,9 @@ namespace Game.Runtime.Player
 		[Header("Input Actions")]
 		[SerializeField] private InputActionReference _moveAction;
 		[SerializeField] private InputActionReference _lookAction;
+
+		[Tooltip("Look used while the body is anchored in a seat. Seated there is nowhere to walk, so a pad's left stick turns the view and the right one is free for the cursor. Empty falls back to the standing look.")]
+		[SerializeField] private InputActionReference _seatedLookAction;
 		[SerializeField] private InputActionReference _sprintAction;
 		[SerializeField] private InputActionReference _jumpAction;
 
@@ -317,6 +320,8 @@ namespace Game.Runtime.Player
 			// stops reporting, so the view turns about a degree and then simply stops.
 			_lookAction.action.Enable();
 
+			if (_seatedLookAction && _seatedLookAction.action != null) _seatedLookAction.action.Enable();
+
 			_sprintAction.action.Enable();
 			_sprintAction.action.performed += OnSprintPerformed;
 			_sprintAction.action.canceled += OnSprintPerformed;
@@ -350,6 +355,8 @@ namespace Game.Runtime.Player
 			_moveAction.action.Disable();
 
 			_lookAction.action.Disable();
+
+			if (_seatedLookAction && _seatedLookAction.action != null) _seatedLookAction.action.Disable();
 
 			_sprintAction.action.performed -= OnSprintPerformed;
 			_sprintAction.action.canceled -= OnSprintPerformed;
@@ -389,7 +396,13 @@ namespace Game.Runtime.Player
 		{
 			if (!_inputBound || !CursorController.IsLocked) return;
 
-			var value = _lookAction.action.ReadValue<Vector2>();
+			// Anchored in a chair the pad's sticks swap roles, so the seated action is read instead — the
+			// same mouse delta either way, a different stick on a pad.
+			var action = _bodyAnchored && _seatedLookAction && _seatedLookAction.action != null
+				? _seatedLookAction.action
+				: _lookAction.action;
+
+			var value = action.ReadValue<Vector2>();
 			var filteredX = Mathf.Abs(value.x) < _inputDeadzone ? 0f : value.x;
 			var filteredY = Mathf.Abs(value.y) < _inputDeadzone ? 0f : value.y;
 			if (filteredX == 0f && filteredY == 0f) return;

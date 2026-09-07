@@ -16,6 +16,9 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		[SerializeField] private float _cardSpacing = 0.03f;
 		[SerializeField] private float _fanAngle = 8f;
 
+		[Tooltip("Gap between the cards lying on the table. Wider than the fan: these are what a player reaches for, and two cards overlapping cannot be told apart by a raycast.")]
+		[SerializeField] private float _tableSpacing = 0.06f;
+
 		[Tooltip("Gap between cards along the anchor's forward. Coplanar cards z-fight.")]
 		[SerializeField] private float _depthStep = 0.0008f;
 
@@ -37,7 +40,10 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		private readonly List<PokerCardVisual> _cards = new();
 
 		private Transform _resolvedAnchor;
-		private bool _shownFaceUp;
+		// One bit per slot, so a hand held face down to its own holder can turn three of five over and
+		// leave the rest as backs. A single flag could only ever say "the whole hand" — which is what
+		// this was, and what a round dealing more cards than a player may look at breaks.
+		private int _shownFaceUpMask;
 
 		public override void OnNetworkSpawn()
 		{
@@ -89,36 +95,60 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			Layout();
 		}
 
-		// Visibility is a property of the hand, not of any one card: a showdown turns over what is
-		// already being held.
+		// Asked per card: a showdown turns the whole hand over at once, and a holder allowed to look at
+		// only three of five turns those three and leaves the others backs.
 		private void HandleStateChanged()
 		{
-			if (!_data || _data.IsHandVisible == _shownFaceUp) return;
+			if (!_data) return;
 
-			_shownFaceUp = _data.IsHandVisible;
+			var mask = CurrentFaceUpMask();
+			if (mask == _shownFaceUpMask) return;
+
+			_shownFaceUpMask = mask;
 
 			for (var i = 0; i < _cards.Count; i++)
 			{
-				if (_cards[i]) _cards[i].SetCard(CardAt(i), _shownFaceUp, _database, true);
+				var visible = IsVisible(i);
+				if (_cards[i]) _cards[i].SetCard(visible ? CardAt(i) : CardData.None, visible, _database, true);
 			}
+		}
+
+		private bool IsVisible(int index) => _data && _data.IsHoleCardVisible(index);
+
+		private int CurrentFaceUpMask()
+		{
+			var mask = 0;
+			if (!_data) return mask;
+
+			for (var i = 0; i < _data.HoleCards.Count && i < 31; i++)
+			{
+				if (IsVisible(i)) mask |= 1 << i;
+			}
+
+			return mask;
 		}
 
 		private CardData CardAt(int index)
 		{
 			if (!_data || index < 0 || index >= _data.HoleCards.Count) return CardData.None;
 
-			return _data.IsHandVisible ? _data.HoleCards[index] : CardData.None;
+			return IsVisible(index) ? _data.HoleCards[index] : CardData.None;
 		}
 
 		private void AddCard(CardData card, bool animate)
 		{
 			if (!_cardPrefab) return;
 
-			var visual = Instantiate(_cardPrefab, ResolveAnchor());
+			// The slot this card is about to occupy, so a hand whose cards are turned one at a time asks
+			// about the right one.
+			var index = _cards.Count;
+
+			var visual = Instantiate(_cardPrefab, ResolveTableAnchor());
 			_cards.Add(visual);
 
-			_shownFaceUp = _data && _data.IsHandVisible;
-			visual.SetCard(_shownFaceUp ? card : CardData.None, _shownFaceUp, _database, animate);
+			var visible = IsVisible(index);
+			visual.SetCard(visible ? card : CardData.None, visible, _database, animate);
+			_shownFaceUpMask = CurrentFaceUpMask();
 		}
 
 		private void RemoveCard(int index)
@@ -144,7 +174,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		{
 			if (index < 0 || index >= _cards.Count) return;
 
-			var visible = _data && _data.IsHandVisible;
+			var visible = IsVisible(index);
 			_cards[index].SetCard(visible ? card : CardData.None, visible, _database);
 		}
 
@@ -154,27 +184,102 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 			if (!_data) return;
 
-			_shownFaceUp = _data.IsHandVisible;
-
-			var count = _data.IsHandVisible ? _data.HoleCards.Count : _data.CardCount;
+			// CardCount is HoleCards.Count: everyone knows how many cards are being held, whoever may
+			// look at them.
+			var count = _data.CardCount;
 			for (var i = 0; i < count; i++) AddCard(CardAt(i), false);
 
 			Layout();
 		}
 
-		private void Layout()
+		// Two places a card can be: lying face down in front of its owner, or up in their hand. Each
+		// group is laid out among its own members, so picking one card up closes the gap on the table
+		// rather than leaving a hole where it was.
+		private void Layout(bool animate = true)
 		{
+			var handAnchor = ResolveHandAnchor();
+			var tableAnchor = ResolveTableAnchor();
+
+			var inHand = 0;
+			var onTable = 0;
+			for (var i = 0; i < _cards.Count; i++)
+			{
+				if (IsInHand(i)) inHand++;
+				else onTable++;
+			}
+
+			var handSlot = 0;
+			var tableSlot = 0;
+
 			for (var i = 0; i < _cards.Count; i++)
 			{
 				var visual = _cards[i];
 				if (!visual) continue;
 
-				var offset = (i - (_cards.Count - 1) * 0.5f) * _cardSpacing;
-				visual.transform.localPosition = new Vector3(offset, 0f, -i * _depthStep);
-				visual.transform.localRotation = Quaternion.Euler(0f, 0f, -offset / Mathf.Max(_cardSpacing, 0.0001f) * _fanAngle);
+				if (IsInHand(i))
+				{
+					visual.PlaceAt(handAnchor, FanPosition(handSlot, inHand), FanRotation(handSlot, inHand), animate);
+					handSlot++;
+					continue;
+				}
+
+				visual.PlaceAt(tableAnchor, RowPosition(tableSlot, onTable), Quaternion.identity, animate);
+				tableSlot++;
 			}
 		}
 
+		private bool IsInHand(int index) => _data && _data.IsHoleCardInHand(index);
+
+		// Which slot a card on screen belongs to. Asked by whatever a player just pointed at: the card
+		// itself carries no index, and the list here is the only thing that knows the order they were
+		// dealt in.
+		public int SlotOf(PokerCardVisual visual)
+		{
+			for (var i = 0; i < _cards.Count; i++)
+			{
+				if (_cards[i] == visual) return i;
+			}
+
+			return -1;
+		}
+
+		private Vector3 FanPosition(int slot, int count)
+		{
+			var offset = (slot - (count - 1) * 0.5f) * _cardSpacing;
+			return new Vector3(offset, 0f, -slot * _depthStep);
+		}
+
+		private Quaternion FanRotation(int slot, int count)
+		{
+			var offset = (slot - (count - 1) * 0.5f) * _cardSpacing;
+			return Quaternion.Euler(0f, 0f, -offset / Mathf.Max(_cardSpacing, 0.0001f) * _fanAngle);
+		}
+
+		// Flat on the table, spread wider than a hand is: these are what a player reaches for, and two
+		// cards overlapping by a fan's margin are two cards a raycast cannot tell apart.
+		private Vector3 RowPosition(int slot, int count)
+		{
+			var offset = (slot - (count - 1) * 0.5f) * _tableSpacing;
+			return new Vector3(offset, 0f, -slot * _depthStep);
+		}
+
+		// The seat this player is in owns where their cards lie: it is authored in the chair prefab, so
+		// retuning it reaches every seat at once. With no seat — a body that is not at the table — the
+		// hand is the only place left to put them.
+		private Transform ResolveTableAnchor()
+		{
+			if (!_data) return ResolveHandAnchor();
+
+			var mode = PokerGameMode.Instance;
+			if (!mode) return ResolveHandAnchor();
+
+			foreach (var seat in mode.Seats)
+			{
+				if (seat && seat.SeatIndex == _data.SeatIndex.Value) return seat.CardAnchor;
+			}
+
+			return ResolveHandAnchor();
+		}
 		// The owner renders the hand-only rig and everyone else renders the full body, so the cards hang
 		// off whichever right hand this client is actually drawing — which rig that is stays the rig's
 		// business, not this view's. With no anchor assigned a holder is parented to the bone, which keeps
@@ -182,7 +287,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		// Built once under the hand of whichever rig this client renders. There is no serialized anchor to
 		// override it with: an anchor authored in the prefab would name a bone on one rig and be wrong on
 		// the other, which is why both fields it used to offer sat empty in every prefab that had them.
-		private Transform ResolveAnchor()
+		private Transform ResolveHandAnchor()
 		{
 			if (_resolvedAnchor) return _resolvedAnchor;
 
