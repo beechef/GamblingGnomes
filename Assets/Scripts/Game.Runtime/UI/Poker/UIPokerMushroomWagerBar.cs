@@ -93,6 +93,10 @@ namespace Game.Runtime.UI.Poker
 				var itemType = (byte)(i + 1);
 				if (!database.TryGetEntry(itemType, out var entry)) continue;
 
+				// A kind nobody may ever wager is not drawn at all. Greying it would say "not now" about
+				// something the rules say "not here" to — the Colorful cap is only ever fed to somebody.
+				if (!entry.Wagerable) continue;
+
 				var button = Instantiate(_buttonPrefab, _buttonRow);
 				button.name = $"Button_Wager_{entry.DisplayName}";
 
