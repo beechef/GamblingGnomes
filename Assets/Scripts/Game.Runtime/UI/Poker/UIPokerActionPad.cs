@@ -33,7 +33,7 @@ namespace Game.Runtime.UI.Poker
 		[SerializeField] private TextMeshProUGUI _callLabel;
 		[SerializeField] private TextMeshProUGUI _allInLabel;
 
-		private PokerAbilityModule _module;
+		private PokerReportModule _module;
 
 		private void Awake()
 		{
@@ -42,7 +42,7 @@ namespace Game.Runtime.UI.Poker
 
 		protected override void OnBind()
 		{
-			_module = GameMode.FindModule<PokerAbilityModule>();
+			_module = GameMode.FindModule<PokerReportModule>();
 
 			if (_reportButton) _reportButton.OnClick += HandleReport;
 			if (_callButton) _callButton.OnClick += HandleCall;

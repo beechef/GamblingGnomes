@@ -34,7 +34,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		// construction rather than by two numbers being kept in step by hand.
 		public float VerdictDuration => Mathf.Max(0.1f, _verdictDuration);
 
-		private PokerAbilityModule _module;
+		private PokerReportModule _module;
 		private PokerReportPhase _phase;
 		private ulong _accuserClientId;
 		private ulong _targetClientId;
@@ -46,7 +46,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 		protected override void OnStartStage()
 		{
-			_module = GameMode.FindModule<PokerAbilityModule>();
+			_module = GameMode.FindModule<PokerReportModule>();
 
 			// Nothing left to try: the report settled itself on the way in, or there is no module to ask.
 			// Worth a word either way — an overlay that opens straight onto its own verdict looks from the

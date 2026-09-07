@@ -78,6 +78,24 @@ namespace Game.Runtime.GameMode.Poker.Modules
 		// a cheat attempt. Returning true marks the command as consumed.
 		public virtual bool HandleCommandServer(ulong clientId, FixedString32Bytes commandId, int payload) => false;
 
+		// Which stages a module acts in, matched by stage id. An empty list keeps the gate open —
+		// restriction is opt-in. Lives here rather than in one module because more than one asks it, and
+		// two copies of a gate is two answers to "is this module awake right now".
+		protected bool IsStageAllowed(List<PokerStage> stages)
+		{
+			if (stages == null || stages.Count == 0) return true;
+
+			var active = GameMode ? GameMode.ActiveStage : null;
+			if (!active) return false;
+
+			foreach (var stage in stages)
+			{
+				if (stage && stage.StageId == active.StageId) return true;
+			}
+
+			return false;
+		}
+
 		protected virtual void OnInitialize() { }
 		protected virtual void OnDeInitialize() { }
 	}

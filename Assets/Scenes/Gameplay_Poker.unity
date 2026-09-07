@@ -750,9 +750,41 @@ PrefabInstance:
       propertyPath: InScenePlacedSourceGlobalObjectIdHash
       value: 1159883017
       objectReference: {fileID: 0}
+    - target: {fileID: 2514047808573104141, guid: b4206dcd3058eeb4a9b5a708b9a5790f, type: 3}
+      propertyPath: _abilitiesPerLoss
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2514047808573104141, guid: b4206dcd3058eeb4a9b5a708b9a5790f, type: 3}
+      propertyPath: _abilitiesPerSeat
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2514047808573104141, guid: b4206dcd3058eeb4a9b5a708b9a5790f, type: 3}
+      propertyPath: _clearHandEachRound
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 2514047808573104141, guid: b4206dcd3058eeb4a9b5a708b9a5790f, type: 3}
+      propertyPath: _abilityStages.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2514047808573104141, guid: b4206dcd3058eeb4a9b5a708b9a5790f, type: 3}
+      propertyPath: '_abilityStages.Array.data[0]'
+      value: 
+      objectReference: {fileID: 11400000, guid: ba572d66ab8f3b94b801a1717c608737, type: 2}
+    - target: {fileID: 7373537335293292376, guid: b4206dcd3058eeb4a9b5a708b9a5790f, type: 3}
+      propertyPath: _rules
+      value: 
+      objectReference: {fileID: 11400000, guid: b1b95d1241dc51c489c9dc6b9916290c, type: 2}
+    - target: {fileID: 7373537335293292376, guid: b4206dcd3058eeb4a9b5a708b9a5790f, type: 3}
+      propertyPath: _sequence
+      value: 
+      objectReference: {fileID: 11400000, guid: fef264d3b67498b4191fb3f76f2e9f4e, type: 2}
     - target: {fileID: 7894337194493779765, guid: b4206dcd3058eeb4a9b5a708b9a5790f, type: 3}
       propertyPath: m_Name
       value: GameMode_Poker
+      objectReference: {fileID: 0}
+    - target: {fileID: 8672451930287465123, guid: b4206dcd3058eeb4a9b5a708b9a5790f, type: 3}
+      propertyPath: _enabledByDefault
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects:
@@ -767,7 +799,10 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 2167044627753137391, guid: b4206dcd3058eeb4a9b5a708b9a5790f, type: 3}
       insertIndex: -1
       addedObject: {fileID: 526335051}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 7894337194493779765, guid: b4206dcd3058eeb4a9b5a708b9a5790f, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 74999296}
   m_SourcePrefab: {fileID: 100100000, guid: b4206dcd3058eeb4a9b5a708b9a5790f, type: 3}
 --- !u!4 &74999292 stripped
 Transform:
@@ -779,12 +814,51 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 7373537335293292376, guid: b4206dcd3058eeb4a9b5a708b9a5790f, type: 3}
   m_PrefabInstance: {fileID: 74999291}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 74999294}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 547b2537c9290c145a8d595ed5f03266, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.PokerGameMode
+--- !u!1 &74999294 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 7894337194493779765, guid: b4206dcd3058eeb4a9b5a708b9a5790f, type: 3}
+  m_PrefabInstance: {fileID: 74999291}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &74999295 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 370272023844681654, guid: b4206dcd3058eeb4a9b5a708b9a5790f, type: 3}
+  m_PrefabInstance: {fileID: 74999291}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 74999294}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: afce444291471314cac8751ce0a7e0b5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.PokerGameData
+--- !u!114 &74999296
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 74999294}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2570cd9eccbaff64e9454c888612609f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Visual.PokerSeatRingVisual
+  _data: {fileID: 74999295}
+  _seats:
+  - {fileID: 1722444687}
+  - {fileID: 862342193}
+  - {fileID: 1664379748}
+  - {fileID: 103131495}
+  - {fileID: 1390862941}
+  - {fileID: 614766002}
+  _centre: {fileID: 1501797638}
+  _radius: 0
+  _startAngle: 0
 --- !u!1001 &79550221
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1019,6 +1093,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 875532088081449598, guid: 9af4e4957a47a9546bca3282625e504c, type: 3}
   m_PrefabInstance: {fileID: 103131493}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &103131495 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1376821262251435005, guid: 9af4e4957a47a9546bca3282625e504c, type: 3}
+  m_PrefabInstance: {fileID: 103131493}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4c71c26874dcf2f4eaecd5e3015117fa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.PokerSeat
 --- !u!1 &107502797
 GameObject:
   m_ObjectHideFlags: 0
@@ -3928,6 +4013,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 875532088081449598, guid: 9af4e4957a47a9546bca3282625e504c, type: 3}
   m_PrefabInstance: {fileID: 614766000}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &614766002 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1376821262251435005, guid: 9af4e4957a47a9546bca3282625e504c, type: 3}
+  m_PrefabInstance: {fileID: 614766000}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4c71c26874dcf2f4eaecd5e3015117fa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.PokerSeat
 --- !u!1001 &697241416
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -4730,6 +4826,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 875532088081449598, guid: 9af4e4957a47a9546bca3282625e504c, type: 3}
   m_PrefabInstance: {fileID: 862342191}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &862342193 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1376821262251435005, guid: 9af4e4957a47a9546bca3282625e504c, type: 3}
+  m_PrefabInstance: {fileID: 862342191}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4c71c26874dcf2f4eaecd5e3015117fa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.PokerSeat
 --- !u!1001 &884228652
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -7662,7 +7769,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3788062265489786902, guid: 9af4e4957a47a9546bca3282625e504c, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6095678932202990072, guid: 9af4e4957a47a9546bca3282625e504c, type: 3}
       propertyPath: GlobalObjectIdHash
@@ -7682,6 +7789,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 875532088081449598, guid: 9af4e4957a47a9546bca3282625e504c, type: 3}
   m_PrefabInstance: {fileID: 1390862939}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1390862941 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1376821262251435005, guid: 9af4e4957a47a9546bca3282625e504c, type: 3}
+  m_PrefabInstance: {fileID: 1390862939}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4c71c26874dcf2f4eaecd5e3015117fa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.PokerSeat
 --- !u!1001 &1400267099
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -9138,7 +9256,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3788062265489786902, guid: 9af4e4957a47a9546bca3282625e504c, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6095678932202990072, guid: 9af4e4957a47a9546bca3282625e504c, type: 3}
       propertyPath: GlobalObjectIdHash
@@ -9158,6 +9276,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 875532088081449598, guid: 9af4e4957a47a9546bca3282625e504c, type: 3}
   m_PrefabInstance: {fileID: 1664379746}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1664379748 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1376821262251435005, guid: 9af4e4957a47a9546bca3282625e504c, type: 3}
+  m_PrefabInstance: {fileID: 1664379746}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4c71c26874dcf2f4eaecd5e3015117fa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.PokerSeat
 --- !u!1001 &1666838563
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -9538,6 +9667,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 875532088081449598, guid: 9af4e4957a47a9546bca3282625e504c, type: 3}
   m_PrefabInstance: {fileID: 1722444685}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &1722444687 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1376821262251435005, guid: 9af4e4957a47a9546bca3282625e504c, type: 3}
+  m_PrefabInstance: {fileID: 1722444685}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4c71c26874dcf2f4eaecd5e3015117fa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.PokerSeat
 --- !u!1001 &1740221272
 PrefabInstance:
   m_ObjectHideFlags: 0

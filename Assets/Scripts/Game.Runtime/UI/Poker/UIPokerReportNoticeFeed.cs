@@ -24,11 +24,11 @@ namespace Game.Runtime.UI.Poker
 		[Tooltip("An accusation that never found a face. Nobody was named and nothing was judged.")]
 		[SerializeField] private string _droppedDetail = "NOBODY";
 
-		private PokerAbilityModule _module;
+		private PokerReportModule _module;
 
 		protected override void OnBind()
 		{
-			_module = GameMode.FindModule<PokerAbilityModule>();
+			_module = GameMode.FindModule<PokerReportModule>();
 			if (_module == null) return;
 
 			_module.Accusation.OnValueChanged += HandleAccusation;

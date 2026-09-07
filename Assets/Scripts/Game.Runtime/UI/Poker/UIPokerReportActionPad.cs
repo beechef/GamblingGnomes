@@ -45,7 +45,7 @@ namespace Game.Runtime.UI.Poker
 		// Only the clock moves on its own, and only while this bar is the one being answered.
 		protected override bool WantsTick => _panel && _panel.activeSelf;
 
-		private PokerAbilityModule _module;
+		private PokerReportModule _module;
 
 		private void Awake()
 		{
@@ -54,7 +54,7 @@ namespace Game.Runtime.UI.Poker
 
 		protected override void OnBind()
 		{
-			_module = GameMode.FindModule<PokerAbilityModule>();
+			_module = GameMode.FindModule<PokerReportModule>();
 			if (_module == null) return;
 
 			if (_callButton) _callButton.OnClick += HandleCall;

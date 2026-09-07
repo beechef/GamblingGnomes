@@ -24,7 +24,7 @@ namespace Game.Runtime.UI.Poker
 		[Header("Wording")]
 		[SerializeField] private string _title = "WHO IS THE CHEATER?";
 
-		private PokerAbilityModule _module;
+		private PokerReportModule _module;
 
 		protected override bool WantsTick => _panel && _panel.activeSelf;
 
@@ -35,7 +35,7 @@ namespace Game.Runtime.UI.Poker
 
 		protected override void OnBind()
 		{
-			_module = GameMode.FindModule<PokerAbilityModule>();
+			_module = GameMode.FindModule<PokerReportModule>();
 			if (_module == null) return;
 
 			_module.ReportPhase.OnValueChanged += HandlePhaseChanged;

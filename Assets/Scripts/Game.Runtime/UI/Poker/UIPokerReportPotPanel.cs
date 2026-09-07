@@ -21,7 +21,7 @@ namespace Game.Runtime.UI.Poker
 		[Header("Wording")]
 		[SerializeField] private string _format = "Pot: {0}";
 
-		private PokerAbilityModule _module;
+		private PokerReportModule _module;
 
 		private void Awake()
 		{
@@ -30,7 +30,7 @@ namespace Game.Runtime.UI.Poker
 
 		protected override void OnBind()
 		{
-			_module = GameMode.FindModule<PokerAbilityModule>();
+			_module = GameMode.FindModule<PokerReportModule>();
 			if (_module == null) return;
 
 			_module.ReportPhase.OnValueChanged += HandlePhaseChanged;
