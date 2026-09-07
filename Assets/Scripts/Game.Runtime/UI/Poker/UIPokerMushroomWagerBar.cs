@@ -1,3 +1,4 @@
+using Unity.Collections;
 using System.Collections.Generic;
 using Game.Runtime.GameMode.Poker;
 using Game.Runtime.GameMode.Poker.Stages;
@@ -52,14 +53,16 @@ namespace Game.Runtime.UI.Poker
 			if (_foldButton) _foldButton.OnClick += HandleFold;
 
 			Data.CurrentTurnClientId.OnValueChanged += HandleTurnChanged;
-			Data.Phase.OnValueChanged += HandlePhaseChanged;
+			Data.StageId.OnValueChanged += HandleStageChanged;
+			Data.OverlayStageId.OnValueChanged += HandleStageChanged;
 
 			Refresh();
 		}
 
 		protected override void OnUnbind()
 		{
-			Data.Phase.OnValueChanged -= HandlePhaseChanged;
+			Data.OverlayStageId.OnValueChanged -= HandleStageChanged;
+			Data.StageId.OnValueChanged -= HandleStageChanged;
 			Data.CurrentTurnClientId.OnValueChanged -= HandleTurnChanged;
 
 			if (_foldButton) _foldButton.OnClick -= HandleFold;
@@ -77,7 +80,7 @@ namespace Game.Runtime.UI.Poker
 		}
 
 		private void HandleTurnChanged(ulong previous, ulong current) => Refresh();
-		private void HandlePhaseChanged(PokerPhase previous, PokerPhase current) => Refresh();
+		private void HandleStageChanged(FixedString64Bytes previous, FixedString64Bytes current) => Refresh();
 
 		// Rebuilt on bind rather than on every refresh: the database does not change while a table runs,
 		// and re-instantiating a row of buttons under the pointer is how a click lands on nothing.
@@ -129,8 +132,14 @@ namespace Game.Runtime.UI.Poker
 
 		private void Refresh()
 		{
-			var stage = GameMode ? GameMode.ActiveStage as PokerMushroomWagerStage : null;
-			var show = stage != null && IsLocalTurn;
+			// Resolved from the replicated stage id, never from GameMode.ActiveStage: that is written only by
+			// the server's own stage machine, so on a client it is null forever and the bar never appears —
+			// right on the host, missing everywhere else.
+			var stage = GameMode ? GameMode.FindStage(Data.StageId.Value.ToString()) as PokerMushroomWagerStage : null;
+
+			// An overlay hands out turns of its own, and whoever is on that clock is being asked something
+			// else entirely.
+			var show = stage != null && IsLocalTurn && Data.OverlayStageId.Value.IsEmpty;
 
 			if (_panel) _panel.SetActive(show);
 			if (!show) return;
