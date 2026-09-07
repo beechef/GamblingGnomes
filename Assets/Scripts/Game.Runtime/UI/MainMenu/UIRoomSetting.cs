@@ -24,6 +24,10 @@ namespace Game.Runtime.UI.MainMenu
 		[SerializeField] private Toggle _isPrivateToggle;
 		[SerializeField] private TMP_Dropdown _gameModeDropdown;
 		[SerializeField] private UIMatchConfigList _configList;
+
+		[Header("Match Settings")]
+		[Tooltip("Off, the host is not asked to tune the mode before starting: every stage, module and starting stat plays at whatever the assets say. The list is switched off rather than torn out, so turning it back on is one checkbox.")]
+		[SerializeField] private bool _showModeSettings;
 		[SerializeField] private UIButton _confirmButton;
 		[SerializeField] private UIButton _cancelButton;
 
@@ -68,8 +72,18 @@ namespace Game.Runtime.UI.MainMenu
 		{
 			if (!_configList) return;
 
-			// A different mode is a different rulebook — nothing chosen for the last one carries over.
+			// A different mode is a different rulebook, and nothing chosen for the last one carries over.
+			// Cleared even when the list is hidden: a stale choice from a previous session would otherwise
+			// be applied by a mode nobody was offered the chance to tune.
 			PendingMatchConfig.Clear();
+
+			if (!_showModeSettings)
+			{
+				_configList.gameObject.SetActive(false);
+				return;
+			}
+
+			_configList.gameObject.SetActive(true);
 
 			var entries = new List<MatchConfigEntry>();
 			var selected = SelectedGameMode();
