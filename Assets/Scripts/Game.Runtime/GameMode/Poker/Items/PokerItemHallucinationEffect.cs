@@ -21,7 +21,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 
 		protected override void OnConsumeServer(PokerGameMode gameMode, PokerPlayer eater, byte itemType)
 		{
-			eater.Data.ServerConsumeItem(itemType, _newTypeGain, _repeatGain);
+			if (eater.Items) eater.Items.ServerConsume(itemType, _newTypeGain, _repeatGain);
 		}
 	}
 }

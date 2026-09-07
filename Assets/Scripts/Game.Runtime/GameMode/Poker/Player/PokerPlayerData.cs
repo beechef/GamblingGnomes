@@ -87,30 +87,8 @@ namespace Game.Runtime.GameMode.Poker.Player
 		public readonly NetworkList<byte> StakeItems = new(null,
 			NetworkVariableReadPermission.Everyone,
 			NetworkVariableWritePermission.Server);
-
-		// What this player still has to swallow, in the order it goes down. Everyone-read, because the
-		// whole point of the eating is that the table watches it happen — and a plate somebody is still
-		// working through is the clearest read of how badly the hand went for them.
-		//
-		// Queued at the settlement rather than eaten there: the effects used to land in the same frame the
-		// showdown resolved, so a round's entire consequence happened while the ranking board was still up
-		// and nobody saw a thing.
-		public readonly NetworkList<byte> PendingItems = new(null,
-			NetworkVariableReadPermission.Everyone,
-			NetworkVariableWritePermission.Server);
-
-		// How far gone this player is, 0 to 100. Public, the way the health above it is: both of the
-		// round's real decisions — which mushroom to wager, who to feed the Colorful one — are choices
-		// about who is closest to going under, so hiding the number would only make the table count in
 		// their heads. Only ever rises, except where an item brings it down.
 		[HideInInspector] public NetworkVariable<int> HallucinationRate = new(0,
-			readPerm: NetworkVariableReadPermission.Everyone,
-			writePerm: NetworkVariableWritePermission.Server);
-
-		// One bit per mushroom kind this player has swallowed this match, so a kind they have met before
-		// costs them less than a new one. Public for the same reason the rate is, and a bitmask rather
-		// than a list because the question asked of it is only ever "has this one been eaten".
-		[HideInInspector] public NetworkVariable<int> EatenItemTypes = new(0,
 			readPerm: NetworkVariableReadPermission.Everyone,
 			writePerm: NetworkVariableWritePermission.Server);
 
@@ -322,7 +300,6 @@ namespace Game.Runtime.GameMode.Poker.Player
 			Health.OnValueChanged += HandleHealthChanged;
 			LookedAtHoleCards.OnValueChanged += HandleLookedAtChanged;
 			HallucinationRate.OnValueChanged += HandleHallucinationChanged;
-			EatenItemTypes.OnValueChanged += HandleIntChanged;
 
 			AbilityIds.OnListChanged += HandleAbilitiesChanged;
 			HoleCards.OnListChanged += HandleHoleCardsChanged;
@@ -343,7 +320,6 @@ namespace Game.Runtime.GameMode.Poker.Player
 			HandRevealed.OnValueChanged -= HandleBoolChanged;
 			ReportsLeft.OnValueChanged -= HandleIntChanged;
 			Health.OnValueChanged -= HandleHealthChanged;
-			EatenItemTypes.OnValueChanged -= HandleIntChanged;
 			HallucinationRate.OnValueChanged -= HandleHallucinationChanged;
 			LookedAtHoleCards.OnValueChanged -= HandleLookedAtChanged;
 
@@ -418,13 +394,8 @@ namespace Game.Runtime.GameMode.Poker.Player
 			AbilityIds.Clear();
 			AbilityBusyUntil.Value = 0d;
 
-			// A plate belongs to the match it was served in. Not swept per hand: the eating happens between
-			// one hand and the next, so a hand reset would clear the very caps that beat is about to serve.
-			PendingItems.Clear();
-
 			ServerResetHealthToStart();
 			HallucinationRate.Value = 0;
-			EatenItemTypes.Value = 0;
 			Status.Value = PokerPlayerStatus.Waiting;
 
 			// The wallet resets itself. What a purse starts with is its own business, and reaching in to
@@ -503,28 +474,6 @@ namespace Game.Runtime.GameMode.Poker.Player
 			if (!IsServer) return;
 
 			HandRevealed.Value = true;
-		}
-
-		// Put on the plate. The kind rather than the effect, the same trade every stake makes: a cap
-		// replicates as its index and the database turns it back into what eating it does.
-		public void ServerQueueItem(byte itemType)
-		{
-			if (!IsServer) return;
-
-			PendingItems.Add(itemType);
-		}
-
-		// The next bite, taken off the plate as it is swallowed rather than after — the list is what the
-		// visual draws, so a cap still on it while its effect has already landed is a cap the table can
-		// see that nobody is going to eat.
-		public bool ServerTakeNextItem(out byte itemType)
-		{
-			itemType = Items.PokerItemDatabase.PlainChip;
-			if (!IsServer || PendingItems.Count == 0) return false;
-
-			itemType = PendingItems[0];
-			PendingItems.RemoveAt(0);
-			return true;
 		}
 
 		public int ServerPlaceBet(int amount)
@@ -650,21 +599,6 @@ namespace Game.Runtime.GameMode.Poker.Player
 			_wallet.ServerDeposit(amount);
 		}
 
-		// Eating one mushroom. Which kind decides the price: one this player has met before costs the
-		// smaller gain, and a kind they have never swallowed costs the larger — which is what makes the
-		// winner's choice of what to wager an attack rather than an amount. The bitmask is written here
-		// too, so the record and the price it sets can never come apart.
-		public void ServerConsumeItem(byte itemType, int newTypeGain, int repeatGain)
-		{
-			if (!IsServer) return;
-
-			var bit = ItemTypeBit(itemType);
-			var wasEatenBefore = (EatenItemTypes.Value & bit) != 0;
-
-			EatenItemTypes.Value |= bit;
-			ServerChangeHallucination(wasEatenBefore ? repeatGain : newTypeGain);
-		}
-
 		// Negative sobers, positive sends them further under; the clamp lives here for the same reason
 		// the health one does. Passing the ceiling is death, and IsAlive reads that off this number.
 		public void ServerChangeHallucination(int delta)
@@ -672,18 +606,6 @@ namespace Game.Runtime.GameMode.Poker.Player
 			if (!IsServer) return;
 
 			HallucinationRate.Value = Mathf.Clamp(HallucinationRate.Value + delta, 0, MaxHallucination);
-		}
-
-		// A kind with no bit of its own — anything past the mask's width, or the plain chip that stands
-		// for a unit with no identity — is treated as one this player has never met, so an unconfigured
-		// table charges the full gain rather than silently charging the smaller one for everything.
-		public bool HasConsumedItemType(byte itemType) => (EatenItemTypes.Value & ItemTypeBit(itemType)) != 0;
-
-		public static int ItemTypeBit(byte itemType)
-		{
-			if (itemType == PokerItemDatabase.PlainChip || itemType > 31) return 0;
-
-			return 1 << (itemType - 1);
 		}
 
 		// Negative hurts, positive heals; the clamp lives here so no source of harm can overshoot it.

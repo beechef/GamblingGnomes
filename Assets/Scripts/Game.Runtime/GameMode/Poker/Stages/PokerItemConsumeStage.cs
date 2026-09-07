@@ -81,7 +81,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			for (var step = _seatIndex + 1; step < seatCount; step++)
 			{
 				var player = FindSeatedPlayerAtSeat(step);
-				if (!player || !player.Data || player.Data.PendingItems.Count == 0) continue;
+				if (!player || !player.Items || player.Items.PendingCount == 0) continue;
 
 				_seatIndex = step;
 				_timer = 0f;
@@ -97,7 +97,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		// rather than after, because the plate is what the visual draws.
 		private bool TakeOneBite(PokerPlayer eater)
 		{
-			if (!eater.Data.ServerTakeNextItem(out var itemType)) return false;
+			if (!eater.Items || !eater.Items.ServerTakeNext(out var itemType)) return false;
 
 			eater.ActionAnimator?.ServerPlay(PlayerActionIds.ConsumeItem);
 

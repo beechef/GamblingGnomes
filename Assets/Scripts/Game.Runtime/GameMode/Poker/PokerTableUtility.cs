@@ -170,7 +170,7 @@ namespace Game.Runtime.GameMode.Poker
 
 					if (!theirs) continue;
 
-					player.Data.ServerQueueItem(item.ItemTypeIndex);
+					if (player.Items) player.Items.ServerServe(item.ItemTypeIndex);
 				}
 			}
 

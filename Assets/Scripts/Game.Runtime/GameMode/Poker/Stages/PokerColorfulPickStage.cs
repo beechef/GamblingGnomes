@@ -109,7 +109,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			var database = GameMode.ItemDatabase;
 			if (database && database.TryGetEntry(ColorfulItemType, out _))
 			{
-				target.Data.ServerQueueItem(ColorfulItemType);
+				if (target.Items) target.Items.ServerServe(ColorfulItemType);
 			}
 			else
 			{
