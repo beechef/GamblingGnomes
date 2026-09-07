@@ -32,7 +32,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			foreach (var player in GameMode.SeatedPlayers)
 			{
 				var data = player.Data;
-				data.Status.Value = data.Chips > 0 ? PokerPlayerStatus.Waiting : PokerPlayerStatus.Busted;
+				data.Status.Value = GameMode.CanBeDealtIn(data) ? PokerPlayerStatus.Waiting : PokerPlayerStatus.Busted;
 			}
 		}
 	}

@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using Game.Runtime.GameMode.Config;
+using Game.Runtime.Controller;
 using Game.Runtime.GameMode.Poker.Hands;
 using Game.Runtime.GameMode.Poker.Modules;
 using Game.Runtime.GameMode.Poker.Player;
 using Game.Runtime.GameMode.Poker.Stages;
+using Game.Runtime.Player;
 using Game.Runtime.UI;
 using Unity.Collections;
 using Unity.Netcode;
@@ -82,7 +84,7 @@ namespace Game.Runtime.GameMode.Poker
 
 				foreach (var player in _seatedPlayers)
 				{
-					if (player.Data.IsAlive && player.Data.Chips > 0) count++;
+					if (CanBeDealtIn(player.Data)) count++;
 				}
 
 				return count;
@@ -144,8 +146,10 @@ namespace Game.Runtime.GameMode.Poker
 
 			RegisterMatchConfigs();
 
-			PokerPlayer.OnRegistryChanged += RefreshSeatedPlayers;
-			RefreshSeatedPlayers();
+			ServerLayTable();
+
+			PokerPlayer.OnRegistryChanged += HandlePlayerRegistryChanged;
+			HandlePlayerRegistryChanged();
 
 			OnInstanceChanged?.Invoke(this);
 
@@ -159,7 +163,7 @@ namespace Game.Runtime.GameMode.Poker
 
 		public override void OnNetworkDespawn()
 		{
-			PokerPlayer.OnRegistryChanged -= RefreshSeatedPlayers;
+			PokerPlayer.OnRegistryChanged -= HandlePlayerRegistryChanged;
 
 			OnInstanceChanged?.Invoke(null);
 
@@ -244,6 +248,71 @@ namespace Game.Runtime.GameMode.Poker
 		}
 
 		public void UnregisterSeat(PokerSeat seat) => _seats.Remove(seat);
+
+		// How many chairs to lay, taken from the lobby the table was opened for. Written once by the
+		// server and read by everyone, so the chairs stand in the same places on every screen — a client
+		// working it out from its own copy of the lobby would have nothing to warn it when they differed.
+		private void ServerLayTable()
+		{
+			if (!IsServer || !_data) return;
+
+			var wanted = GameNetworkManager.Instance ? GameNetworkManager.Instance.LobbySettings.MaxPlayers : _seats.Count;
+
+			_data.ActiveSeatCount.Value = Mathf.Clamp(wanted, 0, _seats.Count);
+		}
+
+		// Whether this player can be dealt into the next hand. One predicate rather than the same pair of
+		// tests written at five call sites: a table that does not play for money must not let an empty
+		// purse decide anything, and being conscious is the only condition left when it does not.
+		public bool CanBeDealtIn(PokerPlayerData data)
+		{
+			if (!data || !data.IsAlive) return false;
+
+			return !PlaysForMoney || data.Chips > 0;
+		}
+
+		public bool PlaysForMoney => !_rules || _rules.PlaysForMoney;
+
+		// A body arriving is a body to seat: chairs are handed out rather than chosen, so this is where
+		// somebody joining a table gets theirs. Seating raises the occupant change, which comes back
+		// through HandleSeatOccupied and refreshes the list — so the refresh below is for the arrival
+		// that found no free chair, and the pass terminates because a seated player is skipped.
+		private void HandlePlayerRegistryChanged()
+		{
+			ServerSeatArrivals();
+			RefreshSeatedPlayers();
+		}
+
+		// Lowest free chair, the same way PlayerManager claims the lowest free colour: a player who
+		// leaves frees the chair they were in rather than renumbering everyone behind them.
+		private void ServerSeatArrivals()
+		{
+			if (!IsServer || !IsSpawned) return;
+
+			foreach (var player in PokerPlayer.All)
+			{
+				if (!player || !player.Data || player.Data.IsSeated) continue;
+
+				var seatController = player.GetComponent<PlayerSeatController>();
+				if (!seatController || seatController.IsSeated) continue;
+
+				// Only the chairs the table is laid with: the rest are switched off and belong to a bigger
+				// lobby than this one. Read off each chair's own SeatIndex rather than its place in this
+				// list, because that is the key the ring lays them out by — matching on list position
+				// instead put players in chairs that had been switched off, and it looked like a table
+				// with two fewer seats than the scene contains.
+				var laid = _data ? _data.ActiveSeatCount.Value : int.MaxValue;
+
+				foreach (var seat in _seats)
+				{
+					if (!seat || seat.IsOccupied) continue;
+					if (seat.SeatIndex < 0 || seat.SeatIndex >= laid) continue;
+
+					seat.SeatServer(seatController);
+					break;
+				}
+			}
+		}
 
 		public void RefreshSeatedPlayers()
 		{
@@ -533,7 +602,7 @@ namespace Game.Runtime.GameMode.Poker
 		// funded test the deal uses to decide who is still in the running — so somebody out of money or
 		// out of blood may go, and nobody else may. Never dealt in at all is the other way out: a player
 		// who took a free chair mid hand is Waiting and was never collected.
-		private static bool IsCommittedToMatch(PokerPlayerData data)
+		private bool IsCommittedToMatch(PokerPlayerData data)
 		{
 			// Still holding cards, which includes all in — a stack at zero is not a way out while the
 			// money is still in the pot.
@@ -541,7 +610,7 @@ namespace Game.Runtime.GameMode.Poker
 
 			if (data.Status.Value == PokerPlayerStatus.Waiting) return false;
 
-			return data.IsAlive && data.Chips > 0;
+			return CanBeDealtIn(data);
 		}
 
 		public void HandleSeatOccupied(PokerSeat seat, ulong clientId)

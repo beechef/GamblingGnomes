@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Game.Runtime.Interaction;
-using Game.Runtime.Player;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -46,39 +45,14 @@ namespace Game.Runtime.GameMode.Poker
 			base.OnNetworkDespawn();
 		}
 
-		public override bool CanInteract(NetworkBehaviourReference interactor)
-		{
-			if (!base.CanInteract(interactor)) return false;
+		// Chairs are handed out, not chosen: the mode seats whoever arrives, so walking up to one
+		// offers nothing. The generic seat still knows how to be sat in â PokerGameMode calls SeatServer â
+		// and Sandbox keeps the interaction it always had.
+		public override bool CanInteract(NetworkBehaviourReference interactor) => false;
 
-			// A running table is not a closed one. Someone arriving mid-hand sits down and waits: they are
-			// dealt in on the next one, and until then they are Waiting rather than in the hand, which every
-			// seat-order helper already reads. What being underway does forbid is *leaving*, and that is
-			// CanStand's question rather than this one.
-			return CanMeetTheStake(interactor);
-		}
-
-		// The seat is free to take, but not to a player who cannot cover what the table asks for: they
-		// could only ever fold, and they would still fill a chair the table counts as ready to deal. Both
-		// halves are the same read — the rules asset is the same on every machine and money is replicated —
-		// so the client asking gets the answer the server will give when the request arrives, and the
-		// server checks it again anyway because CanInteract is what Interact gates on.
-		private bool CanMeetTheStake(NetworkBehaviourReference interactor)
-		{
-			if (!interactor.TryGet(out NetworkBehaviour behaviour)) return true;
-
-			var wallet = behaviour.GetComponent<PlayerData>();
-			if (!wallet) return true;
-
-			var rules = GameMode ? GameMode.Rules : null;
-			return wallet.Money.Value >= (rules ? rules.MinimumMoneyToSit : 1);
-		}
-
-		public override bool CanStand(NetworkBehaviourReference occupant)
-		{
-			if (!GameMode) return base.CanStand(occupant);
-
-			return GameMode.CanLeaveSeat(OccupantClientId);
-		}
+		// And nobody leaves. A chair belongs to a player for as long as they are at the table, whether
+		// they are still in the hand, broke, or under.
+		public override bool CanStand(NetworkBehaviourReference occupant) => false;
 
 		protected override void OnOccupantChanged(ulong previousClientId, ulong currentClientId)
 		{
