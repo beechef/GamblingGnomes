@@ -267,6 +267,19 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 		private bool IsInHand(int index) => _data && _data.IsHoleCardInHand(index);
 
+
+		// Opened by the beat that allows picking and closed when it ends. A card already up in the hand is
+		// never offered: it has been taken, and reaching for it again is a pick the server would refuse.
+		public void SetPickupable(bool pickupable)
+		{
+			for (var i = 0; i < _cards.Count; i++)
+			{
+				if (!_cards[i]) continue;
+
+				_cards[i].Pickupable = pickupable && !IsInHand(i);
+			}
+		}
+
 		// Which slot a card on screen belongs to. Asked by whatever a player just pointed at: the card
 		// itself carries no index, and the list here is the only thing that knows the order they were
 		// dealt in.

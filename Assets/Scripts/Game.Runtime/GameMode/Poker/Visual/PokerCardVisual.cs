@@ -55,6 +55,12 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		public CardData Card { get; private set; }
 		public bool FaceUp { get; private set; } = true;
 
+		// Whether this card is one the player may reach for right now. Set by the beat that allows picking
+		// and cleared when it ends, so a card is not offered outside the moment the rules open for it —
+		// the server would refuse the pick anyway, and a card that lifts under the cursor and then does
+		// nothing is worse than one that never lifted.
+		public bool Pickupable { get; set; }
+
 		private Transform FlipRoot => _flipRoot ? _flipRoot : transform;
 
 		private void OnDestroy()
