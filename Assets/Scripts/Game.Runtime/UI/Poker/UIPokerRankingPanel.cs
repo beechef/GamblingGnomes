@@ -1,8 +1,6 @@
 using System.Collections.Generic;
 using Game.Runtime.GameMode.Poker;
 using Game.Runtime.GameMode.Poker.Player;
-using Game.Runtime.UI.Button;
-using Game.Runtime.UI.Progress;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -15,9 +13,6 @@ namespace Game.Runtime.UI.Poker
 	{
 		[Header("Panel")]
 		[SerializeField] private GameObject _panel;
-
-		[Tooltip("Waves the board away for this hand only. Local and cosmetic: the ranking is the ceremony between hands, not something the table is waiting on an answer to.")]
-		[SerializeField] private UIButton _closeButton;
 
 		[Header("Rows")]
 		[Tooltip("One per finishing place, spawned as the board is filled — a table of two and a table of eight both fit.")]
@@ -39,25 +34,8 @@ namespace Game.Runtime.UI.Poker
 		[SerializeField] private RectTransform _communityContainer;
 		[SerializeField] private UIPokerCard _cardPrefab;
 
-		[Header("Timer")]
-		[Tooltip("How long the board has left before the table moves on. It reads the stage clock, so a showdown retuned to a different length needs nothing done here — and a preset that leaves the board up indefinitely simply draws no bar.")]
-		[SerializeField] private UITimerBar _timerBar;
-
 		private readonly List<UIPokerCard> _communityCards = new();
 		private readonly List<UIPokerRankingRow> _rows = new();
-
-		private bool _dismissed;
-
-		// The board's own clock is the stage's: the showdown decides how long it stays up, so reading
-		// anything else here would be a second number to keep in step with the first.
-		protected override bool WantsTick => Data && Data.HasStageTimer;
-
-		protected override void OnTick()
-		{
-			if (!_timerBar) return;
-
-			_timerBar.SetTime(Data.StageTimeRemaining, Data.StageTimeNormalized);
-		}
 
 		private void Awake()
 		{
@@ -66,12 +44,6 @@ namespace Game.Runtime.UI.Poker
 
 		protected override void OnBind()
 		{
-			if (_closeButton) _closeButton.OnClick += HandleClose;
-
-			// Never carried between binds: a HUD rebuilt for a new match must not open holding the last
-			// one's dismissal, which would read as a ranking that simply never came up.
-			_dismissed = false;
-
 			Data.OnShowdownChanged += Refresh;
 
 			// The board and what may be seen of it are separate values, and the showdown list arriving
@@ -87,11 +59,7 @@ namespace Game.Runtime.UI.Poker
 		{
 			Data.OnCommunityVisibilityChanged -= Refresh;
 			Data.OnCommunityCardsChanged -= HandleCommunityCardsChanged;
-			Data.OnShowdownChanged -= Refresh;
 
-			if (_closeButton) _closeButton.OnClick -= HandleClose;
-
-			UIEscapeStack.Remove(HandleClose);
 
 			if (_panel) _panel.SetActive(false);
 		}
@@ -132,34 +100,18 @@ namespace Game.Runtime.UI.Poker
 			card.localRotation = Quaternion.Euler(0f, 0f, -angle * Mathf.Rad2Deg);
 		}
 
-		private void HandleClose()
-		{
-			_dismissed = true;
-			Refresh();
-		}
-
 		private void Refresh()
 		{
 			var showdown = Data.Showdown;
 
-			// The showdown emptying is the hand being put away, and that is what makes the next ranking a
-			// new one to be shown rather than the one this player already waved off.
-			if (showdown.Count == 0) _dismissed = false;
-
-			var visible = showdown.Count > 0 && !_dismissed;
-
-			// On the stack for as long as it is up, so Escape reaches this board before the pause menu.
-			// Push de-duplicates, so calling it on every refresh only ever moves it back to the top.
-			if (visible) UIEscapeStack.Push(HandleClose);
-			else UIEscapeStack.Remove(HandleClose);
+			// The board is up for exactly as long as the showdown is: it goes away because the stage clock
+			// ran out and cleared the list, not because anybody dismissed it. There is nothing here to answer,
+			// so there is nothing to close and no countdown worth drawing — the table simply moves on.
+			var visible = showdown.Count > 0;
 
 			if (_panel && _panel.activeSelf != visible) _panel.SetActive(visible);
 			if (!visible) return;
 
-
-			// Drawn only when there is a clock to draw. A bar sitting at 00:00 over a board nothing is going to
-			// take away reads as a hung timer rather than as no timer.
-			if (_timerBar) _timerBar.gameObject.SetActive(Data.HasStageTimer);
 			RefreshRows(showdown.Count);
 			RefreshCommunity();
 		}
