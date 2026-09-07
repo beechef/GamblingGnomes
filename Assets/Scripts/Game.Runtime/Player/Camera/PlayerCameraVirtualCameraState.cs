@@ -8,8 +8,8 @@ namespace Game.Runtime.Player.Camera
 	// the damping all stay on the CinemachineCamera where a designer can see them — this only decides
 	// when it is live and what it is pointed at, and never touches Camera.transform.
 	//
-	// One class for every such state: looking at a card and focusing on a player differ in the shot,
-	// not in the mechanism, so they are two authored objects rather than two scripts.
+	// One class for every such state: looking at a card and focusing on a player differ in the shot, not
+	// in the mechanism, so they are two authored objects rather than two scripts.
 	public class PlayerCameraVirtualCameraState : PlayerCameraState
 	{
 		[Header("Shot")]
@@ -19,9 +19,13 @@ namespace Game.Runtime.Player.Camera
 		[Tooltip("What it is raised to while live. It only has to beat the rig's own camera, which sits at the default.")]
 		[SerializeField] private int _priority = 20;
 
+		[Header("Position")]
+		[Tooltip("On, the shot sits exactly where the player's own eye is and only turns. Off, it stays wherever its transform was authored — which is a guess about a seated pose, and the reason the first version framed the floor. Needs a Hard Lock To Target body on the camera.")]
+		[SerializeField] private bool _lockToEye = true;
+
 		[Header("Look")]
-		[Tooltip("On, the player cannot turn their own view while this shot is up. A view being aimed on somebody's behalf that they can also turn is two hands on one wheel.")]
-		[SerializeField] private bool _suspendsLook = true;
+		[Tooltip("On, the player cannot turn their view at all while this shot is up — not merely handed over, but off. A view being aimed on somebody's behalf that they can also turn is two hands on one wheel.")]
+		[SerializeField] private bool _disablesLook = true;
 
 		protected override void OnInitialize()
 		{
@@ -36,7 +40,7 @@ namespace Game.Runtime.Player.Camera
 			Aim();
 			SetLive(true);
 
-			if (_suspendsLook && Controller && Controller.PlayerController) Controller.PlayerController.SetLookSuspended(true);
+			if (_disablesLook) SetLook(false);
 		}
 
 		protected override void OnRetarget() => Aim();
@@ -45,20 +49,25 @@ namespace Game.Runtime.Player.Camera
 		{
 			SetLive(false);
 
-			// The look is not handed back here: whichever state comes next says what it wants, and the
-			// one that always follows is free flight, which hands it back itself. Releasing it from both
-			// ends would be two answers to one question.
+			// The look is not handed back here: whichever state comes next says what it wants, and the one
+			// that always follows is free flight, which hands it back itself. Releasing it from both ends
+			// would be two answers to one question.
 		}
 
 		private void Aim()
 		{
-			if (!_camera || !Target) return;
+			if (!_camera) return;
 
-			_camera.Target.LookAtTarget = Target;
+			// Where it sits: the eye this client is actually rendering through, so the shot starts from
+			// the player's own view and only swings onto the target. A transform authored at a fixed local
+			// height is a guess about a pose — the gnome is seated, and the prefab is not.
+			if (_lockToEye && Controller)
+			{
+				var eye = Controller.Eye;
+				if (eye) _camera.Target.TrackingTarget = eye;
+			}
 
-			// Only if the shot was authored to follow something. A shot meant to stay at the player's own
-			// eye has no tracking target on purpose, and filling one in would walk it off the body.
-			if (_camera.Target.TrackingTarget) _camera.Target.TrackingTarget = Target;
+			if (Target) _camera.Target.LookAtTarget = Target;
 		}
 
 		// The component rather than the GameObject: this state lives on the same object, and switching
@@ -70,6 +79,14 @@ namespace Game.Runtime.Player.Camera
 			_camera.Priority.Enabled = true;
 			_camera.Priority.Value = _priority;
 			_camera.enabled = live;
+		}
+
+		private void SetLook(bool enabled)
+		{
+			if (!Controller || !Controller.PlayerController) return;
+
+			Controller.PlayerController.SetLookSuspended(!enabled);
+			Controller.PlayerController.SetLookInputDisabled(!enabled);
 		}
 	}
 }

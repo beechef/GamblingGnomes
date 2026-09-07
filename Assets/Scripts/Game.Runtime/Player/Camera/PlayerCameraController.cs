@@ -28,6 +28,7 @@ namespace Game.Runtime.Player.Camera
 
 		[Header("References")]
 		[SerializeField] private PlayerController _controller;
+		[SerializeField] private PlayerRigController _rig;
 
 		private readonly List<Hold> _holds = new();
 
@@ -49,11 +50,17 @@ namespace Game.Runtime.Player.Camera
 		}
 
 		public PlayerController PlayerController => _controller;
+
+		// The eye this client actually renders through. A shot that wants to start from the player's own
+		// view asks here rather than being authored at a height, because which rig is rendered — and so
+		// which camera is live — stays PlayerVisual's business.
+		public Transform Eye => _rig ? _rig.RenderedCamera : null;
 		public PlayerCameraState Current => _current;
 
 		public override void OnNetworkSpawn()
 		{
 			if (!_controller) _controller = GetComponentInParent<PlayerController>();
+			if (!_rig) _rig = GetComponentInParent<PlayerRigController>();
 
 			if (_states.Count == 0) GetComponentsInChildren(true, _states);
 			foreach (var state in _states) if (state) state.Initialize(this);

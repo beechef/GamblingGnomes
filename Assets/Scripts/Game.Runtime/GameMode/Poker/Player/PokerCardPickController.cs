@@ -51,6 +51,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 		private int _focusHandle;
 		private bool _picking;
+		private FixedString32Bytes _lastStageId;
 
 		public override void OnNetworkSpawn()
 		{
@@ -65,11 +66,6 @@ namespace Game.Runtime.GameMode.Poker.Player
 				_pickAction.action.Enable();
 			}
 
-			// The beat is read off the replicated stage id, the client-safe route: GameMode.ActiveStage is
-			// written only by the server's own stage machine and is null here for the whole session.
-			var mode = PokerGameMode.Instance;
-			if (mode && mode.Data) mode.Data.StageId.OnValueChanged += HandleStageChanged;
-
 			RefreshStage();
 		}
 
@@ -80,9 +76,6 @@ namespace Game.Runtime.GameMode.Poker.Player
 				_pickAction.action.performed -= HandlePick;
 			}
 
-			var mode = PokerGameMode.Instance;
-			if (mode && mode.Data) mode.Data.StageId.OnValueChanged -= HandleStageChanged;
-
 			SetHovered(null);
 			ReleaseFocus();
 		}
@@ -92,6 +85,18 @@ namespace Game.Runtime.GameMode.Poker.Player
 		private void Update()
 		{
 			if (!IsOwner) return;
+
+			// Read here rather than through StageId.OnValueChanged. The subscription has to be taken in
+			// OnNetworkSpawn, and the table's data may not have spawned by then — binding to nothing there is
+			// silent, and the symptom is a beat that opens and then never closes. This compares the raw
+			// FixedString and does nothing at all while it has not moved, so the cost is one comparison.
+			var mode = PokerGameMode.Instance;
+			var id = mode && mode.Data ? mode.Data.StageId.Value : default;
+			if (!id.Equals(_lastStageId))
+			{
+				_lastStageId = id;
+				RefreshStage();
+			}
 
 			SetHovered(CanPick() ? Raycast() : null);
 		}
@@ -108,12 +113,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 			_data.LookAtHoleCardRPC(slot);
 
-			// It is in the hand now, so it is no longer something to reach for. The list is re-opened by
-			// the stage rather than here, which keeps "may anyone pick" in one place.
+			// It is in the hand now, so it is no longer something to reach for. The set is re-opened by the
+			// stage rather than here, which keeps "may anyone pick" in one place.
 			card.Pickupable = false;
-			var mode = PokerGameMode.Instance;
-			if (mode && mode.Data) mode.Data.StageId.OnValueChanged -= HandleStageChanged;
-
 			SetHovered(null);
 		}
 
@@ -121,7 +123,6 @@ namespace Game.Runtime.GameMode.Poker.Player
 		// which of them to turn, and comes back only when that step is over. Held on the seat's own card
 		// anchor rather than on a card, because the cards move — one being picked up would drag the shot
 		// with it, and the shot is meant to frame the row.
-		private void HandleStageChanged(FixedString32Bytes previous, FixedString32Bytes current) => RefreshStage();
 
 		private void RefreshStage()
 		{

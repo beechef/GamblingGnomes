@@ -113,6 +113,7 @@ namespace Game.Runtime.Player
 		private PlayerLookMode _overrideLookMode;
 		private bool _hasLookModeOverride;
 		private bool _lookSuspended;
+		private bool _lookInputDisabled;
 		private float _appliedLookYaw;
 		private float _appliedLookPitch;
 		private float _constraintYaw;
@@ -204,6 +205,13 @@ namespace Game.Runtime.Player
 		public void SetLookSuspended(bool suspended)
 		{
 			_lookSuspended = suspended;
+		}
+
+		// Stops the player turning at all, which suspension on its own does not: a state that has aimed the
+		// view somewhere on their behalf must not also be taking their input for the same view.
+		public void SetLookInputDisabled(bool disabled)
+		{
+			_lookInputDisabled = disabled;
 		}
 
 		// The angles as everyone knows them. Whatever takes the look over needs a zero to measure the
@@ -394,6 +402,13 @@ namespace Game.Runtime.Player
 		// length of the frame. Feeding a stick through the mouse path is what makes it crawl.
 		private void ReadLookInput()
 		{
+			// Disabled outright, not merely suspended. Suspension hands the *bone* over and deliberately lets
+			// the player keep turning from there — that is what stops a peek being a cutscene. A camera state
+			// that has taken the view somewhere else needs the stronger thing: left reading, the angles still
+			// replicate, so every other client watches the head turn and the view snaps to wherever they had
+			// turned the moment the state lets go.
+			if (_lookInputDisabled) return;
+
 			if (!_inputBound || !CursorController.IsLocked) return;
 
 			// Anchored in a chair the pad's sticks swap roles, so the seated action is read instead — the
