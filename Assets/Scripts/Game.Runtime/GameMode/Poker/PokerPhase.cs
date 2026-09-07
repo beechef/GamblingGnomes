@@ -14,6 +14,10 @@ namespace Game.Runtime.GameMode.Poker
 		FirstWager = 8,
 		SecondWager = 9,
 
+		// Between them: everybody turns their own cards over at once, which is what the second wager is a
+		// reaction to. Nobody holds a turn here — the table is waiting on all of them, not one of them.
+		Looking = 10,
+
 		Showdown = 6,
 		Finished = 7
 	}
