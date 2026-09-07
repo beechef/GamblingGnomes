@@ -303,6 +303,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4595575644517756012}
   - component: {fileID: 2783803985263191273}
+  - component: {fileID: 3262226376792207284}
   m_Layer: 0
   m_Name: PokerTableVisual
   m_TagString: Untagged
@@ -347,3 +348,24 @@ MonoBehaviour:
   _cardScale: 2.6
   _faceLocalViewer: 1
   _faceTurnSpeed: 180
+--- !u!114 &3262226376792207284
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5144388312125908722}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1305ef36de43c5f459ef6fd4ca5054b5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Visual.PokerMushroomPotVisual
+  _capPrefab: {fileID: 3380898938716653663, guid: b525af282e2f8f64ca9e0b8f3bd4eccb, type: 3}
+  _database: {fileID: 11400000, guid: 5178fb66ae0b30740a0e39488bef578b, type: 2}
+  _capScale: 1
+  _capSpacing: 0.07
+  _capsPerRow: 3
+  _rowSpacing: 0.07
+  _dropHeight: 0.35
+  _dropDuration: 0.35
+  _dropEase: 30
