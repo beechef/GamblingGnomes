@@ -103,7 +103,7 @@ namespace Game.Runtime.GameMode.Poker
 
 		public void Shutdown()
 		{
-			CurrentStage?.EndStage();
+			if (CurrentStage) CurrentStage.EndStage();
 
 			for (var i = _overlayStack.Count - 1; i >= 0; i--) _overlayStack[i].EndStage();
 			_overlayStack.Clear();
@@ -122,7 +122,10 @@ namespace Game.Runtime.GameMode.Poker
 			Release();
 		}
 
-		public void Tick(float deltaTime) => ActiveStage?.TickStage(deltaTime);
+		public void Tick(float deltaTime)
+		{
+			if (ActiveStage) ActiveStage.TickStage(deltaTime);
+		}
 
 		public PokerStage Find(string stageId)
 		{
@@ -159,7 +162,7 @@ namespace Game.Runtime.GameMode.Poker
 
 		public void Next()
 		{
-			CurrentStage?.EndStage();
+			if (CurrentStage) CurrentStage.EndStage();
 			_onStageEnded?.Invoke(CurrentStage);
 
 			// An inserted stage runs before the sequence resumes, and deliberately does not consume a
@@ -182,7 +185,7 @@ namespace Game.Runtime.GameMode.Poker
 		{
 			if (_runtimeStages.Count == 0) return;
 
-			CurrentStage?.EndStage();
+			if (CurrentStage) CurrentStage.EndStage();
 			_onStageEnded?.Invoke(CurrentStage);
 
 			_nextStageIndex = Mathf.Clamp(index, 0, _runtimeStages.Count - 1);
@@ -214,7 +217,7 @@ namespace Game.Runtime.GameMode.Poker
 			var overlay = Resolve(stage);
 			if (!overlay) return;
 
-			ActiveStage?.PauseStage();
+			if (ActiveStage) ActiveStage.PauseStage();
 
 			_overlayStack.Add(overlay);
 			_mode.Data.OverlayStageId.Value = overlay.StageId;
@@ -235,7 +238,7 @@ namespace Game.Runtime.GameMode.Poker
 			_onStageEnded?.Invoke(overlay);
 
 			_mode.Data.OverlayStageId.Value = CurrentOverlay ? CurrentOverlay.StageId : string.Empty;
-			ActiveStage?.ResumeStage();
+			if (ActiveStage) ActiveStage.ResumeStage();
 		}
 
 		private void SetCurrentStage(PokerStage stage)
