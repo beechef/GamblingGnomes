@@ -24,6 +24,11 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		[Tooltip("Seconds the result is left on screen before the next hand.")]
 		[SerializeField] private float _resultDuration = 2.5f;
 
+		[Header("References")]
+		[Tooltip("Where the next hand begins. Named rather than left to the sequence, which wraps to its first entry — and that is the waiting room, so a table would need the host to press start after every hand.")]
+		[Required]
+		[SerializeField] private PokerStage _nextStage;
+
 		private bool _picked;
 		private float _turnElapsed;
 
@@ -40,7 +45,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			// to anybody, so the stage is over rather than waiting on a turn nobody holds.
 			if (!winner || !CanBeFed(winner))
 			{
-				FinishStage();
+				FinishStage(_nextStage);
 				return;
 			}
 
@@ -51,7 +56,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		{
 			if (_picked)
 			{
-				if (GameMode.IsStageTimerExpired()) FinishStage();
+				if (GameMode.IsStageTimerExpired()) FinishStage(_nextStage);
 				return;
 			}
 
@@ -64,7 +69,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			// the winner who says nothing feeds it to themselves. Silence should not let them aim it.
 			var winner = GameMode.FindSeatedPlayer(Data.CurrentTurnClientId.Value);
 			if (winner) Feed(winner);
-			else FinishStage();
+			else FinishStage(_nextStage);
 		}
 
 		public override bool HandleAction(ulong clientId, PokerActionType action, int amount)
@@ -113,7 +118,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 			if (_resultDuration <= 0f)
 			{
-				FinishStage();
+				FinishStage(_nextStage);
 				return;
 			}
 
