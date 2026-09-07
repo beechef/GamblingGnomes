@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Game.Runtime.GameMode.Poker;
 using Game.Runtime.GameMode.Poker.Player;
 using Game.Runtime.UI.Button;
+using Game.Runtime.UI.Progress;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -38,10 +39,25 @@ namespace Game.Runtime.UI.Poker
 		[SerializeField] private RectTransform _communityContainer;
 		[SerializeField] private UIPokerCard _cardPrefab;
 
+		[Header("Timer")]
+		[Tooltip("How long the board has left before the table moves on. It reads the stage clock, so a showdown retuned to a different length needs nothing done here — and a preset that leaves the board up indefinitely simply draws no bar.")]
+		[SerializeField] private UITimerBar _timerBar;
+
 		private readonly List<UIPokerCard> _communityCards = new();
 		private readonly List<UIPokerRankingRow> _rows = new();
 
 		private bool _dismissed;
+
+		// The board's own clock is the stage's: the showdown decides how long it stays up, so reading
+		// anything else here would be a second number to keep in step with the first.
+		protected override bool WantsTick => Data && Data.HasStageTimer;
+
+		protected override void OnTick()
+		{
+			if (!_timerBar) return;
+
+			_timerBar.SetTime(Data.StageTimeRemaining, Data.StageTimeNormalized);
+		}
 
 		private void Awake()
 		{
@@ -140,6 +156,10 @@ namespace Game.Runtime.UI.Poker
 			if (_panel && _panel.activeSelf != visible) _panel.SetActive(visible);
 			if (!visible) return;
 
+
+			// Drawn only when there is a clock to draw. A bar sitting at 00:00 over a board nothing is going to
+			// take away reads as a hung timer rather than as no timer.
+			if (_timerBar) _timerBar.gameObject.SetActive(Data.HasStageTimer);
 			RefreshRows(showdown.Count);
 			RefreshCommunity();
 		}
