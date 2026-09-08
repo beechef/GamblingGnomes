@@ -25,8 +25,11 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 		[Tooltip("Seconds the screen takes to blink when a rung is climbed or lost. Zero applies the change outright, which is what a table testing the ladder wants.")]
 		[SerializeField] private float _transitionDuration = 0.5f;
 
-		// Rung index to the effect drawn for it. Absent means the rung is not climbed.
-		private readonly Dictionary<int, PokerHallucinationEffect> _active = new();
+		[Tooltip("Where the running effects are hung. Empty hangs them on this object, which is what a player prefab wants.")]
+		[SerializeField] private Transform _effectRoot;
+
+		// Rung index to the object running it. Absent means the rung is not climbed.
+		private readonly Dictionary<int, PokerHallucinationEffectBehaviour> _active = new();
 
 		private bool _transitioning;
 
@@ -146,7 +149,7 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 			}
 		}
 
-				private void BeginRung(int index, PokerHallucinationTiers.Rung rung)
+		private void BeginRung(int index, PokerHallucinationTiers.Rung rung)
 		{
 			var pool = rung.Pool;
 			if (pool == null || pool.Count == 0) return;
@@ -156,38 +159,35 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 			var asset = pool[UnityEngine.Random.Range(0, pool.Count)];
 			if (!asset) return;
 
-			// Cloned rather than run from the asset. The same effect is allowed to sit in two pools on
-			// purpose, and an asset holding what it spawned would let the lower rung's End tear down what
-			// the higher rung thinks it owns — so one of the two would silently do nothing. A clone per
-			// rung is one object each, which makes stacking work by construction and lets every effect be
-			// written with plain fields instead of a dictionary keyed by viewer.
-			var effect = Instantiate(asset);
-			effect.name = asset.name;
+			// The asset is config and the object is the effect. The same effect is allowed to sit in two
+			// pools on purpose, so anything it mutates has to live per rung — an asset holding what it
+			// spawned would let the lower rung's End tear down what the higher one believes it owns, and one
+			// of the two would silently do nothing. An object per rung makes stacking work by construction,
+			// and it names what this player is seeing in the hierarchy, where it can be watched and retuned
+			// while it is on screen.
+			var behaviour = asset.Run(_effectRoot ? _effectRoot : transform, _player);
+			if (!behaviour) return;
 
-			_active[index] = effect;
-			effect.Begin(_player);
+			behaviour.name = $"Rung {index} ({rung.Threshold}%) - {asset.name}";
+			_active[index] = behaviour;
 		}
 
 		private void EndRung(int index)
 		{
-			if (!_active.TryGetValue(index, out var effect)) return;
+			if (!_active.TryGetValue(index, out var behaviour)) return;
 
 			_active.Remove(index);
 
-			if (!effect) return;
-
-			effect.End(_player);
-			Destroy(effect);
+			// Stop is what takes the object down, on its own terms: an effect that eases out keeps its host
+			// alive for exactly as long as the ease takes.
+			if (behaviour) behaviour.Stop();
 		}
 
 		private void EndAll()
 		{
 			foreach (var pair in _active)
 			{
-				if (!pair.Value) continue;
-
-				pair.Value.End(_player);
-				Destroy(pair.Value);
+				if (pair.Value) pair.Value.Stop();
 			}
 
 			_active.Clear();

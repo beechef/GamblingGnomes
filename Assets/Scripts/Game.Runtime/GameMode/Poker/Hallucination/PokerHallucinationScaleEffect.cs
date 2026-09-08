@@ -1,7 +1,4 @@
-using System.Collections.Generic;
 using DG.Tweening;
-using Game.Runtime.GameMode.Poker.Player;
-using Game.Runtime.Player;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -25,97 +22,11 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 
 		[SerializeField] private Ease _ease = Ease.OutBack;
 
-		private struct Bound
-		{
-			public Transform Bone;
-			public PlayerBoneScaleController Controller;
-		}
+		public PokerHallucinationTarget Target => _target;
+		public Vector3 Multiplier => _multiplier;
+		public float Duration => Mathf.Max(0f, _duration);
+		public Ease Ease => _ease;
 
-		// Bone and its controller cached together at resolve time. The tween pushes every frame, and a
-		// GetComponentInParent in that path is the lookup the no-polling rule exists to keep out of it.
-		private readonly List<Bound> _bound = new();
-		private readonly List<Transform> _resolved = new();
-
-		private PokerPlayer _viewer;
-		private Tween _tween;
-		private float _progress;
-
-		protected override void OnBegin(PokerPlayer viewer)
-		{
-			_viewer = viewer;
-			_target?.Subscribe(viewer, Reapply);
-
-			Reapply();
-
-			_tween?.Kill();
-			_tween = DOVirtual.Float(0f, 1f, _duration, value =>
-				{
-					_progress = value;
-					Push();
-				})
-				.SetEase(_ease)
-				.SetUpdate(true);
-		}
-
-		protected override void OnEnd(PokerPlayer viewer)
-		{
-			_target?.Unsubscribe(viewer, Reapply);
-
-			_tween?.Kill();
-			_tween = DOVirtual.Float(_progress, 0f, _duration, value =>
-				{
-					_progress = value;
-					Push();
-				})
-				.SetEase(_ease)
-				.SetUpdate(true)
-				.OnComplete(Release);
-		}
-
-		// Re-resolved rather than resolved once: a player who sits down after this began has a body that
-		// should be swelling too, and the target is what knows when that happened.
-		private void Reapply()
-		{
-			Release();
-
-			if (!_target || !_viewer) return;
-
-			_target.Collect(_viewer, _resolved);
-
-			foreach (var bone in _resolved)
-			{
-				if (!bone) continue;
-
-				var controller = bone.GetComponentInParent<PlayerBoneScaleController>(true);
-				if (!controller) continue;
-
-				_bound.Add(new Bound { Bone = bone, Controller = controller });
-			}
-
-			Push();
-		}
-
-		private void Push()
-		{
-			var scale = Vector3.Lerp(Vector3.one, _multiplier, _progress);
-
-			foreach (var bound in _bound)
-			{
-				if (!bound.Bone || !bound.Controller) continue;
-
-				bound.Controller.Set(this, bound.Bone, scale);
-			}
-		}
-
-		private void Release()
-		{
-			foreach (var bound in _bound)
-			{
-				if (bound.Controller) bound.Controller.Clear(this);
-			}
-
-			_bound.Clear();
-			_resolved.Clear();
-		}
+		protected override PokerHallucinationEffectBehaviour Attach(GameObject host) => host.AddComponent<PokerHallucinationScaleBehaviour>();
 	}
 }

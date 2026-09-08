@@ -7,25 +7,25 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 	// is the only thing in the round that is *not* the same on every screen, and it must not be — a
 	// player at 80% and one at 10% are meant to be describing different rooms to each other.
 	//
-	// Begin and End rather than a single "apply the state": effects stack, so several are running at
-	// once and each has to be able to take itself down without disturbing the others.
+	// This half is config and nothing else. The asset is shared by every rung pointing at it and holds no
+	// runtime state at all, so the same effect sitting in two pools cannot have one of them tear down what
+	// the other believes it owns. Running it spawns an object that does the work, which is also what makes
+	// a hallucination something you can see in the hierarchy and retune while it is on screen.
 	public abstract class PokerHallucinationEffect : ScriptableObject
 	{
-		public void Begin(PokerPlayer viewer)
+		public PokerHallucinationEffectBehaviour Run(Transform parent, PokerPlayer viewer)
 		{
-			if (!viewer) return;
+			if (!viewer) return null;
 
-			OnBegin(viewer);
+			var host = new GameObject(name);
+			host.transform.SetParent(parent, false);
+
+			var behaviour = Attach(host);
+			behaviour.Begin(this, viewer);
+
+			return behaviour;
 		}
 
-		public void End(PokerPlayer viewer)
-		{
-			if (!viewer) return;
-
-			OnEnd(viewer);
-		}
-
-		protected abstract void OnBegin(PokerPlayer viewer);
-		protected abstract void OnEnd(PokerPlayer viewer);
+		protected abstract PokerHallucinationEffectBehaviour Attach(GameObject host);
 	}
 }
