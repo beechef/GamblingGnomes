@@ -174,7 +174,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		// Only while the cursor is free, and only while the round is asking. With the view being turned the
 		// pointer is not on screen and a pick would be aimed by the crosshair, which is a different control
 		// nobody asked for.
-		private bool CanPick() => _picking && _data && _data.HasLookLimit && CursorController.IsPointing;
+		private bool CanPick() => _picking && _data && _data.HasLookLimit && !CursorController.IsLocked;
 
 		private PokerCardVisual Raycast()
 		{
