@@ -38,7 +38,7 @@ namespace Game.Runtime.UI.Poker
 		{
 			// Reached from the local player rather than serialized, because the player is spawned and this
 			// view is in a HUD prefab that cannot hold a reference to something that does not exist yet.
-			var local = PokerPlayer.Local;
+			var local = LocalPlayer;
 			_controller = local ? local.GetComponentInChildren<PokerHallucinationController>(true) : null;
 
 			if (_controller) _controller.OnTransitionStarted += HandleTransitionStarted;
