@@ -31,6 +31,13 @@ namespace Game.Runtime.UI
 		[SerializeField] private RectTransform _cursor;
 
 		private VirtualMouseInput _input;
+
+		// The cursor's own click, made here rather than taken from the actions asset — and being unshared
+		// is the entire point. Anything in the asset that clicks is bound to <Mouse>/leftButton, which the
+		// virtual mouse itself satisfies, so feeding one back in latches the button down: the pad presses it,
+		// the pressed button keeps the action actuated, releasing the pad raises no cancel, and it never comes
+		// back up. Hover works and nothing can ever be clicked. An action nothing else binds cannot close it.
+		private InputAction _click;
 		private bool _applyQueued;
 
 		private bool _actionsHeld;
@@ -45,6 +52,10 @@ namespace Game.Runtime.UI
 		private void Awake()
 		{
 			_input = GetComponent<VirtualMouseInput>();
+
+			_click = new InputAction("VirtualCursorClick", InputActionType.Button, "<Gamepad>/buttonSouth");
+			_click.Enable();
+			_input.leftButtonAction = new InputActionProperty(_click);
 		}
 
 		// Start rather than OnEnable: InputSchemeController is another object's static, and objects in one
@@ -53,6 +64,7 @@ namespace Game.Runtime.UI
 		private void Start()
 		{
 			InputSchemeController.OnSchemeChanged += HandleSchemeChanged;
+			CursorController.OnPointerWantedChanged += Refresh;
 
 			Refresh();
 		}
@@ -60,6 +72,10 @@ namespace Game.Runtime.UI
 		private void OnDestroy()
 		{
 			InputSchemeController.OnSchemeChanged -= HandleSchemeChanged;
+			CursorController.OnPointerWantedChanged -= Refresh;
+
+			_click?.Disable();
+			_click?.Dispose();
 		}
 
 		private void HandleSchemeChanged(InputScheme scheme) => Refresh();
@@ -98,7 +114,10 @@ namespace Game.Runtime.UI
 
 		private void Apply()
 		{
-			var wanted = InputSchemeController.IsGamepad;
+			// A pad only gets an arrow where there is something in the world to point at. A menu is driven by
+			// uGUI's own focus, and an arrow drawn beside a moving selection is two pointers answering one
+			// hand — the same argument that keeps it off a keyboard.
+			var wanted = InputSchemeController.IsGamepad && CursorController.IsPointerWanted;
 
 			if (_input && _input.enabled != wanted)
 			{

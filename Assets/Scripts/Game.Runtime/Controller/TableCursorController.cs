@@ -27,6 +27,8 @@ namespace Game.Runtime.Controller
 				_holdLookAction.action.Enable();
 			}
 
+			CursorController.RequestPointer();
+
 			AcquireUnlock();
 		}
 
@@ -42,6 +44,8 @@ namespace Game.Runtime.Controller
 			// down would strand an unlock nobody can release, and the cursor would never lock again.
 			_lookHeld = false;
 			ReleaseUnlock();
+
+			CursorController.ReleasePointer();
 		}
 
 		private void HandleHoldStarted(InputAction.CallbackContext context)
@@ -53,6 +57,9 @@ namespace Game.Runtime.Controller
 		private void HandleHoldCanceled(InputAction.CallbackContext context)
 		{
 			_lookHeld = false;
+			ReleaseUnlock();
+
+			CursorController.ReleasePointer();
 			AcquireUnlock();
 		}
 
