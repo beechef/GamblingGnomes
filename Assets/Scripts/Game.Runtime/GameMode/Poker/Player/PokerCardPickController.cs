@@ -51,6 +51,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 		private int _focusHandle;
 		private bool _picking;
+		private int _lastPickFrame = -1;
 		private FixedString32Bytes _lastStageId;
 
 		public override void OnNetworkSpawn()
@@ -60,13 +61,19 @@ namespace Game.Runtime.GameMode.Poker.Player
 			if (!_data) _data = GetComponentInParent<PokerPlayerData>();
 			if (!_handVisual) _handVisual = GetComponentInParent<PokerHandVisual>();
 
-			if (_pickAction && _pickAction.action != null) _pickAction.action.Enable();
+			if (_pickAction && _pickAction.action != null)
+			{
+				_pickAction.action.performed += HandlePick;
+				_pickAction.action.Enable();
+			}
 
 			RefreshStage();
 		}
 
 		public override void OnNetworkDespawn()
 		{
+			if (_pickAction && _pickAction.action != null) _pickAction.action.performed -= HandlePick;
+
 			SetHovered(null);
 			ReleaseFocus();
 		}
@@ -91,12 +98,26 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 			var card = CanPick() ? Raycast() : null;
 			SetHovered(card);
+		}
 
-			// The press edge, not performed. UI/Click is PassThrough because that is what uGUI wants of it, and
-			// a PassThrough action performs on every value change — so one click performed twice, the press taking
-			// one card and the release taking whatever it uncovered. WasPressedThisFrame is the edge itself and
-			// cannot be read as two, whatever the action type or how many devices are bound to it.
-			if (card && _pickAction && _pickAction.action != null && _pickAction.action.WasPressedThisFrame()) Pick(card);
+		// UI/Click is PassThrough — that is what the UI module wants of it — and a PassThrough action raises
+		// performed on every value change, the release included. So the callback is asked what the button is
+		// actually doing rather than trusted to mean a press: without it one click took two cards, the press
+		// taking the one under the cursor and the release taking whatever that uncovered. The frame guard is
+		// the other half of it, since the action carries a binding per device it answers to and the pad's
+		// cursor is a real Mouse.
+		private void HandlePick(InputAction.CallbackContext context)
+		{
+			if (!IsOwner || !CanPick()) return;
+			if (!context.ReadValueAsButton()) return;
+			if (_lastPickFrame == Time.frameCount) return;
+
+			var card = Raycast();
+			if (!card || !_handVisual) return;
+
+			_lastPickFrame = Time.frameCount;
+
+			Pick(card);
 		}
 
 		private void Pick(PokerCardVisual card)
