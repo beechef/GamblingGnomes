@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Game.Runtime.GameMode.Poker.Mushrooms;
+using Game.Runtime.GameMode.Poker.Items;
 using Game.Runtime.GameMode.Poker.Player;
 using UnityEngine;
 
@@ -122,7 +122,7 @@ namespace Game.Runtime.GameMode.Poker
 		// so Pot is a count of caps rather than a sum, and the ledger beside it is what says which kinds are
 		// there to be eaten. Written here with every other pot write, so the scalar and the ledger cannot
 		// drift apart.
-		public static void WagerMushroom(PokerGameData data, PokerPlayer player, byte itemType)
+		public static void WagerItem(PokerGameData data, PokerPlayer player, byte itemType)
 		{
 			if (!data || !player || !player.Data) return;
 
@@ -133,13 +133,16 @@ namespace Game.Runtime.GameMode.Poker
 			data.Pot.Value += 1;
 		}
 
-		// The round's own settlement: what the winner put up is what every loser swallows, a full copy each
+		// The round's own settlement: what the winner put up is what every loser is served, a full copy each
 		// rather than a share — the point of choosing a kind is that it is aimed at the whole table. A player
-		// who folded escapes that and eats only their own opening cap, which is what folding costs.
+		// who folded escapes that and is served only their own opening cap, which is what folding costs.
 		// Nothing is ever won: the losers' own caps are simply gone.
-		public static void FeedFromWinner(PokerGameData data, PokerPlayer winner, IReadOnlyList<PokerPlayer> players,
-			PokerMushroomDatabase database, PokerGameMode gameMode, PokerPhase foldPhase,
-			Modules.PokerAbilityModule abilities = null)
+		//
+		// Served rather than swallowed. The effects used to land in the same frame the showdown resolved, so
+		// a round's entire consequence happened behind the ranking board and nobody saw it — the caps go on
+		// each plate here and PokerItemConsumeStage is where they actually go down.
+		public static void ServeFromWinner(PokerGameData data, PokerPlayer winner, IReadOnlyList<PokerPlayer> players,
+			PokerItemDatabase database, PokerPhase foldPhase, Modules.PokerAbilityModule abilities = null)
 		{
 			if (!data || database == null) { ResetPot(data); return; }
 
@@ -159,18 +162,15 @@ namespace Game.Runtime.GameMode.Poker
 				{
 					var item = data.PotItems[i];
 
-					// A folder eats their own opening cap and nothing else; everyone still in eats every cap
-					// the winner put up.
+					// A folder is served their own opening cap and nothing else; everyone still in is served every
+					// cap the winner put up.
 					var theirs = folded
 						? item.OwnerClientId == player.ClientId && item.Phase == foldPhase
 						: winner && item.OwnerClientId == winner.ClientId;
 
 					if (!theirs) continue;
 
-					if (database.TryGetEntry(item.ItemTypeIndex, out var entry) && entry.Effect)
-					{
-						entry.Effect.ConsumeServer(gameMode, player, item.ItemTypeIndex);
-					}
+					if (player.Items) player.Items.ServerServe(item.ItemTypeIndex);
 				}
 			}
 
@@ -198,7 +198,7 @@ namespace Game.Runtime.GameMode.Poker
 		// its kind does. Nothing is ever paid out: winning here is worth exactly not having to eat,
 		// the same shape as the report's "an accusation costs the loser; it never pays the winner".
 		public static void FeedPot(PokerGameData data, IReadOnlyList<PokerPlayer> eaters,
-			PokerMushroomDatabase database, PokerGameMode gameMode)
+			PokerItemDatabase database, PokerGameMode gameMode)
 		{
 			var pot = data.Pot.Value;
 			data.Pot.Value = 0;

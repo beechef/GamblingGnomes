@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Game.Runtime.GameMode.Poker;
 using Game.Runtime.GameMode.Poker.Player;
-using Game.Runtime.UI.Button;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -14,9 +13,6 @@ namespace Game.Runtime.UI.Poker
 	{
 		[Header("Panel")]
 		[SerializeField] private GameObject _panel;
-
-		[Tooltip("Waves the board away for this hand only. Local and cosmetic: the ranking is the ceremony between hands, not something the table is waiting on an answer to.")]
-		[SerializeField] private UIButton _closeButton;
 
 		[Header("Rows")]
 		[Tooltip("One per finishing place, spawned as the board is filled — a table of two and a table of eight both fit.")]
@@ -41,8 +37,6 @@ namespace Game.Runtime.UI.Poker
 		private readonly List<UIPokerCard> _communityCards = new();
 		private readonly List<UIPokerRankingRow> _rows = new();
 
-		private bool _dismissed;
-
 		private void Awake()
 		{
 			if (_panel) _panel.SetActive(false);
@@ -50,12 +44,6 @@ namespace Game.Runtime.UI.Poker
 
 		protected override void OnBind()
 		{
-			if (_closeButton) _closeButton.OnClick += HandleClose;
-
-			// Never carried between binds: a HUD rebuilt for a new match must not open holding the last
-			// one's dismissal, which would read as a ranking that simply never came up.
-			_dismissed = false;
-
 			Data.OnShowdownChanged += Refresh;
 
 			// The board and what may be seen of it are separate values, and the showdown list arriving
@@ -71,11 +59,7 @@ namespace Game.Runtime.UI.Poker
 		{
 			Data.OnCommunityVisibilityChanged -= Refresh;
 			Data.OnCommunityCardsChanged -= HandleCommunityCardsChanged;
-			Data.OnShowdownChanged -= Refresh;
 
-			if (_closeButton) _closeButton.OnClick -= HandleClose;
-
-			UIEscapeStack.Remove(HandleClose);
 
 			if (_panel) _panel.SetActive(false);
 		}
@@ -116,26 +100,14 @@ namespace Game.Runtime.UI.Poker
 			card.localRotation = Quaternion.Euler(0f, 0f, -angle * Mathf.Rad2Deg);
 		}
 
-		private void HandleClose()
-		{
-			_dismissed = true;
-			Refresh();
-		}
-
 		private void Refresh()
 		{
 			var showdown = Data.Showdown;
 
-			// The showdown emptying is the hand being put away, and that is what makes the next ranking a
-			// new one to be shown rather than the one this player already waved off.
-			if (showdown.Count == 0) _dismissed = false;
-
-			var visible = showdown.Count > 0 && !_dismissed;
-
-			// On the stack for as long as it is up, so Escape reaches this board before the pause menu.
-			// Push de-duplicates, so calling it on every refresh only ever moves it back to the top.
-			if (visible) UIEscapeStack.Push(HandleClose);
-			else UIEscapeStack.Remove(HandleClose);
+			// The board is up for exactly as long as the showdown is: it goes away because the stage clock
+			// ran out and cleared the list, not because anybody dismissed it. There is nothing here to answer,
+			// so there is nothing to close and no countdown worth drawing — the table simply moves on.
+			var visible = showdown.Count > 0;
 
 			if (_panel && _panel.activeSelf != visible) _panel.SetActive(visible);
 			if (!visible) return;

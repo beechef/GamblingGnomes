@@ -28,7 +28,7 @@ namespace Game.Runtime.GameMode.Poker
 		[SerializeField] private int _startingHealth = 8;
 
 		[Tooltip("What a unit of the players' money is. Types are drawn into each wallet as money arrives, and a bet spends the front of the wallet. Empty plays plain chips — the money game unchanged.")]
-		[SerializeField] private Mushrooms.PokerMushroomDatabase _mushroomDatabase;
+		[SerializeField] private Items.PokerItemDatabase _itemDatabase;
 
 		[Header("Stages")]
 		[Tooltip("The round loop as a preset. Swap this asset to change the game — modules still add to it, and any stage can be interrupted at runtime by InsertStage or PushOverlay.")]
@@ -61,7 +61,7 @@ namespace Game.Runtime.GameMode.Poker
 
 		public PokerGameData Data => _data;
 		public MatchConfigData ConfigData => _configData;
-		public Mushrooms.PokerMushroomDatabase MushroomDatabase => _mushroomDatabase;
+		public Items.PokerItemDatabase ItemDatabase => _itemDatabase;
 		public PokerRuleSettings Rules => _rules;
 		public PokerStageSequence Sequence => _sequence;
 		public PokerDeck Deck { get; } = new();
@@ -256,7 +256,9 @@ namespace Game.Runtime.GameMode.Poker
 		{
 			if (!IsServer || !_data) return;
 
-			var wanted = GameNetworkManager.Instance ? GameNetworkManager.Instance.LobbySettings.MaxPlayers : _seats.Count;
+			// The table says how many chairs it is laid with, not the lobby: how many people a room admits
+			// and how many can sit at this table are different questions, and only the second one is a rule.
+			var wanted = _rules ? _rules.SeatCount : _seats.Count;
 
 			_data.ActiveSeatCount.Value = Mathf.Clamp(wanted, 0, _seats.Count);
 		}
@@ -301,17 +303,41 @@ namespace Game.Runtime.GameMode.Poker
 				// list, because that is the key the ring lays them out by — matching on list position
 				// instead put players in chairs that had been switched off, and it looked like a table
 				// with two fewer seats than the scene contains.
-				var laid = _data ? _data.ActiveSeatCount.Value : int.MaxValue;
+				var laid = _data ? _data.ActiveSeatCount.Value : _seats.Count;
 
-				foreach (var seat in _seats)
+				for (var slot = 0; slot < laid; slot++)
 				{
+					var wanted = SpreadSeatIndex(slot, laid);
+					var seat = FindSeat(wanted);
 					if (!seat || seat.IsOccupied) continue;
-					if (seat.SeatIndex < 0 || seat.SeatIndex >= laid) continue;
 
 					seat.SeatServer(seatController);
 					break;
 				}
 			}
+		}
+
+		// Chairs are filled across the table rather than around it: with four laid, the order is 1, 3, 2, 4
+		// so two players sit opposite each other instead of elbow to elbow with half the table empty.
+		// Interleaving the two halves is the whole rule — every arrival lands as far from the last as the
+		// remaining chairs allow, and it reads the same at any table size.
+		private static int SpreadSeatIndex(int slot, int count)
+		{
+			if (count <= 0) return 0;
+
+			// The first half is the *larger* half when the count is odd, or the two interleaved runs collide:
+			// at three chairs, count / 2 sends slots 1 and 2 to the same seat and leaves one never used.
+			return slot % 2 == 0 ? slot / 2 : (count + 1) / 2 + slot / 2;
+		}
+
+		private PokerSeat FindSeat(int seatIndex)
+		{
+			foreach (var seat in _seats)
+			{
+				if (seat && seat.SeatIndex == seatIndex) return seat;
+			}
+
+			return null;
 		}
 
 		public void RefreshSeatedPlayers()
@@ -417,7 +443,7 @@ namespace Game.Runtime.GameMode.Poker
 
 				// Before the stats, so the money the reset hands out is typed by the table's own catalogue
 				// rather than falling back to plain chips for the first seeding.
-				player.Data.ServerSetStakeItemSource(_mushroomDatabase);
+				player.Data.ServerSetStakeItemSource(_itemDatabase);
 				player.Data.ServerSetStartingStats(_startingMoney, _startingHealth);
 
 				if (firstTime || (resetPlayers && _data && _data.Phase.Value == PokerPhase.Waiting))
@@ -463,7 +489,7 @@ namespace Game.Runtime.GameMode.Poker
 
 			foreach (var module in _modules)
 			{
-				if (module) module.OnGameEnded();
+				if (module) module.OnHandEnded();
 			}
 
 			ServerClearHands();
@@ -475,6 +501,13 @@ namespace Game.Runtime.GameMode.Poker
 			if (!IsServer) return;
 
 			EndHand();
+
+			// After the hand, so a module tearing down its match state is doing it over a table that has
+			// already put the hand away.
+			foreach (var module in _modules)
+			{
+				if (module) module.OnMatchEnded();
+			}
 
 			_data.Phase.Value = PokerPhase.Finished;
 		}

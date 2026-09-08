@@ -23,6 +23,9 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		[SerializeField] private List<PokerSeat> _seats = new();
 
 		[Header("Ring")]
+		[Tooltip("Off leaves every chair exactly where the scene put it, and this component only shows and hides them.")]
+		[SerializeField] private bool _placeSeats = true;
+
 		[Tooltip("Centre the chairs are placed around. The table itself, normally.")]
 		[SerializeField] private Transform _centre;
 
@@ -59,10 +62,14 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		// coming to tell it so.
 		private void Place()
 		{
-			if (!_data || !_centre || _measuredRadius <= 0f) return;
+			if (!_data) return;
 
 			var count = Mathf.Clamp(_data.ActiveSeatCount.Value, 0, _seats.Count);
 			if (count <= 0) return;
+
+			// A chair the scene laid out by hand is left exactly where it stands; which chairs are
+			// laid at all is still this component's business either way.
+			var laying = _placeSeats && _centre && _measuredRadius > 0f;
 
 			foreach (var seat in _seats)
 			{
@@ -74,7 +81,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 				var inUse = index >= 0 && index < count;
 
 				seat.gameObject.SetActive(inUse);
-				if (!inUse) continue;
+				if (!inUse || !laying) continue;
 
 				var angle = (_startAngle + 360f * index / count) * Mathf.Deg2Rad;
 				var position = _centre.position + new Vector3(Mathf.Sin(angle), 0f, Mathf.Cos(angle)) * _measuredRadius;

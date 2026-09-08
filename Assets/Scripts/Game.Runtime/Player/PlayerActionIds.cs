@@ -17,5 +17,6 @@ namespace Game.Runtime.Player
 		public const string PickUpCard = "PickUpCard";
 		public const string Drink = "Drink";
 		public const string Spill = "Spill";
+		public const string ConsumeItem = "ConsumeItem";
 	}
 }

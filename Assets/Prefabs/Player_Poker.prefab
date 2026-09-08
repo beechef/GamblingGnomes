@@ -1,5 +1,64 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &717192683199291505
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2401540123256720930}
+  - component: {fileID: 4513404695735546853}
+  - component: {fileID: 6838944878377153600}
+  m_Layer: 0
+  m_Name: Table
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2401540123256720930
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 717192683199291505}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7915523810459036602}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4513404695735546853
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 717192683199291505}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 06c807126281cf84bb10b1845c2b0e71, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Controller.TableCursorController
+  _holdLookAction: {fileID: -2873660443980403870, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+--- !u!114 &6838944878377153600
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 717192683199291505}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 009540ab941743c44ba7b516ecbbfe86, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.PlayerLookTarget
+  _point: {fileID: 4726230110908427231}
 --- !u!1 &1651240911300962866
 GameObject:
   m_ObjectHideFlags: 0
@@ -55,6 +114,450 @@ MonoBehaviour:
     UpdateTraits:
       MinSecondsBetweenUpdates: 0
       MaxSecondsBetweenUpdates: 0
+--- !u!1 &1863945868604418551
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7173932181060956970}
+  - component: {fileID: 6328082092965802174}
+  - component: {fileID: 6398727710579312675}
+  - component: {fileID: 3631784473629482766}
+  - component: {fileID: 2685139147258332424}
+  m_Layer: 0
+  m_Name: Cards
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7173932181060956970
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1863945868604418551}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7915523810459036602}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6328082092965802174
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1863945868604418551}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 73f8493d7cb62004791bfd5d5237e953, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Visual.PokerHandVisual
+  ShowTopMostFoldoutHeaderGroup: 1
+  _cardSpacing: 0.045
+  _fanAngle: 10
+  _tableSpacing: 0.06
+  _depthStep: 0.002
+  _handBone: 11
+  _handLocalPosition: {x: 0.0657, y: -0.019, z: 0.034}
+  _handLocalEuler: {x: 0, y: 180, z: -180}
+  _data: {fileID: 6935137486891752095}
+  _rig: {fileID: 382404797062674536}
+  _cardPrefab: {fileID: 2273976980707683780, guid: 766e25a6debc8fc4c95fcf20063e4f4d, type: 3}
+  _database: {fileID: 11400000, guid: 81ffbfaf2b0219043836272fa19b4e8b, type: 2}
+--- !u!114 &6398727710579312675
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1863945868604418551}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 574d01275851a9c439070101a307366d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Player.PokerCardPickController
+  ShowTopMostFoldoutHeaderGroup: 1
+  _data: {fileID: 6935137486891752095}
+  _handVisual: {fileID: 6328082092965802174}
+  _pickAction: {fileID: -5630367516989439448, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+  _cardMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  _maxDistance: 4
+  _hoverLift: 0.015
+  _camera: {fileID: 2388567287394699200}
+  _pickState: {fileID: 3792748988740221995}
+--- !u!114 &3631784473629482766
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1863945868604418551}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9a0ce27fc940f5449a21ab843e12ac18, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Visual.PokerRevealedCardsVisual
+  ShowTopMostFoldoutHeaderGroup: 1
+  _anchor: {fileID: 1211031270858436978}
+  _cardSpacing: 0.09
+  _depthStep: 0.001
+  _data: {fileID: 6935137486891752095}
+  _cardPrefab: {fileID: 2273976980707683780, guid: 766e25a6debc8fc4c95fcf20063e4f4d, type: 3}
+  _database: {fileID: 11400000, guid: 81ffbfaf2b0219043836272fa19b4e8b, type: 2}
+--- !u!114 &2685139147258332424
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1863945868604418551}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 765d89182ea6dee4da51010a6930d730, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Player.PokerHandPoseController
+  ShowTopMostFoldoutHeaderGroup: 1
+  _holdingCardsParameter: IsHaveCardOnHand
+  _data: {fileID: 6935137486891752095}
+  _animatorStates: {fileID: 5503049138563897167}
+--- !u!1 &2202071642254458299
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7754697975458602708}
+  - component: {fileID: 1355760510573993392}
+  - component: {fileID: 4949824271395783894}
+  - component: {fileID: 3659639108600506473}
+  - component: {fileID: 1436103889866785602}
+  m_Layer: 0
+  m_Name: State_FocusPlayer
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7754697975458602708
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2202071642254458299}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6961401803370160626}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1355760510573993392
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2202071642254458299}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f9dfa5b682dcd46bda6128250e975f58, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineCamera
+  Priority:
+    Enabled: 0
+    m_Value: 0
+  OutputChannel: 1
+  StandbyUpdate: 2
+  m_StreamingVersion: 20241001
+  m_LegacyPriority: 0
+  Target:
+    TrackingTarget: {fileID: 0}
+    LookAtTarget: {fileID: 0}
+    CustomLookAtTarget: 0
+  Lens:
+    FieldOfView: 28
+    OrthographicSize: 10
+    NearClipPlane: 0.1
+    FarClipPlane: 5000
+    Dutch: 0
+    ModeOverride: 0
+    PhysicalProperties:
+      GateFit: 2
+      SensorSize: {x: 21.946, y: 16.002}
+      LensShift: {x: 0, y: 0}
+      FocusDistance: 10
+      Iso: 200
+      ShutterSpeed: 0.005
+      Aperture: 16
+      BladeCount: 5
+      Curvature: {x: 2, y: 11}
+      BarrelClipping: 0.25
+      Anamorphism: 0
+  BlendHint: 0
+--- !u!114 &4949824271395783894
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2202071642254458299}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 36d1163fa822e8b418a0a603ec078d5c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineHardLockToTarget
+  Damping: 0
+--- !u!114 &3659639108600506473
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2202071642254458299}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f38bda98361e1de48a4ca2bd86ea3c17, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineRotationComposer
+  Composition:
+    ScreenPosition: {x: 0, y: 0}
+    DeadZone:
+      Enabled: 0
+      Size: {x: 0.2, y: 0.2}
+    HardLimits:
+      Enabled: 0
+      Size: {x: 0.8, y: 0.8}
+      Offset: {x: 0, y: 0}
+  CenterOnActivate: 1
+  TargetOffset: {x: 0, y: 0, z: 0}
+  Damping: {x: 0.55, y: 0.55}
+  Lookahead:
+    Enabled: 0
+    Time: 0
+    Smoothing: 0
+    IgnoreY: 0
+--- !u!114 &1436103889866785602
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2202071642254458299}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ac2b190a611ee1e44b25ea40e6f0f392, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.Camera.PlayerCameraVirtualCameraState
+  _camera: {fileID: 1355760510573993392}
+  _priority: 20
+  _lockToEye: 1
+  _disablesLook: 1
+--- !u!1 &4361738276177124825
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6961401803370160626}
+  - component: {fileID: 2388567287394699200}
+  m_Layer: 0
+  m_Name: Cameras
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6961401803370160626
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4361738276177124825}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -1.2313475e-14, y: 0.69256824, z: -0.14040013}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 5021561007770361296}
+  - {fileID: 2201927442127855364}
+  - {fileID: 7754697975458602708}
+  m_Father: {fileID: 7915523810459036602}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2388567287394699200
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4361738276177124825}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 27e5182645d18914d8971c04a8278dfd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.Camera.PlayerCameraController
+  ShowTopMostFoldoutHeaderGroup: 1
+  _baseState: {fileID: 4335762119360811993}
+  _states:
+  - {fileID: 4335762119360811993}
+  - {fileID: 3792748988740221995}
+  - {fileID: 1436103889866785602}
+  _controller: {fileID: 2259382645207330846}
+  _rig: {fileID: 382404797062674536}
+--- !u!1 &4554624356382271699
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2201927442127855364}
+  - component: {fileID: 3240719914984520755}
+  - component: {fileID: 3792748988740221995}
+  m_Layer: 0
+  m_Name: State_LookAtCard
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2201927442127855364
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4554624356382271699}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.2159762, y: 0.06385285, z: -0.014155833, w: 0.97420573}
+  m_LocalPosition: {x: 0, y: 0.084, z: 0.243}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6961401803370160626}
+  m_LocalEulerAnglesHint: {x: 25, y: 7.5, z: 0}
+--- !u!114 &3240719914984520755
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4554624356382271699}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f9dfa5b682dcd46bda6128250e975f58, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineCamera
+  Priority:
+    Enabled: 0
+    m_Value: 0
+  OutputChannel: 1
+  StandbyUpdate: 2
+  m_StreamingVersion: 20241001
+  m_LegacyPriority: 0
+  Target:
+    TrackingTarget: {fileID: 0}
+    LookAtTarget: {fileID: 0}
+    CustomLookAtTarget: 0
+  Lens:
+    FieldOfView: 60
+    OrthographicSize: 10
+    NearClipPlane: 0.1
+    FarClipPlane: 5000
+    Dutch: 0
+    ModeOverride: 0
+    PhysicalProperties:
+      GateFit: 2
+      SensorSize: {x: 21.946, y: 16.002}
+      LensShift: {x: 0, y: 0}
+      FocusDistance: 10
+      Iso: 200
+      ShutterSpeed: 0.005
+      Aperture: 16
+      BladeCount: 5
+      Curvature: {x: 2, y: 11}
+      BarrelClipping: 0.25
+      Anamorphism: 0
+  BlendHint: 0
+--- !u!114 &3792748988740221995
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4554624356382271699}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ac2b190a611ee1e44b25ea40e6f0f392, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.Camera.PlayerCameraVirtualCameraState
+  _camera: {fileID: 3240719914984520755}
+  _priority: 20
+  _lockToEye: 0
+  _disablesLook: 1
+--- !u!1 &5025441949699639480
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5021561007770361296}
+  - component: {fileID: 4335762119360811993}
+  m_Layer: 0
+  m_Name: State_Freefly
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5021561007770361296
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5025441949699639480}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6961401803370160626}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4335762119360811993
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5025441949699639480}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b3066befa2516d5419fe067e63b07c89, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.Camera.PlayerCameraFreeflyState
 --- !u!1 &5029324686189226801
 GameObject:
   m_ObjectHideFlags: 0
@@ -86,6 +589,53 @@ Transform:
   m_Children: []
   m_Father: {fileID: 8966792870168296110}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &5347883484298159708
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3768713604780244699}
+  - component: {fileID: 2927490110984010800}
+  m_Layer: 0
+  m_Name: Body
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3768713604780244699
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5347883484298159708}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7915523810459036602}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2927490110984010800
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5347883484298159708}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 19f1b6b595246d348bc4e19a42c3c004, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Player.PokerBloodFingerVisual
+  ShowTopMostFoldoutHeaderGroup: 1
+  _data: {fileID: 6935137486891752095}
+  _fingers: {fileID: 1929870118816623789}
 --- !u!1 &5425319178545356803
 GameObject:
   m_ObjectHideFlags: 0
@@ -247,6 +797,131 @@ Transform:
   m_Children: []
   m_Father: {fileID: 7915523810459036602}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &6876006055139249189
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 313115082513292550}
+  - component: {fileID: 1084748030116895478}
+  m_Layer: 0
+  m_Name: Hallucination
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &313115082513292550
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6876006055139249189}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7915523810459036602}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1084748030116895478
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6876006055139249189}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 05c4731300282f44a92e6a9c53433ade, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Hallucination.PokerHallucinationController
+  ShowTopMostFoldoutHeaderGroup: 1
+  _player: {fileID: 5117715483773410859}
+  _data: {fileID: 6935137486891752095}
+  _tiers: {fileID: 11400000, guid: 06ed31c2c8dc1494d86b2b14f75d0da3, type: 2}
+--- !u!1 &8336348170960471977
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7482711709937781520}
+  - component: {fileID: 5006584800163012496}
+  - component: {fileID: 715681995083866239}
+  m_Layer: 0
+  m_Name: Items
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7482711709937781520
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8336348170960471977}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7915523810459036602}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5006584800163012496
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8336348170960471977}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cfce926a95d40d14bb5632fa87f4e5ce, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Visual.PokerMushroomPlateVisual
+  ShowTopMostFoldoutHeaderGroup: 1
+  _database: {fileID: 11400000, guid: 5178fb66ae0b30740a0e39488bef578b, type: 2}
+  _fallbackPrefab: {fileID: 3380898938716653663, guid: b525af282e2f8f64ca9e0b8f3bd4eccb, type: 3}
+  _capScale: 1
+  _capSpacing: 0.07
+  _capsPerRow: 3
+  _rowSpacing: 0.07
+  _arrival: {fileID: 11400000, guid: abad73c72c2d985409d3de3c8ea67d91, type: 2}
+  _eatDuration: 0.5
+  _eatRise: 0.35
+  _relayoutDuration: 0.25
+  _data: {fileID: 6935137486891752095}
+  _items: {fileID: 715681995083866239}
+--- !u!114 &715681995083866239
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8336348170960471977}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 42a7a5a317314994bb11a4ebb3820369, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Player.PokerPlayerItemController
+  ShowTopMostFoldoutHeaderGroup: 1
+  ConsumedTypes:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
+  _data: {fileID: 6935137486891752095}
 --- !u!1 &9143877374665817519
 GameObject:
   m_ObjectHideFlags: 0
@@ -346,6 +1021,10 @@ PrefabInstance:
       propertyPath: '_renderers.Array.data[0]'
       value: 
       objectReference: {fileID: 360016665957270251}
+    - target: {fileID: 8996715273764896689, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+      propertyPath: m_PresetInfoIsWorld
+      value: 1
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects:
@@ -364,6 +1043,24 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 5390899513882683757, guid: 8a531d709826a264e9027ff908ced981, type: 3}
       insertIndex: -1
       addedObject: {fileID: 3438344367432844806}
+    - targetCorrespondingSourceObject: {fileID: 5390899513882683757, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7173932181060956970}
+    - targetCorrespondingSourceObject: {fileID: 5390899513882683757, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7482711709937781520}
+    - targetCorrespondingSourceObject: {fileID: 5390899513882683757, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 313115082513292550}
+    - targetCorrespondingSourceObject: {fileID: 5390899513882683757, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3768713604780244699}
+    - targetCorrespondingSourceObject: {fileID: 5390899513882683757, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2401540123256720930}
+    - targetCorrespondingSourceObject: {fileID: 5390899513882683757, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6961401803370160626}
     - targetCorrespondingSourceObject: {fileID: 6591500634726463609, guid: 8a531d709826a264e9027ff908ced981, type: 3}
       insertIndex: -1
       addedObject: {fileID: 7260468181236647055}
@@ -374,33 +1071,15 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 6105733973742945484, guid: 8a531d709826a264e9027ff908ced981, type: 3}
       insertIndex: -1
       addedObject: {fileID: 5117715483773410859}
-    - targetCorrespondingSourceObject: {fileID: 6105733973742945484, guid: 8a531d709826a264e9027ff908ced981, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 794951249127223663}
-    - targetCorrespondingSourceObject: {fileID: 6105733973742945484, guid: 8a531d709826a264e9027ff908ced981, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 503688790795089527}
-    - targetCorrespondingSourceObject: {fileID: 6105733973742945484, guid: 8a531d709826a264e9027ff908ced981, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 3119346497539496029}
-    - targetCorrespondingSourceObject: {fileID: 6105733973742945484, guid: 8a531d709826a264e9027ff908ced981, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 4262478686658790279}
-    - targetCorrespondingSourceObject: {fileID: 6105733973742945484, guid: 8a531d709826a264e9027ff908ced981, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 4150968837335945767}
-    - targetCorrespondingSourceObject: {fileID: 6105733973742945484, guid: 8a531d709826a264e9027ff908ced981, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 5317439116845872267}
-    - targetCorrespondingSourceObject: {fileID: 6105733973742945484, guid: 8a531d709826a264e9027ff908ced981, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 3438439457700035025}
     - targetCorrespondingSourceObject: {fileID: 6736061117846939037, guid: 8a531d709826a264e9027ff908ced981, type: 3}
       insertIndex: -1
       addedObject: {fileID: 7532137638287253186}
     - targetCorrespondingSourceObject: {fileID: 9158856499958494448, guid: 8a531d709826a264e9027ff908ced981, type: 3}
       insertIndex: -1
       addedObject: {fileID: 4806397848947566528}
+    - targetCorrespondingSourceObject: {fileID: 5967459511013491666, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5503049138563897167}
   m_SourcePrefab: {fileID: 100100000, guid: 8a531d709826a264e9027ff908ced981, type: 3}
 --- !u!1 &164421062084480533 stripped
 GameObject:
@@ -465,6 +1144,22 @@ GameObject:
   m_CorrespondingSourceObject: {fileID: 3611132464307731541, guid: 8a531d709826a264e9027ff908ced981, type: 3}
   m_PrefabInstance: {fileID: 2812995479481287383}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &2259382645207330846 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4058645927303377609, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+  m_PrefabInstance: {fileID: 2812995479481287383}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8336770729751643675}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0acc1df1aad3599428a2d3278c4a36e1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.PlayerController
+--- !u!95 &2417700236160604213 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 469678322729097954, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+  m_PrefabInstance: {fileID: 2812995479481287383}
+  m_PrefabAsset: {fileID: 0}
 --- !u!114 &2468990494341469443 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 381215773534263252, guid: 8a531d709826a264e9027ff908ced981, type: 3}
@@ -499,6 +1194,11 @@ GameObject:
 --- !u!1 &3925024053575183603 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 1256989081166245412, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+  m_PrefabInstance: {fileID: 2812995479481287383}
+  m_PrefabAsset: {fileID: 0}
+--- !u!95 &4592962496778479551 stripped
+Animator:
+  m_CorrespondingSourceObject: {fileID: 1780258250985252200, guid: 8a531d709826a264e9027ff908ced981, type: 3}
   m_PrefabInstance: {fileID: 2812995479481287383}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &5226462987637793864 stripped
@@ -572,7 +1272,7 @@ MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 5304807904123281052, guid: 8a531d709826a264e9027ff908ced981, type: 3}
   m_PrefabInstance: {fileID: 2812995479481287383}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
+  m_GameObject: {fileID: 8491933690262143237}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 31d4b9fbe5fdf45479d7bac8fd692a13, type: 3}
@@ -644,11 +1344,6 @@ MonoBehaviour:
       MinSecondsBetweenUpdates: 0
       MaxSecondsBetweenUpdates: 0
     m_InternalValue: 0
-  EatenMushroomTypes:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 0
   LookedAtHoleCards:
     UpdateTraits:
       MinSecondsBetweenUpdates: 0
@@ -678,6 +1373,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Player.PokerPlayer
   ShowTopMostFoldoutHeaderGroup: 1
   _data: {fileID: 6935137486891752095}
+  _items: {fileID: 715681995083866239}
   _wallet: {fileID: 1277917375681613223}
   _rig: {fileID: 382404797062674536}
   _headStretch: {fileID: 2468990494341469443}
@@ -685,127 +1381,26 @@ MonoBehaviour:
   _handPeek: {fileID: 7969034684219841611}
   _point: {fileID: 0}
   _visual: {fileID: 0}
---- !u!114 &794951249127223663
+--- !u!1 &8491933690262143237 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5967459511013491666, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+  m_PrefabInstance: {fileID: 2812995479481287383}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &5503049138563897167
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8336770729751643675}
+  m_GameObject: {fileID: 8491933690262143237}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 73f8493d7cb62004791bfd5d5237e953, type: 3}
+  m_Script: {fileID: 11500000, guid: 648c6ff3bf309f54bb15eb7a12580145, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Visual.PokerHandVisual
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.PlayerAnimatorStateController
   ShowTopMostFoldoutHeaderGroup: 1
-  _cardSpacing: 0.045
-  _fanAngle: 10
-  _tableSpacing: 0.06
-  _depthStep: 0.01
-  _handBone: 11
-  _handLocalPosition: {x: 0.0657, y: -0.019, z: 0.034}
-  _handLocalEuler: {x: 0, y: 180, z: -180}
-  _data: {fileID: 6935137486891752095}
-  _rig: {fileID: 382404797062674536}
-  _cardPrefab: {fileID: 2273976980707683780, guid: 766e25a6debc8fc4c95fcf20063e4f4d, type: 3}
-  _database: {fileID: 11400000, guid: 81ffbfaf2b0219043836272fa19b4e8b, type: 2}
---- !u!114 &503688790795089527
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8336770729751643675}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9a0ce27fc940f5449a21ab843e12ac18, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Visual.PokerRevealedCardsVisual
-  ShowTopMostFoldoutHeaderGroup: 1
-  _anchor: {fileID: 1211031270858436978}
-  _cardSpacing: 0.09
-  _depthStep: 0.001
-  _data: {fileID: 6935137486891752095}
-  _cardPrefab: {fileID: 2273976980707683780, guid: 766e25a6debc8fc4c95fcf20063e4f4d, type: 3}
-  _database: {fileID: 11400000, guid: 81ffbfaf2b0219043836272fa19b4e8b, type: 2}
---- !u!114 &3119346497539496029
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8336770729751643675}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 009540ab941743c44ba7b516ecbbfe86, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.PlayerLookTarget
-  _point: {fileID: 4726230110908427231}
---- !u!114 &4262478686658790279
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8336770729751643675}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 19f1b6b595246d348bc4e19a42c3c004, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Player.PokerBloodFingerVisual
-  ShowTopMostFoldoutHeaderGroup: 1
-  _data: {fileID: 6935137486891752095}
-  _fingers: {fileID: 1929870118816623789}
---- !u!114 &4150968837335945767
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8336770729751643675}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 06c807126281cf84bb10b1845c2b0e71, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Controller.TableCursorController
-  _holdLookAction: {fileID: -2873660443980403870, guid: 052faaac586de48259a63d0c4782560b, type: 3}
---- !u!114 &5317439116845872267
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8336770729751643675}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 574d01275851a9c439070101a307366d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Player.PokerCardPickController
-  ShowTopMostFoldoutHeaderGroup: 1
-  _data: {fileID: 6935137486891752095}
-  _handVisual: {fileID: 794951249127223663}
-  _pickAction: {fileID: -5630367516989439448, guid: 052faaac586de48259a63d0c4782560b, type: 3}
-  _cardMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  _maxDistance: 4
-  _hoverLift: 0.015
---- !u!114 &3438439457700035025
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8336770729751643675}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 05c4731300282f44a92e6a9c53433ade, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Hallucination.PokerHallucinationController
-  ShowTopMostFoldoutHeaderGroup: 1
-  _player: {fileID: 5117715483773410859}
-  _data: {fileID: 6935137486891752095}
-  _tiers: {fileID: 11400000, guid: 06ed31c2c8dc1494d86b2b14f75d0da3, type: 2}
+  _bodyAnimator: {fileID: 2417700236160604213}
+  _handOnlyAnimator: {fileID: 4592962496778479551}
 --- !u!1 &8734185068247193769 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 6791370475833793150, guid: 8a531d709826a264e9027ff908ced981, type: 3}

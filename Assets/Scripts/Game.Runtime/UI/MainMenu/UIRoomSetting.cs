@@ -1,3 +1,4 @@
+using Sirenix.OdinInspector;
 using System;
 using System.Collections.Generic;
 using Game.Runtime.Controller;
@@ -24,6 +25,15 @@ namespace Game.Runtime.UI.MainMenu
 		[SerializeField] private Toggle _isPrivateToggle;
 		[SerializeField] private TMP_Dropdown _gameModeDropdown;
 		[SerializeField] private UIMatchConfigList _configList;
+
+		[Header("Room")]
+		[Tooltip("How many the room admits. Fixed rather than typed: the table is laid with a set number of chairs, and a room that lets more people in than there are seats is a room where somebody stands.")]
+		[MinValue(2)]
+		[SerializeField] private int _fixedMaxPlayers = 4;
+
+		[Header("Match Settings")]
+		[Tooltip("Off, the host is not asked to tune the mode before starting: every stage, module and starting stat plays at whatever the assets say. The list is switched off rather than torn out, so turning it back on is one checkbox.")]
+		[SerializeField] private bool _showModeSettings;
 		[SerializeField] private UIButton _confirmButton;
 		[SerializeField] private UIButton _cancelButton;
 
@@ -34,6 +44,11 @@ namespace Game.Runtime.UI.MainMenu
 		{
 			_confirmButton.OnClick += OnConfirmClicked;
 			_cancelButton.OnClick += Close;
+
+			// The room size is fixed, so the field that used to set it is taken off screen rather than left
+			// accepting a number nothing reads — a control that ignores what you type into it is worse than
+			// no control at all.
+			if (_maxPlayersField) _maxPlayersField.gameObject.SetActive(false);
 		}
 
 		private void OnDestroy()
@@ -68,8 +83,18 @@ namespace Game.Runtime.UI.MainMenu
 		{
 			if (!_configList) return;
 
-			// A different mode is a different rulebook — nothing chosen for the last one carries over.
+			// A different mode is a different rulebook, and nothing chosen for the last one carries over.
+			// Cleared even when the list is hidden: a stale choice from a previous session would otherwise
+			// be applied by a mode nobody was offered the chance to tune.
 			PendingMatchConfig.Clear();
+
+			if (!_showModeSettings)
+			{
+				_configList.gameObject.SetActive(false);
+				return;
+			}
+
+			_configList.gameObject.SetActive(true);
 
 			var entries = new List<MatchConfigEntry>();
 			var selected = SelectedGameMode();
@@ -114,7 +139,7 @@ namespace Game.Runtime.UI.MainMenu
 			if (_creatingLobby) return;
 			_creatingLobby = true;
 
-			var maxPlayers = int.TryParse(_maxPlayersField.text, out var parsed) ? Mathf.Max(2, parsed) : 6;
+			var maxPlayers = Mathf.Max(2, _fixedMaxPlayers);
 			var isPrivate = _isPrivateToggle.isOn;
 			var gameMode = SelectedGameMode();
 

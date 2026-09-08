@@ -1,7 +1,7 @@
 using Sirenix.OdinInspector;
 using System;
 using System.Collections.Generic;
-using Game.Runtime.GameMode.Poker.Mushrooms;
+using Game.Runtime.GameMode.Poker.Items;
 using Game.Runtime.Player;
 using Unity.Collections;
 using Unity.Netcode;
@@ -87,19 +87,8 @@ namespace Game.Runtime.GameMode.Poker.Player
 		public readonly NetworkList<byte> StakeItems = new(null,
 			NetworkVariableReadPermission.Everyone,
 			NetworkVariableWritePermission.Server);
-
-		// How far gone this player is, 0 to 100. Public, the way the health above it is: both of the
-		// round's real decisions — which mushroom to wager, who to feed the Colorful one — are choices
-		// about who is closest to going under, so hiding the number would only make the table count in
 		// their heads. Only ever rises, except where an item brings it down.
 		[HideInInspector] public NetworkVariable<int> HallucinationRate = new(0,
-			readPerm: NetworkVariableReadPermission.Everyone,
-			writePerm: NetworkVariableWritePermission.Server);
-
-		// One bit per mushroom kind this player has swallowed this match, so a kind they have met before
-		// costs them less than a new one. Public for the same reason the rate is, and a bitmask rather
-		// than a list because the question asked of it is only ever "has this one been eaten".
-		[HideInInspector] public NetworkVariable<int> EatenMushroomTypes = new(0,
 			readPerm: NetworkVariableReadPermission.Everyone,
 			writePerm: NetworkVariableWritePermission.Server);
 
@@ -181,7 +170,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		public event Action OnStakeItemsChanged;
 
 		// Stamped by the mode, the same way the configured starting stats are. Empty draws plain chips.
-		private PokerMushroomDatabase _stakeItemSource;
+		private PokerItemDatabase _stakeItemSource;
 
 		// Types of the units currently standing in front of the player as Bet, in the order they were
 		// staked. Server-only scratch: the pot ledger is what replicates, and it takes these at collect.
@@ -311,7 +300,6 @@ namespace Game.Runtime.GameMode.Poker.Player
 			Health.OnValueChanged += HandleHealthChanged;
 			LookedAtHoleCards.OnValueChanged += HandleLookedAtChanged;
 			HallucinationRate.OnValueChanged += HandleHallucinationChanged;
-			EatenMushroomTypes.OnValueChanged += HandleIntChanged;
 
 			AbilityIds.OnListChanged += HandleAbilitiesChanged;
 			HoleCards.OnListChanged += HandleHoleCardsChanged;
@@ -332,7 +320,6 @@ namespace Game.Runtime.GameMode.Poker.Player
 			HandRevealed.OnValueChanged -= HandleBoolChanged;
 			ReportsLeft.OnValueChanged -= HandleIntChanged;
 			Health.OnValueChanged -= HandleHealthChanged;
-			EatenMushroomTypes.OnValueChanged -= HandleIntChanged;
 			HallucinationRate.OnValueChanged -= HandleHallucinationChanged;
 			LookedAtHoleCards.OnValueChanged -= HandleLookedAtChanged;
 
@@ -409,7 +396,6 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 			ServerResetHealthToStart();
 			HallucinationRate.Value = 0;
-			EatenMushroomTypes.Value = 0;
 			Status.Value = PokerPlayerStatus.Waiting;
 
 			// The wallet resets itself. What a purse starts with is its own business, and reaching in to
@@ -546,7 +532,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 				}
 				else
 				{
-					_drawBuffer.Add(PokerMushroomDatabase.PlainChip);
+					_drawBuffer.Add(PokerItemDatabase.PlainChip);
 				}
 			}
 
@@ -566,7 +552,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 			for (var i = 0; i < expected; i++)
 			{
-				into.Add(i < _committedItemTypes.Count ? _committedItemTypes[i] : PokerMushroomDatabase.PlainChip);
+				into.Add(i < _committedItemTypes.Count ? _committedItemTypes[i] : PokerItemDatabase.PlainChip);
 			}
 
 			_committedItemTypes.Clear();
@@ -576,7 +562,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		// mode could say what a unit is here, and topping up around those would leave the starting stake
 		// untyped forever. Guarded on an actual change, because the mode re-stamps on every roster
 		// refresh and a re-deal mid-match would shuffle what a player already knows they are holding.
-		public void ServerSetStakeItemSource(PokerMushroomDatabase database)
+		public void ServerSetStakeItemSource(PokerItemDatabase database)
 		{
 			if (!IsServer || _stakeItemSource == database) return;
 
@@ -594,7 +580,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 			while (StakeItems.Count < Chips)
 			{
-				StakeItems.Add(_stakeItemSource ? _stakeItemSource.DrawItemType() : PokerMushroomDatabase.PlainChip);
+				StakeItems.Add(_stakeItemSource ? _stakeItemSource.DrawItemType() : PokerItemDatabase.PlainChip);
 			}
 
 			while (StakeItems.Count > Chips) StakeItems.RemoveAt(StakeItems.Count - 1);
@@ -613,21 +599,6 @@ namespace Game.Runtime.GameMode.Poker.Player
 			_wallet.ServerDeposit(amount);
 		}
 
-		// Eating one mushroom. Which kind decides the price: one this player has met before costs the
-		// smaller gain, and a kind they have never swallowed costs the larger — which is what makes the
-		// winner's choice of what to wager an attack rather than an amount. The bitmask is written here
-		// too, so the record and the price it sets can never come apart.
-		public void ServerEatMushroom(byte itemType, int newTypeGain, int repeatGain)
-		{
-			if (!IsServer) return;
-
-			var bit = MushroomTypeBit(itemType);
-			var wasEatenBefore = (EatenMushroomTypes.Value & bit) != 0;
-
-			EatenMushroomTypes.Value |= bit;
-			ServerChangeHallucination(wasEatenBefore ? repeatGain : newTypeGain);
-		}
-
 		// Negative sobers, positive sends them further under; the clamp lives here for the same reason
 		// the health one does. Passing the ceiling is death, and IsAlive reads that off this number.
 		public void ServerChangeHallucination(int delta)
@@ -635,18 +606,6 @@ namespace Game.Runtime.GameMode.Poker.Player
 			if (!IsServer) return;
 
 			HallucinationRate.Value = Mathf.Clamp(HallucinationRate.Value + delta, 0, MaxHallucination);
-		}
-
-		// A kind with no bit of its own — anything past the mask's width, or the plain chip that stands
-		// for a unit with no identity — is treated as one this player has never met, so an unconfigured
-		// table charges the full gain rather than silently charging the smaller one for everything.
-		public bool HasEatenMushroomType(byte itemType) => (EatenMushroomTypes.Value & MushroomTypeBit(itemType)) != 0;
-
-		public static int MushroomTypeBit(byte itemType)
-		{
-			if (itemType == PokerMushroomDatabase.PlainChip || itemType > 31) return 0;
-
-			return 1 << (itemType - 1);
 		}
 
 		// Negative hurts, positive heals; the clamp lives here so no source of harm can overshoot it.

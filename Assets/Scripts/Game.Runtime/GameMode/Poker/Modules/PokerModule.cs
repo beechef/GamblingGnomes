@@ -53,7 +53,14 @@ namespace Game.Runtime.GameMode.Poker.Modules
 		protected virtual void OnCollectConfigEntries(List<MatchConfigEntry> entries) { }
 
 		public virtual void OnGameStarted() { }
-		public virtual void OnGameEnded() { }
+		// Raised when a hand is put away — which is every hand, not only the last. The name used to say
+		// "game" while EndHand was what called it, and a module keeping anything across hands was quietly
+		// emptied by it.
+		public virtual void OnHandEnded() { }
+
+		// Raised once, when the match itself is over. Anything a player was allowed to carry between hands
+		// belongs to the match, and this is where it goes back.
+		public virtual void OnMatchEnded() { }
 		// Before the stage touches anything. The deal takes its ante inside StartStage, so a house rule
 		// about what a player is carrying belongs here rather than in OnStageStarted, which is already too
 		// late to have been asked.

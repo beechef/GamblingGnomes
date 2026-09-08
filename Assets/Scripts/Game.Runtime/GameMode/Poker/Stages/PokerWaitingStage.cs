@@ -11,13 +11,17 @@ namespace Game.Runtime.GameMode.Poker.Stages
 	[CreateAssetMenu(fileName = "PokerStage_Waiting", menuName = "Game/Poker/Stages/Waiting")]
 	public class PokerWaitingStage : PokerStage
 	{
+		[Header("Match")]
+		[Tooltip("On, arriving here puts blood, money, hallucination and everything served back to their starting values — this is where a *match* ends. Off, the table only goes idle: a round that comes back here between hands is not a match ending, and resetting there throws away what the players spent the round accumulating.")]
+		[SerializeField] private bool _resetMatchStats = true;
+
 		protected override void OnStartStage()
 		{
 			// Blood and money go back before the phase says the table is idle, not after. The phase and a
 			// player's purse live on different network objects and arrive in either order, so anything that
 			// wakes on "we are waiting now" and then counts what the seats are carrying should be reading
 			// numbers that have already been put right.
-			GameMode.ServerResetMatchStats();
+			if (_resetMatchStats) GameMode.ServerResetMatchStats();
 
 			Data.Phase.Value = PokerPhase.Waiting;
 

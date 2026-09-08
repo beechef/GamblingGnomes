@@ -118,7 +118,17 @@ namespace Game.Runtime.GameMode.Poker.Modules
 			if (stage is PokerDealStage) DealServer();
 		}
 
-		public override void OnGameEnded() => ClearMatchServer();
+		// A hand ending only empties hands where the table says items are for one hand. Where they are
+		// carried, this must leave them alone, or the setting is a lie.
+		public override void OnHandEnded()
+		{
+			if (!IsServer) return;
+
+			_cheaters.Clear();
+			if (_clearHandEachRound) ClearHandsServer();
+		}
+
+		public override void OnMatchEnded() => ClearMatchServer();
 
 		// A NetworkBehaviour update, not a poll for a dependency: the window closes on a clock, and
 		// somebody has to notice the moment it does.

@@ -29,8 +29,8 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 		{
 			if (!IsOwner) return;
 
-			if (!_player) _player = GetComponent<PokerPlayer>();
-			if (!_data) _data = GetComponent<PokerPlayerData>();
+			if (!_player) _player = GetComponentInParent<PokerPlayer>();
+			if (!_data) _data = GetComponentInParent<PokerPlayerData>();
 			if (!_data) return;
 
 			_data.OnHallucinationChanged += HandleChanged;

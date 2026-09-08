@@ -9,7 +9,6 @@ namespace Game.Runtime.GameMode.Poker.Visual
 	// Lives on the player so the cards travel with the gnome holding them. Cards are dealt in one at a
 	// time and only re-read wholesale on a late join; a showdown flips the cards already in hand rather
 	// than replacing them.
-	[RequireComponent(typeof(PokerPlayerData))]
 	public class PokerHandVisual : NetworkBehaviour
 	{
 		[Header("Layout")]
@@ -44,11 +43,12 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		// leave the rest as backs. A single flag could only ever say "the whole hand" — which is what
 		// this was, and what a round dealing more cards than a player may look at breaks.
 		private int _shownFaceUpMask;
+		private int _shownInHandMask;
 
 		public override void OnNetworkSpawn()
 		{
-			if (!_data) _data = GetComponent<PokerPlayerData>();
-			if (!_rig) _rig = GetComponent<PlayerRigController>();
+			if (!_data) _data = GetComponentInParent<PokerPlayerData>();
+			if (!_rig) _rig = GetComponentInParent<PlayerRigController>();
 			if (!_data) return;
 
 			_data.OnHoleCardsChanged += HandleHoleCardsChanged;
@@ -97,20 +97,56 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 		// Asked per card: a showdown turns the whole hand over at once, and a holder allowed to look at
 		// only three of five turns those three and leaves the others backs.
+		//
+		// Two masks, not one. Which cards are face up and which are up in the hand are different questions
+		// with different answers — a hand revealed at a showdown goes back down on the table while staying
+		// face up — and a guard built on the face alone left a picked-up card turned over but still lying
+		// where it was, which is the whole pickup nobody could see happen.
 		private void HandleStateChanged()
 		{
 			if (!_data) return;
 
-			var mask = CurrentFaceUpMask();
-			if (mask == _shownFaceUpMask) return;
+			var faceUp = CurrentFaceUpMask();
+			var inHand = CurrentInHandMask();
+			if (faceUp == _shownFaceUpMask && inHand == _shownInHandMask) return;
 
-			_shownFaceUpMask = mask;
+			// Exactly the slots whose face changed. Redrawing the whole hand plays the flip on every card
+			// in it, so turning one over made the other four flip along with it — a change-guard on the
+			// hand answers "did anything change", and what has to be redrawn is "which one".
+			var turned = faceUp ^ _shownFaceUpMask;
 
-			for (var i = 0; i < _cards.Count; i++)
+			// Exactly the slots that changed hands. Everything else is only closing the gap where it
+			// already lies, and PlaceAt arcs whatever it animates — so laying the whole row again made
+			// every card on the table jump each time one was picked up.
+			var moved = inHand ^ _shownInHandMask;
+
+			_shownFaceUpMask = faceUp;
+			_shownInHandMask = inHand;
+
+			for (var i = 0; i < _cards.Count && i < 31; i++)
 			{
+				if ((turned & (1 << i)) == 0) continue;
+
 				var visible = IsVisible(i);
 				if (_cards[i]) _cards[i].SetCard(visible ? CardAt(i) : CardData.None, visible, _database, true);
 			}
+
+			// Lifted into the hand, or put back down on the table: either way the two groups have to be
+			// laid out again among their own members, so picking one card up closes the gap it left.
+			Layout(moved);
+		}
+
+		private int CurrentInHandMask()
+		{
+			var mask = 0;
+			if (!_data) return mask;
+
+			for (var i = 0; i < _cards.Count && i < 31; i++)
+			{
+				if (IsInHand(i)) mask |= 1 << i;
+			}
+
+			return mask;
 		}
 
 		private bool IsVisible(int index) => _data && _data.IsHoleCardVisible(index);
@@ -149,6 +185,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			var visible = IsVisible(index);
 			visual.SetCard(visible ? card : CardData.None, visible, _database, animate);
 			_shownFaceUpMask = CurrentFaceUpMask();
+			_shownInHandMask = CurrentInHandMask();
 		}
 
 		private void RemoveCard(int index)
@@ -168,6 +205,11 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			}
 
 			_cards.Clear();
+
+			// The masks describe what is drawn, and nothing is: leaving them set would make the first card of
+			// the next hand look like no change at all.
+			_shownFaceUpMask = 0;
+			_shownInHandMask = 0;
 		}
 
 		private void UpdateCard(int index, CardData card)
@@ -189,13 +231,13 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			var count = _data.CardCount;
 			for (var i = 0; i < count; i++) AddCard(CardAt(i), false);
 
-			Layout();
+			Layout(0);
 		}
 
 		// Two places a card can be: lying face down in front of its owner, or up in their hand. Each
 		// group is laid out among its own members, so picking one card up closes the gap on the table
 		// rather than leaving a hole where it was.
-		private void Layout(bool animate = true)
+		private void Layout(int animateMask = ~0)
 		{
 			var handAnchor = ResolveHandAnchor();
 			var tableAnchor = ResolveTableAnchor();
@@ -216,6 +258,8 @@ namespace Game.Runtime.GameMode.Poker.Visual
 				var visual = _cards[i];
 				if (!visual) continue;
 
+				var animate = i < 31 && (animateMask & (1 << i)) != 0;
+
 				if (IsInHand(i))
 				{
 					visual.PlaceAt(handAnchor, FanPosition(handSlot, inHand), FanRotation(handSlot, inHand), animate);
@@ -229,6 +273,19 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		}
 
 		private bool IsInHand(int index) => _data && _data.IsHoleCardInHand(index);
+
+
+		// Opened by the beat that allows picking and closed when it ends. A card already up in the hand is
+		// never offered: it has been taken, and reaching for it again is a pick the server would refuse.
+		public void SetPickupable(bool pickupable)
+		{
+			for (var i = 0; i < _cards.Count; i++)
+			{
+				if (!_cards[i]) continue;
+
+				_cards[i].Pickupable = pickupable && !IsInHand(i);
+			}
+		}
 
 		// Which slot a card on screen belongs to. Asked by whatever a player just pointed at: the card
 		// itself carries no index, and the list here is the only thing that knows the order they were
@@ -260,6 +317,9 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		private Vector3 RowPosition(int slot, int count)
 		{
 			var offset = (slot - (count - 1) * 0.5f) * _tableSpacing;
+			// Negative, like the fan and like everything else that lifts a card: a sprite is read from its
+			// own -Z, so that is the side the table anchor points at the ceiling and the direction anything
+			// coming off the table has to travel. A card dealt later rests on the ones already there.
 			return new Vector3(offset, 0f, -slot * _depthStep);
 		}
 

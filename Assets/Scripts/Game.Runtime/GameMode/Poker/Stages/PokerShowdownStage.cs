@@ -68,8 +68,8 @@ namespace Game.Runtime.GameMode.Poker.Stages
 					break;
 
 				case PokerSettlement.LosersEatWinnersWager:
-					PokerTableUtility.FeedFromWinner(Data, winner, GameMode.SeatedPlayers,
-						GameMode.MushroomDatabase, GameMode, _foldPhase,
+					PokerTableUtility.ServeFromWinner(Data, winner, GameMode.SeatedPlayers,
+						GameMode.ItemDatabase, _foldPhase,
 						GameMode.FindModule<Modules.PokerAbilityModule>());
 					break;
 
@@ -102,6 +102,11 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		// and the host gets the button again.
 		private void FinishShowdown()
 		{
+			// The board comes down with the beat it belongs to. It used to stand until the next deal cleared
+			// the list, which in a round that deals halfway through itself meant it sat over the whole
+			// settlement — a countdown that ran out and left the board exactly where it was.
+			Data.Showdown.Clear();
+
 			if (_nextHandStage && GameMode.CanDealAnotherHand)
 			{
 				GameMode.EndHand();
@@ -132,7 +137,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 				}
 			}
 
-			PokerTableUtility.FeedPot(Data, _eaters, GameMode.MushroomDatabase, GameMode);
+			PokerTableUtility.FeedPot(Data, _eaters, GameMode.ItemDatabase, GameMode);
 		}
 
 		private void ResolveContenders()

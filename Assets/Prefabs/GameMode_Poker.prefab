@@ -12,8 +12,6 @@ GameObject:
   - component: {fileID: 2214475242416655445}
   - component: {fileID: 370272023844681654}
   - component: {fileID: 7373537335293292376}
-  - component: {fileID: 8672451930287465123}
-  - component: {fileID: 135968135760417175}
   - component: {fileID: 5216713172552861770}
   - component: {fileID: -9007372877243146254}
   - component: {fileID: 2514047808573104141}
@@ -236,110 +234,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.PokerGameMode
   ShowTopMostFoldoutHeaderGroup: 1
-  _rules: {fileID: 11400000, guid: 8367ae2105df611499070e4e8f1f71ee, type: 2}
+  _rules: {fileID: 11400000, guid: b1b95d1241dc51c489c9dc6b9916290c, type: 2}
   _startingMoney: 10
   _startingHealth: 8
-  _mushroomDatabase: {fileID: 11400000, guid: 5178fb66ae0b30740a0e39488bef578b, type: 2}
-  _sequence: {fileID: 11400000, guid: f01191936e2f42f46a412880a1173af7, type: 2}
+  _itemDatabase: {fileID: 11400000, guid: 5178fb66ae0b30740a0e39488bef578b, type: 2}
+  _sequence: {fileID: 11400000, guid: fef264d3b67498b4191fb3f76f2e9f4e, type: 2}
   _modules:
-  - {fileID: 8672451930287465123}
-  - {fileID: 135968135760417175}
   - {fileID: 5216713172552861770}
   - {fileID: 2514047808573104141}
   _hudPrefab: {fileID: 3807829601385342317, guid: ef9948bd034b1b74abea24c6ec82bd46, type: 3}
   _data: {fileID: 370272023844681654}
   _configData: {fileID: -9007372877243146254}
   _seats: []
---- !u!114 &8672451930287465123
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7894337194493779765}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 33fb32ee3efbf8470e9dea76db19b7cd, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Modules.PokerAbilityModule
-  ShowTopMostFoldoutHeaderGroup: 1
-  _moduleId: 
-  _abilities: {fileID: 2514047808573104141}
-  _reportsPerRound: 1
-  _reportStake: 1
-  _maximumAllIn: 4
-  _reportStages:
-  - {fileID: 11400000, guid: 86dc6b1ba01640a0efa8ee6f29da8dce, type: 2}
-  - {fileID: 11400000, guid: bea4c8e71023088e218025c91b36b554, type: 2}
-  - {fileID: 11400000, guid: 33f10e3b8fd52fa2f1a2188559023a76, type: 2}
-  - {fileID: 11400000, guid: c6f6aae88079259ee81b59e2f41851bd, type: 2}
-  - {fileID: 11400000, guid: 78346fe82aa12f548a000b4a72d79e5e, type: 2}
-  - {fileID: 11400000, guid: 43c41207e562e55449568c27d796401c, type: 2}
-  - {fileID: 11400000, guid: 82f835a9626778f4c9662cc12c8aaa3f, type: 2}
-  - {fileID: 11400000, guid: f3977933e9cfd9547b14e6cc9bd3881a, type: 2}
-  - {fileID: 11400000, guid: f11f7e15aadda6f4caca5e09bc283a0a, type: 2}
-  _reportStage: {fileID: 11400000, guid: ac348855f9712a5fb0283265b90d71b4, type: 2}
-  _enabledByDefault: 1
-  Enabled:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 1
-  ReportWindowOpen:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 0
-  LastReport:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-  Accusation:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-  ReportStake:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 0
-  ReportPot:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 0
-  ReportAction:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-  ReportPhase:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 0
---- !u!114 &135968135760417175
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7894337194493779765}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2f74a93872a148f4fa2d3b877f94e43f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Modules.PokerBloodExchangeModule
-  ShowTopMostFoldoutHeaderGroup: 1
-  _moduleId: 
-  _enabledByDefault: 1
-  _bloodSpent: 1
-  _moneyGained: 1
-  _minimumHealthKept: 1
-  Enabled:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 1
 --- !u!114 &5216713172552861770
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -354,7 +260,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Modules.PokerBlackoutModule
   ShowTopMostFoldoutHeaderGroup: 1
   _moduleId: 
-  _enabledByDefault: 1
+  _enabledByDefault: 0
   _stageChances: []
   _defaultChance: 0.5
   _blackoutsPerHand: 1
@@ -398,12 +304,13 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   _moduleId: 
   _pool: {fileID: 11400000, guid: 6799770125e6b7d46f8673cc18c90039, type: 2}
-  _abilitiesPerSeat: 2
-  _abilitiesPerLoss: 0
+  _abilitiesPerSeat: 0
+  _abilitiesPerLoss: 1
   _handLimit: 0
-  _clearHandEachRound: 1
+  _clearHandEachRound: 0
   _guaranteedCheatCards: {x: 1, y: 2}
-  _abilityStages: []
+  _abilityStages:
+  - {fileID: 11400000, guid: ba572d66ab8f3b94b801a1717c608737, type: 2}
   _abilityWindowSeconds: 0
   _enabledByDefault: 1
   Enabled:

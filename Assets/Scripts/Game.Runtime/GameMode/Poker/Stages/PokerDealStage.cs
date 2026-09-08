@@ -19,6 +19,9 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		[Tooltip("On, the plate is wiped before the cards go out — the deal is where a hand starts. Off, whatever was already staked stands, which is what a round that wagers before dealing needs.")]
 		[SerializeField] private bool _clearPotOnDeal = true;
 
+		[Tooltip("On, the button moves before the cards go out — the deal is where a hand starts. Off, it stays put, which is what a round that wagers before it deals needs: the deal sits in the middle of that round, so a button rotating here re-orders the second wager against the first.")]
+		[SerializeField] private bool _rotateDealerOnDeal = true;
+
 		[Tooltip("How much board this hand needs. Laid on the table face down here, so the streets only turn over what is already lying there.")]
 		[SerializeField] private int _communityCardCount = 5;
 
@@ -66,7 +69,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			Data.Showdown.Clear();
 			if (_clearPotOnDeal) PokerTableUtility.ResetPot(Data);
 
-			RotateDealer();
+			if (_rotateDealerOnDeal) RotateDealer();
 			DealHoleCards();
 			PokerTableUtility.CollectDealCost(Data, GameMode.SeatedPlayers, DealCost);
 			PostAnte();
