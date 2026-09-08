@@ -97,12 +97,21 @@ namespace Game.Runtime.Controller
 			}
 		}
 
-		private static InputScheme? SchemeFor(InputDevice device) => device switch
+		// A device the game invented is not hardware in anybody's hands. VirtualMouseInput creates a real
+		// Mouse for the pad's cursor, so without this the right stick reports a mouse and flips the scheme
+		// straight back to keyboard — which then switches off the very cursor that was reporting, every
+		// time the player moves it.
+		private static InputScheme? SchemeFor(InputDevice device)
 		{
-			Gamepad => InputScheme.Gamepad,
-			Keyboard or Mouse => InputScheme.KeyboardMouse,
-			_ => null,
-		};
+			if (device == null || !device.native) return null;
+
+			return device switch
+			{
+				Gamepad => InputScheme.Gamepad,
+				Keyboard or Mouse => InputScheme.KeyboardMouse,
+				_ => null,
+			};
+		}
 
 		private static void SetScheme(InputScheme scheme)
 		{

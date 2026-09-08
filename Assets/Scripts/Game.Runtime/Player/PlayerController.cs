@@ -417,6 +417,12 @@ namespace Game.Runtime.Player
 				? _seatedLookAction.action
 				: _lookAction.action;
 
+			// The pad's cursor is a real Mouse device, so its delta matches the very <Mouse>/delta the
+			// seated look binds — moving the right stick would turn the view as well as move the pointer.
+			// Only the kind of device the scheme says is in hand is allowed to drive the view.
+			var control = action.activeControl;
+			if (control != null && control.device is Gamepad != InputSchemeController.IsGamepad) return;
+
 			var value = action.ReadValue<Vector2>();
 			var filteredX = Mathf.Abs(value.x) < _inputDeadzone ? 0f : value.x;
 			var filteredY = Mathf.Abs(value.y) < _inputDeadzone ? 0f : value.y;
