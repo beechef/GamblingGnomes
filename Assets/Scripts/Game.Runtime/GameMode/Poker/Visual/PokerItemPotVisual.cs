@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using DG.Tweening;
 using Game.Runtime.GameMode.Poker.Items;
@@ -46,12 +47,32 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 		private readonly List<GameObject> _caps = new();
 
+		// Registered in its own lifecycle, the shape PokerScenery and GameCamera already take: a cap is
+		// spawned at runtime and nothing can serialize a reference to the plate it lands on.
+		public static PokerItemPotVisual Instance { get; private set; }
+
+		public IReadOnlyList<GameObject> Caps => _caps;
+
+		// The plate is emptied and filled again every round, so anything drawn on a cap comes off on its own
+		// while whatever put it there has not moved. Static because the things that care are about the table,
+		// not about one seat.
+		public static event Action OnAnyPotChanged;
+
+		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+		private static void ResetStatics()
+		{
+			OnAnyPotChanged = null;
+			Instance = null;
+		}
+
 		// How many caps each chair is already holding, so a second stake from the same player is placed
 		// beside the first rather than on top of it.
 		private readonly Dictionary<int, int> _capsPerSeat = new();
 
 		protected override void OnBind()
 		{
+			Instance = this;
+
 			Data.OnPotItemsChanged += HandlePotItemsChanged;
 
 			// Late join: the plate as it stands, with nothing to replay.
@@ -61,6 +82,8 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		protected override void OnUnbind()
 		{
 			if (Data) Data.OnPotItemsChanged -= HandlePotItemsChanged;
+
+			if (Instance == this) Instance = null;
 
 			ClearCaps();
 		}
@@ -121,11 +144,14 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			if (!animate || _dropDuration <= 0f)
 			{
 				cap.transform.localPosition = resting;
+				OnAnyPotChanged?.Invoke();
 				return;
 			}
 
 			cap.transform.localPosition = resting + Vector3.up * _dropHeight;
 			cap.transform.DOLocalMove(resting, _dropDuration).SetEase(_dropEase);
+
+			OnAnyPotChanged?.Invoke();
 		}
 
 		private Vector3 SlotPosition(int slot)
@@ -179,6 +205,8 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 			_caps.Clear();
 			_capsPerSeat.Clear();
+
+			OnAnyPotChanged?.Invoke();
 		}
 	}
 }
