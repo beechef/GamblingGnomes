@@ -409,13 +409,27 @@ namespace Game.Runtime.Player
 			// turned the moment the state lets go.
 			if (_lookInputDisabled) return;
 
-			if (!_inputBound || !CursorController.IsLocked) return;
+			if (!_inputBound) return;
+
+			// A mouse has one pointer, so at a table it has to choose: free to point at the cards, or held
+			// down to turn the view. A pad has two sticks and needs no choice — the left turns the view
+			// while the right goes on moving the cursor — so the lock is not its question, and must not
+			// be: InputSystemUIInputModule drops every mouse-class pointer while the cursor is locked, and
+			// the pad's cursor is mouse-class, so locking in order to let the stick look would take the
+			// pointer away in the act of doing it.
+			if (!CursorController.IsLocked && !InputSchemeController.IsGamepad) return;
 
 			// Anchored in a chair the pad's sticks swap roles, so the seated action is read instead — the
 			// same mouse delta either way, a different stick on a pad.
 			var action = _bodyAnchored && _seatedLookAction && _seatedLookAction.action != null
 				? _seatedLookAction.action
 				: _lookAction.action;
+
+			// The pad's cursor is a real Mouse device, so its delta matches the very <Mouse>/delta the
+			// seated look binds — moving the right stick would turn the view as well as move the pointer.
+			// Only the kind of device the scheme says is in hand is allowed to drive the view.
+			var control = action.activeControl;
+			if (control != null && control.device is Gamepad != InputSchemeController.IsGamepad) return;
 
 			var value = action.ReadValue<Vector2>();
 			var filteredX = Mathf.Abs(value.x) < _inputDeadzone ? 0f : value.x;

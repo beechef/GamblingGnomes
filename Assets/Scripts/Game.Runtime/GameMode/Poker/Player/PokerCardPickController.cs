@@ -51,6 +51,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 		private int _focusHandle;
 		private bool _picking;
+		private int _lastPickFrame = -1;
 		private FixedString32Bytes _lastStageId;
 
 		public override void OnNetworkSpawn()
@@ -71,10 +72,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 		public override void OnNetworkDespawn()
 		{
-			if (_pickAction && _pickAction.action != null)
-			{
-				_pickAction.action.performed -= HandlePick;
-			}
+			if (_pickAction && _pickAction.action != null) _pickAction.action.performed -= HandlePick;
 
 			SetHovered(null);
 			ReleaseFocus();
@@ -98,15 +96,33 @@ namespace Game.Runtime.GameMode.Poker.Player
 				RefreshStage();
 			}
 
-			SetHovered(CanPick() ? Raycast() : null);
+			var card = CanPick() ? Raycast() : null;
+			SetHovered(card);
 		}
 
+		// UI/Click is PassThrough — that is what the UI module wants of it — and a PassThrough action raises
+		// performed on every value change, the release included. So the callback is asked what the button is
+		// actually doing rather than trusted to mean a press: without it one click took two cards, the press
+		// taking the one under the cursor and the release taking whatever that uncovered. The frame guard is
+		// the other half of it, since the action carries a binding per device it answers to and the pad's
+		// cursor is a real Mouse.
 		private void HandlePick(InputAction.CallbackContext context)
 		{
 			if (!IsOwner || !CanPick()) return;
+			if (!context.ReadValueAsButton()) return;
+			if (_lastPickFrame == Time.frameCount) return;
 
 			var card = Raycast();
 			if (!card || !_handVisual) return;
+
+			_lastPickFrame = Time.frameCount;
+
+			Pick(card);
+		}
+
+		private void Pick(PokerCardVisual card)
+		{
+			if (!_handVisual) return;
 
 			var slot = _handVisual.SlotOf(card);
 			if (slot < 0 || !_data.CanLookAt(slot)) return;

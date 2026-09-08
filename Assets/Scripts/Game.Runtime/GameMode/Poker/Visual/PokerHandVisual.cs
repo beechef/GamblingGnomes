@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Game.Runtime.GameMode.Poker.Player;
 using Game.Runtime.Player;
@@ -37,6 +38,16 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		[SerializeField] private PokerCardDatabase _database;
 
 		private readonly List<PokerCardVisual> _cards = new();
+
+		public IReadOnlyList<PokerCardVisual> Cards => _cards;
+
+		// Cards are torn down and dealt again every round, so anything drawing on them has to be told
+		// rather than resolving once. Static because the things that care are about every hand at the
+		// table, not about one player's.
+		public static event Action OnAnyHandChanged;
+
+		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+		private static void ResetStatics() => OnAnyHandChanged = null;
 
 		private Transform _resolvedAnchor;
 		// One bit per slot, so a hand held face down to its own holder can turn three of five over and
@@ -270,6 +281,8 @@ namespace Game.Runtime.GameMode.Poker.Visual
 				visual.PlaceAt(tableAnchor, RowPosition(tableSlot, onTable), Quaternion.identity, animate);
 				tableSlot++;
 			}
+
+			OnAnyHandChanged?.Invoke();
 		}
 
 		private bool IsInHand(int index) => _data && _data.IsHoleCardInHand(index);
