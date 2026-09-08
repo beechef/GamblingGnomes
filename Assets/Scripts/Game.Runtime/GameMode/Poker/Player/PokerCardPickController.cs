@@ -92,11 +92,11 @@ namespace Game.Runtime.GameMode.Poker.Player
 			var card = CanPick() ? Raycast() : null;
 			SetHovered(card);
 
-			// Polled rather than taken from performed. UI/Click carries a binding per device and the virtual
-			// cursor is a real Mouse, so two controls actuating raise performed twice in one frame — which read
-			// as one click taking two cards, the second being whatever the first uncovered. A frame is the unit
-			// a click actually has, and asking for it here is also one less subscription to unwind.
-			if (card && _pickAction && _pickAction.action != null && _pickAction.action.WasPerformedThisFrame()) Pick(card);
+			// The press edge, not performed. UI/Click is PassThrough because that is what uGUI wants of it, and
+			// a PassThrough action performs on every value change — so one click performed twice, the press taking
+			// one card and the release taking whatever it uncovered. WasPressedThisFrame is the edge itself and
+			// cannot be read as two, whatever the action type or how many devices are bound to it.
+			if (card && _pickAction && _pickAction.action != null && _pickAction.action.WasPressedThisFrame()) Pick(card);
 		}
 
 		private void Pick(PokerCardVisual card)
