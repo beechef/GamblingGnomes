@@ -60,22 +60,13 @@ namespace Game.Runtime.GameMode.Poker.Player
 			if (!_data) _data = GetComponentInParent<PokerPlayerData>();
 			if (!_handVisual) _handVisual = GetComponentInParent<PokerHandVisual>();
 
-			if (_pickAction && _pickAction.action != null)
-			{
-				_pickAction.action.performed += HandlePick;
-				_pickAction.action.Enable();
-			}
+			if (_pickAction && _pickAction.action != null) _pickAction.action.Enable();
 
 			RefreshStage();
 		}
 
 		public override void OnNetworkDespawn()
 		{
-			if (_pickAction && _pickAction.action != null)
-			{
-				_pickAction.action.performed -= HandlePick;
-			}
-
 			SetHovered(null);
 			ReleaseFocus();
 		}
@@ -98,15 +89,19 @@ namespace Game.Runtime.GameMode.Poker.Player
 				RefreshStage();
 			}
 
-			SetHovered(CanPick() ? Raycast() : null);
+			var card = CanPick() ? Raycast() : null;
+			SetHovered(card);
+
+			// Polled rather than taken from performed. UI/Click carries a binding per device and the virtual
+			// cursor is a real Mouse, so two controls actuating raise performed twice in one frame — which read
+			// as one click taking two cards, the second being whatever the first uncovered. A frame is the unit
+			// a click actually has, and asking for it here is also one less subscription to unwind.
+			if (card && _pickAction && _pickAction.action != null && _pickAction.action.WasPerformedThisFrame()) Pick(card);
 		}
 
-		private void HandlePick(InputAction.CallbackContext context)
+		private void Pick(PokerCardVisual card)
 		{
-			if (!IsOwner || !CanPick()) return;
-
-			var card = Raycast();
-			if (!card || !_handVisual) return;
+			if (!_handVisual) return;
 
 			var slot = _handVisual.SlotOf(card);
 			if (slot < 0 || !_data.CanLookAt(slot)) return;
