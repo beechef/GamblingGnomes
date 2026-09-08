@@ -37,7 +37,10 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 			{
 				if (!found) continue;
 
-				var controller = found.GetComponentInChildren<PropVariantController>(true);
+				// Searched upward: a target names the thing being pointed at — a cap, which carries its own
+				// controller, or a bone, whose controller is on the body it belongs to. One lookup covers both
+				// because a prop is always at or below whatever owns its looks.
+				var controller = found.GetComponentInParent<PropVariantController>(true);
 				if (!controller || _bound.Contains(controller)) continue;
 
 				_bound.Add(controller);
