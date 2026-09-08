@@ -17,6 +17,12 @@ namespace Game.Runtime.Controller
 		public static bool IsLocked => _baseLocked && _unlockRequests <= 0;
 		public static int UnlockRequests => _unlockRequests;
 
+		// Whether there is anything to point with, which is not the same question as whether the
+		// hardware cursor is free. A pad points with VirtualMouseInput's own device, so it can point at
+		// the table while the OS cursor stays locked away — and that is exactly the arrangement that
+		// lets the left stick turn the view with nothing held down.
+		public static bool IsPointing => !IsLocked || InputSchemeController.IsGamepad;
+
 		private static bool _baseLocked;
 		private static int _unlockRequests;
 		private static bool _applied;
