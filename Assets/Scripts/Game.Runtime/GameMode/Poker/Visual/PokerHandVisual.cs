@@ -115,6 +115,11 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			// hand answers "did anything change", and what has to be redrawn is "which one".
 			var turned = faceUp ^ _shownFaceUpMask;
 
+			// Exactly the slots that changed hands. Everything else is only closing the gap where it
+			// already lies, and PlaceAt arcs whatever it animates — so laying the whole row again made
+			// every card on the table jump each time one was picked up.
+			var moved = inHand ^ _shownInHandMask;
+
 			_shownFaceUpMask = faceUp;
 			_shownInHandMask = inHand;
 
@@ -128,7 +133,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 			// Lifted into the hand, or put back down on the table: either way the two groups have to be
 			// laid out again among their own members, so picking one card up closes the gap it left.
-			Layout();
+			Layout(moved);
 		}
 
 		private int CurrentInHandMask()
@@ -226,13 +231,13 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			var count = _data.CardCount;
 			for (var i = 0; i < count; i++) AddCard(CardAt(i), false);
 
-			Layout();
+			Layout(0);
 		}
 
 		// Two places a card can be: lying face down in front of its owner, or up in their hand. Each
 		// group is laid out among its own members, so picking one card up closes the gap on the table
 		// rather than leaving a hole where it was.
-		private void Layout(bool animate = true)
+		private void Layout(int animateMask = ~0)
 		{
 			var handAnchor = ResolveHandAnchor();
 			var tableAnchor = ResolveTableAnchor();
@@ -252,6 +257,8 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			{
 				var visual = _cards[i];
 				if (!visual) continue;
+
+				var animate = i < 31 && (animateMask & (1 << i)) != 0;
 
 				if (IsInHand(i))
 				{
