@@ -69,7 +69,7 @@ namespace Game.Runtime.GameMode.Poker
 
 		public IReadOnlyList<PokerSeat> Seats => _seats;
 		public IReadOnlyList<PokerModule> Modules => _modules;
-		public IReadOnlyList<PokerStage> Stages => _stageMachine.Stages;
+		public IReadOnlyList<PokerStage> Stages => _stageMachine != null ? _stageMachine.Stages : System.Array.Empty<PokerStage>();
 
 		// Seated players in seat order — the order the turn passes around the table.
 		public IReadOnlyList<PokerPlayer> SeatedPlayers => _seatedPlayers;
@@ -114,6 +114,13 @@ namespace Game.Runtime.GameMode.Poker
 		{
 			if (Instance && Instance != this)
 			{
+				// Loud, and switched off rather than only destroyed. Destroy is deferred to the end of the
+				// frame, so a duplicate left enabled goes on ticking with none of the state Awake would
+				// have built for it — which reads as a NullReferenceException every frame out of Update
+				// rather than as one line saying there are two tables in the scene.
+				Debug.LogWarning($"[PokerGameMode] A second table is already running; '{name}' is standing down.", this);
+
+				enabled = false;
 				Destroy(gameObject);
 				return;
 			}
@@ -132,6 +139,8 @@ namespace Game.Runtime.GameMode.Poker
 
 		public override void OnNetworkSpawn()
 		{
+			if (_stageMachine == null) return;
+
 			if (!_data) _data = GetComponentInChildren<PokerGameData>();
 			if (_seats.Count == 0) CollectRegisteredSeats();
 
@@ -184,7 +193,10 @@ namespace Game.Runtime.GameMode.Poker
 
 		private void Update()
 		{
-			if (!IsServer || !IsSpawned) return;
+			// The machine is built in Awake, and the one path that skips it is the duplicate standing
+			// down above. NGO spawns a scene object whether or not its component is enabled, so this
+			// has to be asked here too rather than trusted to the disable.
+			if (!IsServer || !IsSpawned || _stageMachine == null) return;
 
 			_stageMachine.Tick(Time.deltaTime);
 		}
@@ -289,7 +301,10 @@ namespace Game.Runtime.GameMode.Poker
 		// leaves frees the chair they were in rather than renumbering everyone behind them.
 		private void ServerSeatArrivals()
 		{
-			if (!IsServer || !IsSpawned) return;
+			// The machine is built in Awake, and the one path that skips it is the duplicate standing
+			// down above. NGO spawns a scene object whether or not its component is enabled, so this
+			// has to be asked here too rather than trusted to the disable.
+			if (!IsServer || !IsSpawned || _stageMachine == null) return;
 
 			foreach (var player in PokerPlayer.All)
 			{
@@ -433,7 +448,10 @@ namespace Game.Runtime.GameMode.Poker
 		// a body that never got the configured stats at all is touched — a fresh one is not in a hand.
 		private void ServerApplyStartingValues(bool resetPlayers)
 		{
-			if (!IsServer || !IsSpawned) return;
+			// The machine is built in Awake, and the one path that skips it is the duplicate standing
+			// down above. NGO spawns a scene object whether or not its component is enabled, so this
+			// has to be asked here too rather than trusted to the disable.
+			if (!IsServer || !IsSpawned || _stageMachine == null) return;
 
 			foreach (var player in PokerPlayer.All)
 			{

@@ -1,3 +1,5 @@
+using System;
+using System.Threading;
 using Game.Runtime.Controller;
 using UnityEngine;
 using UnityEngine.InputSystem.UI;
@@ -20,6 +22,7 @@ namespace Game.Runtime.UI
 		[SerializeField] private RectTransform _cursor;
 
 		private VirtualMouseInput _input;
+		private bool _applyQueued;
 
 		private void Awake()
 		{
@@ -43,12 +46,47 @@ namespace Game.Runtime.UI
 
 		private void HandleSchemeChanged(InputScheme scheme) => Refresh();
 
+		// Always deferred by a frame, and that is the whole point of it. Enabling or disabling
+		// VirtualMouseInput adds or removes a real InputDevice, while the scheme changes from inside
+		// InputSystem.onEvent — so applying it here tears the VirtualMouse out from under an action
+		// callback still running against it, and the InvalidOperationException that throws takes the rest
+		// of that callback list with it. The symptom is not an error anybody connects to input devices:
+		// it is the UI quietly refusing clicks.
+		//
+		// Collapsed rather than queued: Apply reads the scheme at the moment it runs, so several changes in
+		// one frame settle on the last one and a queue would only be spending frames repeating it.
 		private void Refresh()
+		{
+			if (_applyQueued) return;
+
+			_applyQueued = true;
+			_ = ApplyNextFrame(destroyCancellationToken);
+		}
+
+		private async Awaitable ApplyNextFrame(CancellationToken token)
+		{
+			try
+			{
+				await Awaitable.NextFrameAsync(token);
+
+				Apply();
+			}
+			catch (OperationCanceledException)
+			{
+				// Gone before the frame turned, so there is nothing left to apply it to.
+			}
+			finally
+			{
+				_applyQueued = false;
+			}
+		}
+
+		private void Apply()
 		{
 			var wanted = InputSchemeController.IsGamepad;
 
-			if (_input) _input.enabled = wanted;
-			if (_cursor) _cursor.gameObject.SetActive(wanted);
+			if (_input && _input.enabled != wanted) _input.enabled = wanted;
+			if (_cursor && _cursor.gameObject.activeSelf != wanted) _cursor.gameObject.SetActive(wanted);
 		}
 	}
 }
