@@ -5,9 +5,9 @@ using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker.Hallucination
 {
-	// The ladder a rising hallucination climbs. Each rung is a percentage and a pool: crossing it picks
-	// one effect out of that pool at random and leaves it running, so a player at the fourth rung is
-	// wearing all four at once. That accumulation is the design — the world does not swap appearance at
+	// The ladder a rising hallucination climbs. Each rung is a percentage and a pool: crossing it draws
+	// as many of that pool as the rung asks for and leaves them running, so a player at the fourth rung is
+	// wearing everything all four of them drew. That accumulation is the design — the world does not swap appearance at
 	// each tier, it gets worse.
 	//
 	// There is no "tier" type of its own: a tier is only ever a threshold with a pool behind it, so the
@@ -22,11 +22,17 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 			[PropertyRange(1, 100)]
 			[SerializeField] private int _threshold = 25;
 
-			[Tooltip("Effects this rung can draw. One is picked at random each time the rung is climbed, so a player who sobers and climbs back sees something new.")]
+			[Tooltip("Effects this rung can draw. They are picked at random each time the rung is climbed, so a player who sobers and climbs back sees something new.")]
 			[SerializeField] private List<PokerHallucinationEffect> _pool = new();
+
+			[Tooltip("How many of the pool are drawn together when this rung is climbed. Never the same one twice, so a pool shorter than this simply runs all of it.")]
+			[MinValue(1)]
+			[SerializeField] private int _drawCount = 1;
 
 			public int Threshold => Mathf.Clamp(_threshold, 1, 100);
 			public IReadOnlyList<PokerHallucinationEffect> Pool => _pool;
+
+			public int DrawCount => Mathf.Clamp(_drawCount, 1, Mathf.Max(1, _pool.Count));
 		}
 
 		[InfoBox("Order does not matter — each rung is found by its own threshold — but keeping them ascending is how anybody reads this asset.")]

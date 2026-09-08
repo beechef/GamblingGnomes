@@ -29,8 +29,12 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 		[Tooltip("Where the running effects are hung. Empty hangs them on this object, which is what a player prefab wants.")]
 		[SerializeField] private Transform _effectRoot;
 
-		// Rung index to the object running it. Absent means the rung is not climbed.
-		private readonly Dictionary<int, PokerHallucinationEffectBehaviour> _active = new();
+		// Rung index to the objects running for it. Absent means the rung is not climbed; a rung may draw
+		// several at once, and they come off together.
+		private readonly Dictionary<int, List<PokerHallucinationEffectBehaviour>> _active = new();
+
+		// Pool indices, shuffled as far as a draw needs. Reused rather than allocated per climb.
+		private readonly List<int> _drawOrder = new();
 
 		// The same set in rung order, for anything that wants to say what a player is under. Kept beside the
 		// dictionary rather than sorted on demand: it is rebuilt when a rung is climbed or lost, which is the
@@ -39,7 +43,7 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 
 		private bool _transitioning;
 
-		public int ActiveCount => _active.Count;
+		public int ActiveCount => _running.Count;
 
 #if UNITY_EDITOR
 		// What this player is under, in rung order. The effects are objects in the hierarchy now, but their
@@ -187,7 +191,12 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 			{
 				for (var i = 0; i < _tiers.Rungs.Count; i++)
 				{
-					if (_active.TryGetValue(i, out var behaviour) && behaviour) _running.Add(behaviour);
+					if (!_active.TryGetValue(i, out var behaviours)) continue;
+
+					foreach (var behaviour in behaviours)
+					{
+						if (behaviour) _running.Add(behaviour);
+					}
 				}
 			}
 		}
@@ -198,39 +207,69 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 			if (pool == null || pool.Count == 0) return;
 
 			// Drawn here rather than held on the rung, so two players on the same rung are not looking at
-			// the same thing and one player climbing it twice is not either.
-			var asset = pool[UnityEngine.Random.Range(0, pool.Count)];
-			if (!asset) return;
+			// the same thing and one player climbing it twice is not either. Shuffled rather than picked one
+			// at a time, because a rung asking for two must not be able to hand out the same effect twice —
+			// stacking a thing on itself is at best nothing and at worst two callers fighting over one bone.
+			_drawOrder.Clear();
+			for (var i = 0; i < pool.Count; i++) _drawOrder.Add(i);
 
-			// The asset is config and the object is the effect. The same effect is allowed to sit in two
-			// pools on purpose, so anything it mutates has to live per rung — an asset holding what it
-			// spawned would let the lower rung's End tear down what the higher one believes it owns, and one
-			// of the two would silently do nothing. An object per rung makes stacking work by construction,
-			// and it names what this player is seeing in the hierarchy, where it can be watched and retuned
-			// while it is on screen.
-			var behaviour = asset.Run(_effectRoot ? _effectRoot : transform, _player);
-			if (!behaviour) return;
+			var wanted = Mathf.Min(rung.DrawCount, _drawOrder.Count);
 
-			behaviour.name = $"Rung {index} ({rung.Threshold}%) - {asset.name}";
-			_active[index] = behaviour;
+			for (var i = 0; i < wanted; i++)
+			{
+				var pick = UnityEngine.Random.Range(i, _drawOrder.Count);
+				(_drawOrder[i], _drawOrder[pick]) = (_drawOrder[pick], _drawOrder[i]);
+			}
+
+			List<PokerHallucinationEffectBehaviour> running = null;
+
+			for (var i = 0; i < wanted; i++)
+			{
+				var asset = pool[_drawOrder[i]];
+				if (!asset) continue;
+
+				// The asset is config and the object is the effect. The same effect is allowed to sit in two
+				// pools on purpose, so anything it mutates has to live per rung — an asset holding what it
+				// spawned would let the lower rung's End tear down what the higher one believes it owns, and
+				// one of the two would silently do nothing. An object per draw makes stacking work by
+				// construction, and it names what this player is seeing in the hierarchy, where it can be
+				// watched and retuned while it is on screen.
+				var behaviour = asset.Run(_effectRoot ? _effectRoot : transform, _player);
+				if (!behaviour) continue;
+
+				behaviour.name = $"Rung {index} ({rung.Threshold}%) - {asset.name}";
+
+				running ??= new List<PokerHallucinationEffectBehaviour>();
+				running.Add(behaviour);
+			}
+
+			// A rung whose pool held nothing usable is left unclimbed rather than marked as running with an
+			// empty list, or the next Refresh reads it as done and never tries again.
+			if (running != null) _active[index] = running;
 		}
 
 		private void EndRung(int index)
 		{
-			if (!_active.TryGetValue(index, out var behaviour)) return;
+			if (!_active.TryGetValue(index, out var behaviours)) return;
 
 			_active.Remove(index);
 
-			// Stop is what takes the object down, on its own terms: an effect that eases out keeps its host
-			// alive for exactly as long as the ease takes.
-			if (behaviour) behaviour.Stop();
+			foreach (var behaviour in behaviours)
+			{
+				// Stop is what takes the object down, on its own terms: an effect that eases out keeps its
+				// host alive for exactly as long as the ease takes.
+				if (behaviour) behaviour.Stop();
+			}
 		}
 
 		private void EndAll()
 		{
 			foreach (var pair in _active)
 			{
-				if (pair.Value) pair.Value.Stop();
+				foreach (var behaviour in pair.Value)
+				{
+					if (behaviour) behaviour.Stop();
+				}
 			}
 
 			_active.Clear();
