@@ -56,6 +56,10 @@ namespace Game.Runtime.Player
 
 		private Material _runtimeOutlineMaterial;
 
+		// What a hallucination is painting this body with, or null. Kept here because this is the one
+		// place a renderer's materials are written, and it has to survive a skin change and an outline.
+		private Material _materialOverride;
+
 		private void Awake()
 		{
 			// Outfits ship with their own skeletons; rebinding onto the body rig lets one
@@ -118,17 +122,34 @@ namespace Game.Runtime.Player
 			ApplyOutline(current);
 		}
 
+		// One repaint for the whole body, composed here rather than written onto the renderers by
+		// whoever asked. Assigning materials replaces the array outright, so a second writer would
+		// silently undo the first — which is exactly what the outline does every time it is hung.
+		public void SetMaterialOverride(Material material)
+		{
+			if (_materialOverride == material) return;
+
+			_materialOverride = material;
+			ApplySkin(_skinIndex.Value);
+		}
+
 		private void ApplySkin(int skinIndex)
 		{
 			if (skinIndex < 0 || skinIndex >= _skins.Count) return;
 
 			var skin = _skins[skinIndex];
 
-			ApplyMaterial(_bodyMeshRenderers, skin.BodyMaterial);
-			ApplyMaterial(_handOnlyBodyMeshRenderers, skin.BodyMaterial);
-			ApplyMaterial(_outfitMeshRenderer, skin.OutfitMaterial);
-			ApplyMaterial(_handOnlyOutfitMeshRenderer, skin.OutfitMaterial);
-			ApplyMaterial(_hatRenderer, skin.HatMaterial);
+			// The override stands in for whatever the skin would have painted, so a hallucination covers
+			// every piece the rig is cut into rather than the ones the skin happens to name.
+			var body = _materialOverride ? _materialOverride : skin.BodyMaterial;
+			var outfit = _materialOverride ? _materialOverride : skin.OutfitMaterial;
+			var hat = _materialOverride ? _materialOverride : skin.HatMaterial;
+
+			ApplyMaterial(_bodyMeshRenderers, body);
+			ApplyMaterial(_handOnlyBodyMeshRenderers, body);
+			ApplyMaterial(_outfitMeshRenderer, outfit);
+			ApplyMaterial(_handOnlyOutfitMeshRenderer, outfit);
+			ApplyMaterial(_hatRenderer, hat);
 
 			// Assigning a material replaces the whole list, so the pass sitting on top of it is hung again.
 			ApplyOutline(Outlined.Value);
