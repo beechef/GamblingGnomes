@@ -80,8 +80,16 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 
 			// Drawn here rather than held on the rung, so two players on the same rung are not looking at
 			// the same thing and one player climbing it twice is not either.
-			var effect = pool[Random.Range(0, pool.Count)];
-			if (!effect) return;
+			var asset = pool[Random.Range(0, pool.Count)];
+			if (!asset) return;
+
+			// Cloned rather than run from the asset. The same effect is allowed to sit in two pools on
+			// purpose, and an asset holding what it spawned would let the lower rung's End tear down what
+			// the higher rung thinks it owns — so one of the two would silently do nothing. A clone per
+			// rung is one object each, which makes stacking work by construction and lets every effect be
+			// written with plain fields instead of a dictionary keyed by viewer.
+			var effect = Instantiate(asset);
+			effect.name = asset.name;
 
 			_active[index] = effect;
 			effect.Begin(_player);
@@ -93,14 +101,20 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 
 			_active.Remove(index);
 
-			if (effect) effect.End(_player);
+			if (!effect) return;
+
+			effect.End(_player);
+			Destroy(effect);
 		}
 
 		private void EndAll()
 		{
 			foreach (var pair in _active)
 			{
-				if (pair.Value) pair.Value.End(_player);
+				if (!pair.Value) continue;
+
+				pair.Value.End(_player);
+				Destroy(pair.Value);
 			}
 
 			_active.Clear();

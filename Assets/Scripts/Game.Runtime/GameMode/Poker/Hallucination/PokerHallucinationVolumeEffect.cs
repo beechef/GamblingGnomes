@@ -29,13 +29,13 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 		[Tooltip("Where this rung sits against the others. Higher rungs should sit above lower ones.")]
 		[SerializeField] private int _priority = 10;
 
-		// One live Volume per asset would be a shared mutable on a ScriptableObject; the host is tracked
-		// per viewer instead, so the same asset can be drawn by two players in one editor session.
-		private readonly System.Collections.Generic.Dictionary<PokerPlayer, Volume> _volumes = new();
+		// One field, because the controller clones this asset per rung: a clone is already one effect on
+		// one screen, so there is nothing left to key by.
+		private Volume _volume;
 
 		protected override void OnBegin(PokerPlayer viewer)
 		{
-			if (!_profile || _volumes.ContainsKey(viewer)) return;
+			if (!_profile || _volume) return;
 
 			var host = new GameObject($"Hallucination_{name}");
 			var volume = host.AddComponent<Volume>();
@@ -44,7 +44,7 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 			volume.profile = _profile;
 			volume.weight = 0f;
 
-			_volumes[viewer] = volume;
+			_volume = volume;
 
 			DOTween.To(() => volume.weight, w => volume.weight = w, _weight, _fadeDuration)
 				.SetTarget(volume)
@@ -53,9 +53,8 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 
 		protected override void OnEnd(PokerPlayer viewer)
 		{
-			if (!_volumes.TryGetValue(viewer, out var volume)) return;
-
-			_volumes.Remove(viewer);
+			var volume = _volume;
+			_volume = null;
 			if (!volume) return;
 
 			DOTween.Kill(volume);
