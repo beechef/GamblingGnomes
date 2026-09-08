@@ -197,29 +197,6 @@ namespace Game.Runtime.GameMode.Poker
 		// eaters' throats in pot order — ties share the plate unit by unit — and each one does whatever
 		// its kind does. Nothing is ever paid out: winning here is worth exactly not having to eat,
 		// the same shape as the report's "an accusation costs the loser; it never pays the winner".
-		public static void FeedPot(PokerGameData data, IReadOnlyList<PokerPlayer> eaters,
-			PokerItemDatabase database, PokerGameMode gameMode)
-		{
-			var pot = data.Pot.Value;
-			data.Pot.Value = 0;
-
-			if (pot > 0 && eaters.Count > 0)
-			{
-				for (var i = 0; i < data.PotItems.Count; i++)
-				{
-					var eater = eaters[i % eaters.Count];
-					if (!eater || !eater.Data) continue;
-
-					if (database && database.TryGetEntry(data.PotItems[i].ItemTypeIndex, out var entry) && entry.Effect)
-					{
-						entry.Effect.ConsumeServer(gameMode, eater, data.PotItems[i].ItemTypeIndex);
-					}
-				}
-			}
-
-			data.PotItems.Clear();
-		}
-
 		// A player is done when they have had a say and are square with the current bet. All in players
 		// have nothing left to say, and folded players are out of the conversation entirely.
 		public static bool IsBettingComplete(PokerGameData data, IReadOnlyList<PokerPlayer> players)

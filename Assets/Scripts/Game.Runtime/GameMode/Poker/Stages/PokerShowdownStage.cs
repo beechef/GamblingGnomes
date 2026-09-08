@@ -34,7 +34,6 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		private readonly List<Contender> _ranking = new();
 		private readonly List<(PokerPlayer Player, int RankGroup)> _contenders = new();
 		private readonly Dictionary<ulong, int> _winnings = new();
-		private readonly List<PokerPlayer> _eaters = new();
 
 		private readonly struct Contender
 		{
@@ -61,21 +60,15 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			var winner = _contenders.Count > 0 ? _contenders[0].Player : null;
 			Data.LastWinnerClientId.Value = winner ? winner.ClientId : PokerGameData.NoTurn;
 
-			switch (_settlement)
+			if (_settlement == PokerSettlement.LosersEatWinnersWager)
 			{
-				case PokerSettlement.LoserEatsPot:
-					SettleByEating();
-					break;
-
-				case PokerSettlement.LosersEatWinnersWager:
-					PokerTableUtility.ServeFromWinner(Data, winner, GameMode.SeatedPlayers,
-						GameMode.ItemDatabase, _foldPhase,
-						GameMode.FindModule<Modules.PokerAbilityModule>());
-					break;
-
-				default:
-					PokerTableUtility.SettlePots(Data, GameMode.SeatedPlayers, _contenders, _winnings);
-					break;
+				PokerTableUtility.ServeFromWinner(Data, winner, GameMode.SeatedPlayers,
+					GameMode.ItemDatabase, _foldPhase,
+					GameMode.FindModule<Modules.PokerAbilityModule>());
+			}
+			else
+			{
+				PokerTableUtility.SettlePots(Data, GameMode.SeatedPlayers, _contenders, _winnings);
 			}
 
 			PublishRanking();
@@ -116,28 +109,6 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 			GameMode.EndGame();
 			FinishStage(_idleStage);
-		}
-
-		// Eaten by the weakest hand rather than won by the best; ties at the bottom share the plate. A
-		// hand that ends with a single player standing has nobody who lost to anybody, so the pot is
-		// thrown away rather than fed to the only survivor — everyone else folding out of the plate is
-		// exactly what folding is for here.
-		private void SettleByEating()
-		{
-			_winnings.Clear();
-			_eaters.Clear();
-
-			if (_contenders.Count > 1)
-			{
-				var worstGroup = _contenders[^1].RankGroup;
-
-				foreach (var (player, rankGroup) in _contenders)
-				{
-					if (rankGroup == worstGroup) _eaters.Add(player);
-				}
-			}
-
-			PokerTableUtility.FeedPot(Data, _eaters, GameMode.ItemDatabase, GameMode);
 		}
 
 		private void ResolveContenders()
