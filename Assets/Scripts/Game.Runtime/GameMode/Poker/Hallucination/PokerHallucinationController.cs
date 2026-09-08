@@ -3,6 +3,7 @@ using System.Threading;
 using System.Collections.Generic;
 using Game.Runtime.GameMode.Poker.Player;
 using Unity.Netcode;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker.Hallucination
@@ -31,9 +32,36 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 		// Rung index to the object running it. Absent means the rung is not climbed.
 		private readonly Dictionary<int, PokerHallucinationEffectBehaviour> _active = new();
 
+		// The same set in rung order, for anything that wants to say what a player is under. Kept beside the
+		// dictionary rather than sorted on demand: it is rebuilt when a rung is climbed or lost, which is the
+		// only time it can change.
+		private readonly List<PokerHallucinationEffectBehaviour> _running = new();
+
 		private bool _transitioning;
 
 		public int ActiveCount => _active.Count;
+
+#if UNITY_EDITOR
+		// What this player is under, in rung order. The effects are objects in the hierarchy now, but their
+		// names carry the rung and the asset, and reading them off one line beats picking through children
+		// while trying to work out why the room looks like that. Editor only: it builds strings, and nothing
+		// at runtime asks.
+		[ShowInInspector, ReadOnly, PropertyOrder(100), LabelText("Running")]
+		private List<string> RunningEffects
+		{
+			get
+			{
+				var names = new List<string>();
+
+				foreach (var effect in _running)
+				{
+					if (effect) names.Add(effect.name);
+				}
+
+				return names;
+			}
+		}
+#endif
 
 		// The whole blink, start to finish. The rungs land halfway through it, and the view that draws
 		// the eyelids reads this same number rather than carrying one of its own to keep in step.
@@ -147,6 +175,21 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 				if (climbed) BeginRung(i, rung);
 				else EndRung(i);
 			}
+
+			RebuildRunning();
+		}
+
+		private void RebuildRunning()
+		{
+			_running.Clear();
+
+			if (_tiers != null)
+			{
+				for (var i = 0; i < _tiers.Rungs.Count; i++)
+				{
+					if (_active.TryGetValue(i, out var behaviour) && behaviour) _running.Add(behaviour);
+				}
+			}
 		}
 
 		private void BeginRung(int index, PokerHallucinationTiers.Rung rung)
@@ -191,6 +234,7 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 			}
 
 			_active.Clear();
+			RebuildRunning();
 		}
 	}
 }

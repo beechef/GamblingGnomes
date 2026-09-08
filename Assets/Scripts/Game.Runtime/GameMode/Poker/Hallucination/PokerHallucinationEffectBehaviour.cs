@@ -16,6 +16,10 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 
 		public PokerPlayer Viewer { get; private set; }
 
+		// What this is, in the words the asset was named with. Taken at Begin rather than read off the config
+		// later, so a readout can still say what came off after the clone is gone.
+		public string DisplayName { get; private set; }
+
 		// An effect that eases out needs its host to outlive the moment it was taken off, or the tween is
 		// killed with the object carrying it and the world snaps back.
 		protected virtual float LingerSeconds => 0f;
@@ -26,6 +30,7 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 
 			_running = true;
 			Viewer = viewer;
+			DisplayName = config ? config.name : string.Empty;
 
 			OnBegin(config);
 		}
