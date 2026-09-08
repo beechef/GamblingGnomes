@@ -39,6 +39,7 @@ namespace Game.Runtime.UI
 		// back up. Hover works and nothing can ever be clicked. An action nothing else binds cannot close it.
 		private InputAction _click;
 		private bool _applyQueued;
+		private bool _warned;
 
 		private bool _actionsHeld;
 		private InputActionProperty _stick;
@@ -117,7 +118,19 @@ namespace Game.Runtime.UI
 			// A pad only gets an arrow where there is something in the world to point at. A menu is driven by
 			// uGUI's own focus, and an arrow drawn beside a moving selection is two pointers answering one
 			// hand — the same argument that keeps it off a keyboard.
-			var wanted = InputSchemeController.IsGamepad && CursorController.IsPointerWanted;
+			var gamepad = InputSchemeController.IsGamepad;
+			var pointerWanted = CursorController.IsPointerWanted;
+			var wanted = gamepad && pointerWanted;
+
+			// Said once, the first time a pad is in hand and the arrow is still withheld. There are exactly
+			// two reasons that can happen and they need different fixes — nobody has asked for a pointer
+			// (a menu, or no table yet), or the pad never registered as the device in hand — and without
+			// this the two are the same silence.
+			if (gamepad && !pointerWanted && !_warned)
+			{
+				_warned = true;
+				Debug.LogWarning("[UIVirtualCursor] A pad is in hand but nothing has asked for a pointer, so no cursor is drawn. A menu is expected to be driven by uGUI's own focus; at a table this means TableCursorController never enabled.", this);
+			}
 
 			if (_input && _input.enabled != wanted)
 			{
