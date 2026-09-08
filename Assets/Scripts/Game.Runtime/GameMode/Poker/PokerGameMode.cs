@@ -102,6 +102,27 @@ namespace Game.Runtime.GameMode.Poker
 		// the same count the host's button is gated on, so a table that could be started can be continued.
 		public bool CanDealAnotherHand => _rules && FundedPlayerCount >= _rules.MinimumPlayersToStart;
 
+		// Whether the host may press start. The host holds the button rather than a hand, so their own seat
+		// counts as company even when they have gone under — a table whose host is unconscious would otherwise
+		// have no way back at all, since nothing revives a player between matches unless the idle stage is
+		// told to. Pressing it does not bring them round: the deal marks them out of the running like anybody
+		// else and they watch the match they started. This is a gate about who may press, never about who is
+		// dealt in, which is why the deal goes on asking CanBeDealtIn for itself.
+		public bool CanStartMatch
+		{
+			get
+			{
+				if (!_rules) return false;
+
+				var count = FundedPlayerCount;
+				var host = FindSeatedPlayer(NetworkManager.ServerClientId);
+
+				if (host && host.Data && !CanBeDealtIn(host.Data)) count++;
+
+				return count >= _rules.MinimumPlayersToStart;
+			}
+		}
+
 		public event Action OnSeatedPlayersChanged;
 		public event Action<PokerStage> OnStageChanged;
 
@@ -475,7 +496,7 @@ namespace Game.Runtime.GameMode.Poker
 		{
 			if (!IsServer) return;
 			if (IsGameRunning) return;
-			if (FundedPlayerCount < _rules.MinimumPlayersToStart) return;
+			if (!CanStartMatch) return;
 
 			foreach (var module in _modules)
 			{

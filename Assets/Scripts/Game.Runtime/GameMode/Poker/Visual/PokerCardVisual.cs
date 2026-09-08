@@ -49,7 +49,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		private Tween _moveTween;
 		private Tween _hoverTween;
 		private bool _initialized;
-		private float _hoverLift;
+		private float _lift;
 		private float _restLocalZ;
 
 		public CardData Card { get; private set; }
@@ -81,7 +81,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			// A card that is travelling is not a card being hovered: the lift is measured off wherever the
 			// card comes to rest, so it has to be forgotten before the rest changes.
 			_hoverTween?.Kill();
-			_hoverLift = 0f;
+			_lift = 0f;
 			_restLocalZ = localPosition.z;
 
 			if (transform.parent != parent) transform.SetParent(parent, true);
@@ -133,13 +133,15 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			ResizeCollider();
 		}
 
-		// A card under the cursor rises a little so the player can see which one they are about to take.
+		// How far the card stands off the table: under the cursor, or chosen and waiting for the rest of the
+		// hand to be chosen with it. One number rather than one per reason, because a card can only be at one
+		// height and whoever is asking already knows which of the two it is.
 		// Applied to the root rather than the flip root, which the flip owns outright.
-		public void SetHoverLift(float lift)
+		public void SetLift(float lift)
 		{
-			if (Mathf.Approximately(_hoverLift, lift)) return;
+			if (Mathf.Approximately(_lift, lift)) return;
 
-			_hoverLift = lift;
+			_lift = lift;
 			_hoverTween?.Kill();
 			_hoverTween = transform.DOLocalMoveZ(_restLocalZ - lift, 0.12f).SetEase(Ease.OutCubic);
 		}

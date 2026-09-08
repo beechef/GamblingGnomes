@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Game.Runtime.Controller;
 using Game.Runtime.GameMode.Poker.Stages;
 using Game.Runtime.GameMode.Poker.Visual;
@@ -37,6 +38,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 		[Tooltip("How far a card lifts while the cursor is over it, so the player can see which one they are about to take.")]
 		[SerializeField] private float _hoverLift = 0.015f;
 
+		[Tooltip("How far a chosen card stands off the table. Higher than the hover, so a hand half chosen reads at a glance.")]
+		[SerializeField] private float _selectedLift = 0.035f;
+
 		[Header("Camera")]
 		[Tooltip("Takes the view to the card while it is being picked up. Empty leaves the camera alone.")]
 		[SerializeField] private PlayerCameraController _camera;
@@ -46,6 +50,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 
 		private readonly RaycastHit[] _hits = new RaycastHit[8];
+
+		private readonly List<PokerCardVisual> _selected = new();
+		private readonly List<PokerCardVisual> _liftBuffer = new();
 
 		private PokerCardVisual _hovered;
 
@@ -120,19 +127,66 @@ namespace Game.Runtime.GameMode.Poker.Player
 			Pick(card);
 		}
 
+		// Chosen rather than taken. A card lifted the moment it is clicked is a decision the player cannot
+		// take back, and the round asks for several at once — so a click marks a card, a click on a marked
+		// card puts it back down, and only a full hand is committed. Nothing leaves the table until then,
+		// which is also what keeps the server out of a half-made mind.
 		private void Pick(PokerCardVisual card)
 		{
 			if (!_handVisual) return;
 
 			var slot = _handVisual.SlotOf(card);
-			if (slot < 0 || !_data.CanLookAt(slot)) return;
+			if (slot < 0) return;
 
-			_data.LookAtHoleCardRPC(slot);
+			if (_selected.Remove(card))
+			{
+				ApplyLift(card);
+				return;
+			}
 
-			// It is in the hand now, so it is no longer something to reach for. The set is re-opened by the
-			// stage rather than here, which keeps "may anyone pick" in one place.
-			card.Pickupable = false;
+			if (!_data.CanLookAt(slot)) return;
+
+			_selected.Add(card);
+			ApplyLift(card);
+
+			if (_selected.Count >= Remaining) Commit();
+		}
+
+		// How many more this player is still owed. Read rather than assumed to be the whole hand, so a round
+		// that hands out its looks in more than one beat commits each of them on its own count.
+		private int Remaining => _data ? Mathf.Max(0, _data.ViewableHoleCards.Value - _data.LookedAtCount) : 0;
+
+		private void Commit()
+		{
+			foreach (var card in _selected)
+			{
+				if (!card) continue;
+
+				var slot = _handVisual.SlotOf(card);
+				if (slot < 0 || !_data.CanLookAt(slot)) continue;
+
+				_data.LookAtHoleCardRPC(slot);
+
+				// It is in the hand now, so it is no longer something to reach for. The set is re-opened by the
+				// stage rather than here, which keeps "may anyone pick" in one place.
+				card.Pickupable = false;
+			}
+
+			ClearSelection();
 			SetHovered(null);
+		}
+
+		private void ClearSelection()
+		{
+			// Copied out before the list is emptied: a card put back down is only at rest once nothing still
+			// claims it, and ApplyLift asks the list.
+			_liftBuffer.Clear();
+			_liftBuffer.AddRange(_selected);
+			_selected.Clear();
+
+			foreach (var card in _liftBuffer) ApplyLift(card);
+
+			_liftBuffer.Clear();
 		}
 
 		// The whole beat, not one pick: the view is held on the cards for as long as the round is asking
@@ -146,13 +200,18 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 			var mode = PokerGameMode.Instance;
 			var stage = mode ? mode.FindStage(mode.Data.StageId.Value.ToString()) : null;
-			var picking = stage is PokerCardLookStage;
+			// Only somebody who was dealt into this hand is being asked anything: a player who took a chair
+			// mid round has no cards to turn, so taking their view down to a row of nobody else's would be a
+			// shot of the table with the game happening somewhere above it.
+			var picking = stage is PokerCardLookStage && _data && _data.IsInHand;
 
 			if (picking == _picking) return;
 
 			_picking = picking;
 
 			if (_handVisual) _handVisual.SetPickupable(picking);
+
+			if (!picking) ClearSelection();
 
 			if (picking) HoldFocus();
 			else ReleaseFocus();
@@ -229,11 +288,21 @@ namespace Game.Runtime.GameMode.Poker.Player
 		{
 			if (_hovered == card) return;
 
-			if (_hovered) _hovered.SetHoverLift(0f);
-
+			var previous = _hovered;
 			_hovered = card;
 
-			if (_hovered) _hovered.SetHoverLift(_hoverLift);
+			ApplyLift(previous);
+			ApplyLift(card);
+		}
+
+		// One height, decided in one place: being chosen outranks being under the cursor, so a card the
+		// player has picked does not drop back down when the pointer wanders off it.
+		private void ApplyLift(PokerCardVisual card)
+		{
+			if (!card) return;
+
+			if (_selected.Contains(card)) card.SetLift(_selectedLift);
+			else card.SetLift(card == _hovered ? _hoverLift : 0f);
 		}
 	}
 }
