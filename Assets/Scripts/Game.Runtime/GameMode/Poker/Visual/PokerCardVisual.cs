@@ -9,8 +9,10 @@ namespace Game.Runtime.GameMode.Poker.Visual
 	public class PokerCardVisual : MonoBehaviour
 	{
 		[Header("Renderers")]
-		[SerializeField] private SpriteRenderer _frontRenderer;
-		[SerializeField] private SpriteRenderer _backRenderer;
+		[Tooltip("The face. A quad rather than a sprite, because a SpriteRenderer draws one material and nothing else: an effect hanging a second pass on a card would be stored and never rendered.")]
+		[SerializeField] private MeshRenderer _frontRenderer;
+
+		[SerializeField] private MeshRenderer _backRenderer;
 		[SerializeField] private PokerCardDatabase _database;
 
 		[Header("Flip")]
@@ -56,6 +58,16 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		// same localPosition would each erase the other's answer.
 		private float _lift;
 		private float _flipLift;
+
+		// The face this card is currently showing. Kept because the sprite is what knows how big a card is,
+		// and the renderer no longer holds one.
+		private Sprite _face;
+
+		// One block, reused. Each card shows a different picture, so the texture is per-renderer state rather
+		// than per-material — a material each would be one more material per card in the deal.
+		private static MaterialPropertyBlock _block;
+
+		private static readonly int BaseMapId = Shader.PropertyToID("_BaseMap");
 
 		public CardData Card { get; private set; }
 		public bool FaceUp { get; private set; } = true;
@@ -130,12 +142,41 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			if (_database)
 			{
 				// A hand this client may not see shows its back from both sides rather than a blank face.
-				if (_frontRenderer) _frontRenderer.sprite = faceUp ? _database.GetFace(card) : _database.CardBack;
-				if (_backRenderer) _backRenderer.sprite = _database.CardBack;
+				_face = faceUp ? _database.GetFace(card) : _database.CardBack;
+
+				Draw(_frontRenderer, _face);
+				Draw(_backRenderer, _database.CardBack);
 			}
 
 			Flip(faceUp, animateFlip);
 			ResizeCollider();
+		}
+
+		// A card's picture onto its quad. One texture per card, so the whole of it is the card and the UVs
+		// are the quad's own — no atlas rectangle to carry, which is a tiling and offset that has to be
+		// right on every card and is wrong in silence when it is not. The quad is 1x1, so scaling it by the
+		// sprite's own bounds reproduces exactly what the SpriteRenderer drew.
+		private static void Draw(MeshRenderer renderer, Sprite sprite)
+		{
+			if (!renderer) return;
+
+			// Nothing to show is switched off rather than left holding the last card's face.
+			if (!sprite || !sprite.texture)
+			{
+				renderer.enabled = false;
+				return;
+			}
+
+			renderer.enabled = true;
+
+			_block ??= new MaterialPropertyBlock();
+
+			renderer.GetPropertyBlock(_block);
+			_block.SetTexture(BaseMapId, sprite.texture);
+			renderer.SetPropertyBlock(_block);
+
+			var size = sprite.bounds.size;
+			renderer.transform.localScale = new Vector3(size.x, size.y, 1f);
 		}
 
 		// How far the card stands off the table: under the cursor, or chosen and waiting for the rest of the
@@ -180,10 +221,12 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		// scales converts it, and cancels any scale an anchor above adds along with it.
 		private void ResizeCollider()
 		{
-			if (!_collider || !_frontRenderer || !_frontRenderer.sprite) return;
+			if (!_collider || !_frontRenderer || !_face) return;
 
-			var factor = RelativeScale(_frontRenderer.transform, _collider.transform);
-			var bounds = _frontRenderer.sprite.bounds;
+			// Measured against the pivot, not the renderer: the quad now carries the card's size in its own
+			// localScale, so asking the renderer would count that size twice.
+			var factor = RelativeScale(FlipRoot, _collider.transform);
+			var bounds = _face.bounds;
 
 			var size = Vector3.Scale(bounds.size, factor);
 

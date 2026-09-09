@@ -1,6 +1,8 @@
 using DG.Tweening;
+using Game.Runtime.Player;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Game.Runtime.GameMode.Poker.Hallucination
 {
@@ -14,8 +16,12 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 		[Required]
 		[SerializeField] private PokerHallucinationTarget _target;
 
-		[Tooltip("Multiplied onto the bone's authored scale. Two is twice the size, half is half.")]
-		[SerializeField] private Vector3 _multiplier = new(2f, 2f, 2f);
+		[Tooltip("Per axis, so a head can be made tall without being made wide. What it does with the bone's authored scale is the mode below.")]
+		[FormerlySerializedAs("_multiplier")]
+		[SerializeField] private Vector3 _scale = new(2f, 2f, 2f);
+
+		[Tooltip("How this joins whatever else is already on the bone. Multiply composes — a swell and a shrink running together cancel out rather than one erasing the other.")]
+		[SerializeField] private PlayerBoneScaleMode _mode = PlayerBoneScaleMode.Multiply;
 
 		[Tooltip("Seconds it takes to grow. Snapping reads as a bug rather than as a symptom.")]
 		[SerializeField] private float _duration = 1.2f;
@@ -23,7 +29,8 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 		[SerializeField] private Ease _ease = Ease.OutBack;
 
 		public PokerHallucinationTarget Target => _target;
-		public Vector3 Multiplier => _multiplier;
+		public Vector3 Scale => _scale;
+		public PlayerBoneScaleMode Mode => _mode;
 		public float Duration => Mathf.Max(0f, _duration);
 		public Ease Ease => _ease;
 

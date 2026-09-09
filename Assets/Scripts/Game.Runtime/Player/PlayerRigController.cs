@@ -8,6 +8,22 @@ namespace Game.Runtime.Player
 	// position asks here instead of picking one rig and being right on one machine out of two.
 	public class PlayerRigController : NetworkBehaviour
 	{
+		// The feature component of a body something on that body belongs to. Bones live under Models/, and
+		// the feature components live on named children of the player root — two branches that never meet,
+		// so `GetComponentInParent` from a bone walks straight past every one of them and returns null. It
+		// did exactly that for the whole life of the bone scale and material effects, which then skipped in
+		// silence: an effect that resolved its targets and did nothing at all.
+		//
+		// This component is the anchor because it sits on the root itself. Up to the body, then down.
+		public static T FindOnBody<T>(Transform from) where T : Component
+		{
+			if (!from) return null;
+
+			var rig = from.GetComponentInParent<PlayerRigController>(true);
+
+			return rig ? rig.GetComponentInChildren<T>(true) : null;
+		}
+
 		[Header("Rigs")]
 		[SerializeField] private PlayerBoneRig _fullBodyRig;
 		[SerializeField] private PlayerBoneRig _handOnlyRig;

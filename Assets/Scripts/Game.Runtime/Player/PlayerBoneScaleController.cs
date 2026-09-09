@@ -9,92 +9,125 @@ namespace Game.Runtime.Player
 	// positions. This writes in LateUpdate, after the Animator and before the Cinemachine brain samples,
 	// because a scaled head moves the camera hanging off it.
 	//
-	// Rest is captured once and every frame writes rest times the multiplier, never the value read back —
-	// so a bone the clips do not animate cannot compound its own last write into the next one.
+	// A bone is a base and a list of modifiers, and both appear only when somebody asks for them: a rig
+	// nobody is scaling holds no state and its LateUpdate returns on the first line. The base is the scale
+	// the bone was authored with, read once as the list is created — every frame rebuilds from that rather
+	// than from the value read back, so a bone the clips do not animate cannot compound its own last write
+	// into the next one.
+	//
+	// Modifiers **compose**: an effect that doubles a head and an effect that halves it both apply, and the
+	// head comes out its authored size. The answer this replaced was last-caller-wins, where a shrink
+	// arriving during a swell did not fight it but silently erased it — two effects the hallucination
+	// ladder is free to draw together, one of them quietly doing nothing.
+	//
+	// Multiplies are gathered apart from adds, so **the result does not depend on the order they arrived
+	// in**: `base × ∏multipliers + ∑adds`. Two effects registering either way round give the same bone.
 	//
 	// It carries no game meaning. What a swollen head means is the caller's business.
 	[DefaultExecutionOrder(50)]
 	public class PlayerBoneScaleController : MonoBehaviour
 	{
-		private class Entry
+		// A bone's own stack. Built the first time that bone is modified and thrown away with the last
+		// modifier on it, so what this component costs is what is actually being scaled right now.
+		private class BoneStack
 		{
-			public object Handle;
-			public Transform Bone;
-			public Vector3 Multiplier;
+			public Vector3 Base;
+			public readonly List<PlayerBoneScaleModifier> Modifiers = new();
 		}
 
-		private readonly List<Entry> _entries = new();
-		private readonly Dictionary<Transform, Vector3> _rest = new();
+		private readonly Dictionary<Transform, BoneStack> _bones = new();
 
-		public int Count => _entries.Count;
+		public int BoneCount => _bones.Count;
 
-		// Last one in wins where two callers name the same bone, which is the simplest answer that is still
-		// a decision: the alternative is multiplying them together, and two effects that each double a head
-		// would quadruple it without anybody having asked for that.
-		public void Set(object handle, Transform bone, Vector3 multiplier)
+		// The caller keeps what comes back and writes into it. Nothing is removed by handing in the same
+		// arguments again — two calls are two modifiers, which is what lets one effect stack with itself
+		// across two rungs without either of them knowing about the other.
+		public PlayerBoneScaleModifier Add(Transform bone, Vector3 value, PlayerBoneScaleMode mode = PlayerBoneScaleMode.Multiply)
 		{
-			if (handle == null || !bone) return;
+			if (!bone) return null;
 
-			if (!_rest.ContainsKey(bone)) _rest[bone] = bone.localScale;
-
-			foreach (var entry in _entries)
+			if (!_bones.TryGetValue(bone, out var stack))
 			{
-				if (entry.Handle != handle || entry.Bone != bone) continue;
-
-				entry.Multiplier = multiplier;
-				return;
+				// The authored scale, read at the one moment it is still there to read: after this the bone
+				// carries whatever the stack resolves to.
+				stack = new BoneStack { Base = bone.localScale };
+				_bones[bone] = stack;
 			}
 
-			_entries.Add(new Entry { Handle = handle, Bone = bone, Multiplier = multiplier });
+			var modifier = new PlayerBoneScaleModifier
+			{
+				Value = value,
+				Mode = mode,
+				Owner = this,
+				Bone = bone
+			};
+
+			stack.Modifiers.Add(modifier);
+			return modifier;
 		}
 
-		public void Clear(object handle)
+		// Called through PlayerBoneScaleModifier.Remove, which is where a caller reaches for it.
+		internal void Remove(PlayerBoneScaleModifier modifier)
 		{
-			if (handle == null) return;
+			if (modifier == null || !modifier.Bone) return;
+			if (!_bones.TryGetValue(modifier.Bone, out var stack)) return;
 
-			for (var i = _entries.Count - 1; i >= 0; i--)
+			stack.Modifiers.Remove(modifier);
+			if (stack.Modifiers.Count > 0) return;
+
+			// The last one off puts the bone back where it was authored and takes the stack with it.
+			if (modifier.Bone) modifier.Bone.localScale = stack.Base;
+			_bones.Remove(modifier.Bone);
+		}
+
+		// What this bone comes out at with everything currently on it. Public because the answer is worth
+		// reading while tuning two effects that are meant to work together.
+		public Vector3 Resolve(Transform bone)
+		{
+			if (!bone) return Vector3.one;
+
+			return _bones.TryGetValue(bone, out var stack) ? Resolve(stack) : bone.localScale;
+		}
+
+		private static Vector3 Resolve(BoneStack stack)
+		{
+			var product = Vector3.one;
+			var sum = Vector3.zero;
+
+			foreach (var modifier in stack.Modifiers)
 			{
-				if (_entries[i].Handle != handle) continue;
-
-				var bone = _entries[i].Bone;
-				_entries.RemoveAt(i);
-				RestoreIfUnclaimed(bone);
+				if (modifier.Mode == PlayerBoneScaleMode.Multiply) product = Vector3.Scale(product, modifier.Value);
+				else sum += modifier.Value;
 			}
+
+			return Vector3.Scale(stack.Base, product) + sum;
 		}
 
 		private void OnDisable()
 		{
-			foreach (var pair in _rest)
+			foreach (var pair in _bones)
 			{
-				if (pair.Key) pair.Key.localScale = pair.Value;
+				if (pair.Key) pair.Key.localScale = pair.Value.Base;
+
+				// Orphaned rather than left pointing here: a modifier outliving this component must not put
+				// a bone back through a stack that no longer exists.
+				foreach (var modifier in pair.Value.Modifiers) modifier.Owner = null;
 			}
 
-			_entries.Clear();
-			_rest.Clear();
+			_bones.Clear();
 		}
 
-		private void RestoreIfUnclaimed(Transform bone)
-		{
-			if (!bone) return;
-
-			foreach (var entry in _entries)
-			{
-				if (entry.Bone == bone) return;
-			}
-
-			if (_rest.TryGetValue(bone, out var rest)) bone.localScale = rest;
-			_rest.Remove(bone);
-		}
-
+		// Nothing to do at all while nothing is scaled, which is the common case for every player at the
+		// table who is not hallucinating.
 		private void LateUpdate()
 		{
-			if (_entries.Count == 0) return;
+			if (_bones.Count == 0) return;
 
-			foreach (var entry in _entries)
+			foreach (var pair in _bones)
 			{
-				if (!entry.Bone || !_rest.TryGetValue(entry.Bone, out var rest)) continue;
+				if (!pair.Key) continue;
 
-				entry.Bone.localScale = Vector3.Scale(rest, entry.Multiplier);
+				pair.Key.localScale = Resolve(pair.Value);
 			}
 		}
 	}

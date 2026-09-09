@@ -41,7 +41,17 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 			{
 				if (!found) continue;
 
-				var body = found.GetComponentInParent<PlayerMaterialOverrideController>(true);
+				// Up to the body and then down, never straight up: the override controller sits on a named
+				// child of the player root and the thing being painted is off under the rig, so a walk up
+				// from it passes the root and finds nothing. Painting directly is the deliberate fallback
+				// for a prop that is not a body at all, and it was quietly swallowing every player too.
+				//
+				// Only for a repaint. The override controller resolves one winning material and hands it to
+				// PlayerVisual, which has no way to express "and this one as well" — so an added pass goes
+				// the direct route whatever it landed on, rather than silently becoming a replacement.
+				var body = Config.Mode == PokerHallucinationMaterialEffect.PaintMode.Replace
+					? PlayerRigController.FindOnBody<PlayerMaterialOverrideController>(found)
+					: null;
 				if (body)
 				{
 					if (!_bodies.Contains(body))
@@ -63,13 +73,36 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 			{
 				if (!renderer || _restored.ContainsKey(renderer)) continue;
 
-				_restored[renderer] = renderer.sharedMaterials;
+				var authored = renderer.sharedMaterials;
+				_restored[renderer] = authored;
 
-				var next = new Material[renderer.sharedMaterials.Length];
-				for (var i = 0; i < next.Length; i++) next[i] = Config.Material;
-
-				renderer.sharedMaterials = next;
+				renderer.sharedMaterials = Config.Mode == PokerHallucinationMaterialEffect.PaintMode.Add
+					? Append(authored)
+					: Fill(authored.Length);
 			}
+		}
+
+		// An extra pass on the end of what the renderer already wears, the same shape the outline takes on
+		// a body: the card keeps its face and this draws over it, which is the only way the rank underneath
+		// stays readable. Assigning replaces the whole array, so the authored one is copied rather than
+		// added to in place — and it is the array captured above that puts the renderer back.
+		private Material[] Append(Material[] authored)
+		{
+			var next = new Material[authored.Length + 1];
+
+			for (var i = 0; i < authored.Length; i++) next[i] = authored[i];
+
+			next[^1] = Config.Material;
+			return next;
+		}
+
+		private Material[] Fill(int length)
+		{
+			var next = new Material[length];
+
+			for (var i = 0; i < length; i++) next[i] = Config.Material;
+
+			return next;
 		}
 
 		private void Release()
