@@ -34,6 +34,12 @@ namespace Game.Runtime.Player
 		[SerializeField] private float _gamepadLookExponent = 2f;
 		[SerializeField] private Vector2 _pitchLimits = new(-60f, 60f);
 
+		[Tooltip("Degrees per second the look turns while something is aiming it at a point. A tween is the wrong tool here: the point is a player who is breathing and animating, so the target never stops moving and a tween would be killed and rebuilt every frame.")]
+		[SerializeField] private float _lookTurnSpeed = 220f;
+
+		[Tooltip("Seconds after the player last turned the view themselves before an aim takes it back. Without it, letting go of the stick as it centres reads as the camera snatching the view mid-gesture.")]
+		[SerializeField] private float _manualLookReleaseDelay = 0.35f;
+
 		[Header("Noise filtering")]
 		[Tooltip("Raw input delta below this is treated as sensor noise and ignored entirely — doesn't rotate, doesn't get sent.")]
 		[SerializeField] private float _inputDeadzone = 0.001f;
@@ -123,7 +129,10 @@ namespace Game.Runtime.Player
 		private float _appliedLookPitch;
 		private float _constraintYaw;
 		private Vector2 _constraintYawLimits;
+		private Vector2 _constraintFocusYawLimits;
 		private Vector2 _activePitchLimits;
+		private Transform _lookTarget;
+		private float _lastManualLookTime = float.NegativeInfinity;
 
 		public bool MovementEnabled => _movementEnabled;
 
@@ -221,6 +230,34 @@ namespace Game.Runtime.Player
 			_lookInputDisabled = disabled;
 		}
 
+		// Aims the view at a point in the world and keeps it there, turning the look bone to get it — so
+		// the head genuinely rotates and every other client watches it happen, rather than a camera being
+		// swung somewhere the body never went.
+		//
+		// It writes the same two angles the player's own input writes, which is what makes it free: they
+		// are already clamped, already replicated and already interpolated on the way out. Nothing new
+		// travels for a player turning to watch somebody else.
+		//
+		// The player keeps their view throughout: turning it themselves wins for as long as they are doing
+		// it, and the aim takes over again a moment after they stop.
+		public void SetLookTarget(Transform target)
+		{
+			_lookTarget = target;
+		}
+
+		public void ClearLookTarget()
+		{
+			_lookTarget = null;
+		}
+
+		public bool HasLookTarget => _lookTarget;
+
+		// A pose narrows what a player may swivel to; an aim is allowed more, because reading a face across
+		// the table is past what anybody turns in a chair. The wider pair is only in force while something
+		// is actually aiming — so it cannot be left behind, and the seat's own answer is never overwritten
+		// and put back, only covered.
+		private Vector2 ActiveYawLimits => _lookTarget ? _constraintFocusYawLimits : _constraintYawLimits;
+
 		// The angles as everyone knows them. Whatever takes the look over needs a zero to measure the
 		// player's turn from, and it has to be a number every peer agrees on — so it is read from here,
 		// replicated by the act itself, rather than each client noting down whatever it happened to be
@@ -258,12 +295,20 @@ namespace Game.Runtime.Player
 		// Only the owner takes input, so only the owner needs this; what bone the result lands on is
 		// SetBodyAnchored's business and is decided on every client.
 		public void ApplyLookConstraint(float referenceYaw, bool allowRotation, Vector2 yawLimits,
-			Vector2 pitchLimits)
+			Vector2 focusYawLimits, Vector2 pitchLimits)
 		{
 			_lookConstrained = true;
 			_constraintAllowsRotation = allowRotation;
 			_constraintYaw = referenceYaw;
 			_constraintYawLimits = yawLimits;
+
+			// Widened to at least what the player may turn by hand, never narrowed. A pose authored before
+			// the focus pair existed deserializes it to zero, and taken at face value that is a head an aim
+			// can never turn at all — a silent freeze on every seat in the project rather than the old
+			// behaviour, which is what it has to fall back to.
+			_constraintFocusYawLimits = new Vector2(
+				Mathf.Min(focusYawLimits.x, yawLimits.x),
+				Mathf.Max(focusYawLimits.y, yawLimits.y));
 			_activePitchLimits = pitchLimits;
 
 			_currentPitch = Mathf.Clamp(_currentPitch, _activePitchLimits.x, _activePitchLimits.y);
@@ -282,6 +327,7 @@ namespace Game.Runtime.Player
 			_lookConstrained = false;
 			_constraintAllowsRotation = true;
 			_activePitchLimits = _pitchLimits;
+			_constraintFocusYawLimits = _constraintYawLimits;
 
 			// Standing up must not leave the torso still turned — from here yaw is the character's again.
 			_currentLookYaw = 0f;
@@ -457,6 +503,11 @@ namespace Game.Runtime.Player
 			var filteredY = Mathf.Abs(value.y) < _inputDeadzone ? 0f : value.y;
 			if (filteredX == 0f && filteredY == 0f) return;
 
+			// The player is turning the view right now, so an aim holding it somewhere stands down. Recorded
+			// where the input is known to be real — past the deadzone and past the device checks — rather
+			// than at the top, where a stick resting at 0.001 would read as somebody using it.
+			_lastManualLookTime = Time.time;
+
 			if (InputSchemeController.IsGamepad)
 			{
 				filteredX = Curved(filteredX) * _gamepadLookSpeedX * Time.deltaTime;
@@ -479,6 +530,13 @@ namespace Game.Runtime.Player
 			_currentPitch = Mathf.Clamp(_currentPitch + filteredY * -1f,
 				_activePitchLimits.x, _activePitchLimits.y);
 
+			SendLookAngles();
+		}
+
+		// Both writers of the angles go out the same door, so a head turned by an aim replicates on exactly
+		// the terms a head turned by hand does — same throttle, same variables, nothing extra on the wire.
+		private void SendLookAngles()
+		{
 			if (Mathf.Abs(Mathf.DeltaAngle(_lastSentPitch, _currentPitch)) >= _minNetworkSendDeltaDegrees)
 			{
 				_pitch.Value = _currentPitch;
@@ -504,7 +562,8 @@ namespace Game.Runtime.Player
 		{
 			if (!_constraintAllowsRotation) return 0f;
 
-			return Mathf.Clamp(_currentLookYaw + yawDelta, _constraintYawLimits.x, _constraintYawLimits.y);
+			var limits = ActiveYawLimits;
+			return Mathf.Clamp(_currentLookYaw + yawDelta, limits.x, limits.y);
 		}
 
 		private float ConstrainYawDelta(float yawDelta)
@@ -512,8 +571,9 @@ namespace Game.Runtime.Player
 			if (!_lookConstrained) return yawDelta;
 			if (!_constraintAllowsRotation) return 0f;
 
+			var limits = ActiveYawLimits;
 			var currentOffset = Mathf.DeltaAngle(_constraintYaw, transform.eulerAngles.y);
-			var clampedOffset = Mathf.Clamp(currentOffset + yawDelta, _constraintYawLimits.x, _constraintYawLimits.y);
+			var clampedOffset = Mathf.Clamp(currentOffset + yawDelta, limits.x, limits.y);
 
 			return clampedOffset - currentOffset;
 		}
@@ -548,6 +608,11 @@ namespace Game.Runtime.Player
 
 			if (IsOwner)
 			{
+				// Before the look is applied and not in Update, because the two angles are offsets from
+				// whatever the clip is holding this frame — and the clip's pose is only on the bones
+				// between the Animator writing them and this writing over them.
+				SteerLookTowardTarget();
+
 				ApplyLook(_currentLookYaw, _currentPitch);
 				return;
 			}
@@ -557,6 +622,108 @@ namespace Game.Runtime.Player
 			ApplyLook(
 				SampleHistory(_lookYawHistory, renderTime, _lookYaw.Value, _maxInterpolationTime),
 				SampleHistory(_pitchHistory, renderTime, _pitch.Value, _maxInterpolationTime));
+		}
+
+		// Turns the head toward whatever is being aimed at, a frame's worth at a time. Rate limited rather
+		// than tweened: the point is usually a player who is breathing and animating, so the destination
+		// never stops moving and a tween would be killed and rebuilt on every frame of it.
+		//
+		// It steers the same two angles the player's own input steers, which is the whole reason the head
+		// really turns — the aim is not a second thing pointing somewhere, it is the look being pointed.
+		private void SteerLookTowardTarget()
+		{
+			if (!_lookTarget) return;
+
+			// The player turning the view themselves wins while they are doing it, and for a moment after,
+			// so a stick being let go to centre is not read as them stopping.
+			if (Time.time - _lastManualLookTime < _manualLookReleaseDelay) return;
+
+			// The eye rather than the bone: what has to end up pointing at the target is what the view is
+			// rendered from, and it hangs some way below the bone being turned.
+			var camera = ActiveCamera;
+			var eye = camera ? camera.transform : ActiveLookTransform;
+			if (!eye) return;
+
+			// Everything in the character's own frame, because that is the frame the two angles are turned
+			// in. The eye's forward read here is the pose the clip is holding — the look has not been
+			// applied yet this frame — so what comes out is the absolute pair, not a correction to add.
+			var bone = ActiveLookTransform;
+			var pivot = bone ? bone.position : eye.position;
+
+			var rest = transform.InverseTransformDirection(eye.forward);
+			var pivotLocal = transform.InverseTransformPoint(pivot);
+			var eyeOffset = transform.InverseTransformVector(eye.position - pivot);
+			var targetLocal = transform.InverseTransformPoint(_lookTarget.position);
+
+			var toEye = targetLocal - (pivotLocal + eyeOffset);
+			if (toEye.sqrMagnitude < 0.000001f) return;
+
+			SolveLookAngles(rest, toEye.normalized, _currentPitch, out var targetYaw, out var targetPitch);
+
+			// Turning the head swings the eye around the bone as well as pointing it, so the first answer
+			// aims from where the eye is *now* rather than where it will be. A hand's breadth of travel
+			// against a face a table away is a couple of degrees — enough to land the aim on a shoulder —
+			// so it is solved a second time from where the eye ends up.
+			var turned = Quaternion.AngleAxis(targetYaw, Vector3.up)
+						* Quaternion.AngleAxis(targetPitch, Vector3.right);
+
+			toEye = targetLocal - (pivotLocal + turned * eyeOffset);
+			if (toEye.sqrMagnitude > 0.000001f)
+				SolveLookAngles(rest, toEye.normalized, _currentPitch, out targetYaw, out targetPitch);
+
+			var step = _lookTurnSpeed * Time.deltaTime;
+
+			var yawStep = Mathf.Clamp(Mathf.DeltaAngle(_currentLookYaw, targetYaw), -step, step);
+			if (_bodyAnchored) _currentLookYaw = ConstrainLookYaw(yawStep);
+			else transform.Rotate(Vector3.up, ConstrainYawDelta(yawStep));
+
+			_currentPitch = Mathf.Clamp(_currentPitch + Mathf.Clamp(targetPitch - _currentPitch, -step, step),
+				_activePitchLimits.x, _activePitchLimits.y);
+
+			SendLookAngles();
+		}
+
+		// Which yaw and pitch put the rest direction onto the desired one. ApplyLookTo turns about the
+		// frame's up and then its right, so this is that composition read backwards rather than a
+		// LookRotation — the two are not the same once the clip is holding the head off level, and the
+		// difference is a permanent few degrees of aim nothing would ever explain.
+		//
+		// Pitch first, because turning about the frame's up leaves height alone: there is exactly one
+		// height the pitch has to produce, and the yaw then only has to answer for the compass bearing.
+		private static void SolveLookAngles(Vector3 rest, Vector3 desired, float currentPitch,
+			out float yaw, out float pitch)
+		{
+			// rest.y * cos(p) - rest.z * sin(p) = desired.y, written as a single cosine so it inverts.
+			var amplitude = Mathf.Sqrt(rest.y * rest.y + rest.z * rest.z);
+
+			if (amplitude < 0.0001f)
+			{
+				// Looking straight along the frame's own right: no pitch changes the height, so there is
+				// nothing to solve and the yaw carries the whole turn.
+				pitch = currentPitch;
+			}
+			else
+			{
+				var phase = Mathf.Atan2(-rest.z, rest.y);
+				var ratio = Mathf.Clamp(desired.y / amplitude, -1f, 1f);
+				var spread = Mathf.Acos(ratio);
+
+				// Two pitches reach that height; the nearer one to where the look already is turns the
+				// shorter way and never flips the head over on the way.
+				var first = (phase + spread) * Mathf.Rad2Deg;
+				var second = (phase - spread) * Mathf.Rad2Deg;
+
+				pitch = Mathf.Abs(Mathf.DeltaAngle(currentPitch, first))
+						<= Mathf.Abs(Mathf.DeltaAngle(currentPitch, second))
+					? first
+					: second;
+			}
+
+			var pitched = Quaternion.AngleAxis(pitch, Vector3.right) * rest;
+
+			yaw = Mathf.DeltaAngle(
+				Mathf.Atan2(pitched.x, pitched.z) * Mathf.Rad2Deg,
+				Mathf.Atan2(desired.x, desired.z) * Mathf.Rad2Deg);
 		}
 
 		private void OnPitchChanged(float previous, float current) => PushSample(_pitchHistory, current);
