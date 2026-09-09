@@ -62,7 +62,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 			if (_settlement == PokerSettlement.LosersEatWinnersWager)
 			{
-				PokerTableUtility.ServeFromWinner(Data, winner, GameMode.SeatedPlayers,
+				PokerTableUtility.SwapPotToLosers(Data, winner, GameMode.SeatedPlayers,
 					GameMode.ItemDatabase, _foldPhase,
 					GameMode.FindModule<Modules.PokerAbilityModule>());
 			}

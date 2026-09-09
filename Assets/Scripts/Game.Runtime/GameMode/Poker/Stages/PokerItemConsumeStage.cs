@@ -5,9 +5,10 @@ using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker.Stages
 {
-	// Where the round's consequence actually happens. Everything the settlement served is swallowed here,
-	// one player at a time and one cap at a time, so the table watches what the hand cost each of them
-	// rather than reading it off a number that changed while the ranking board was up.
+	// Where the round's consequence actually happens. Every cap the settlement left standing in front of
+	// somebody is swallowed here, one player at a time and one cap at a time, so the table watches what
+	// the hand cost each of them rather than reading it off a number that changed while the ranking board
+	// was up.
 	//
 	// One at a time on purpose. The effects are what the whole round is played for, and a beat where four
 	// players' worth of them land in the same frame is a beat nobody can follow — so this is a queue with
@@ -42,8 +43,8 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			_timer = 0f;
 			_waitingToHandOver = false;
 
-			// Nobody was served anything — everyone folded out, or the settlement had nothing to give.
-			if (!AdvanceToNextEater()) FinishStage(_nextStage);
+			// Nobody was handed anything — everyone folded out, or the settlement had nothing to give.
+			if (!AdvanceToNextEater()) FinishEating();
 		}
 
 		protected override void OnTickStage(float deltaTime)
@@ -54,7 +55,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			if (_waitingToHandOver)
 			{
 				_waitingToHandOver = false;
-				if (!AdvanceToNextEater()) FinishStage(_nextStage);
+				if (!AdvanceToNextEater()) FinishEating();
 				return;
 			}
 
@@ -72,6 +73,16 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			_timer = _biteDuration;
 		}
 
+		// The table is cleared on the way out. Anything still standing belongs to somebody who left or went
+		// under mid-plate — eating is a thing a player does, not a debt the table collects — and the pot is
+		// carried into the next round rather than wiped by the deal, so a cap nobody is going to swallow
+		// would sit there gathering the next hand's stakes around it.
+		private void FinishEating()
+		{
+			PokerTableUtility.ResetPot(Data);
+			FinishStage(_nextStage);
+		}
+
 		// Seat order, so the eating goes round the table the way everything else does rather than in
 		// whatever order the settlement happened to serve.
 		private bool AdvanceToNextEater()
@@ -81,7 +92,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			for (var step = _seatIndex + 1; step < seatCount; step++)
 			{
 				var player = FindSeatedPlayerAtSeat(step);
-				if (!player || !player.Items || player.Items.PendingCount == 0) continue;
+				if (!player || PokerTableUtility.CountPotItems(Data, player.ClientId) == 0) continue;
 
 				_seatIndex = step;
 				_timer = 0f;
@@ -93,11 +104,11 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 		private PokerPlayer CurrentEater() => FindSeatedPlayerAtSeat(_seatIndex);
 
-		// True while there was something left to swallow. The cap comes off the plate as it goes down
-		// rather than after, because the plate is what the visual draws.
+		// True while there was something left to swallow. The cap comes off the table as it goes down
+		// rather than after, because the ledger is what the visual draws.
 		private bool TakeOneBite(PokerPlayer eater)
 		{
-			if (!eater.Items || !eater.Items.ServerTakeNext(out var itemType)) return false;
+			if (!PokerTableUtility.ServerTakePotItem(Data, eater.ClientId, out var itemType)) return false;
 
 			eater.ActionAnimator?.ServerPlay(PlayerActionIds.ConsumeItem);
 

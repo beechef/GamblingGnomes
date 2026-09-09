@@ -488,6 +488,11 @@ namespace Game.Runtime.GameMode.Poker
 				if (firstTime || (resetPlayers && _data && _data.Phase.Value == PokerPhase.Waiting))
 				{
 					player.Data.ServerResetForMatch();
+
+					// The record of what they have already swallowed belongs to the match too, and it lives on
+					// its own controller — reaching across from the data class to clear it would be a second
+					// place to keep in step.
+					if (player.Items) player.Items.ServerResetForMatch();
 				}
 			}
 		}
@@ -560,7 +565,10 @@ namespace Game.Runtime.GameMode.Poker
 
 			foreach (var player in PokerPlayer.All)
 			{
-				if (player && player.Data) player.Data.ServerResetForMatch();
+				if (!player) continue;
+
+				if (player.Data) player.Data.ServerResetForMatch();
+				if (player.Items) player.Items.ServerResetForMatch();
 			}
 		}
 

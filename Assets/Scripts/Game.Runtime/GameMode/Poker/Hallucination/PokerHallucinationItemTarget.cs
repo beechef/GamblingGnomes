@@ -6,27 +6,26 @@ using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker.Hallucination
 {
-	// The caps staked on the table. What somebody put up is the read of the round, so a mushroom that has
-	// started smiling back is the cheapest way to make a player doubt what they are looking at.
+	// Every cap on the table, wherever it is sitting. What somebody put up is the read of the round, so a
+	// mushroom that has started smiling back is the cheapest way to make a player doubt what they are
+	// looking at — and one being handed to them to swallow is the moment they are looking hardest.
 	//
-	// The plate rather than the scenery: a cap is spawned by PokerItemPotVisual when it is wagered and
-	// destroyed when the pot clears, so it can never be named by a scenery group the scene authored.
+	// The registry rather than the pot: a cap is spawned by whichever visual is drawing it and destroyed
+	// when that visual is done, so it can never be named by a scenery group the scene authored, and
+	// naming only the pot's caps left everything served at the settlement wearing its plain face.
 	[CreateAssetMenu(fileName = "HallucinationTarget_Items", menuName = "Game/Poker/Hallucination/Target/Items")]
 	public class PokerHallucinationItemTarget : PokerHallucinationTarget
 	{
 		protected override void OnCollect(PokerPlayer viewer, List<Transform> into)
 		{
-			var pot = PokerItemPotVisual.Instance;
-			if (!pot) return;
-
-			foreach (var cap in pot.Caps)
+			foreach (var cap in PokerItemCapRegistry.All)
 			{
 				if (cap) into.Add(cap.transform);
 			}
 		}
 
-		public override void Subscribe(PokerPlayer viewer, Action onChanged) => PokerItemPotVisual.OnAnyPotChanged += onChanged;
+		public override void Subscribe(PokerPlayer viewer, Action onChanged) => PokerItemCapRegistry.OnChanged += onChanged;
 
-		public override void Unsubscribe(PokerPlayer viewer, Action onChanged) => PokerItemPotVisual.OnAnyPotChanged -= onChanged;
+		public override void Unsubscribe(PokerPlayer viewer, Action onChanged) => PokerItemCapRegistry.OnChanged -= onChanged;
 	}
 }

@@ -104,12 +104,13 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			_picked = true;
 			GameMode.ClearTurn();
 
-			// Served onto the plate, not swallowed here: the eating is its own beat, and a cap that took effect
-			// during the announcement of who got it is a cap nobody watched go down.
+			// Put down in front of them, not swallowed here: the eating is its own beat, and a cap that took
+			// effect during the announcement of who got it is a cap nobody watched go down. Through the same
+			// wager path everything else on this table takes, so it arrives looking like every other cap.
 			var database = GameMode.ItemDatabase;
 			if (database && database.TryGetEntry(ColorfulItemType, out _))
 			{
-				if (target.Items) target.Items.ServerServe(ColorfulItemType);
+				PokerTableUtility.WagerItem(Data, target, ColorfulItemType);
 			}
 			else
 			{

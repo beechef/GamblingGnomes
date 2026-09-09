@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using DG.Tweening;
 using Game.Runtime.GameMode.Poker.Items;
@@ -12,12 +11,16 @@ namespace Game.Runtime.GameMode.Poker.Visual
 	// is a count of caps and every one of them is worth seeing: what somebody put up is the whole read of
 	// the round.
 	//
-	// Each cap lands in front of the chair that staked it — PokerBetItem stamps the owner, and the seat
-	// owns the spot the way it owns where the cards lie. Piling them all in the middle would throw away
-	// the one thing the table is actually reading.
+	// Each cap lands in front of the chair that owns it — PokerBetItem stamps the owner, and the seat owns
+	// the spot the way it owns where the cards lie. Piling them all in the middle would throw away the one
+	// thing the table is actually reading. The settlement rewrites those owners rather than copying the
+	// caps onto a second list, so a cap changing hands is drawn by the one visual that draws every cap in
+	// the game.
 	//
 	// Driven off PotItems, the ledger PokerTableUtility already writes beside the scalar, so there is no
-	// second seeder and a late join replicates the plate as it stands.
+	// second seeder and a late join replicates the plate as it stands. _caps is index-aligned with that
+	// list — a cap that could not be spawned holds a null slot rather than shifting everything after it,
+	// because an entry being eaten is named by its index.
 	public class PokerItemPotVisual : PokerVisual
 	{
 		[Header("Cap")]
@@ -45,34 +48,19 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		[SerializeField] private float _dropDuration = 0.35f;
 		[SerializeField] private Ease _dropEase = Ease.OutBounce;
 
+		[Header("Eating")]
+		[Tooltip("How long a cap takes to travel to its eater's mouth once it leaves the table. Shorter than the consume stage's bite, so the swallow lands inside the gesture.")]
+		[SerializeField] private float _eatDuration = 0.5f;
+
+		[SerializeField] private float _eatRise = 0.35f;
+
+		[Tooltip("Seconds the caps left in front of a player take to close the gap once one is eaten.")]
+		[SerializeField] private float _relayoutDuration = 0.25f;
+
 		private readonly List<GameObject> _caps = new();
-
-		// Registered in its own lifecycle, the shape PokerScenery and GameCamera already take: a cap is
-		// spawned at runtime and nothing can serialize a reference to the plate it lands on.
-		public static PokerItemPotVisual Instance { get; private set; }
-
-		public IReadOnlyList<GameObject> Caps => _caps;
-
-		// The plate is emptied and filled again every round, so anything drawn on a cap comes off on its own
-		// while whatever put it there has not moved. Static because the things that care are about the table,
-		// not about one seat.
-		public static event Action OnAnyPotChanged;
-
-		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-		private static void ResetStatics()
-		{
-			OnAnyPotChanged = null;
-			Instance = null;
-		}
-
-		// How many caps each chair is already holding, so a second stake from the same player is placed
-		// beside the first rather than on top of it.
-		private readonly Dictionary<int, int> _capsPerSeat = new();
 
 		protected override void OnBind()
 		{
-			Instance = this;
-
 			Data.OnPotItemsChanged += HandlePotItemsChanged;
 
 			// Late join: the plate as it stands, with nothing to replay.
@@ -83,8 +71,6 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		{
 			if (Data) Data.OnPotItemsChanged -= HandlePotItemsChanged;
 
-			if (Instance == this) Instance = null;
-
 			ClearCaps();
 		}
 
@@ -94,6 +80,13 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			{
 				case NetworkListEvent<PokerBetItem>.EventType.Add:
 					AddCap(change.Value, true);
+					break;
+
+				// One cap off the table is one being eaten, so it goes up rather than simply disappearing:
+				// this is the moment the round's consequence actually happens and it has to be watchable.
+				case NetworkListEvent<PokerBetItem>.EventType.RemoveAt:
+				case NetworkListEvent<PokerBetItem>.EventType.Remove:
+					EatCap(change.Index);
 					break;
 
 				case NetworkListEvent<PokerBetItem>.EventType.Clear:
@@ -117,41 +110,109 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 		private void AddCap(PokerBetItem item, bool animate)
 		{
-			var seat = FindSeat(item.OwnerClientId);
-			if (!seat) return;
+			// Counted before this one joins the list, so a second stake from the same player is placed
+			// beside the first rather than on top of it.
+			var slot = CountCapsBefore(item.OwnerClientId, _caps.Count);
 
-			var anchor = seat.ItemAnchor;
-			if (!anchor) return;
-
-			// Resolved before the seat's counter moves: a kind with no model must not burn the slot the
-			// next cap is going to land in.
-			var prefab = PrefabFor(item.ItemTypeIndex);
-			if (!prefab) return;
-
-			_capsPerSeat.TryGetValue(seat.SeatIndex, out var placed);
-			_capsPerSeat[seat.SeatIndex] = placed + 1;
-
-			var cap = Instantiate(prefab, anchor);
+			var cap = Spawn(item);
 			_caps.Add(cap);
 
-			cap.transform.localScale = Vector3.one * _capScale;
-			cap.transform.localRotation = Quaternion.identity;
+			if (!cap) return;
 
-			var resting = SlotPosition(placed);
+			// Announced as it is put out, so anything painting the caps catches one arriving while it was
+			// already running.
+			PokerItemCapRegistry.Add(cap);
+
+			var resting = SlotPosition(slot);
 
 			// The item anchor stands upright, unlike the card one: a prop is a thing that sits on the table
 			// the right way up, so it is instantiated unrotated and dropped straight down.
 			if (!animate || _dropDuration <= 0f)
 			{
 				cap.transform.localPosition = resting;
-				OnAnyPotChanged?.Invoke();
 				return;
 			}
 
 			cap.transform.localPosition = resting + Vector3.up * _dropHeight;
 			cap.transform.DOLocalMove(resting, _dropDuration).SetEase(_dropEase);
+		}
 
-			OnAnyPotChanged?.Invoke();
+		private GameObject Spawn(PokerBetItem item)
+		{
+			var seat = FindSeat(item.OwnerClientId);
+			if (!seat || !seat.ItemAnchor) return null;
+
+			var prefab = PrefabFor(item.ItemTypeIndex);
+			if (!prefab) return null;
+
+			var cap = Instantiate(prefab, seat.ItemAnchor);
+
+			cap.transform.localScale = Vector3.one * _capScale;
+			cap.transform.localRotation = Quaternion.identity;
+
+			return cap;
+		}
+
+		// Lifted and gone. Taken off the register as it is destroyed rather than as it leaves the ledger:
+		// it is on screen for the whole swallow, and dropping it early would have it shed whatever a
+		// hallucination had painted on it halfway to the eater's mouth.
+		private void EatCap(int index)
+		{
+			if (index < 0 || index >= _caps.Count) { RebuildAll(); return; }
+
+			var cap = _caps[index];
+			_caps.RemoveAt(index);
+
+			if (!cap) { Relayout(); return; }
+
+			cap.transform.DOKill();
+
+			if (_eatDuration <= 0f)
+			{
+				PokerItemCapRegistry.Remove(cap);
+				Destroy(cap);
+				Relayout();
+				return;
+			}
+
+			var lifted = cap.transform.localPosition + Vector3.up * _eatRise;
+			cap.transform.DOLocalMove(lifted, _eatDuration).SetEase(Ease.InQuad)
+				.OnComplete(() => { PokerItemCapRegistry.Remove(cap); if (cap) Destroy(cap); });
+
+			cap.transform.DOScale(Vector3.zero, _eatDuration).SetEase(Ease.InQuad);
+
+			Relayout();
+		}
+
+		// Closing the gap an eaten cap left, in front of every chair at once: the caps are index-aligned
+		// with the ledger, so each one's slot is however many of its owner's caps come before it.
+		private void Relayout()
+		{
+			if (!Data) return;
+
+			for (var i = 0; i < _caps.Count && i < Data.PotItems.Count; i++)
+			{
+				if (!_caps[i]) continue;
+
+				var slot = SlotPosition(CountCapsBefore(Data.PotItems[i].OwnerClientId, i));
+
+				_caps[i].transform.DOKill();
+				_caps[i].transform.DOLocalMove(slot, _relayoutDuration).SetEase(Ease.OutQuad);
+			}
+		}
+
+		// How many of this owner's caps sit in the ledger before the given index.
+		private int CountCapsBefore(ulong ownerClientId, int before)
+		{
+			if (!Data) return 0;
+
+			var count = 0;
+			for (var i = 0; i < before && i < Data.PotItems.Count; i++)
+			{
+				if (Data.PotItems[i].OwnerClientId == ownerClientId) count++;
+			}
+
+			return count;
 		}
 
 		private Vector3 SlotPosition(int slot)
@@ -174,8 +235,8 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			return _fallbackPrefab;
 		}
 
-		// The seat rather than the player: a cap already on the table belongs to the chair that put it
-		// there, and a player who has left mid-hand has still staked it.
+		// The seat rather than the player: a cap on the table belongs to the chair it is sitting in front
+		// of, and a player who has left mid-hand has still staked it.
 		private PokerSeat FindSeat(ulong clientId)
 		{
 			if (!GameMode) return null;
@@ -199,14 +260,12 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			{
 				if (!cap) continue;
 
+				PokerItemCapRegistry.Remove(cap);
 				cap.transform.DOKill();
 				Destroy(cap);
 			}
 
 			_caps.Clear();
-			_capsPerSeat.Clear();
-
-			OnAnyPotChanged?.Invoke();
 		}
 	}
 }

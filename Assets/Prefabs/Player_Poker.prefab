@@ -857,7 +857,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7482711709937781520}
-  - component: {fileID: 5006584800163012496}
   - component: {fileID: 715681995083866239}
   m_Layer: 0
   m_Name: Items
@@ -881,31 +880,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 7915523810459036602}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &5006584800163012496
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8336348170960471977}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cfce926a95d40d14bb5632fa87f4e5ce, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Visual.PokerMushroomPlateVisual
-  ShowTopMostFoldoutHeaderGroup: 1
-  _database: {fileID: 11400000, guid: 5178fb66ae0b30740a0e39488bef578b, type: 2}
-  _fallbackPrefab: {fileID: 3380898938716653663, guid: b525af282e2f8f64ca9e0b8f3bd4eccb, type: 3}
-  _capScale: 1
-  _capSpacing: 0.07
-  _capsPerRow: 3
-  _rowSpacing: 0.07
-  _arrival: {fileID: 11400000, guid: abad73c72c2d985409d3de3c8ea67d91, type: 2}
-  _eatDuration: 0.5
-  _eatRise: 0.35
-  _relayoutDuration: 0.25
-  _data: {fileID: 6935137486891752095}
-  _items: {fileID: 715681995083866239}
 --- !u!114 &715681995083866239
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -15,6 +15,7 @@ namespace Game.Runtime.GameMode.Poker
 		private static readonly List<int> CapBuffer = new();
 		private static readonly List<PokerPlayer> WinnerBuffer = new();
 		private static readonly List<byte> TypeBuffer = new();
+		private static readonly List<(ulong OwnerClientId, byte ItemType)> ServeBuffer = new();
 
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
 		private static void ResetStatics()
@@ -22,6 +23,7 @@ namespace Game.Runtime.GameMode.Poker
 			CapBuffer.Clear();
 			WinnerBuffer.Clear();
 			TypeBuffer.Clear();
+			ServeBuffer.Clear();
 		}
 
 		public static PokerPlayer NextPlayer(IReadOnlyList<PokerPlayer> seatOrder, int fromSeatIndex, Func<PokerPlayer, bool> predicate)
@@ -133,18 +135,28 @@ namespace Game.Runtime.GameMode.Poker
 			data.Pot.Value += 1;
 		}
 
-		// The round's own settlement: what the winner put up is what every loser is served, a full copy each
-		// rather than a share — the point of choosing a kind is that it is aimed at the whole table. A player
-		// who folded escapes that and is served only their own opening cap, which is what folding costs.
-		// Nothing is ever won: the losers' own caps are simply gone.
+		// The round's own settlement: what the winner put up is what every loser ends up holding, a full copy
+		// each rather than a share — the point of choosing a kind is that it is aimed at the whole table. A
+		// player who folded escapes that and keeps only their own opening cap, which is what folding costs.
+		// Nothing is ever won: the losers' own caps are simply gone, and so are the winner's.
 		//
-		// Served rather than swallowed. The effects used to land in the same frame the showdown resolved, so
-		// a round's entire consequence happened behind the ranking board and nobody saw it — the caps go on
-		// each plate here and PokerItemConsumeStage is where they actually go down.
-		public static void ServeFromWinner(PokerGameData data, PokerPlayer winner, IReadOnlyList<PokerPlayer> players,
+		// The caps change hands rather than being copied onto a second list. Everything on the table comes
+		// off and goes back on through the same AddPotItems the wager uses, stamped with its new owner — so
+		// a settled cap is spawned by exactly the path that spawns a staked one, lands on the same seat
+		// anchor, and is caught by everything watching the table. A plate of its own was a second set of
+		// objects nobody else knew about, and a hallucination painting the caps found half of them.
+		//
+		// Swapped rather than swallowed. The effects used to land in the same frame the showdown resolved, so
+		// a round's entire consequence happened behind the ranking board and nobody saw it — the caps change
+		// owner here and PokerItemConsumeStage is where they actually go down.
+		public static void SwapPotToLosers(PokerGameData data, PokerPlayer winner, IReadOnlyList<PokerPlayer> players,
 			PokerItemDatabase database, PokerPhase foldPhase, Modules.PokerAbilityModule abilities = null)
 		{
 			if (!data || database == null) { ResetPot(data); return; }
+
+			// Decided against the pot as it stands, before a word of it is rewritten: the swap reads what
+			// everybody staked and the re-add is what changes it.
+			ServeBuffer.Clear();
 
 			foreach (var player in players)
 			{
@@ -162,19 +174,68 @@ namespace Game.Runtime.GameMode.Poker
 				{
 					var item = data.PotItems[i];
 
-					// A folder is served their own opening cap and nothing else; everyone still in is served every
-					// cap the winner put up.
+					// A folder keeps their own opening cap and nothing else; everyone still in takes every cap
+					// the winner put up.
 					var theirs = folded
 						? item.OwnerClientId == player.ClientId && item.Phase == foldPhase
 						: winner && item.OwnerClientId == winner.ClientId;
 
 					if (!theirs) continue;
 
-					if (player.Items) player.Items.ServerServe(item.ItemTypeIndex);
+					ServeBuffer.Add((player.ClientId, item.ItemTypeIndex));
 				}
 			}
 
+			// Cleared first, so every cap on the table comes off — the winner's included, and anything nobody
+			// was served with it.
 			ResetPot(data);
+
+			foreach (var (ownerClientId, itemType) in ServeBuffer)
+			{
+				TypeBuffer.Clear();
+				TypeBuffer.Add(itemType);
+				AddPotItems(data, ownerClientId, TypeBuffer);
+
+				data.Pot.Value += 1;
+			}
+
+			ServeBuffer.Clear();
+		}
+
+		// How much of the pot is standing in front of one player. What is left to eat, once the settlement
+		// has handed the caps round.
+		public static int CountPotItems(PokerGameData data, ulong ownerClientId)
+		{
+			if (!data) return 0;
+
+			var count = 0;
+			for (var i = 0; i < data.PotItems.Count; i++)
+			{
+				if (data.PotItems[i].OwnerClientId == ownerClientId) count++;
+			}
+
+			return count;
+		}
+
+		// The next bite, taken off the table as it goes down rather than after — the ledger is what the
+		// visual draws, so a cap still on it whose effect has already landed is one the table can see that
+		// nobody is going to eat.
+		public static bool ServerTakePotItem(PokerGameData data, ulong ownerClientId, out byte itemType)
+		{
+			itemType = PokerItemDatabase.PlainChip;
+			if (!data) return false;
+
+			for (var i = 0; i < data.PotItems.Count; i++)
+			{
+				if (data.PotItems[i].OwnerClientId != ownerClientId) continue;
+
+				itemType = data.PotItems[i].ItemTypeIndex;
+				data.PotItems.RemoveAt(i);
+				data.Pot.Value = Mathf.Max(0, data.Pot.Value - 1);
+				return true;
+			}
+
+			return false;
 		}
 
 		// The pot's itemised half. One entry per unit staked, stamped with who fed it, on which street,
