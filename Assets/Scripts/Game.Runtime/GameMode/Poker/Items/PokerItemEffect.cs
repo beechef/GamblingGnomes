@@ -8,13 +8,13 @@ namespace Game.Runtime.GameMode.Poker.Items
 	// every mushroom of its kind in the pot.
 	public abstract class PokerItemEffect : ScriptableObject
 	{
-		public void ConsumeServer(PokerGameMode gameMode, PokerPlayer eater, byte itemType)
+		public void ConsumeServer(PokerGameMode gameMode, PokerPlayer eater, PokerItemType itemType)
 		{
 			if (!gameMode || !eater || !eater.Data) return;
 
 			OnConsumeServer(gameMode, eater, itemType);
 		}
 
-		protected abstract void OnConsumeServer(PokerGameMode gameMode, PokerPlayer eater, byte itemType);
+		protected abstract void OnConsumeServer(PokerGameMode gameMode, PokerPlayer eater, PokerItemType itemType);
 	}
 }

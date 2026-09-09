@@ -96,7 +96,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		// and a player can read off the front what their next call will put on the table. Mirrors
 		// PlayerData.Money the way PotItems mirrors the pot: the scalar stays what every rule computes
 		// with, and the server re-syncs this list on every change of it, whoever moved the money.
-		public readonly NetworkList<byte> StakeItems = new(null,
+		public readonly NetworkList<PokerItemUnit> StakeItems = new(null,
 			NetworkVariableReadPermission.Everyone,
 			NetworkVariableWritePermission.Server);
 		// their heads. Only ever rises, except where an item brings it down.
@@ -195,9 +195,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 		// Types of the units currently standing in front of the player as Bet, in the order they were
 		// staked. Server-only scratch: the pot ledger is what replicates, and it takes these at collect.
-		private readonly List<byte> _committedItemTypes = new();
+		private readonly List<PokerItemType> _committedItemTypes = new();
 
-		private readonly List<byte> _drawBuffer = new();
+		private readonly List<PokerItemType> _drawBuffer = new();
 
 		// Money staked at the table is the same money the player owns, so there is nothing to buy in with
 		// and nothing to cash out — what is bet leaves the wallet and what is won lands back in it.
@@ -525,7 +525,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		// Money that leaves a player without ever becoming a bet. It answers nothing on the street, so it
 		// must not land in front of them where a call would read it as already paid — the caller is the
 		// one that puts it in the pot, and the types drawn off the wallet go with it.
-		public int ServerPayIntoPot(int amount, List<byte> drawnTypes = null)
+		public int ServerPayIntoPot(int amount, List<PokerItemType> drawnTypes = null)
 		{
 			if (!IsServer) return 0;
 
@@ -571,7 +571,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		// The types standing in front of this player as Bet, handed over as the money is collected. The
 		// scalar is the authority: a count the committed list cannot cover is padded with plain chips
 		// rather than dropped, so the pot ledger never loses a unit to a path that bypassed PlaceBet.
-		public void ServerTakeCommittedItemTypes(int expected, List<byte> into)
+		public void ServerTakeCommittedItemTypes(int expected, List<PokerItemType> into)
 		{
 			into.Clear();
 			if (!IsServer) return;
@@ -659,7 +659,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			OnStateChanged?.Invoke();
 		}
 
-		private void HandleStakeItemsChanged(NetworkListEvent<byte> changeEvent) => OnStakeItemsChanged?.Invoke();
+		private void HandleStakeItemsChanged(NetworkListEvent<PokerItemUnit> changeEvent) => OnStakeItemsChanged?.Invoke();
 
 		private void HandleHealthChanged(int previous, int current)
 		{

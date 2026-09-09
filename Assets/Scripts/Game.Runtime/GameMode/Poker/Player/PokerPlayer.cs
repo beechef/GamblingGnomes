@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Game.Runtime.Player;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Game.Runtime.GameMode.Poker.Player
 {
@@ -14,7 +15,8 @@ namespace Game.Runtime.GameMode.Poker.Player
 	{
 		[Header("References")]
 		[SerializeField] private PokerPlayerData _data;
-		[SerializeField] private PokerPlayerItemController _items;
+		[FormerlySerializedAs("_items")]
+		[SerializeField] private PokerItemConsumeController _itemConsume;
 
 		[Tooltip("The wallet the bets come out of. Lives beside this on the player, not on the table.")]
 		[SerializeField] private PlayerData _wallet;
@@ -54,9 +56,10 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 		public PokerPlayerData Data => _data;
 
-		// What this player has been served and swallowed. Its own controller rather than more verbs on the
-		// data: eating decides a price, and a decision is a rule, not state.
-		public PokerPlayerItemController Items => _items;
+		// The record of what this player has swallowed. Its own controller rather than more verbs on the
+		// data, and named for eating rather than for items in general: a stockpile of things they can
+		// choose to use is a different question and will want a component of its own.
+		public PokerItemConsumeController ItemConsume => _itemConsume;
 		public PlayerData Wallet => _wallet;
 		public PlayerRigController Rig => _rig;
 		public PlayerHeadStretchController HeadStretch => _headStretch;
@@ -111,7 +114,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		public override void OnNetworkSpawn()
 		{
 			if (!_data) _data = GetComponent<PokerPlayerData>();
-			if (!_items) _items = GetComponentInChildren<PokerPlayerItemController>(true);
+			if (!_itemConsume) _itemConsume = GetComponentInChildren<PokerItemConsumeController>(true);
 			if (!_wallet) _wallet = GetComponent<PlayerData>();
 			if (!_rig) _rig = GetComponent<PlayerRigController>();
 

@@ -1,4 +1,5 @@
 using System;
+using Game.Runtime.GameMode.Poker.Items;
 using Unity.Netcode;
 
 namespace Game.Runtime.GameMode.Poker
@@ -11,22 +12,22 @@ namespace Game.Runtime.GameMode.Poker
 		public ulong OwnerClientId;
 		public PokerPhase Phase;
 
-		// Index into whatever catalogue gives units an identity of their own — zero while the table
-		// plays plain chips, the seam for a table that stakes something with a face on it.
-		public byte ItemTypeIndex;
+		// What kind of thing it is. PlainChip while the table plays money, and the seam for a table that
+		// stakes something with a face on it.
+		public PokerItemType ItemType;
 
 		public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
 		{
 			serializer.SerializeValue(ref OwnerClientId);
 			serializer.SerializeValue(ref Phase);
-			serializer.SerializeValue(ref ItemTypeIndex);
+			serializer.SerializeValue(ref ItemType);
 		}
 
 		public bool Equals(PokerBetItem other) =>
-			OwnerClientId == other.OwnerClientId && Phase == other.Phase && ItemTypeIndex == other.ItemTypeIndex;
+			OwnerClientId == other.OwnerClientId && Phase == other.Phase && ItemType == other.ItemType;
 
 		public override bool Equals(object obj) => obj is PokerBetItem other && Equals(other);
 
-		public override int GetHashCode() => HashCode.Combine(OwnerClientId, (int)Phase, ItemTypeIndex);
+		public override int GetHashCode() => HashCode.Combine(OwnerClientId, (int)Phase, (int)ItemType);
 	}
 }

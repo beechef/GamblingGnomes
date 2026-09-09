@@ -20,7 +20,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 		[Tooltip("On, the roll is made against the rate *after* the gain, which is what the design document describes.")]
 		[SerializeField] private bool _rollAfterGain = true;
 
-		protected override void OnConsumeServer(PokerGameMode gameMode, PokerPlayer eater, byte itemType)
+		protected override void OnConsumeServer(PokerGameMode gameMode, PokerPlayer eater, PokerItemType itemType)
 		{
 			var data = eater.Data;
 

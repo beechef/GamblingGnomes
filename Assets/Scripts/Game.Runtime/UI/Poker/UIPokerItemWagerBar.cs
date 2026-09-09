@@ -1,6 +1,7 @@
 using Unity.Collections;
 using System.Collections.Generic;
 using Game.Runtime.GameMode.Poker;
+using Game.Runtime.GameMode.Poker.Items;
 using Game.Runtime.GameMode.Poker.Stages;
 using Game.Runtime.UI.Button;
 using Game.Runtime.UI.Progress;
@@ -36,7 +37,7 @@ namespace Game.Runtime.UI.Poker
 		[SerializeField] private UITimerBar _timerBar;
 
 		private readonly List<UIButton> _kindButtons = new();
-		private readonly List<byte> _kindTypes = new();
+		private readonly List<PokerItemType> _kindTypes = new();
 
 		// The clock is the only thing here that changes every frame, and only while it is running.
 		protected override bool WantsTick => IsLocalTurn && Data && Data.HasTurnClock;
@@ -91,10 +92,11 @@ namespace Game.Runtime.UI.Poker
 			var database = GameMode ? GameMode.ItemDatabase : null;
 			if (!database || !_buttonPrefab || !_buttonRow) return;
 
-			for (var i = 0; i < database.Entries.Count; i++)
+			foreach (var entry in database.Entries)
 			{
-				var itemType = (byte)(i + 1);
-				if (!database.TryGetEntry(itemType, out var entry)) continue;
+				if (entry == null) continue;
+
+				var itemType = entry.Type;
 
 				// A kind nobody may ever wager is not drawn at all. Greying it would say "not now" about
 				// something the rules say "not here" to — the Colorful cap is only ever fed to somebody.
@@ -151,13 +153,13 @@ namespace Game.Runtime.UI.Poker
 			for (var i = 0; i < _kindButtons.Count; i++)
 			{
 				var button = _kindButtons[i];
-				if (button) button.IsInteractable = stage.IsWagerable(_kindTypes[i]);
+				if (button) button.IsInteractable = stage.IsWagerable((int)_kindTypes[i]);
 			}
 
 			if (_timerBar) _timerBar.gameObject.SetActive(Data.HasTurnClock);
 		}
 
-		private void HandleWager(byte itemType) => Submit(PokerActionType.Wager, itemType);
+		private void HandleWager(PokerItemType itemType) => Submit(PokerActionType.Wager, (int)itemType);
 		private void HandleFold() => Submit(PokerActionType.Fold, 0);
 
 		private void Submit(PokerActionType action, int amount)

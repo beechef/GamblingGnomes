@@ -142,7 +142,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			var seat = FindSeat(item.OwnerClientId);
 			if (!seat || !seat.ItemAnchor) return null;
 
-			var prefab = PrefabFor(item.ItemTypeIndex);
+			var prefab = PrefabFor(item.ItemType);
 			if (!prefab) return null;
 
 			var cap = Instantiate(prefab, seat.ItemAnchor);
@@ -226,7 +226,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 		// The kind's own model, looked up by type. A cap is a thing, not a colour: two mushrooms that
 		// differ only in tint are a placeholder, and the database is where the difference belongs.
-		private GameObject PrefabFor(byte itemType)
+		private GameObject PrefabFor(PokerItemType itemType)
 		{
 			if (_database && _database.TryGetEntry(itemType, out var entry) && entry.WorldPrefab) return entry.WorldPrefab;
 

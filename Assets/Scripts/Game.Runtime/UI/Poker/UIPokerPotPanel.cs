@@ -24,10 +24,10 @@ namespace Game.Runtime.UI.Poker
 		[Tooltip("Optional: an itemised line under the total — how many of each kind the pot holds, read off the pot ledger. Empty draws nothing and the panel is the plain money pot it always was.")]
 		[SerializeField] private TextMeshProUGUI _breakdownLabel;
 
-		[Tooltip("Names and colours the breakdown by ItemTypeIndex. Only read when the breakdown label is set.")]
+		[Tooltip("Names and colours the breakdown by kind. Only read when the breakdown label is set.")]
 		[SerializeField] private PokerItemDatabase _itemDatabase;
 
-		private readonly Dictionary<byte, int> _typeCounts = new();
+		private readonly Dictionary<PokerItemType, int> _typeCounts = new();
 		private readonly StringBuilder _breakdown = new();
 
 		private void Awake()
@@ -83,22 +83,22 @@ namespace Game.Runtime.UI.Poker
 
 			foreach (var item in Data.PotItems)
 			{
-				if (item.ItemTypeIndex == PokerItemDatabase.PlainChip) continue;
+				if (item.ItemType == PokerItemDatabase.PlainChip) continue;
 
-				_typeCounts.TryGetValue(item.ItemTypeIndex, out var count);
-				_typeCounts[item.ItemTypeIndex] = count + 1;
+				_typeCounts.TryGetValue(item.ItemType, out var count);
+				_typeCounts[item.ItemType] = count + 1;
 			}
 
 			if (_typeCounts.Count == 0) return string.Empty;
 
 			_breakdown.Clear();
 
-			for (var i = 1; i <= _itemDatabase.Entries.Count && i <= byte.MaxValue; i++)
+			// Walked in the database order rather than by counting up through the values: the order rows sit
+			// in is the reading order somebody authored, and a kind is named on its own row now.
+			foreach (var entry in _itemDatabase.Entries)
 			{
-				var itemType = (byte)i;
-
-				if (!_typeCounts.TryGetValue(itemType, out var count)) continue;
-				if (!_itemDatabase.TryGetEntry(itemType, out var entry)) continue;
+				if (entry == null) continue;
+				if (!_typeCounts.TryGetValue(entry.Type, out var count)) continue;
 
 				if (_breakdown.Length > 0) _breakdown.Append("  ");
 

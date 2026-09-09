@@ -13,9 +13,8 @@ namespace Game.Runtime.GameMode.Poker.Stages
 	public class PokerColorfulPickStage : PokerStage
 	{
 		[Header("Cap")]
-		[Tooltip("Which kind in the table's database is the Colorful cap. One-based, the way every stake index is.")]
-		[MinValue(1)]
-		[SerializeField] private int _colorfulItemType = 5;
+		[Tooltip("Which kind the table feeds here. Picked rather than typed: it used to be a one-based index into the database, which is a number nobody could check and every reorder could break.")]
+		[SerializeField] private PokerItemType _colorfulItemType = PokerItemType.Colorful;
 
 		[Header("Timing")]
 		[Tooltip("Seconds the winner has to choose. Zero or less waits for them.")]
@@ -32,7 +31,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		private bool _picked;
 		private float _turnElapsed;
 
-		public byte ColorfulItemType => (byte)Mathf.Clamp(_colorfulItemType, 1, byte.MaxValue);
+		public PokerItemType ColorfulItemType => _colorfulItemType;
 
 		protected override void OnStartStage()
 		{
@@ -85,10 +84,9 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			return true;
 		}
 
-		// Anybody still conscious and at the table, the winner included. Somebody already under has
-		// nothing left to lose and feeding them would be a move with no consequence at all.
-		// In this match and still conscious. An empty purse is no protection from a mushroom, so this asks
-		// InMatch and IsAlive rather than IsPlayingThisMatch, which adds the money the deal cares about.
+		// In this match and still conscious, the winner included. Somebody already under has nothing left to
+		// lose and feeding them would be a move with no consequence at all. An empty purse is no protection
+		// from a mushroom, so this asks InMatch and IsAlive rather than IsPlayingThisMatch.
 		private bool CanBeFed(PokerPlayer player) =>
 			player && player.Data && player.Data.IsSeated && player.Data.InMatch.Value && player.Data.IsAlive;
 
@@ -119,7 +117,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			{
 				// A cap the table does not carry is a setup that cannot work, and skipping it silently
 				// would read as a winner whose choice simply does nothing.
-				Debug.LogWarning($"[{StageId}] No Colorful cap at index {ColorfulItemType} in the table's mushroom database.");
+				Debug.LogWarning($"[{StageId}] No entry for {ColorfulItemType} in the table's mushroom database.");
 			}
 
 			if (_resultDuration <= 0f)

@@ -1,3 +1,4 @@
+using Game.Runtime.GameMode.Poker.Items;
 using Game.Runtime.GameMode.Poker.Player;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -91,9 +92,9 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			// table wagers for them rather than folding somebody who merely went quiet.
 			var clientId = Data.CurrentTurnClientId.Value;
 			var database = GameMode.ItemDatabase;
-			var fallback = database ? database.DrawItemType() : Items.PokerItemDatabase.PlainChip;
+			var fallback = database ? database.DrawItemType() : PokerItemDatabase.PlainChip;
 
-			HandleAction(clientId, PokerActionType.Wager, fallback);
+			HandleAction(clientId, PokerActionType.Wager, (int)fallback);
 		}
 
 		public override bool HandleAction(ulong clientId, PokerActionType action, int amount)
@@ -113,7 +114,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 					// ServerResetForHand wipes halfway through the round.
 					for (var i = 0; i < ItemsPerWager; i++)
 					{
-						PokerTableUtility.WagerItem(Data, player, (byte)amount);
+						PokerTableUtility.WagerItem(Data, player, (PokerItemType)amount);
 					}
 					break;
 
@@ -136,12 +137,10 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		// the deal, so nobody is Active yet and a hand-based count reads as "everybody has folded" — which
 		// sent the round straight to the reveal, every time, and looped there. Seated and conscious is what
 		// is actually being asked; folding is the only thing that takes somebody out of it afterwards.
-		// Seated and conscious was the whole question while every chair was a player. A body that took a free
-		// chair mid-match is neither dealt in nor scored, so it must not be asked to stake either — the
-		// street would sit waiting on an answer from somebody who is only watching.
-		// InMatch rather than IsPlayingThisMatch: that one adds the purse, and a wager costs no money — a
-		// player down to nothing still puts a cap up. What is being asked here is only whether they are in
-		// this match at all.
+		// A body that took a free chair mid-match is neither dealt in nor scored, so it is not asked to stake
+		// either — the street would sit waiting on an answer from somebody who is only watching. InMatch
+		// rather than IsPlayingThisMatch, because that one adds the purse and a wager costs no money: a
+		// player down to nothing still puts a cap up.
 		private static bool CanWager(PokerPlayerData data) =>
 			data && data.IsSeated && data.InMatch.Value && data.IsAlive && data.Status.Value != PokerPlayerStatus.Folded;
 
@@ -163,10 +162,11 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			if (itemType <= 0 || itemType > byte.MaxValue) return false;
 
 			var database = GameMode ? GameMode.ItemDatabase : null;
+			if (!database) return false;
 
 			// A kind that exists is not necessarily a kind that may be put up: the Colorful cap is only ever
 			// handed to somebody, never staked.
-			return database && database.TryGetEntry((byte)itemType, out var entry) && entry.Wagerable;
+			return database.TryGetEntry((PokerItemType)itemType, out var entry) && entry.Wagerable;
 		}
 
 		public override void HandlePlayerLeft(ulong clientId, int seatIndex)

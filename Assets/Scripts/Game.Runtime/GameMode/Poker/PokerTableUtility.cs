@@ -14,8 +14,8 @@ namespace Game.Runtime.GameMode.Poker
 		// statics survive between play sessions with Domain Reload off.
 		private static readonly List<int> CapBuffer = new();
 		private static readonly List<PokerPlayer> WinnerBuffer = new();
-		private static readonly List<byte> TypeBuffer = new();
-		private static readonly List<(ulong OwnerClientId, byte ItemType)> ServeBuffer = new();
+		private static readonly List<PokerItemType> TypeBuffer = new();
+		private static readonly List<(ulong OwnerClientId, PokerItemType ItemType)> ServeBuffer = new();
 
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
 		private static void ResetStatics()
@@ -124,7 +124,7 @@ namespace Game.Runtime.GameMode.Poker
 		// so Pot is a count of caps rather than a sum, and the ledger beside it is what says which kinds are
 		// there to be eaten. Written here with every other pot write, so the scalar and the ledger cannot
 		// drift apart.
-		public static void WagerItem(PokerGameData data, PokerPlayer player, byte itemType)
+		public static void WagerItem(PokerGameData data, PokerPlayer player, PokerItemType itemType)
 		{
 			if (!data || !player || !player.Data) return;
 
@@ -182,7 +182,7 @@ namespace Game.Runtime.GameMode.Poker
 
 					if (!theirs) continue;
 
-					ServeBuffer.Add((player.ClientId, item.ItemTypeIndex));
+					ServeBuffer.Add((player.ClientId, item.ItemType));
 				}
 			}
 
@@ -220,7 +220,7 @@ namespace Game.Runtime.GameMode.Poker
 		// The next bite, taken off the table as it goes down rather than after — the ledger is what the
 		// visual draws, so a cap still on it whose effect has already landed is one the table can see that
 		// nobody is going to eat.
-		public static bool ServerTakePotItem(PokerGameData data, ulong ownerClientId, out byte itemType)
+		public static bool ServerTakePotItem(PokerGameData data, ulong ownerClientId, out PokerItemType itemType)
 		{
 			itemType = PokerItemDatabase.PlainChip;
 			if (!data) return false;
@@ -229,7 +229,7 @@ namespace Game.Runtime.GameMode.Poker
 			{
 				if (data.PotItems[i].OwnerClientId != ownerClientId) continue;
 
-				itemType = data.PotItems[i].ItemTypeIndex;
+				itemType = data.PotItems[i].ItemType;
 				data.PotItems.RemoveAt(i);
 				data.Pot.Value = Mathf.Max(0, data.Pot.Value - 1);
 				return true;
@@ -241,7 +241,7 @@ namespace Game.Runtime.GameMode.Poker
 		// The pot's itemised half. One entry per unit staked, stamped with who fed it, on which street,
 		// and what it is — the types were drawn off the front of the owner's wallet when the stake was
 		// placed. Only ever written beside the scalar, in this class, so the two cannot disagree.
-		private static void AddPotItems(PokerGameData data, ulong ownerClientId, List<byte> itemTypes)
+		private static void AddPotItems(PokerGameData data, ulong ownerClientId, List<PokerItemType> itemTypes)
 		{
 			foreach (var itemType in itemTypes)
 			{
@@ -249,7 +249,7 @@ namespace Game.Runtime.GameMode.Poker
 				{
 					OwnerClientId = ownerClientId,
 					Phase = data.Phase.Value,
-					ItemTypeIndex = itemType
+					ItemType = itemType
 				});
 			}
 		}
