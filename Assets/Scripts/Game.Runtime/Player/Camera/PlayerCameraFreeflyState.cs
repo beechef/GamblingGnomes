@@ -5,8 +5,9 @@ namespace Game.Runtime.Player.Camera
 	// mean picking one of the two rigs — the owner renders the other one.
 	//
 	// So all it does is give the view back, which is the whole difference between this state and every
-	// other one. Both halves, because a state that took it away turned off two things: applying the look
-	// to the bone, and reading the input at all.
+	// other one. Both halves are released, not because a camera state takes both — one only ever takes the
+	// input — but because something else may have suspended the bone and gone away without handing it back,
+	// and free flight is where the player is supposed to have their view again whatever happened before.
 	public class PlayerCameraFreeflyState : PlayerCameraState
 	{
 		protected override void OnEnter()

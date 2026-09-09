@@ -273,7 +273,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5797e5eb5a482e945b8260e3fdf393b3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Visual.PokerCardFanVisual
-  _depthStep: 0.002
+  _depthStep: 0.005
   _cardSpacing: 0.045
   _fanAngle: 10
   _handBone: 11
@@ -940,7 +940,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 80479540ef222e54aaa1cf33d56f83b5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Visual.PokerCardRowVisual
-  _depthStep: 0.002
+  _depthStep: 0.005
   _spacing: 0.06
   _data: {fileID: 6935137486891752095}
 --- !u!1 &8336348170960471977
@@ -988,12 +988,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Player.PokerPlayerItemController
   ShowTopMostFoldoutHeaderGroup: 1
-  ConsumedTypes:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 0
-  _data: {fileID: 6935137486891752095}
 --- !u!1 &9143877374665817519
 GameObject:
   m_ObjectHideFlags: 0
@@ -1502,6 +1496,11 @@ MonoBehaviour:
       MinSecondsBetweenUpdates: 0
       MaxSecondsBetweenUpdates: 0
     m_InternalValue: 0
+  InMatch:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
   HandRevealed:
     UpdateTraits:
       MinSecondsBetweenUpdates: 0
@@ -1551,7 +1550,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Player.PokerPlayer
   ShowTopMostFoldoutHeaderGroup: 1
   _data: {fileID: 6935137486891752095}
-  _items: {fileID: 715681995083866239}
+  _itemConsume: {fileID: 715681995083866239}
   _wallet: {fileID: 1277917375681613223}
   _rig: {fileID: 382404797062674536}
   _headStretch: {fileID: 2468990494341469443}

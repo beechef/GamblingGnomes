@@ -3,9 +3,14 @@ using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker.Visual
 {
-	// Two renderers back to back, because a card is a physical object: a face on one side, the back
-	// pattern on the other. A single sprite is invisible from behind, which reads as a card that
-	// vanishes whenever the table is seen from the other side.
+	// Two quads back to back, because a card is a physical object: a face on one side, the back pattern
+	// on the other, half the card's thickness either side of the middle so the pair is not coplanar and
+	// cannot z-fight.
+	//
+	// How big they are, where they sit and what the hit box measures are all authored in the prefab —
+	// every card in the deck is the same size, so none of it is a runtime question, and a runtime that
+	// worked it out again would be a second answer to a settled question and the one nobody can look at.
+	// This says which picture goes on which face and nothing else.
 	public class PokerCardVisual : MonoBehaviour
 	{
 		[Header("Renderers")]
@@ -31,13 +36,6 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		private static readonly Quaternion FaceUpRotation = Quaternion.identity;
 		private static readonly Quaternion FaceDownRotation = Quaternion.Euler(0f, 180f, 0f);
 
-		[Header("Picking")]
-		[Tooltip("What a raycast hits. Sized from the sprite whenever the card is set, because a card only knows how big it is once it has a face. It belongs on the root, which only ever moves when the card really travels — the lift and the flip move the art below it, so the hit region cannot slide out from under the cursor that is pointing at it.")]
-		[SerializeField] private BoxCollider _collider;
-
-		[Tooltip("Thickness of that box. A card is flat, but a zero-depth box is a raycast target that can be missed edge on.")]
-		[SerializeField] private float _colliderDepth = 0.004f;
-
 		[Header("Placement")]
 		[Tooltip("Seconds a card takes to travel between the table and a hand.")]
 		[SerializeField] private float _moveDuration = 0.4f;
@@ -58,10 +56,6 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		// same localPosition would each erase the other's answer.
 		private float _lift;
 		private float _flipLift;
-
-		// The face this card is currently showing. Kept because the sprite is what knows how big a card is,
-		// and the renderer no longer holds one.
-		private Sprite _face;
 
 		// One block, reused. Each card shows a different picture, so the texture is per-renderer state rather
 		// than per-material — a material each would be one more material per card in the deal.
@@ -142,20 +136,17 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			if (_database)
 			{
 				// A hand this client may not see shows its back from both sides rather than a blank face.
-				_face = faceUp ? _database.GetFace(card) : _database.CardBack;
-
-				Draw(_frontRenderer, _face);
+				Draw(_frontRenderer, faceUp ? _database.GetFace(card) : _database.CardBack);
 				Draw(_backRenderer, _database.CardBack);
 			}
 
 			Flip(faceUp, animateFlip);
-			ResizeCollider();
 		}
 
-		// A card's picture onto its quad. One texture per card, so the whole of it is the card and the UVs
-		// are the quad's own — no atlas rectangle to carry, which is a tiling and offset that has to be
-		// right on every card and is wrong in silence when it is not. The quad is 1x1, so scaling it by the
-		// sprite's own bounds reproduces exactly what the SpriteRenderer drew.
+		// A card's picture onto its quad, and nothing else. How big the quad is, where the two faces sit and
+		// what the hit box measures are the same on every card in the deck, so they are authored in the
+		// prefab where they can be seen and tuned — a runtime working them out again is a second answer to
+		// a settled question, and the one nobody can look at.
 		private static void Draw(MeshRenderer renderer, Sprite sprite)
 		{
 			if (!renderer) return;
@@ -175,8 +166,6 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			_block.SetTexture(BaseMapId, sprite.texture);
 			renderer.SetPropertyBlock(_block);
 
-			var size = sprite.bounds.size;
-			renderer.transform.localScale = new Vector3(size.x, size.y, 1f);
 		}
 
 		// How far the card stands off the table: under the cursor, or chosen and waiting for the rest of the
@@ -209,42 +198,6 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			var root = FlipRoot;
 			if (root) root.localPosition = new Vector3(0f, 0f, -(_lift + _flipLift));
 		}
-
-		// The sprite is assigned at runtime from the database, so the prefab has no size to author against.
-		// Taken off the front rather than the back: they are the same card, and the front is the one that
-		// is always set.
-		//
-		// A sprite's bounds are in the renderer's own space, and the collider sits on the root above it —
-		// the art below is scaled down to a card's real size, so the same numbers mean different things on
-		// the two objects. Read straight across, the box came out at the scale the *sprite* is drawn at,
-		// which is more than a metre wide and swallows the whole table. The ratio between the two lossy
-		// scales converts it, and cancels any scale an anchor above adds along with it.
-		private void ResizeCollider()
-		{
-			if (!_collider || !_frontRenderer || !_face) return;
-
-			// Measured against the pivot, not the renderer: the quad now carries the card's size in its own
-			// localScale, so asking the renderer would count that size twice.
-			var factor = RelativeScale(FlipRoot, _collider.transform);
-			var bounds = _face.bounds;
-
-			var size = Vector3.Scale(bounds.size, factor);
-
-			_collider.size = new Vector3(size.x, size.y, Mathf.Max(0.0001f, _colliderDepth));
-			_collider.center = Vector3.Scale(bounds.center, factor);
-		}
-
-		private static Vector3 RelativeScale(Transform from, Transform to)
-		{
-			var source = from.lossyScale;
-			var target = to.lossyScale;
-
-			return new Vector3(Ratio(source.x, target.x), Ratio(source.y, target.y), Ratio(source.z, target.z));
-		}
-
-		// A zero somewhere in the chain is an object nothing can be drawn on anyway, so the box collapses
-		// with it rather than dividing by it.
-		private static float Ratio(float source, float target) => Mathf.Approximately(target, 0f) ? 0f : source / target;
 
 		// Turns the card over. Animated, it always starts from the opposite side, so revealing a card
 		// plays as the dealer turning it rather than the art simply changing.

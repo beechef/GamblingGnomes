@@ -86,11 +86,16 @@ namespace Game.Runtime.Player.Camera
 			_camera.enabled = live;
 		}
 
+		// The input and nothing else. Suspending the look as well is what made the first frame of this shot
+		// flick: suspension stops the look being *applied* to the bone, the Animator puts that bone back to
+		// the clip's pose on the very next frame, and the rendered camera hangs off it — so the shot the
+		// brain is blending *away from* jumped in the same instant the blend began. Disabling the input
+		// freezes the angles where the player left them, which is what a body being looked at from
+		// somewhere else should hold anyway; the bone is not something a camera state ever needs.
 		private void SetLook(bool enabled)
 		{
 			if (!Controller || !Controller.PlayerController) return;
 
-			Controller.PlayerController.SetLookSuspended(!enabled);
 			Controller.PlayerController.SetLookInputDisabled(!enabled);
 		}
 	}
