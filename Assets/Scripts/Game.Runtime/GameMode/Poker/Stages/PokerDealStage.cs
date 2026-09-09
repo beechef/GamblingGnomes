@@ -103,7 +103,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			var players = GameMode.SeatedPlayers;
 			if (players.Count == 0) return;
 
-			var next = PokerTableUtility.NextPlayer(players, Data.DealerSeatIndex.Value, player => GameMode.CanBeDealtIn(player.Data))
+			var next = PokerTableUtility.NextPlayer(players, Data.DealerSeatIndex.Value, player => GameMode.IsPlayingThisMatch(player.Data))
 			           ?? players[0];
 
 			Data.DealerSeatIndex.Value = next.Data.SeatIndex.Value;
@@ -130,6 +130,15 @@ namespace Game.Runtime.GameMode.Poker.Stages
 				if (!data.IsAlive)
 				{
 					data.Status.Value = PokerPlayerStatus.Dead;
+					continue;
+				}
+
+				// Sat down after this match began. They keep the chair and watch it out, and Waiting is
+				// already what "seated but never dealt in" means — Busted would say they had run out of
+				// money, which is a different thing and the wrong thing to read off their seat.
+				if (!data.InMatch.Value)
+				{
+					data.Status.Value = PokerPlayerStatus.Waiting;
 					continue;
 				}
 

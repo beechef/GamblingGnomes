@@ -64,7 +64,7 @@ namespace Game.Runtime.UI.Poker
 
 			if (_player && _player.Data)
 			{
-				_player.Data.OnStateChanged -= RebuildCards;
+				_player.Data.OnHoleCardPresentationChanged -= RebuildCards;
 				_player.Data.OnHoleCardsChanged -= HandleHoleCardsChanged;
 			}
 
@@ -72,7 +72,7 @@ namespace Game.Runtime.UI.Poker
 
 			if (!_player || !_player.Data) return;
 
-			_player.Data.OnStateChanged += RebuildCards;
+			_player.Data.OnHoleCardPresentationChanged += RebuildCards;
 			_player.Data.OnHoleCardsChanged += HandleHoleCardsChanged;
 		}
 

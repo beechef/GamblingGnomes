@@ -29,7 +29,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			if (!_data) _data = GetComponentInParent<PokerPlayerData>();
 			if (!IsServer || !_data) return;
 
-			_data.OnStateChanged += Refresh;
+			_data.OnHoleCardPresentationChanged += Refresh;
 			_data.OnHoleCardsChanged += HandleHoleCardsChanged;
 
 			Refresh();
@@ -40,7 +40,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			if (!IsServer || !_data) return;
 
 			_data.OnHoleCardsChanged -= HandleHoleCardsChanged;
-			_data.OnStateChanged -= Refresh;
+			_data.OnHoleCardPresentationChanged -= Refresh;
 		}
 
 		// Both, because putting the cards down writes two replicated changes — the hand itself and where

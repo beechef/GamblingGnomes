@@ -71,6 +71,26 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 		// the eyelids reads this same number rather than carrying one of its own to keep in step.
 		public float TransitionDuration => Mathf.Max(0f, _transitionDuration);
 
+		// Whether moving between these two rates climbs or loses a rung — which is exactly when the screen
+		// spends TransitionDuration blinking. Asked by the server, which has this component too and can read
+		// the ladder off it: anything pacing a beat around the blink has to know whether one is coming, and
+		// the alternative is a second copy of the thresholds somewhere that only ever drifts.
+		public bool CrossesRung(int previousRate, int currentRate)
+		{
+			if (!_tiers) return false;
+
+			var rungs = _tiers.Rungs;
+
+			for (var i = 0; i < rungs.Count; i++)
+			{
+				if (rungs[i] == null) continue;
+
+				if (previousRate >= rungs[i].Threshold != (currentRate >= rungs[i].Threshold)) return true;
+			}
+
+			return false;
+		}
+
 		public event Action OnTransitionStarted;
 
 		public override void OnNetworkSpawn()

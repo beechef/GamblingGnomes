@@ -100,7 +100,9 @@ namespace Game.Runtime.GameMode.Poker
 		// One press of start begins a match, and a match is however many hands the table can still deal.
 		// Asked at the end of each one, because a hand is exactly what takes players out of the running:
 		// the same count the host's button is gated on, so a table that could be started can be continued.
-		public bool CanDealAnotherHand => _rules && FundedPlayerCount >= _rules.MinimumPlayersToStart;
+		// Those collected into this match, not everyone in a chair: a table kept alive by spectators who
+		// arrived after it began would deal hands nobody in them is playing.
+		public bool CanDealAnotherHand => _rules && MatchPlayerCount >= _rules.MinimumPlayersToStart;
 
 		// Whether the host may press start. The host holds the button rather than a hand, so their own seat
 		// counts as company even when they have gone under — a table whose host is unconscious would otherwise
@@ -306,6 +308,33 @@ namespace Game.Runtime.GameMode.Poker
 			return !PlaysForMoney || data.Chips > 0;
 		}
 
+		// A place in the match, as opposed to a chair in the room. Everything the round *does* to a player
+		// asks this — dealing to them, letting them wager, feeding them a cap — so somebody who sat down
+		// halfway through watches the rest of it out rather than being collected into a game that was
+		// already scored around them.
+		//
+		// Deliberately not folded into CanBeDealtIn, which is asked *before* a match to decide whether one
+		// can start at all: at that moment nobody is stamped in yet, and a gate reading this would make the
+		// start button permanently dead.
+		public bool IsPlayingThisMatch(PokerPlayerData data) => data && data.InMatch.Value && CanBeDealtIn(data);
+
+		// Those still playing the match that is running. What decides whether there is another hand in it,
+		// where FundedPlayerCount decides whether a new match can begin.
+		public int MatchPlayerCount
+		{
+			get
+			{
+				var count = 0;
+
+				foreach (var player in _seatedPlayers)
+				{
+					if (player && IsPlayingThisMatch(player.Data)) count++;
+				}
+
+				return count;
+			}
+		}
+
 		public bool PlaysForMoney => !_rules || _rules.PlaysForMoney;
 
 		// A body arriving is a body to seat: chairs are handed out rather than chosen, so this is where
@@ -506,6 +535,14 @@ namespace Game.Runtime.GameMode.Poker
 			foreach (var module in _modules)
 			{
 				if (module && !module.CanStartGame()) return;
+			}
+
+			// Who the match is being played by, decided once here. Everybody in a chair right now and able to
+			// be dealt in is collected; anybody who sits down after this watches it out. The host who pressed
+			// start while unconscious is not collected either — they hold the button, not a hand.
+			foreach (var player in _seatedPlayers)
+			{
+				if (player && player.Data) player.Data.InMatch.Value = CanBeDealtIn(player.Data);
 			}
 
 			foreach (var module in _modules)

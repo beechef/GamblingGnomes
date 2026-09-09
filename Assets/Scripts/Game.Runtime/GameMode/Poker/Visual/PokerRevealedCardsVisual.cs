@@ -41,7 +41,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			if (!_data) _data = GetComponentInParent<PokerPlayerData>();
 			if (!_data) return;
 
-			_data.OnStateChanged += Refresh;
+			_data.OnHoleCardPresentationChanged += Refresh;
 			_data.OnHoleCardsChanged += HandleHoleCardsChanged;
 
 			// A client arriving mid peek is already inside the grant, so the state is read as it stands
@@ -54,7 +54,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			if (!_data) return;
 
 			_data.OnHoleCardsChanged -= HandleHoleCardsChanged;
-			_data.OnStateChanged -= Refresh;
+			_data.OnHoleCardPresentationChanged -= Refresh;
 
 			Hide();
 		}

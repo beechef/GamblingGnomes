@@ -30,7 +30,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		private static readonly Quaternion FaceDownRotation = Quaternion.Euler(0f, 180f, 0f);
 
 		[Header("Picking")]
-		[Tooltip("What a raycast hits. Sized from the sprite whenever the card is set, because a card only knows how big it is once it has a face.")]
+		[Tooltip("What a raycast hits. Sized from the sprite whenever the card is set, because a card only knows how big it is once it has a face. It belongs on the root, which only ever moves when the card really travels — the lift and the flip move the art below it, so the hit region cannot slide out from under the cursor that is pointing at it.")]
 		[SerializeField] private BoxCollider _collider;
 
 		[Tooltip("Thickness of that box. A card is flat, but a zero-depth box is a raycast target that can be missed edge on.")]
@@ -47,10 +47,15 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 		private Tween _flipTween;
 		private Tween _moveTween;
-		private Tween _hoverTween;
+		private Tween _liftTween;
 		private bool _initialized;
+
+		// How far off the table the art is standing, and why. Two reasons, one height: a card being
+		// hovered or chosen, and a card mid-flip arcing over the surface it is lying on. They are summed
+		// and written in one place, because a card can only be at one height and two tweens writing the
+		// same localPosition would each erase the other's answer.
 		private float _lift;
-		private float _restLocalZ;
+		private float _flipLift;
 
 		public CardData Card { get; private set; }
 		public bool FaceUp { get; private set; } = true;
@@ -67,7 +72,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		{
 			_flipTween?.Kill();
 			_moveTween?.Kill();
-			_hoverTween?.Kill();
+			_liftTween?.Kill();
 		}
 
 		// Where the card sits, and under what. Reparenting keeps the world pose so the travel starts from
@@ -78,11 +83,11 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		{
 			_moveTween?.Kill();
 
-			// A card that is travelling is not a card being hovered: the lift is measured off wherever the
-			// card comes to rest, so it has to be forgotten before the rest changes.
-			_hoverTween?.Kill();
+			// A card that is travelling is not a card being hovered, so the lift is dropped before the rest
+			// changes.
+			_liftTween?.Kill();
 			_lift = 0f;
-			_restLocalZ = localPosition.z;
+			ApplyArtHeight();
 
 			if (transform.parent != parent) transform.SetParent(parent, true);
 
@@ -136,27 +141,67 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		// How far the card stands off the table: under the cursor, or chosen and waiting for the rest of the
 		// hand to be chosen with it. One number rather than one per reason, because a card can only be at one
 		// height and whoever is asking already knows which of the two it is.
-		// Applied to the root rather than the flip root, which the flip owns outright.
+		//
+		// It moves the art and never the root, because the root is what carries the collider. Lifting the
+		// hit box along with the picture is a feedback loop: a card hovered near its own edge rises out
+		// from under the cursor, stops being hovered, drops back under it, and is hovered again — which
+		// reads as a card flickering rather than as a hit region that moved.
 		public void SetLift(float lift)
 		{
 			if (Mathf.Approximately(_lift, lift)) return;
 
-			_lift = lift;
-			_hoverTween?.Kill();
-			_hoverTween = transform.DOLocalMoveZ(_restLocalZ - lift, 0.12f).SetEase(Ease.OutCubic);
+			_liftTween?.Kill();
+
+			var from = _lift;
+			_liftTween = DOVirtual.Float(from, lift, 0.12f, value =>
+				{
+					_lift = value;
+					ApplyArtHeight();
+				})
+				.SetEase(Ease.OutCubic);
+		}
+
+		// The one writer of how high the art sits. Both reasons land here rather than each tweening the
+		// same localPosition, which is how one of them silently wins.
+		private void ApplyArtHeight()
+		{
+			var root = FlipRoot;
+			if (root) root.localPosition = new Vector3(0f, 0f, -(_lift + _flipLift));
 		}
 
 		// The sprite is assigned at runtime from the database, so the prefab has no size to author against.
 		// Taken off the front rather than the back: they are the same card, and the front is the one that
 		// is always set.
+		//
+		// A sprite's bounds are in the renderer's own space, and the collider sits on the root above it —
+		// the art below is scaled down to a card's real size, so the same numbers mean different things on
+		// the two objects. Read straight across, the box came out at the scale the *sprite* is drawn at,
+		// which is more than a metre wide and swallows the whole table. The ratio between the two lossy
+		// scales converts it, and cancels any scale an anchor above adds along with it.
 		private void ResizeCollider()
 		{
 			if (!_collider || !_frontRenderer || !_frontRenderer.sprite) return;
 
-			var size = _frontRenderer.sprite.bounds.size;
+			var factor = RelativeScale(_frontRenderer.transform, _collider.transform);
+			var bounds = _frontRenderer.sprite.bounds;
+
+			var size = Vector3.Scale(bounds.size, factor);
+
 			_collider.size = new Vector3(size.x, size.y, Mathf.Max(0.0001f, _colliderDepth));
-			_collider.center = _frontRenderer.sprite.bounds.center;
+			_collider.center = Vector3.Scale(bounds.center, factor);
 		}
+
+		private static Vector3 RelativeScale(Transform from, Transform to)
+		{
+			var source = from.lossyScale;
+			var target = to.lossyScale;
+
+			return new Vector3(Ratio(source.x, target.x), Ratio(source.y, target.y), Ratio(source.z, target.z));
+		}
+
+		// A zero somewhere in the chain is an object nothing can be drawn on anyway, so the box collapses
+		// with it rather than dividing by it.
+		private static float Ratio(float source, float target) => Mathf.Approximately(target, 0f) ? 0f : source / target;
 
 		// Turns the card over. Animated, it always starts from the opposite side, so revealing a card
 		// plays as the dealer turning it rather than the art simply changing.
@@ -172,13 +217,15 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			if (!animate)
 			{
 				root.localRotation = target;
-				root.localPosition = Vector3.zero;
+				_flipLift = 0f;
+				ApplyArtHeight();
 				return;
 			}
 
 			var from = faceUp ? FaceDownRotation : FaceUpRotation;
 			root.localRotation = from;
-			root.localPosition = Vector3.zero;
+			_flipLift = 0f;
+			ApplyArtHeight();
 
 			// Driven by an explicit slerp rather than a quaternion tween: turning exactly 180 degrees
 			// leaves the two rotations orthogonal in quaternion space, where "shortest path" is
@@ -189,7 +236,8 @@ namespace Game.Runtime.GameMode.Poker.Visual
 					if (!root) return;
 
 					root.localRotation = Quaternion.Slerp(from, target, t);
-					root.localPosition = new Vector3(0f, 0f, -Mathf.Sin(t * Mathf.PI) * _flipHeight);
+					_flipLift = Mathf.Sin(t * Mathf.PI) * _flipHeight;
+					ApplyArtHeight();
 				})
 				.SetEase(_flipEase)
 				.OnComplete(() =>
@@ -197,7 +245,8 @@ namespace Game.Runtime.GameMode.Poker.Visual
 					if (!root) return;
 
 					root.localRotation = target;
-					root.localPosition = Vector3.zero;
+					_flipLift = 0f;
+					ApplyArtHeight();
 				});
 		}
 	}

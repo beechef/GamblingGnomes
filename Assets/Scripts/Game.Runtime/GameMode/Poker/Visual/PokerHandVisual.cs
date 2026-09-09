@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Game.Runtime.GameMode.Poker.Player;
-using Game.Runtime.Player;
+using Sirenix.OdinInspector;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -10,30 +10,23 @@ namespace Game.Runtime.GameMode.Poker.Visual
 	// Lives on the player so the cards travel with the gnome holding them. Cards are dealt in one at a
 	// time and only re-read wholesale on a late join; a showdown flips the cards already in hand rather
 	// than replacing them.
+	//
+	// It owns the slots — which card is in which, which faces are up, which of them a raycast may pick —
+	// and nothing about where any of them is drawn. Where is a PokerCardGroupVisual's business: this one
+	// only says which group a card belongs to right now, and hands it over when that answer changes.
 	public class PokerHandVisual : NetworkBehaviour
 	{
-		[Header("Layout")]
-		[SerializeField] private float _cardSpacing = 0.03f;
-		[SerializeField] private float _fanAngle = 8f;
+		[Header("Groups")]
+		[Tooltip("Where a card lies before it is picked up. The row in front of the chair.")]
+		[Required]
+		[SerializeField] private PokerCardGroupVisual _table;
 
-		[Tooltip("Gap between the cards lying on the table. Wider than the fan: these are what a player reaches for, and two cards overlapping cannot be told apart by a raycast.")]
-		[SerializeField] private float _tableSpacing = 0.06f;
-
-		[Tooltip("Gap between cards along the anchor's forward. Coplanar cards z-fight.")]
-		[SerializeField] private float _depthStep = 0.0008f;
-
-		[Header("Hand Bone")]
-		[Tooltip("The hand of whichever rig this client renders — the owner's own, or the body everyone else sees.")]
-		[SerializeField] private PlayerBone _handBone = PlayerBone.HandLeft;
-
-		[Tooltip("Where the cards sit in the hand, relative to that bone.")]
-		[SerializeField] private Vector3 _handLocalPosition = new(0.02f, 0.01f, 0f);
-
-		[SerializeField] private Vector3 _handLocalEuler = new(0f, 90f, 0f);
+		[Tooltip("Where a card goes once it has been picked up. The fan in the hand.")]
+		[Required]
+		[SerializeField] private PokerCardGroupVisual _hand;
 
 		[Header("References")]
 		[SerializeField] private PokerPlayerData _data;
-		[SerializeField] private PlayerRigController _rig;
 		[SerializeField] private PokerCardVisual _cardPrefab;
 		[SerializeField] private PokerCardDatabase _database;
 
@@ -49,7 +42,6 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
 		private static void ResetStatics() => OnAnyHandChanged = null;
 
-		private Transform _resolvedAnchor;
 		// One bit per slot, so a hand held face down to its own holder can turn three of five over and
 		// leave the rest as backs. A single flag could only ever say "the whole hand" — which is what
 		// this was, and what a round dealing more cards than a player may look at breaks.
@@ -59,11 +51,10 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		public override void OnNetworkSpawn()
 		{
 			if (!_data) _data = GetComponentInParent<PokerPlayerData>();
-			if (!_rig) _rig = GetComponentInParent<PlayerRigController>();
 			if (!_data) return;
 
 			_data.OnHoleCardsChanged += HandleHoleCardsChanged;
-			_data.OnStateChanged += HandleStateChanged;
+			_data.OnHoleCardPresentationChanged += HandlePresentationChanged;
 
 			// Late join: whatever is already in this hand, shown as it stands.
 			RebuildAll();
@@ -74,7 +65,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			if (!_data) return;
 
 			_data.OnHoleCardsChanged -= HandleHoleCardsChanged;
-			_data.OnStateChanged -= HandleStateChanged;
+			_data.OnHoleCardPresentationChanged -= HandlePresentationChanged;
 		}
 
 		private void HandleHoleCardsChanged(NetworkListEvent<CardData> change)
@@ -103,7 +94,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 					break;
 			}
 
-			Layout();
+			OnAnyHandChanged?.Invoke();
 		}
 
 		// Asked per card: a showdown turns the whole hand over at once, and a holder allowed to look at
@@ -113,7 +104,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		// with different answers — a hand revealed at a showdown goes back down on the table while staying
 		// face up — and a guard built on the face alone left a picked-up card turned over but still lying
 		// where it was, which is the whole pickup nobody could see happen.
-		private void HandleStateChanged()
+		private void HandlePresentationChanged()
 		{
 			if (!_data) return;
 
@@ -126,9 +117,8 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			// hand answers "did anything change", and what has to be redrawn is "which one".
 			var turned = faceUp ^ _shownFaceUpMask;
 
-			// Exactly the slots that changed hands. Everything else is only closing the gap where it
-			// already lies, and PlaceAt arcs whatever it animates — so laying the whole row again made
-			// every card on the table jump each time one was picked up.
+			// Exactly the slots that changed hands. Everything else is still where it was, and only the
+			// group it sits in has to close the gap around it.
 			var moved = inHand ^ _shownInHandMask;
 
 			_shownFaceUpMask = faceUp;
@@ -142,9 +132,33 @@ namespace Game.Runtime.GameMode.Poker.Visual
 				if (_cards[i]) _cards[i].SetCard(visible ? CardAt(i) : CardData.None, visible, _database, true);
 			}
 
-			// Lifted into the hand, or put back down on the table: either way the two groups have to be
-			// laid out again among their own members, so picking one card up closes the gap it left.
-			Layout(moved);
+			for (var i = 0; i < _cards.Count && i < 31; i++)
+			{
+				if ((moved & (1 << i)) == 0) continue;
+
+				HandOver(i, true);
+			}
+
+			OnAnyHandChanged?.Invoke();
+		}
+
+		// Which group this slot belongs in now, and the move if it is not already there. Both groups lay
+		// themselves out again as it leaves and arrives, so picking one card up closes the gap it left on
+		// the table without anything here knowing how either of them is arranged.
+		private void HandOver(int index, bool animate)
+		{
+			if (index < 0 || index >= _cards.Count) return;
+
+			var card = _cards[index];
+			if (!card) return;
+
+			var target = IsInHand(index) ? _hand : _table;
+			var previous = IsInHand(index) ? _table : _hand;
+			if (!target || target.Contains(card)) return;
+
+			if (previous) previous.Remove(card);
+
+			target.Add(card, index, animate);
 		}
 
 		private int CurrentInHandMask()
@@ -189,14 +203,20 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			// The slot this card is about to occupy, so a hand whose cards are turned one at a time asks
 			// about the right one.
 			var index = _cards.Count;
+			var group = IsInHand(index) ? _hand : _table;
 
-			var visual = Instantiate(_cardPrefab, ResolveTableAnchor());
+			// Spawned under the group it belongs to, so a dealt card travels the short hop from that spot
+			// to its slot rather than flying in from wherever the prefab happened to sit.
+			var visual = Instantiate(_cardPrefab, group ? group.Anchor : transform);
 			_cards.Add(visual);
 
 			var visible = IsVisible(index);
 			visual.SetCard(visible ? card : CardData.None, visible, _database, animate);
+
 			_shownFaceUpMask = CurrentFaceUpMask();
 			_shownInHandMask = CurrentInHandMask();
+
+			HandOver(index, animate);
 		}
 
 		private void RemoveCard(int index)
@@ -205,11 +225,22 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 			var visual = _cards[index];
 			_cards.RemoveAt(index);
-			if (visual) Destroy(visual.gameObject);
+
+			if (!visual) return;
+
+			// Off the group before it is destroyed: Destroy is deferred, so a group left holding it would
+			// lay out around a card that is on its way out.
+			if (_table) _table.Remove(visual);
+			if (_hand) _hand.Remove(visual);
+
+			Destroy(visual.gameObject);
 		}
 
 		private void ClearCards()
 		{
+			if (_table) _table.Clear();
+			if (_hand) _hand.Clear();
+
 			foreach (var visual in _cards)
 			{
 				if (visual) Destroy(visual.gameObject);
@@ -241,52 +272,9 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			// look at them.
 			var count = _data.CardCount;
 			for (var i = 0; i < count; i++) AddCard(CardAt(i), false);
-
-			Layout(0);
-		}
-
-		// Two places a card can be: lying face down in front of its owner, or up in their hand. Each
-		// group is laid out among its own members, so picking one card up closes the gap on the table
-		// rather than leaving a hole where it was.
-		private void Layout(int animateMask = ~0)
-		{
-			var handAnchor = ResolveHandAnchor();
-			var tableAnchor = ResolveTableAnchor();
-
-			var inHand = 0;
-			var onTable = 0;
-			for (var i = 0; i < _cards.Count; i++)
-			{
-				if (IsInHand(i)) inHand++;
-				else onTable++;
-			}
-
-			var handSlot = 0;
-			var tableSlot = 0;
-
-			for (var i = 0; i < _cards.Count; i++)
-			{
-				var visual = _cards[i];
-				if (!visual) continue;
-
-				var animate = i < 31 && (animateMask & (1 << i)) != 0;
-
-				if (IsInHand(i))
-				{
-					visual.PlaceAt(handAnchor, FanPosition(handSlot, inHand), FanRotation(handSlot, inHand), animate);
-					handSlot++;
-					continue;
-				}
-
-				visual.PlaceAt(tableAnchor, RowPosition(tableSlot, onTable), Quaternion.identity, animate);
-				tableSlot++;
-			}
-
-			OnAnyHandChanged?.Invoke();
 		}
 
 		private bool IsInHand(int index) => _data && _data.IsHoleCardInHand(index);
-
 
 		// Opened by the beat that allows picking and closed when it ends. A card already up in the hand is
 		// never offered: it has been taken, and reaching for it again is a pick the server would refuse.
@@ -311,68 +299,6 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			}
 
 			return -1;
-		}
-
-		private Vector3 FanPosition(int slot, int count)
-		{
-			var offset = (slot - (count - 1) * 0.5f) * _cardSpacing;
-			return new Vector3(offset, 0f, -slot * _depthStep);
-		}
-
-		private Quaternion FanRotation(int slot, int count)
-		{
-			var offset = (slot - (count - 1) * 0.5f) * _cardSpacing;
-			return Quaternion.Euler(0f, 0f, -offset / Mathf.Max(_cardSpacing, 0.0001f) * _fanAngle);
-		}
-
-		// Flat on the table, spread wider than a hand is: these are what a player reaches for, and two
-		// cards overlapping by a fan's margin are two cards a raycast cannot tell apart.
-		private Vector3 RowPosition(int slot, int count)
-		{
-			var offset = (slot - (count - 1) * 0.5f) * _tableSpacing;
-			// Negative, like the fan and like everything else that lifts a card: a sprite is read from its
-			// own -Z, so that is the side the table anchor points at the ceiling and the direction anything
-			// coming off the table has to travel. A card dealt later rests on the ones already there.
-			return new Vector3(offset, 0f, -slot * _depthStep);
-		}
-
-		// The seat this player is in owns where their cards lie: it is authored in the chair prefab, so
-		// retuning it reaches every seat at once. With no seat — a body that is not at the table — the
-		// hand is the only place left to put them.
-		private Transform ResolveTableAnchor()
-		{
-			if (!_data) return ResolveHandAnchor();
-
-			var mode = PokerGameMode.Instance;
-			if (!mode) return ResolveHandAnchor();
-
-			foreach (var seat in mode.Seats)
-			{
-				if (seat && seat.SeatIndex == _data.SeatIndex.Value) return seat.CardAnchor;
-			}
-
-			return ResolveHandAnchor();
-		}
-		// The owner renders the hand-only rig and everyone else renders the full body, so the cards hang
-		// off whichever right hand this client is actually drawing — which rig that is stays the rig's
-		// business, not this view's. With no anchor assigned a holder is parented to the bone, which keeps
-		// the cards in the hand as it animates.
-		// Built once under the hand of whichever rig this client renders. There is no serialized anchor to
-		// override it with: an anchor authored in the prefab would name a bone on one rig and be wrong on
-		// the other, which is why both fields it used to offer sat empty in every prefab that had them.
-		private Transform ResolveHandAnchor()
-		{
-			if (_resolvedAnchor) return _resolvedAnchor;
-
-			var bone = _rig ? _rig.GetBone(_handBone) : null;
-			if (!bone) return _resolvedAnchor = transform;
-
-			var holder = new GameObject("PokerHandAnchor").transform;
-			holder.SetParent(bone, false);
-			holder.localPosition = _handLocalPosition;
-			holder.localRotation = Quaternion.Euler(_handLocalEuler);
-
-			return _resolvedAnchor = holder;
 		}
 	}
 }

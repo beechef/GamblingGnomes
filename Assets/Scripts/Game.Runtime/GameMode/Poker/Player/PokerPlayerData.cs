@@ -53,6 +53,18 @@ namespace Game.Runtime.GameMode.Poker.Player
 			readPerm: NetworkVariableReadPermission.Everyone,
 			writePerm: NetworkVariableWritePermission.Server);
 
+		// Whether this body was collected into the match that is running. Stamped when the match begins and
+		// false for anybody who sat down after — a chair arriving mid-match is a seat in the room, not a
+		// place in the game, so they wager nothing, are dealt nothing and cannot be fed. Replicated because
+		// every view drawing them has to know which of the two they are.
+		//
+		// Its own value rather than read off Status: a mid-match arrival is Waiting, and so is everybody
+		// else between two hands. Nothing already on the wire separates "not playing yet" from "not playing
+		// at all", which is exactly the distinction this exists for.
+		[HideInInspector] public NetworkVariable<bool> InMatch = new(false,
+			readPerm: NetworkVariableReadPermission.Everyone,
+			writePerm: NetworkVariableWritePermission.Server);
+
 		// Showdown, or anything else that decides this hand is public.
 		[HideInInspector] public NetworkVariable<bool> HandRevealed = new(false,
 			readPerm: NetworkVariableReadPermission.Everyone,
@@ -152,6 +164,15 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 		// Carries the change so a hand can deal one card in without disturbing the others.
 		public event Action<NetworkListEvent<CardData>> OnHoleCardsChanged;
+
+		// How the hole cards read right now, as opposed to which cards they are: which of them this client
+		// may look at, and which are up in the hand rather than lying on the table. Separate from
+		// OnStateChanged because everything drawing a hand was waking on every chip that moved and then
+		// asking whether anything about the cards had changed — the answer was almost always no, and a view
+		// that has to check whether it was called for a reason it cares about is a view whose subscription
+		// says nothing about what it does. Raised by LookedAtHoleCards, HandRevealed and the visibility
+		// rules, which are the three things IsHoleCardVisible and IsHoleCardInHand are built from.
+		public event Action OnHoleCardPresentationChanged;
 
 		// Separate from OnStateChanged: the wheel rebuilds its slots on this, and rebuilding a wheel every
 		// time a chip moves would fight whatever the player is currently spinning.
@@ -295,7 +316,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			TotalBet.OnValueChanged += HandleIntChanged;
 			Status.OnValueChanged += HandleStatusChanged;
 			HasActed.OnValueChanged += HandleBoolChanged;
-			HandRevealed.OnValueChanged += HandleBoolChanged;
+			HandRevealed.OnValueChanged += HandleHandRevealedChanged;
 			ReportsLeft.OnValueChanged += HandleIntChanged;
 			Health.OnValueChanged += HandleHealthChanged;
 			LookedAtHoleCards.OnValueChanged += HandleLookedAtChanged;
@@ -305,7 +326,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			HoleCards.OnListChanged += HandleHoleCardsChanged;
 			StakeItems.OnListChanged += HandleStakeItemsChanged;
 
-			OnHandVisibilityRulesChanged += HandleStateChanged;
+			OnHandVisibilityRulesChanged += HandleVisibilityRulesChanged;
 		}
 
 		public override void OnNetworkDespawn()
@@ -317,7 +338,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			TotalBet.OnValueChanged -= HandleIntChanged;
 			Status.OnValueChanged -= HandleStatusChanged;
 			HasActed.OnValueChanged -= HandleBoolChanged;
-			HandRevealed.OnValueChanged -= HandleBoolChanged;
+			HandRevealed.OnValueChanged -= HandleHandRevealedChanged;
 			ReportsLeft.OnValueChanged -= HandleIntChanged;
 			Health.OnValueChanged -= HandleHealthChanged;
 			HallucinationRate.OnValueChanged -= HandleHallucinationChanged;
@@ -327,15 +348,18 @@ namespace Game.Runtime.GameMode.Poker.Player
 			HoleCards.OnListChanged -= HandleHoleCardsChanged;
 			StakeItems.OnListChanged -= HandleStakeItemsChanged;
 
-			OnHandVisibilityRulesChanged -= HandleStateChanged;
+			OnHandVisibilityRulesChanged -= HandleVisibilityRulesChanged;
 		}
 
+		// Sitting down is a chair, never a place in the match already running. StartGame is the one thing
+		// that stamps somebody in, so a body arriving after it stays out until the next one begins.
 		public void ServerTakeSeat(int seatIndex)
 		{
 			if (!IsServer) return;
 
 			SeatIndex.Value = seatIndex;
 			Status.Value = PokerPlayerStatus.Waiting;
+			InMatch.Value = false;
 			ServerResetForHand();
 		}
 
@@ -345,6 +369,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 			SeatIndex.Value = NoSeat;
 			Status.Value = PokerPlayerStatus.Waiting;
+			InMatch.Value = false;
 			ServerResetForHand();
 		}
 
@@ -397,6 +422,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			ServerResetHealthToStart();
 			HallucinationRate.Value = 0;
 			Status.Value = PokerPlayerStatus.Waiting;
+			InMatch.Value = false;
 
 			// The wallet resets itself. What a purse starts with is its own business, and reaching in to
 			// set it from here would be a second place to keep in step with the first.
@@ -642,7 +668,19 @@ namespace Game.Runtime.GameMode.Poker.Player
 		}
 		// Turning a card over changes no card — only who may look at one — so this is the visibility rule
 		// changing rather than the hand. OnStateChanged carries it to the views that redraw on it.
-		private void HandleLookedAtChanged(int previous, int current) => OnStateChanged?.Invoke();
+		// Purely about how the hand reads — nothing that watches a player's money or turn has any use for
+		// it — so it goes out on the presentation event alone.
+		private void HandleLookedAtChanged(int previous, int current) => OnHoleCardPresentationChanged?.Invoke();
+
+		// Both: turning the hand over is how the cards read *and* a fact about the hand being over, which
+		// is player state like any other.
+		private void HandleHandRevealedChanged(bool previous, bool current)
+		{
+			OnHoleCardPresentationChanged?.Invoke();
+			OnStateChanged?.Invoke();
+		}
+
+		private void HandleVisibilityRulesChanged() => OnHoleCardPresentationChanged?.Invoke();
 
 		private void HandleHallucinationChanged(int previous, int current)
 		{
