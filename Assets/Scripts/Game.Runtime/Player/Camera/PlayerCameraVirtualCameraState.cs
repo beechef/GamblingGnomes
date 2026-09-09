@@ -72,12 +72,17 @@ namespace Game.Runtime.Player.Camera
 
 		// The component rather than the GameObject: this state lives on the same object, and switching
 		// that off would stop the very thing that has to switch it back on.
+		//
+		// The priority is raised only on the way up and dropped on the way down. Left standing at 20 on a
+		// shot nobody has asked for, every player in the room is carrying a camera that outranks the one
+		// this client is looking through the moment anything switches it on — and the copies of this that
+		// run on other people's bodies are exactly the ones nobody is watching.
 		private void SetLive(bool live)
 		{
 			if (!_camera) return;
 
-			_camera.Priority.Enabled = true;
-			_camera.Priority.Value = _priority;
+			_camera.Priority.Enabled = live;
+			_camera.Priority.Value = live ? _priority : 0;
 			_camera.enabled = live;
 		}
 

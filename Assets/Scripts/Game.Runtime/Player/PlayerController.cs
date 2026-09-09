@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Game.Runtime.Controller;
 using Unity.Cinemachine;
 using Unity.Netcode;
+using Unity.Netcode.Components;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Serialization;
@@ -60,6 +61,10 @@ namespace Game.Runtime.Player
 
 		[Header("References")]
 		[SerializeField] private CharacterController _characterController;
+
+		[Tooltip("The transform sync this body replicates through. A teleport has to go through it, or every other screen walks the body to where it landed. Empty finds it on this object.")]
+		[SerializeField] private NetworkTransform _networkTransform;
+
 		[SerializeField] private CinemachineCamera _firstPersonCamera;
 		[SerializeField] private CinemachineCamera _ownerFirstPersonCamera;
 
@@ -147,6 +152,8 @@ namespace Game.Runtime.Player
 
 		private void Awake()
 		{
+			if (!_networkTransform) _networkTransform = GetComponent<NetworkTransform>();
+
 			_firstPersonCamera.enabled = false;
 			_ownerFirstPersonCamera.enabled = false;
 
@@ -282,12 +289,26 @@ namespace Game.Runtime.Player
 			_lastSentLookYaw = 0f;
 		}
 
+		// Put down where it is told, on every screen at once. Writing the transform alone only moves it
+		// here: the sync sends it as one more delta, and everybody else's copy walks the whole distance
+		// from wherever the body was standing — which on the very first seating is the spawn point, so a
+		// player arriving at the table glides in from across the room instead of simply being in the chair.
+		// NetworkTransform.Teleport marks the state as a jump so the receivers snap rather than interpolate.
 		public void Teleport(Vector3 position, Quaternion rotation)
 		{
 			var wasEnabled = _characterController.enabled;
 			_characterController.enabled = false;
 
-			transform.SetPositionAndRotation(position, rotation);
+			// Only the authority may say a jump happened. Anyone else — and anything before the spawn —
+			// writes the transform and lets the next update from the authority have the last word.
+			if (_networkTransform && IsSpawned && _networkTransform.CanCommitToTransform)
+			{
+				_networkTransform.Teleport(position, rotation, transform.localScale);
+			}
+			else
+			{
+				transform.SetPositionAndRotation(position, rotation);
+			}
 
 			_characterController.enabled = wasEnabled;
 		}
