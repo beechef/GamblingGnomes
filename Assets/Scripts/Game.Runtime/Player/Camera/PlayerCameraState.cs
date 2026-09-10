@@ -4,18 +4,19 @@ namespace Game.Runtime.Player.Camera
 {
 	// One thing the view can be doing, as a component on its own object. A state is not a row in a list
 	// on the controller because states differ in *behaviour*, not in configuration: free flight hands the
-	// look back to the player, a shot swaps the live virtual camera, and whatever comes next will do
-	// something neither of them does. Adding one is a new subclass and a new child object.
+	// look back to the player, and a shot turns the head onto whatever that shot is about. Adding one is
+	// a new subclass and a new child object.
+	//
+	// A state resolves what it is looking at *itself* — it knows which beat it belongs to, so it can
+	// listen for whose turn it is and swing on its own. Being handed a transform by whoever asked for the
+	// state would put that knowledge in the caller, and every caller would carry a copy of it.
 	//
 	// Enter and Exit are not virtual. The controller owns entering and leaving — the invariants about
-	// what is active and what it is aimed at live here, once — and a subclass fills in OnEnter/OnExit,
-	// which it cannot skip by forgetting to call base.
+	// what is active live here, once — and a subclass fills in OnEnter/OnExit, which it cannot skip by
+	// forgetting to call base.
 	public abstract class PlayerCameraState : MonoBehaviour
 	{
 		public PlayerCameraController Controller { get; private set; }
-
-		// What this state was asked to look at, if anything. Free flight ignores it; a shot aims at it.
-		public Transform Target { get; private set; }
 
 		public bool IsActive { get; private set; }
 
@@ -25,11 +26,10 @@ namespace Game.Runtime.Player.Camera
 			OnInitialize();
 		}
 
-		public void Enter(Transform target)
+		public void Enter()
 		{
-			if (IsActive) { Retarget(target); return; }
+			if (IsActive) return;
 
-			Target = target;
 			IsActive = true;
 			OnEnter();
 		}
@@ -40,23 +40,10 @@ namespace Game.Runtime.Player.Camera
 
 			IsActive = false;
 			OnExit();
-			Target = null;
-		}
-
-		// The same state asked for again with something else to look at. A shot that is already live
-		// swings onto the new target rather than being torn down and rebuilt, which would blend the view
-		// out and back for no reason anybody watching could explain.
-		private void Retarget(Transform target)
-		{
-			if (Target == target) return;
-
-			Target = target;
-			OnRetarget();
 		}
 
 		protected virtual void OnInitialize() { }
 		protected virtual void OnEnter() { }
 		protected virtual void OnExit() { }
-		protected virtual void OnRetarget() => OnEnter();
 	}
 }

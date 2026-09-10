@@ -3,7 +3,6 @@ using Game.Runtime.Controller;
 using Game.Runtime.GameMode.Poker.Stages;
 using Game.Runtime.GameMode.Poker.Visual;
 using Game.Runtime.Player;
-using Game.Runtime.Player.Camera;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
@@ -41,14 +40,6 @@ namespace Game.Runtime.GameMode.Poker.Player
 		[Tooltip("How far a chosen card stands off the table. Higher than the hover, so a hand half chosen reads at a glance.")]
 		[SerializeField] private float _selectedLift = 0.035f;
 
-		[Header("Camera")]
-		[Tooltip("Takes the view to the card while it is being picked up. Empty leaves the camera alone.")]
-		[SerializeField] private PlayerCameraController _camera;
-
-		[Tooltip("Which state the view goes into while a card is coming up. Picked rather than named, so swapping the shot is a drag rather than an edit.")]
-		[SerializeField] private PlayerCameraState _pickState;
-
-
 		private readonly RaycastHit[] _hits = new RaycastHit[8];
 
 		private readonly List<PokerCardVisual> _selected = new();
@@ -56,7 +47,6 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 		private PokerCardVisual _hovered;
 
-		private int _focusHandle;
 		private bool _picking;
 		private int _lastPickFrame = -1;
 		private FixedString32Bytes _lastStageId;
@@ -82,7 +72,6 @@ namespace Game.Runtime.GameMode.Poker.Player
 			if (_pickAction && _pickAction.action != null) _pickAction.action.performed -= HandlePick;
 
 			SetHovered(null);
-			ReleaseFocus();
 		}
 
 		// Genuinely continuous: what is under the cursor changes as the cursor moves and as the cards
@@ -189,11 +178,6 @@ namespace Game.Runtime.GameMode.Poker.Player
 			_liftBuffer.Clear();
 		}
 
-		// The whole beat, not one pick: the view is held on the cards for as long as the round is asking
-		// which of them to turn, and comes back only when that step is over. Held on the seat's own card
-		// anchor rather than on a card, because the cards move — one being picked up would drag the shot
-		// with it, and the shot is meant to frame the row.
-
 		private void RefreshStage()
 		{
 			if (!IsOwner) return;
@@ -212,39 +196,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			if (_handVisual) _handVisual.SetPickupable(picking);
 
 			if (!picking) ClearSelection();
-
-			if (picking) HoldFocus();
-			else ReleaseFocus();
 		}
-
-		private void HoldFocus()
-		{
-			if (_focusHandle != 0 || !_camera || !_pickState) return;
-
-			_focusHandle = _camera.Request(_pickState, ResolveCardAnchor());
-		}
-
-		private void ReleaseFocus()
-		{
-			if (_focusHandle == 0) return;
-
-			if (_camera) _camera.Release(_focusHandle);
-			_focusHandle = 0;
-		}
-
-		private Transform ResolveCardAnchor()
-		{
-			var mode = PokerGameMode.Instance;
-			if (!mode || !_data) return null;
-
-			foreach (var seat in mode.Seats)
-			{
-				if (seat && seat.SeatIndex == _data.SeatIndex.Value) return seat.CardAnchor;
-			}
-
-			return null;
-		}
-
 
 		// Only while the cursor is free, and only while the round is asking. With the view being turned the
 		// pointer is not on screen and a pick would be aimed by the crosshair, which is a different control

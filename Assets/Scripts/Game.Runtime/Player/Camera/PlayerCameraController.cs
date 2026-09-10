@@ -37,16 +37,14 @@ namespace Game.Runtime.Player.Camera
 
 		private readonly struct Hold
 		{
-			public Hold(int handle, PlayerCameraState state, Transform target)
+			public Hold(int handle, PlayerCameraState state)
 			{
 				Handle = handle;
 				State = state;
-				Target = target;
 			}
 
 			public int Handle { get; }
 			public PlayerCameraState State { get; }
-			public Transform Target { get; }
 		}
 
 		public PlayerController PlayerController => _controller;
@@ -82,12 +80,12 @@ namespace Game.Runtime.Player.Camera
 
 		// The handle is what gives it back. A state released by name would be released by whoever asked
 		// last rather than by whoever is holding it.
-		public int Request(PlayerCameraState state, Transform target = null)
+		public int Request(PlayerCameraState state)
 		{
 			if (!IsOwner || !state) return 0;
 
 			var handle = _nextHandle++;
-			_holds.Add(new Hold(handle, state, target));
+			_holds.Add(new Hold(handle, state));
 
 			Apply();
 			return handle;
@@ -110,7 +108,6 @@ namespace Game.Runtime.Player.Camera
 		private void Apply()
 		{
 			var state = _holds.Count > 0 ? _holds[^1].State : _baseState;
-			var target = _holds.Count > 0 ? _holds[^1].Target : null;
 
 			if (!state) return;
 
@@ -119,7 +116,7 @@ namespace Game.Runtime.Player.Camera
 			var previous = _current;
 			_current = state;
 
-			state.Enter(target);
+			state.Enter();
 
 			if (previous && previous != state) previous.Exit();
 		}
