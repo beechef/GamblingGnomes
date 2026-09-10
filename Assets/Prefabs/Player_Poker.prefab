@@ -61,6 +61,24 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.PlayerLookTarget
   _point: {fileID: 4726230110908427231}
+--- !u!114 &888175482120155821
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 717192683199291505}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c70e2367040bb1d5aa9c0a6a3ad2a617, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Player.PokerColorfulPickController
+  ShowTopMostFoldoutHeaderGroup: 1
+  _pickAction: {fileID: 3001919216989983466, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+  _playerMask:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  _maxDistance: 6
 --- !u!1 &1240597785208925259
 GameObject:
   m_ObjectHideFlags: 0
@@ -407,11 +425,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5797e5eb5a482e945b8260e3fdf393b3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Visual.PokerCardFanVisual
-  _depthStep: 0.01
-  _fanAngle: 28
+  _depthStep: 0.015
+  _logLayout: 0
+  _fanAngle: 35
   _pivotDrop: 0.5
   _handBone: 11
-  _handLocalPosition: {x: 0.0657, y: -0.019, z: 0.034}
+  _handLocalPosition: {x: 0.0657, y: -0.08, z: 0.034}
   _handLocalEuler: {x: 0, y: 180, z: 180}
   _rig: {fileID: 382404797062674536}
 --- !u!1 &2202071642254458299
@@ -1048,7 +1067,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Visual.PokerCardRowVisual
   _depthStep: 0
-  _spacing: 0.05
+  _logLayout: 0
+  _spacing: 0.1
   _data: {fileID: 6935137486891752095}
 --- !u!1 &8336348170960471977
 GameObject:
@@ -1961,21 +1981,3 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 2231139620979859381, guid: 7268817f572047f43ba7ff29d4965e35, type: 3}
   m_PrefabInstance: {fileID: 7095566153021063603}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &888175482120155821
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 717192683199291505}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c70e2367040bb1d5aa9c0a6a3ad2a617, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Player.PokerColorfulPickController
-  ShowTopMostFoldoutHeaderGroup: 1
-  _pickAction: {fileID: 3001919216989983466, guid: 052faaac586de48259a63d0c4782560b, type: 3}
-  _playerMask:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  _maxDistance: 6
