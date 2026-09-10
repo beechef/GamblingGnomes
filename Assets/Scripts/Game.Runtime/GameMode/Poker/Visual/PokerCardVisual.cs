@@ -72,6 +72,30 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		// nothing is worse than one that never lifted.
 		public bool Pickupable { get; set; }
 
+		// How big this card is, in the units of whatever is laying it out. A group that arranges cards has
+		// to know — a fan turns about a point half a card below the middle — and the card is the only thing
+		// that does: the quad, its scale and the hit box are all authored in the prefab. An arrangement
+		// carrying its own copy of the number is a second place to change when the deck is resized, and the
+		// one that silently keeps the old shape.
+		//
+		// Measured off the face quad, whose mesh is Unity's own 1 x 1, so its lossy scale is its size. The
+		// division converts that back out of this card's own scale, which is what the parent applies anyway.
+		public Vector2 Size
+		{
+			get
+			{
+				var face = _frontRenderer ? _frontRenderer.transform : FlipRoot;
+				var world = face.lossyScale;
+				var lossy = transform.lossyScale;
+				var local = transform.localScale;
+
+				return new Vector2(InParentUnits(world.x, lossy.x, local.x), InParentUnits(world.y, lossy.y, local.y));
+			}
+		}
+
+		private static float InParentUnits(float world, float lossy, float local)
+			=> Mathf.Approximately(lossy, 0f) ? world : world * local / lossy;
+
 		private Transform FlipRoot => _flipRoot ? _flipRoot : transform;
 
 		private void OnDestroy()

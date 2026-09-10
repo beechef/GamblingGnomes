@@ -30,6 +30,23 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 		protected float DepthStep => _depthStep;
 
+		// How big the cards being arranged are, asked of one of them. An arrangement that needs the number
+		// takes it from the deck it is holding rather than carrying its own copy, so a card resized in its
+		// prefab reshapes every layout on its own instead of leaving one of them quietly on the old size.
+		// Zero while the group is empty, which is also the only time no arrangement needs it.
+		protected Vector2 CardSize
+		{
+			get
+			{
+				foreach (var card in _cards)
+				{
+					if (card) return card.Size;
+				}
+
+				return Vector2.zero;
+			}
+		}
+
 		public bool Contains(PokerCardVisual card) => card && _cards.Contains(card);
 
 		// Taken in at its place in the deal. The card that has just arrived is the only one that travels:

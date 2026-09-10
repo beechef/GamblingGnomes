@@ -5,20 +5,23 @@ namespace Game.Runtime.GameMode.Poker.Visual
 {
 	// The cards a player is holding up, fanned in the hand of whichever rig this client renders.
 	//
-	// The fan turns about a point *below* the cards, never about each card's own middle. Sliding a card
-	// sideways and then rotating it in place splays its top one way and its bottom the other, so the hand
-	// opens gaps along the bottom edge while the tops pile up — it reads as skewed tiles, and no amount of
-	// tuning the angle fixes it because the shape is wrong. `UIPokerRankingPanel` already learned this on
-	// the community row; this is the same arrangement in the world. With the pivot at half a card's height
-	// the cards turn about their own bottom edge, which is how a hand held in a fist actually opens.
+	// The fan turns about one shared point off the end of the cards, never about each card's own middle.
+	// Sliding a card sideways and then rotating it in place splays one end one way and the other end the
+	// other, so the hand opens gaps along one edge while the opposite ends pile up — it reads as skewed
+	// tiles, and no amount of tuning the angle fixes it because the shape is wrong. `UIPokerRankingPanel`
+	// already learned this on the community row; this is the same arrangement in the world.
+	//
+	// How far that point sits is half a card's height, and *the card is asked* rather than the number being
+	// typed here — resize the deck in its prefab and the fan follows, where a distance authored on this
+	// side would quietly keep the old shape.
 	public class PokerCardFanVisual : PokerCardGroupVisual
 	{
 		[Header("Fan")]
 		[Tooltip("Degrees between one card and the next. This is the whole spread: the cards separate by turning, not by being slid apart. Negate it to open the fan the other way round — depth is not affected, so the later card stays on top whichever side it opens toward.")]
 		[SerializeField] private float _fanAngle = 20f;
 
-		[Tooltip("How far below a card's middle the fan turns. Half a card's height (0.0434) puts the pivot on its bottom edge; further down is a gentler arc that keeps the cards more upright.")]
-		[SerializeField] private float _fanRadius = 0.0434f;
+		[Tooltip("Where the fan turns, as a fraction of a card's own height away from its middle. 0.5 puts the pivot on the card's edge, which is how a hand held in a fist opens; more is a gentler arc that keeps the cards upright. A fraction rather than a distance, because the distance is the card's to know — a deck resized in its prefab then fans the same way with nothing here to update.")]
+		[SerializeField] private float _pivotDrop = 0.5f;
 
 		[Header("Hand Bone")]
 		[Tooltip("The hand of whichever rig this client renders — the owner's own, or the body everyone else sees.")]
@@ -71,9 +74,9 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			return _resolvedAnchor;
 		}
 
-		// Where a card's middle lands once it has been turned about the shared pivot. The pivot sits
-		// _fanRadius below the anchor and the subtraction puts it back, so the middle card is at the
-		// anchor's own origin whatever the radius is.
+		// Where a card's middle lands once it has been turned about the shared pivot. The arm points from the
+		// pivot to the card, so the pivot sits that far the other way; the subtraction puts it back, leaving
+		// the middle card at the anchor's own origin whatever the drop is.
 		//
 		// Later slots sit further right and nearer the viewer, so each card overlaps the one to its left and
 		// every card keeps the top corner its rank is printed in.
@@ -84,7 +87,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		// dealt in the wrong order rather than as a sign.
 		protected override Vector3 SlotPosition(int slot, int count)
 		{
-			var arm = Vector3.up * _fanRadius;
+			var arm = Vector3.down * (CardSize.y * _pivotDrop);
 			var offset = Quaternion.Euler(0f, 0f, Angle(slot, count)) * arm - arm;
 
 			return new Vector3(offset.x, offset.y, -slot * DepthStep);
