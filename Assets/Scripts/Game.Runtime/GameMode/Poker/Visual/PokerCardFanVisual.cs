@@ -17,7 +17,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 	public class PokerCardFanVisual : PokerCardGroupVisual
 	{
 		[Header("Fan")]
-		[Tooltip("Degrees between one card and the next. This is the whole spread: the cards separate by turning, not by being slid apart. Negate it to open the fan the other way round — depth is not affected, so the later card stays on top whichever side it opens toward.")]
+		[Tooltip("Degrees between one card and the next. This is the whole spread: the cards separate by turning, not by being slid apart. Its SIGN is which end index 0 sits at — negate it to open the fan the other way. It does not touch depth, so which card ends up on top is a separate question, answered by the sign of Depth Step.")]
 		[SerializeField] private float _fanAngle = 20f;
 
 		[Tooltip("Where the fan turns, as a fraction of a card's own height away from its middle. 0.5 puts the pivot on the card's edge, which is how a hand held in a fist opens; more is a gentler arc that keeps the cards upright. A fraction rather than a distance, because the distance is the card's to know — a deck resized in its prefab then fans the same way with nothing here to update.")]

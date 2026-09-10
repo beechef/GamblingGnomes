@@ -13,7 +13,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 	// rather than another branch here.
 	public abstract class PokerCardGroupVisual : MonoBehaviour
 	{
-		[Tooltip("Gap between cards along the anchor's forward. Coplanar cards z-fight.")]
+		[Tooltip("Gap between cards along the anchor's forward. Coplanar cards z-fight. Its SIGN is which end of the group ends up nearest the eye, and so which card draws over which — the faces are transparent and write no depth, so this spacing is the whole of what decides the draw order. It is independent of how the group spreads: what is at which end is that arrangement's own business.")]
 		[SerializeField] private float _depthStep = 0.0008f;
 
 		[Tooltip("Writes the slot each card ended up in, once per layout. The one thing that separates 'laid out wrong' from 'drawn in the wrong order', and the two need opposite fixes.")]
