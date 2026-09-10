@@ -16,6 +16,9 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		[Tooltip("Gap between cards along the anchor's forward. Coplanar cards z-fight.")]
 		[SerializeField] private float _depthStep = 0.0008f;
 
+		[Tooltip("Writes the slot each card ended up in, once per layout. The one thing that separates 'laid out wrong' from 'drawn in the wrong order', and the two need opposite fixes.")]
+		[SerializeField] private bool _logLayout;
+
 		private readonly List<PokerCardVisual> _cards = new();
 
 		// Where each card came in the deal. A card is drawn where the hand it belongs to says, not where it
@@ -100,6 +103,26 @@ namespace Game.Runtime.GameMode.Poker.Visual
 				_cards[i].PlaceAt(anchor, SlotPosition(i, _cards.Count), SlotRotation(i, _cards.Count),
 					_cards[i] == animated);
 			}
+
+			if (_logLayout) LogLayout();
+		}
+
+		// Once per layout rather than once per frame, and it prints what the slot maths was actually given:
+		// the deal order each card came in with, in the order this group put them. A hand that looks wrong
+		// is either laid out wrong or drawn in the wrong order, and nothing on screen tells the two apart —
+		// this does, in one line.
+		private void LogLayout()
+		{
+			var line = name + " laid out " + _cards.Count + ":";
+
+			for (var i = 0; i < _cards.Count; i++)
+			{
+				line += "\n  slot " + i + "  deal order " + _order[i]
+					+ "  card " + (_cards[i] ? _cards[i].Card.ToString() : "none")
+					+ "  local " + SlotPosition(i, _cards.Count).ToString("F4");
+			}
+
+			Debug.Log(line, this);
 		}
 
 		protected abstract Transform ResolveAnchor();

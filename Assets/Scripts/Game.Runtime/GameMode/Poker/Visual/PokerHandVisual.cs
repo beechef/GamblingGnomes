@@ -176,12 +176,19 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 		private bool IsVisible(int index) => _data && _data.IsHoleCardVisible(index);
 
+		// Over the cards that exist, not over the replicated list — the two are not the same length while a
+		// hand is arriving, and they are a different length on a host than on a client. The server adds to
+		// HoleCards one card at a time and each add raises its event there and then, so a host building
+		// card 0 sees a list of one; a client is sent the whole list in a single delta and only then told
+		// about each element, so it builds card 0 against a list of five. Counting the replicated list here
+		// recorded bits for slots this view had not drawn yet, and a bit already set is a change that never
+		// arrives — the card is then left wherever it was spawned, on whichever machine lost the race.
 		private int CurrentFaceUpMask()
 		{
 			var mask = 0;
 			if (!_data) return mask;
 
-			for (var i = 0; i < _data.HoleCards.Count && i < 31; i++)
+			for (var i = 0; i < _cards.Count && i < 31; i++)
 			{
 				if (IsVisible(i)) mask |= 1 << i;
 			}
