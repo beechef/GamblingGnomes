@@ -6,10 +6,8 @@ namespace Game.Runtime.GameMode.Poker.Camera
 	// leaves the player's eyes — so it is a plain state holding a request on the scene's camera rather
 	// than a look-at, and the look input is switched off for as long as it is up: the two beats that use
 	// it are both waiting for the player to click something, and handing the look back takes the cursor.
-	public class PokerTableWideCameraState : PlayerCameraState, IPokerCameraShot
+	public class PokerTableWideCameraState : PlayerCameraState
 	{
-		public PokerCameraShot Shot => PokerCameraShot.TableWide;
-
 		protected override void OnEnter()
 		{
 			if (Controller && Controller.PlayerController)

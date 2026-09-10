@@ -8,10 +8,8 @@ namespace Game.Runtime.GameMode.Poker.Camera
 	// a body: the focus moves several times inside one beat — round the seats as each player eats, down
 	// the street as the turn passes — and a state that had to be re-requested for each of those would be
 	// torn down and rebuilt in the middle of its own shot.
-	public class PokerFocusPlayerCameraState : PlayerCameraLookAtState, IPokerCameraShot
+	public class PokerFocusPlayerCameraState : PlayerCameraLookAtState
 	{
-		public PokerCameraShot Shot => PokerCameraShot.FocusPlayer;
-
 		private PokerGameData _bound;
 
 		protected override void OnEnter()
