@@ -75,15 +75,19 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		// _fanRadius below the anchor and the subtraction puts it back, so the middle card is at the
 		// anchor's own origin whatever the radius is.
 		//
-		// Later slots sit further right and nearer the viewer, so each card overlaps the one to its left.
-		// The hand anchor is turned about Y, which is why this steps the opposite way to the row lying on
-		// the table — the sign is about which way the anchor points, never about which arrangement it is.
+		// Later slots sit further right and nearer the viewer, so each card overlaps the one to its left and
+		// every card keeps the top corner its rank is printed in.
+		//
+		// Nearer the viewer is **negative** z, and that is not a preference: a card's face reads down its
+		// own -Z, so whoever is looking at the faces is standing on the anchor's -Z side. Stepping positive
+		// buries each card behind the one before it and leaves the leftmost on top — which reads as a fan
+		// dealt in the wrong order rather than as a sign.
 		protected override Vector3 SlotPosition(int slot, int count)
 		{
 			var arm = Vector3.up * _fanRadius;
 			var offset = Quaternion.Euler(0f, 0f, Angle(slot, count)) * arm - arm;
 
-			return new Vector3(offset.x, offset.y, slot * DepthStep);
+			return new Vector3(offset.x, offset.y, -slot * DepthStep);
 		}
 
 		protected override Quaternion SlotRotation(int slot, int count)
