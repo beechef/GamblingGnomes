@@ -4,11 +4,21 @@ using UnityEngine;
 namespace Game.Runtime.GameMode.Poker.Visual
 {
 	// The cards a player is holding up, fanned in the hand of whichever rig this client renders.
+	//
+	// The fan turns about a point *below* the cards, never about each card's own middle. Sliding a card
+	// sideways and then rotating it in place splays its top one way and its bottom the other, so the hand
+	// opens gaps along the bottom edge while the tops pile up — it reads as skewed tiles, and no amount of
+	// tuning the angle fixes it because the shape is wrong. `UIPokerRankingPanel` already learned this on
+	// the community row; this is the same arrangement in the world. With the pivot at half a card's height
+	// the cards turn about their own bottom edge, which is how a hand held in a fist actually opens.
 	public class PokerCardFanVisual : PokerCardGroupVisual
 	{
 		[Header("Fan")]
-		[SerializeField] private float _cardSpacing = 0.03f;
-		[SerializeField] private float _fanAngle = 8f;
+		[Tooltip("Degrees between one card and the next. This is the whole spread: the cards separate by turning, not by being slid apart.")]
+		[SerializeField] private float _fanAngle = 20f;
+
+		[Tooltip("How far below a card's middle the fan turns. Half a card's height (0.0434) puts the pivot on its bottom edge; further down is a gentler arc that keeps the cards more upright.")]
+		[SerializeField] private float _fanRadius = 0.0434f;
 
 		[Header("Hand Bone")]
 		[Tooltip("The hand of whichever rig this client renders — the owner's own, or the body everyone else sees.")]
@@ -48,22 +58,24 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			return _resolvedAnchor = holder;
 		}
 
-		// Later slots sit further right and nearer the viewer, so the fan reads the way a hand held up
-		// reads: each card overlapping the one to its left. The hand anchor is turned about Y, which is why
-		// this steps the opposite way to the row lying on the table — the sign is about which way the
-		// anchor points, never about which arrangement it is.
+		// Where a card's middle lands once it has been turned about the shared pivot. The pivot sits
+		// _fanRadius below the anchor and the subtraction puts it back, so the middle card is at the
+		// anchor's own origin whatever the radius is.
+		//
+		// Later slots sit further right and nearer the viewer, so each card overlaps the one to its left.
+		// The hand anchor is turned about Y, which is why this steps the opposite way to the row lying on
+		// the table — the sign is about which way the anchor points, never about which arrangement it is.
 		protected override Vector3 SlotPosition(int slot, int count)
 		{
-			var offset = (slot - (count - 1) * 0.5f) * _cardSpacing;
+			var arm = Vector3.up * _fanRadius;
+			var offset = Quaternion.Euler(0f, 0f, Angle(slot, count)) * arm - arm;
 
-			return new Vector3(offset, 0f, slot * DepthStep);
+			return new Vector3(offset.x, offset.y, slot * DepthStep);
 		}
 
 		protected override Quaternion SlotRotation(int slot, int count)
-		{
-			var offset = (slot - (count - 1) * 0.5f) * _cardSpacing;
+			=> Quaternion.Euler(0f, 0f, Angle(slot, count));
 
-			return Quaternion.Euler(0f, 0f, -offset / Mathf.Max(_cardSpacing, 0.0001f) * _fanAngle);
-		}
+		private float Angle(int slot, int count) => -(slot - (count - 1) * 0.5f) * _fanAngle;
 	}
 }

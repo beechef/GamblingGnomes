@@ -38,7 +38,15 @@ namespace Game.Runtime.Player
 		[Tooltip("Where somebody else's head aims when they turn to look at this player — face height, on the full body rig, which is the one everybody else renders. A transform rather than a bone plus an offset in code: this rig's bones are Maya-style, so an offset authored against one is wrong before it is tried. Hung under the chest so it follows whatever pose the chair put them in.")]
 		[SerializeField] private Transform _focusPoint;
 
+		[Tooltip("Where this player looks when a shot is about them — a fixed point out in front of their chest, authored on the prefab and hung off no model at all. Only the owner ever reads it, and the rig they render is the hand-only one: a point on the body rig would freeze for them, since that rig is switched off and culled. A point on the root cannot.")]
+		[SerializeField] private Transform _selfFocusPoint;
+
 		public Transform FocusPoint => _focusPoint;
+
+		// Aiming your own eye at your own FocusPoint aims it at a point on your own chest a hand's breadth
+		// away: the solver has nothing sane to answer with and the head comes out wrenched round, which
+		// reads as a broken rig rather than as a shot pointed at itself. A shot about you looks here.
+		public Transform SelfFocusPoint => _selfFocusPoint;
 
 		public PlayerBoneRig FullBodyRig => _fullBodyRig;
 		public PlayerBoneRig HandOnlyRig => _handOnlyRig;

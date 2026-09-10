@@ -5,9 +5,14 @@ using UnityEngine;
 namespace Game.Runtime.GameMode.Poker.Camera
 {
 	// Turning to watch whoever the table is watching. It listens for that itself rather than being handed
-	// a body: the focus moves several times inside one beat — round the seats as each player eats, down
-	// the street as the turn passes — and a state that had to be re-requested for each of those would be
-	// torn down and rebuilt in the middle of its own shot.
+	// a body: the focus moves several times inside one beat — round the seats as each player swallows a
+	// cap — and a state that had to be re-requested for each of those would be torn down and rebuilt in
+	// the middle of its own shot.
+	//
+	// Which point on that body it aims at depends on whether the body is yours. Everyone else offers a
+	// face; you offer the spot in front of your own chest, because aiming your own eye at your own face is
+	// aiming it at something a hand's breadth away and the head comes out wrenched round. The rig owns
+	// both points, so this only has to ask which one it wants.
 	public class PokerFocusPlayerCameraState : PlayerCameraLookAtState
 	{
 		private PokerGameData _bound;
@@ -25,6 +30,8 @@ namespace Game.Runtime.GameMode.Poker.Camera
 
 			base.OnExit();
 		}
+
+		private void OnDestroy() => Unbind();
 
 		private void Bind()
 		{
@@ -46,13 +53,11 @@ namespace Game.Runtime.GameMode.Poker.Camera
 			_bound = null;
 		}
 
-		private void OnDestroy() => Unbind();
-
 		private void HandleFocusChanged(ulong previous, ulong current) => Aim();
 
 		// Null while nobody is being watched, which leaves the head where it is rather than snapping it
-		// anywhere: the focus is about to be written again — the next eater, the next player on the clock —
-		// and a lurch back to centre between the two would be the only thing anyone noticed.
+		// anywhere: the focus is about to be written again — the next eater — and a lurch back to centre
+		// between the two would be the only thing anyone noticed.
 		protected override Transform ResolveTarget()
 		{
 			var mode = PokerGameMode.Instance;
@@ -62,7 +67,9 @@ namespace Game.Runtime.GameMode.Poker.Camera
 			if (clientId == PokerGameData.NoTurn) return null;
 
 			var player = PokerPlayer.Find(clientId);
-			return player && player.Rig ? player.Rig.FocusPoint : null;
+			if (!player || !player.Rig) return null;
+
+			return player.IsOwner ? player.Rig.SelfFocusPoint : player.Rig.FocusPoint;
 		}
 	}
 }

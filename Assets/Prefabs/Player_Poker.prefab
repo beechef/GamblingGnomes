@@ -125,6 +125,7 @@ MonoBehaviour:
   _camera: {fileID: 2388567287394699200}
   _stages:
   - {fileID: 11400000, guid: a9c4b4d83be73d7448017562adf380be, type: 2}
+  - {fileID: 11400000, guid: d57a567a04c7c424ea88044dbe27ce15, type: 2}
   _requiresPlaceInMatch: 0
   _data: {fileID: 6935137486891752095}
 --- !u!1 &1651240911300962866
@@ -294,70 +295,6 @@ MonoBehaviour:
   _holdingCardsParameter: IsHaveCardOnHand
   _data: {fileID: 6935137486891752095}
   _animatorStates: {fileID: 5503049138563897167}
---- !u!1 &2042604299906748840
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 6025580617598524016}
-  - component: {fileID: 5709684263674526216}
-  - component: {fileID: 2291814815866651231}
-  m_Layer: 0
-  m_Name: State_TableWide
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &6025580617598524016
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2042604299906748840}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 6961401803370160626}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &5709684263674526216
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2042604299906748840}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3626887d40f305f28625cba0abf37fd0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Camera.PokerTableWideCameraState
---- !u!114 &2291814815866651231
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2042604299906748840}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5b62509871b1c0bdecfe4a5bcafaafce, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Camera.PokerStageCameraBinder
-  ShowTopMostFoldoutHeaderGroup: 1
-  _state: {fileID: 5709684263674526216}
-  _camera: {fileID: 2388567287394699200}
-  _stages:
-  - {fileID: 11400000, guid: d57a567a04c7c424ea88044dbe27ce15, type: 2}
-  _requiresPlaceInMatch: 0
-  _data: {fileID: 6935137486891752095}
 --- !u!1 &2062609971239066926
 GameObject:
   m_ObjectHideFlags: 0
@@ -470,8 +407,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Visual.PokerCardFanVisual
   _depthStep: 0.003
-  _cardSpacing: 0.055
-  _fanAngle: 26
+  _fanAngle: 20
+  _fanRadius: 0.0434
   _handBone: 11
   _handLocalPosition: {x: 0.0657, y: -0.019, z: 0.034}
   _handLocalEuler: {x: 0, y: 180, z: -180}
@@ -642,7 +579,6 @@ Transform:
   - {fileID: 2201927442127855364}
   - {fileID: 7754697975458602708}
   - {fileID: 6943904450054317861}
-  - {fileID: 6025580617598524016}
   - {fileID: 6596022643985744369}
   - {fileID: 4985311146887374898}
   m_Father: {fileID: 7915523810459036602}
