@@ -108,25 +108,17 @@ namespace Game.Runtime.GameMode.Poker.Player
 			var count = Physics.RaycastNonAlloc(ray, _hits, _maxDistance, _playerMask, QueryTriggerInteraction.Collide);
 
 			PokerPlayer best = null;
-			PokerPlayer self = null;
 			var bestDistance = float.MaxValue;
 
 			for (var i = 0; i < count; i++)
 			{
 				var player = _hits[i].collider.GetComponentInParent<PokerPlayer>();
 
-				// Asked of the stage the server answers with, so nothing can be outlined that a click would
-				// then have refused.
-				if (!player || !_stage.CanBeFed(player)) continue;
-
-				// Our own body sits just under the eye, so a ray to somebody across the table can pass through
-				// it on the way. It is only the answer when nothing else is: pointing down at yourself with
-				// nobody behind is how the winner names themselves, which the rules allow on purpose.
-				if (player.ClientId == OwnerClientId)
-				{
-					self = player;
-					continue;
-				}
+				// Our own body is skipped outright: it sits just under the eye, so a ray to somebody across the
+				// table passes through it, and naming yourself is UIPokerColorfulPickBar's button instead.
+				// Everyone else is asked of the stage the server answers with, so nothing can be outlined that
+				// a click would then have refused.
+				if (!player || player.ClientId == OwnerClientId || !_stage.CanBeFed(player)) continue;
 
 				// Nearest first is not guaranteed by RaycastNonAlloc.
 				if (_hits[i].distance >= bestDistance) continue;
@@ -135,7 +127,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 				bestDistance = _hits[i].distance;
 			}
 
-			return best ? best : self;
+			return best;
 		}
 
 		private void SetHovered(PokerPlayer player)
