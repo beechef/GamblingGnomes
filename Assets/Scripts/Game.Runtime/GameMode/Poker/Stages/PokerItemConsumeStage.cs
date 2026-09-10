@@ -104,9 +104,14 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 				_seatIndex = step;
 				_timer = 0f;
+
+				// Nobody is being asked anything here, so there is no turn to carry the room's attention —
+				// this beat says who it is about itself.
+				GameMode.ServerSetFocus(player.ClientId);
 				return true;
 			}
 
+			GameMode.ServerSetFocus(PokerGameData.NoTurn);
 			return false;
 		}
 

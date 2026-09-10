@@ -249,6 +249,10 @@ namespace Game.Runtime.GameMode.Poker
 			// The clock belongs to whoever is running, so it never survives the handover.
 			_mode.ClearStageTimer();
 
+			// So does who the room is looking at. A stage that wants one says so as it opens; anything left
+			// standing here would point every head at whoever the last beat happened to be about.
+			_mode.ServerSetFocus(PokerGameData.NoTurn);
+
 			if (!stage) return;
 
 			_onStageStarting?.Invoke(stage);

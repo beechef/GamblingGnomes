@@ -34,6 +34,12 @@ namespace Game.Runtime.Player
 
 		[SerializeField] private Transform _handOnlyCamera;
 
+		[Header("Focus")]
+		[Tooltip("Where somebody else's head aims when they turn to look at this player — face height, on the full body rig, which is the one everybody else renders. A transform rather than a bone plus an offset in code: this rig's bones are Maya-style, so an offset authored against one is wrong before it is tried. Hung under the chest so it follows whatever pose the chair put them in.")]
+		[SerializeField] private Transform _focusPoint;
+
+		public Transform FocusPoint => _focusPoint;
+
 		public PlayerBoneRig FullBodyRig => _fullBodyRig;
 		public PlayerBoneRig HandOnlyRig => _handOnlyRig;
 

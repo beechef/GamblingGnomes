@@ -818,6 +818,10 @@ namespace Game.Runtime.GameMode.Poker
 			_data.TurnDuration.Value = duration;
 			_data.TurnEndTime.Value = NetworkManager.ServerTime.Time + duration;
 
+			// A turn is also the commonest reason the table is looking at somebody, so every street gets the
+			// focus for nothing. A beat that gives no turn and is still about one player says so itself.
+			ServerSetFocus(clientId);
+
 			// After the turn is on the table rather than before it: a module changing what this player is
 			// carrying is answering a question they can already see being asked.
 			foreach (var module in _modules)
@@ -833,6 +837,18 @@ namespace Game.Runtime.GameMode.Poker
 			_data.CurrentTurnClientId.Value = PokerGameData.NoTurn;
 			_data.TurnDuration.Value = 0f;
 			_data.TurnEndTime.Value = 0d;
+
+			ServerSetFocus(PokerGameData.NoTurn);
+		}
+
+		// Who every head in the room should be pointed at. Set alongside the turn wherever there is one, and
+		// on its own by a beat that is about a player without asking them anything — the eating walks the
+		// seats one at a time and gives out no turns at all.
+		public void ServerSetFocus(ulong clientId)
+		{
+			if (!IsServer || !_data) return;
+
+			_data.FocusClientId.Value = clientId;
 		}
 
 		public bool IsTurnExpired()

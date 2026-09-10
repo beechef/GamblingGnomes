@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Game.Runtime.GameMode.Config;
+using Game.Runtime.GameMode.Poker.Camera;
 using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker.Stages
@@ -19,8 +20,20 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		[Tooltip("Seconds the table holds on this stage after it finishes, before the next one opens. Without it a street can end and the next begin in the same frame, and nobody sees what happened.")]
 		[SerializeField] private float _exitDelay = 0.75f;
 
+		[Header("Camera")]
+		[Tooltip("What this beat is about, in terms of what the player should be looking at. The player prefab owns what each of these actually looks like, so retuning a shot never touches a stage and swapping a stage's shot is a dropdown.")]
+		[SerializeField] private PokerCameraShot _cameraShot = PokerCameraShot.None;
+
+		[Tooltip("Used instead while the local player is the one on the clock. None means the shot above is right either way. A street where you watch whoever is deciding is a different shot from the one where you are deciding, and that is the only place the two come apart.")]
+		[SerializeField] private PokerCameraShot _ownTurnCameraShot = PokerCameraShot.None;
+
 		public string StageId => string.IsNullOrEmpty(_stageId) ? name : _stageId;
 		public float ExitDelay => Mathf.Max(0f, _exitDelay);
+
+		public PokerCameraShot CameraShot => _cameraShot;
+
+		public PokerCameraShot CameraShotOnOwnTurn =>
+			_ownTurnCameraShot == PokerCameraShot.None ? _cameraShot : _ownTurnCameraShot;
 
 		public PokerGameMode GameMode { get; private set; }
 		public bool IsRunning { get; private set; }
