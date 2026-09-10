@@ -36,7 +36,12 @@ namespace Game.Runtime.GameMode.Poker.Camera
 			{
 				if (!seat || seat.SeatIndex != _data.SeatIndex.Value) continue;
 
-				return _anchor == PokerSeatAnchor.Item ? seat.ItemAnchor : seat.CardAnchor;
+				return _anchor switch
+				{
+					PokerSeatAnchor.Item => seat.ItemAnchor,
+					PokerSeatAnchor.Ahead => seat.AheadAnchor,
+					_ => seat.CardAnchor
+				};
 			}
 
 			return null;

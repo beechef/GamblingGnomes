@@ -6,6 +6,11 @@ namespace Game.Runtime.GameMode.Poker.Camera
 	public enum PokerSeatAnchor
 	{
 		Card = 0,
-		Item = 1
+		Item = 1,
+
+		// Straight out across the table, where a sitter looks when they are facing forward. Every chair
+		// aims at the same spot, so a shot that wants "the room from where I sit" needs no wide camera and
+		// no marker of its own — the seat already knows which way it faces.
+		Ahead = 2
 	}
 }

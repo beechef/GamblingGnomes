@@ -26,12 +26,20 @@ namespace Game.Runtime.GameMode.Poker
 		[Tooltip("Where this seat's wagered caps are put down on the table. Falls back to the card anchor, which is at least in front of the right chair.")]
 		[SerializeField] private Transform _itemAnchor;
 
+		[Tooltip("Where a sitter is looking when they face straight ahead — out across the table, at head height. Authored rather than derived so it can be nudged; left empty, a shot that asks for it simply leaves the look where it is.")]
+		[SerializeField] private Transform _aheadAnchor;
+
 		public int SeatIndex => _seatIndex;
 		public Transform CardAnchor => _cardAnchor ? _cardAnchor : SitAnchor;
 
 		// Where a stake lands belongs to the chair for the same reason where the cards lie does: it is a spot
 		// on the table in front of one player, authored once in the chair prefab and right at every seat.
 		public Transform ItemAnchor => _itemAnchor ? _itemAnchor : CardAnchor;
+
+		// No fallback on purpose. The other two resolve to something plausible because a cap or a card has
+		// to land somewhere; a gaze does not, and a plausible wrong answer here is a head aimed at the floor
+		// with nothing to say why — the same trap the card anchor fell into when it fell back to the feet.
+		public Transform AheadAnchor => _aheadAnchor;
 
 		private PokerGameMode GameMode => PokerGameMode.Instance;
 

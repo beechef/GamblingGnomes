@@ -60,6 +60,73 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.PlayerLookTarget
   _point: {fileID: 4726230110908427231}
+--- !u!1 &1240597785208925259
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4985311146887374898}
+  - component: {fileID: 1148750042498415186}
+  - component: {fileID: 8382578662399497633}
+  m_Layer: 0
+  m_Name: State_LookAhead
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4985311146887374898
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1240597785208925259}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6961401803370160626}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1148750042498415186
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1240597785208925259}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b763c5578f64e4b81b47910c5cf9d9fa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Camera.PokerOwnSeatCameraState
+  _allowManualLook: 0
+  _anchor: 2
+  _data: {fileID: 6935137486891752095}
+--- !u!114 &8382578662399497633
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1240597785208925259}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5b62509871b1c0bdecfe4a5bcafaafce, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Camera.PokerStageCameraBinder
+  ShowTopMostFoldoutHeaderGroup: 1
+  _state: {fileID: 1148750042498415186}
+  _camera: {fileID: 2388567287394699200}
+  _stages:
+  - {fileID: 11400000, guid: a9c4b4d83be73d7448017562adf380be, type: 2}
+  _requiresPlaceInMatch: 0
+  _data: {fileID: 6935137486891752095}
 --- !u!1 &1651240911300962866
 GameObject:
   m_ObjectHideFlags: 0
@@ -289,7 +356,6 @@ MonoBehaviour:
   _camera: {fileID: 2388567287394699200}
   _stages:
   - {fileID: 11400000, guid: d57a567a04c7c424ea88044dbe27ce15, type: 2}
-  - {fileID: 11400000, guid: a9c4b4d83be73d7448017562adf380be, type: 2}
   _requiresPlaceInMatch: 0
   _data: {fileID: 6935137486891752095}
 --- !u!1 &2062609971239066926
@@ -403,9 +469,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5797e5eb5a482e945b8260e3fdf393b3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Visual.PokerCardFanVisual
-  _depthStep: 0.001
-  _cardSpacing: 0.045
-  _fanAngle: 20
+  _depthStep: 0.003
+  _cardSpacing: 0.055
+  _fanAngle: 26
   _handBone: 11
   _handLocalPosition: {x: 0.0657, y: -0.019, z: 0.034}
   _handLocalEuler: {x: 0, y: 180, z: -180}
@@ -520,7 +586,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5e4fc72b7b2cf50c6b983ef222a83446, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Camera.PokerWagerCameraState
-  _allowManualLook: 0
+  _allowManualLook: 1
   _anchor: 1
   _data: {fileID: 6935137486891752095}
 --- !u!114 &667791231251871484
@@ -578,6 +644,7 @@ Transform:
   - {fileID: 6943904450054317861}
   - {fileID: 6025580617598524016}
   - {fileID: 6596022643985744369}
+  - {fileID: 4985311146887374898}
   m_Father: {fileID: 7915523810459036602}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &2388567287394699200
@@ -642,7 +709,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b763c5578f64e4b81b47910c5cf9d9fa, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Camera.PokerOwnSeatCameraState
-  _allowManualLook: 0
+  _allowManualLook: 1
   _anchor: 0
   _data: {fileID: 6935137486891752095}
 --- !u!114 &48590640832765361

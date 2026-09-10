@@ -48,11 +48,15 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			return _resolvedAnchor = holder;
 		}
 
+		// Later slots sit further right and nearer the viewer, so the fan reads the way a hand held up
+		// reads: each card overlapping the one to its left. The hand anchor is turned about Y, which is why
+		// this steps the opposite way to the row lying on the table — the sign is about which way the
+		// anchor points, never about which arrangement it is.
 		protected override Vector3 SlotPosition(int slot, int count)
 		{
 			var offset = (slot - (count - 1) * 0.5f) * _cardSpacing;
 
-			return new Vector3(offset, 0f, -slot * DepthStep);
+			return new Vector3(offset, 0f, slot * DepthStep);
 		}
 
 		protected override Quaternion SlotRotation(int slot, int count)
