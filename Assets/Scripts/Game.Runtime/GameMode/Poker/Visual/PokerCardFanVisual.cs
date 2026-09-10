@@ -87,7 +87,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		// dealt in the wrong order rather than as a sign.
 		protected override Vector3 SlotPosition(int slot, int count)
 		{
-			var arm = Vector3.down * (CardSize.y * _pivotDrop);
+			var arm = Vector3.up * (CardSize.y * _pivotDrop);
 			var offset = Quaternion.Euler(0f, 0f, Angle(slot, count)) * arm - arm;
 
 			return new Vector3(offset.x, offset.y, -slot * DepthStep);
