@@ -96,6 +96,25 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		private static float InParentUnits(float world, float lossy, float local)
 			=> Mathf.Approximately(lossy, 0f) ? world : world * local / lossy;
 
+		// Which card draws over which, said outright instead of left to the depth sort.
+		//
+		// The faces are transparent renderers, so they write no depth and URP orders them against each
+		// other by the distance from the camera to each one's bounds centre. In a fan that distance is
+		// nearly the same for every card — the cards are staggered along the way they *face*, which is
+		// close to square with the way they are being looked at, so a centimetre of stagger projects onto
+		// the view as almost nothing. What is left is a tie, and a tie breaks on the order the renderers
+		// happened to be registered in, which is not the same on a host as on a client. The cards then draw
+		// in one order on one machine and another order on the other, with nothing in any transform wrong.
+		//
+		// sortingOrder is read before distance, so this settles it the same way everywhere. Both faces take
+		// the same number: they point opposite ways and the material culls backs, so only ever one of them
+		// is drawn.
+		public void SetSortingOrder(int order)
+		{
+			if (_frontRenderer) _frontRenderer.sortingOrder = order;
+			if (_backRenderer) _backRenderer.sortingOrder = order;
+		}
+
 		private Transform FlipRoot => _flipRoot ? _flipRoot : transform;
 
 		private void OnDestroy()

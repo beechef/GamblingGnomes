@@ -16,6 +16,9 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		[Tooltip("Gap between cards along the anchor's forward. Coplanar cards z-fight.")]
 		[SerializeField] private float _depthStep = 0.0008f;
 
+		[Tooltip("Where this group sits in the draw order against any other. Cards held up have to draw over cards lying on the table, and the two groups are metres apart in the hierarchy with nothing else to say which wins.")]
+		[SerializeField] private int _sortingOrderBase;
+
 		private readonly List<PokerCardVisual> _cards = new();
 
 		// Where each card came in the deal. A card is drawn where the hand it belongs to says, not where it
@@ -96,6 +99,14 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			for (var i = 0; i < _cards.Count; i++)
 			{
 				if (!_cards[i]) continue;
+
+				// Said outright rather than left to the depth sort. The faces are transparent and write no
+				// depth, so URP orders them by distance to the bounds centre — and in a fan the cards are
+				// staggered along the way they face, which is nearly square with the way they are looked at,
+				// so that stagger projects onto the view as almost nothing. The tie that leaves breaks on
+				// renderer registration order, which differs between a host and a client: the same hand
+				// drawn in two different orders with every transform correct.
+				_cards[i].SetSortingOrder(_sortingOrderBase + i);
 
 				_cards[i].PlaceAt(anchor, SlotPosition(i, _cards.Count), SlotRotation(i, _cards.Count),
 					_cards[i] == animated);
