@@ -87,7 +87,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		// In this match and still conscious, the winner included. Somebody already under has nothing left to
 		// lose and feeding them would be a move with no consequence at all. An empty purse is no protection
 		// from a mushroom, so this asks InMatch and IsAlive rather than IsPlayingThisMatch.
-		private bool CanBeFed(PokerPlayer player) =>
+		public bool CanBeFed(PokerPlayer player) =>
 			player && player.Data && player.Data.IsSeated && player.Data.InMatch.Value && player.Data.IsAlive;
 
 		private PokerPlayer FindSeatedPlayerAtSeat(int seatIndex)

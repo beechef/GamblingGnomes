@@ -60,6 +60,15 @@ namespace Game.Runtime.Player
 		// place a renderer's materials are written, and it has to survive a skin change and an outline.
 		private Material _materialOverride;
 
+		// Lit for this client alone, on top of whatever the replicated flag says. Pointing at somebody before
+		// choosing them is not a move the table needs to watch - the choice is, and the server announces
+		// that - so a hover that went over the wire would be a message per twitch of the mouse saying nothing.
+		// The two are ORed rather than one overwriting the other, so an accusation lighting this body and a
+		// cursor passing over it cannot switch each other off.
+		private bool _localOutlined;
+
+		private bool IsOutlined => Outlined.Value || _localOutlined;
+
 		private void Awake()
 		{
 			// Outfits ship with their own skeletons; rebinding onto the body rig lets one
@@ -104,6 +113,14 @@ namespace Game.Runtime.Player
 			Outlined.Value = outlined;
 		}
 
+		public void SetLocalOutlined(bool outlined)
+		{
+			if (_localOutlined == outlined) return;
+
+			_localOutlined = outlined;
+			ApplyOutline(IsOutlined);
+		}
+
 		public void SetSkin(int skinIndex)
 		{
 			if (!IsServer) return;
@@ -119,7 +136,7 @@ namespace Game.Runtime.Player
 
 		private void HandleOutlinedChanged(bool previous, bool current)
 		{
-			ApplyOutline(current);
+			ApplyOutline(IsOutlined);
 		}
 
 		// One repaint for the whole body, composed here rather than written onto the renderers by
@@ -152,7 +169,7 @@ namespace Game.Runtime.Player
 			ApplyMaterial(_hatRenderer, hat);
 
 			// Assigning a material replaces the whole list, so the pass sitting on top of it is hung again.
-			ApplyOutline(Outlined.Value);
+			ApplyOutline(IsOutlined);
 		}
 
 		// Added to and taken off whatever a renderer is already wearing, rather than rebuilt out of a skin.
