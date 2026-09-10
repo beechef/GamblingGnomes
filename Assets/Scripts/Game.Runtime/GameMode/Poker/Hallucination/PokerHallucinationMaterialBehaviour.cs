@@ -1,17 +1,20 @@
 using System.Collections.Generic;
 using Game.Runtime.Player;
+using Game.Runtime.Props;
 using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker.Hallucination
 {
 	// A body goes through PlayerMaterialOverrideController, which is the only route that survives the
-	// outline being hung and dropped mid-hand. Anything else has nothing to compose with, so its renderers
-	// are written directly and their materials put back at the end.
+	// outline being hung and dropped mid-hand. Anything else goes through the renderer's own
+	// PropMaterialOverrideController, which owns what it was authored with — this never writes
+	// sharedMaterials itself, because two callers each capturing and restoring is how a renderer ends up
+	// wearing paint nobody can take off.
 	public class PokerHallucinationMaterialBehaviour : PokerHallucinationEffectBehaviour<PokerHallucinationMaterialEffect>
 	{
 		private readonly List<Transform> _resolved = new();
 		private readonly List<PlayerMaterialOverrideController> _bodies = new();
-		private readonly Dictionary<Renderer, Material[]> _restored = new();
+		private readonly List<PropMaterialOverrideController> _props = new();
 
 		protected override void OnBegin()
 		{
@@ -43,15 +46,17 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 
 				// Up to the body and then down, never straight up: the override controller sits on a named
 				// child of the player root and the thing being painted is off under the rig, so a walk up
-				// from it passes the root and finds nothing. Painting directly is the deliberate fallback
-				// for a prop that is not a body at all, and it was quietly swallowing every player too.
+				// from it passes the root and finds nothing. Painting the renderers directly is the
+				// deliberate fallback for a prop that is not a body at all, and it was quietly swallowing
+				// every player too.
 				//
 				// Only for a repaint. The override controller resolves one winning material and hands it to
 				// PlayerVisual, which has no way to express "and this one as well" — so an added pass goes
-				// the direct route whatever it landed on, rather than silently becoming a replacement.
-				var body = Config.Mode == PokerHallucinationMaterialEffect.PaintMode.Replace
+				// the prop route whatever it landed on, rather than silently becoming a replacement.
+				var body = Config.Mode == PropPaintMode.Replace
 					? PlayerRigController.FindOnBody<PlayerMaterialOverrideController>(found)
 					: null;
+
 				if (body)
 				{
 					if (!_bodies.Contains(body))
@@ -63,46 +68,20 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 					continue;
 				}
 
-				PaintDirect(found);
+				Paint(found);
 			}
 		}
 
-		private void PaintDirect(Transform root)
+		private void Paint(Transform root)
 		{
 			foreach (var renderer in root.GetComponentsInChildren<Renderer>(true))
 			{
-				if (!renderer || _restored.ContainsKey(renderer)) continue;
+				var controller = PropMaterialOverrideController.Claim(renderer);
+				if (!controller || _props.Contains(controller)) continue;
 
-				var authored = renderer.sharedMaterials;
-				_restored[renderer] = authored;
-
-				renderer.sharedMaterials = Config.Mode == PokerHallucinationMaterialEffect.PaintMode.Add
-					? Append(authored)
-					: Fill(authored.Length);
+				_props.Add(controller);
+				controller.Set(this, Config.Material, Config.Mode);
 			}
-		}
-
-		// An extra pass on the end of what the renderer already wears, the same shape the outline takes on
-		// a body: the card keeps its face and this draws over it, which is the only way the rank underneath
-		// stays readable. Assigning replaces the whole array, so the authored one is copied rather than
-		// added to in place — and it is the array captured above that puts the renderer back.
-		private Material[] Append(Material[] authored)
-		{
-			var next = new Material[authored.Length + 1];
-
-			for (var i = 0; i < authored.Length; i++) next[i] = authored[i];
-
-			next[^1] = Config.Material;
-			return next;
-		}
-
-		private Material[] Fill(int length)
-		{
-			var next = new Material[length];
-
-			for (var i = 0; i < length; i++) next[i] = Config.Material;
-
-			return next;
 		}
 
 		private void Release()
@@ -114,12 +93,14 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 
 			_bodies.Clear();
 
-			foreach (var pair in _restored)
+			// A card painted last round is gone by now, and its controller with it — the reference is what
+			// is left in this list, so it is asked whether it still exists rather than trusted.
+			foreach (var prop in _props)
 			{
-				if (pair.Key) pair.Key.sharedMaterials = pair.Value;
+				if (prop) prop.Clear(this);
 			}
 
-			_restored.Clear();
+			_props.Clear();
 			_resolved.Clear();
 		}
 	}
