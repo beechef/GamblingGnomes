@@ -132,11 +132,38 @@ namespace Game.Runtime.GameMode.Poker.Visual
 				if (_cards[i]) _cards[i].SetCard(visible ? CardAt(i) : CardData.None, visible, _database, true);
 			}
 
+			// Every card, not only the ones the mask says moved. Which group a card belongs in is a question
+			// the data answers outright, while the mask is only a memory of what was drawn — as right as
+			// every event that reached it and no righter. Asking the mask meant a bit set at the wrong
+			// moment was a move that never arrived, and nothing later would notice, because by then the mask
+			// agreed with the data and there was no difference left to act on.
+			//
+			// The mask still decides which card *travels*: an animation is a statement that something
+			// happened, and the ones merely being put right had nothing happen to them.
+			for (var i = 0; i < _cards.Count && i < 31; i++) HandOver(i, (moved & (1 << i)) != 0);
+
+			OnAnyHandChanged?.Invoke();
+		}
+
+		// Re-asks the data where every card belongs and puts both groups straight, without animating any of
+		// it. The presentation change above already does this on its own, so this is for a caller that has
+		// reason to think the hand drifted — the end of a beat that moved cards about — rather than a thing
+		// the normal path relies on.
+		public void Refresh()
+		{
+			if (!_data) return;
+
+			_shownFaceUpMask = CurrentFaceUpMask();
+			_shownInHandMask = CurrentInHandMask();
+
 			for (var i = 0; i < _cards.Count && i < 31; i++)
 			{
-				if ((moved & (1 << i)) == 0) continue;
+				if (!_cards[i]) continue;
 
-				HandOver(i, true);
+				var visible = IsVisible(i);
+				_cards[i].SetCard(visible ? CardAt(i) : CardData.None, visible, _database);
+
+				HandOver(i, false);
 			}
 
 			OnAnyHandChanged?.Invoke();
@@ -154,11 +181,17 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 			var target = IsInHand(index) ? _hand : _table;
 			var previous = IsInHand(index) ? _table : _hand;
-			if (!target || target.Contains(card)) return;
 
+			// Dropped from the group it does not belong to even when it is already in the one it does. The
+			// early-out that used to sit here left a card that had ended up in both, and a group still
+			// holding it counts it when it spaces the rest — which reads as a gap in one hand and a card in
+			// the wrong slot in the other, with the card itself perfectly placed for whichever group laid
+			// out last.
+			//
+			// Both halves are no-ops when there is nothing to do: Remove leaves early on a card it does not
+			// hold, and Add on one it already does, so this is cheap enough to call for every card.
 			if (previous) previous.Remove(card);
-
-			target.Add(card, index, animate);
+			if (target) target.Add(card, index, animate);
 		}
 
 		private int CurrentInHandMask()

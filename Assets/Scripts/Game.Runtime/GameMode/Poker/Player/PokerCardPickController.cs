@@ -196,6 +196,10 @@ namespace Game.Runtime.GameMode.Poker.Player
 			if (_handVisual) _handVisual.SetPickupable(picking);
 
 			if (!picking) ClearSelection();
+
+			// The beat that moved cards between the table and the hand is opening or closing, so the hand is
+			// asked to put itself straight rather than trusting that every change along the way landed.
+			if (_handVisual) _handVisual.Refresh();
 		}
 
 		// Only while the cursor is free, and only while the round is asking. With the view being turned the
