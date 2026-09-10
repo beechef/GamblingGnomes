@@ -192,8 +192,6 @@ MonoBehaviour:
   _maxDistance: 4
   _hoverLift: 0.015
   _selectedLift: 0.035
-  _camera: {fileID: 2388567287394699200}
-  _pickState: {fileID: 3792748988740221995}
 --- !u!114 &3631784473629482766
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -229,6 +227,50 @@ MonoBehaviour:
   _holdingCardsParameter: IsHaveCardOnHand
   _data: {fileID: 6935137486891752095}
   _animatorStates: {fileID: 5503049138563897167}
+--- !u!1 &2042604299906748840
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6025580617598524016}
+  - component: {fileID: 5709684263674526216}
+  m_Layer: 0
+  m_Name: State_TableWide
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6025580617598524016
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2042604299906748840}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6961401803370160626}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5709684263674526216
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2042604299906748840}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3626887d40f305f28625cba0abf37fd0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Camera.PokerTableWideCameraState
 --- !u!1 &2137956963157968789
 GameObject:
   m_ObjectHideFlags: 0
@@ -289,10 +331,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 7754697975458602708}
-  - component: {fileID: 1355760510573993392}
-  - component: {fileID: 4949824271395783894}
-  - component: {fileID: 3659639108600506473}
-  - component: {fileID: 1436103889866785602}
+  - component: {fileID: 2775691735600344108}
   m_Layer: 0
   m_Name: State_FocusPlayer
   m_TagString: Untagged
@@ -315,50 +354,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 6961401803370160626}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1355760510573993392
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2202071642254458299}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f9dfa5b682dcd46bda6128250e975f58, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineCamera
-  Priority:
-    Enabled: 0
-    m_Value: 0
-  OutputChannel: 1
-  StandbyUpdate: 2
-  m_StreamingVersion: 20241001
-  m_LegacyPriority: 0
-  Target:
-    TrackingTarget: {fileID: 0}
-    LookAtTarget: {fileID: 0}
-    CustomLookAtTarget: 0
-  Lens:
-    FieldOfView: 28
-    OrthographicSize: 10
-    NearClipPlane: 0.1
-    FarClipPlane: 5000
-    Dutch: 0
-    ModeOverride: 0
-    PhysicalProperties:
-      GateFit: 2
-      SensorSize: {x: 21.946, y: 16.002}
-      LensShift: {x: 0, y: 0}
-      FocusDistance: 10
-      Iso: 200
-      ShutterSpeed: 0.005
-      Aperture: 16
-      BladeCount: 5
-      Curvature: {x: 2, y: 11}
-      BarrelClipping: 0.25
-      Anamorphism: 0
-  BlendHint: 0
---- !u!114 &4949824271395783894
+--- !u!114 &2775691735600344108
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -367,55 +363,57 @@ MonoBehaviour:
   m_GameObject: {fileID: 2202071642254458299}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 36d1163fa822e8b418a0a603ec078d5c, type: 3}
+  m_Script: {fileID: 11500000, guid: 64880240b6e59e50766f50b04c49cc9b, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineHardLockToTarget
-  Damping: 0
---- !u!114 &3659639108600506473
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Camera.PokerFocusPlayerCameraState
+  _allowManualLook: 1
+--- !u!1 &2296502022006939393
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6943904450054317861}
+  - component: {fileID: 8793595692286931046}
+  m_Layer: 0
+  m_Name: State_OwnItems
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6943904450054317861
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2296502022006939393}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6961401803370160626}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8793595692286931046
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2202071642254458299}
+  m_GameObject: {fileID: 2296502022006939393}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f38bda98361e1de48a4ca2bd86ea3c17, type: 3}
+  m_Script: {fileID: 11500000, guid: b763c5578f64e4b81b47910c5cf9d9fa, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineRotationComposer
-  Composition:
-    ScreenPosition: {x: 0, y: 0}
-    DeadZone:
-      Enabled: 0
-      Size: {x: 0.2, y: 0.2}
-    HardLimits:
-      Enabled: 0
-      Size: {x: 0.8, y: 0.8}
-      Offset: {x: 0, y: 0}
-  CenterOnActivate: 1
-  TargetOffset: {x: 0, y: 0, z: 0}
-  Damping: {x: 0.55, y: 0.55}
-  Lookahead:
-    Enabled: 0
-    Time: 0
-    Smoothing: 0
-    IgnoreY: 0
---- !u!114 &1436103889866785602
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2202071642254458299}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ac2b190a611ee1e44b25ea40e6f0f392, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.Camera.PlayerCameraVirtualCameraState
-  _camera: {fileID: 1355760510573993392}
-  _priority: 20
-  _lockToEye: 1
-  _disablesLook: 1
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Camera.PokerOwnSeatCameraState
+  _allowManualLook: 0
+  _shot: 2
+  _data: {fileID: 6935137486891752095}
 --- !u!1 &4361738276177124825
 GameObject:
   m_ObjectHideFlags: 0
@@ -426,6 +424,7 @@ GameObject:
   m_Component:
   - component: {fileID: 6961401803370160626}
   - component: {fileID: 2388567287394699200}
+  - component: {fileID: 438764421104928550}
   m_Layer: 0
   m_Name: Cameras
   m_TagString: Untagged
@@ -449,6 +448,8 @@ Transform:
   - {fileID: 5021561007770361296}
   - {fileID: 2201927442127855364}
   - {fileID: 7754697975458602708}
+  - {fileID: 6943904450054317861}
+  - {fileID: 6025580617598524016}
   m_Father: {fileID: 7915523810459036602}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &2388567287394699200
@@ -465,12 +466,24 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.Camera.PlayerCameraController
   ShowTopMostFoldoutHeaderGroup: 1
   _baseState: {fileID: 4335762119360811993}
-  _states:
-  - {fileID: 4335762119360811993}
-  - {fileID: 3792748988740221995}
-  - {fileID: 1436103889866785602}
+  _states: []
   _controller: {fileID: 2259382645207330846}
   _rig: {fileID: 382404797062674536}
+--- !u!114 &438764421104928550
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4361738276177124825}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9c630eedcc3eabe535a9f309b1ffbf9d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Camera.PokerStageCameraController
+  ShowTopMostFoldoutHeaderGroup: 1
+  _camera: {fileID: 2388567287394699200}
+  _data: {fileID: 6935137486891752095}
 --- !u!1 &4554624356382271699
 GameObject:
   m_ObjectHideFlags: 0
@@ -480,8 +493,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 2201927442127855364}
-  - component: {fileID: 3240719914984520755}
-  - component: {fileID: 3792748988740221995}
+  - component: {fileID: 4528476252277623363}
   m_Layer: 0
   m_Name: State_LookAtCard
   m_TagString: Untagged
@@ -504,50 +516,7 @@ Transform:
   m_Children: []
   m_Father: {fileID: 6961401803370160626}
   m_LocalEulerAnglesHint: {x: 25, y: 7.5, z: 0}
---- !u!114 &3240719914984520755
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4554624356382271699}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f9dfa5b682dcd46bda6128250e975f58, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineCamera
-  Priority:
-    Enabled: 0
-    m_Value: 0
-  OutputChannel: 1
-  StandbyUpdate: 2
-  m_StreamingVersion: 20241001
-  m_LegacyPriority: 0
-  Target:
-    TrackingTarget: {fileID: 0}
-    LookAtTarget: {fileID: 0}
-    CustomLookAtTarget: 0
-  Lens:
-    FieldOfView: 60
-    OrthographicSize: 10
-    NearClipPlane: 0.1
-    FarClipPlane: 5000
-    Dutch: 0
-    ModeOverride: 0
-    PhysicalProperties:
-      GateFit: 2
-      SensorSize: {x: 21.946, y: 16.002}
-      LensShift: {x: 0, y: 0}
-      FocusDistance: 10
-      Iso: 200
-      ShutterSpeed: 0.005
-      Aperture: 16
-      BladeCount: 5
-      Curvature: {x: 2, y: 11}
-      BarrelClipping: 0.25
-      Anamorphism: 0
-  BlendHint: 0
---- !u!114 &3792748988740221995
+--- !u!114 &4528476252277623363
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -556,13 +525,12 @@ MonoBehaviour:
   m_GameObject: {fileID: 4554624356382271699}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ac2b190a611ee1e44b25ea40e6f0f392, type: 3}
+  m_Script: {fileID: 11500000, guid: b763c5578f64e4b81b47910c5cf9d9fa, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.Camera.PlayerCameraVirtualCameraState
-  _camera: {fileID: 3240719914984520755}
-  _priority: 20
-  _lockToEye: 0
-  _disablesLook: 1
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Camera.PokerOwnSeatCameraState
+  _allowManualLook: 0
+  _shot: 1
+  _data: {fileID: 6935137486891752095}
 --- !u!1 &5025441949699639480
 GameObject:
   m_ObjectHideFlags: 0

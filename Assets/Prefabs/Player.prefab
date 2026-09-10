@@ -32,6 +32,37 @@ Transform:
   - {fileID: 6591500634726463609}
   m_Father: {fileID: 7307852387650215268}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1963953616726257421
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 3269816163499255000}
+  m_Layer: 0
+  m_Name: FocusPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &3269816163499255000
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1963953616726257421}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -0.20222911, y: -0.0053464123, z: 6.94144e-17}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2734819149101292962}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2217258621415704779
 GameObject:
   m_ObjectHideFlags: 0
@@ -968,6 +999,8 @@ MonoBehaviour:
   _gamepadLookSpeedY: 160
   _gamepadLookExponent: 2
   _pitchLimits: {x: -30, y: 45}
+  _lookTurnSpeed: 220
+  _manualLookReleaseDelay: 0.35
   _inputDeadzone: 0.001
   _minNetworkSendDeltaDegrees: 0.02
   _interpolationDelay: 0.1
@@ -1108,6 +1141,7 @@ MonoBehaviour:
   _handOnlyRig: {fileID: 2921292127628277470}
   _fullBodyCamera: {fileID: 6685018166527734780}
   _handOnlyCamera: {fileID: 6591500634726463609}
+  _focusPoint: {fileID: 3269816163499255000}
 --- !u!114 &8951550889444866437
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4864,6 +4898,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: -1001430942718952751, guid: ccae2c9bbf67cf945ae72b5a5898942a, type: 3}
       insertIndex: -1
       addedObject: {fileID: 5341355221323099535}
+    - targetCorrespondingSourceObject: {fileID: -1001430942718952751, guid: ccae2c9bbf67cf945ae72b5a5898942a, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3269816163499255000}
     - targetCorrespondingSourceObject: {fileID: 4369718421665127285, guid: ccae2c9bbf67cf945ae72b5a5898942a, type: 3}
       insertIndex: 4
       addedObject: {fileID: 2341583513973635605}
