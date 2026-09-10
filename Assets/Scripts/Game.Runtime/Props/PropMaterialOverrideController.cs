@@ -16,6 +16,10 @@ namespace Game.Runtime.Props
 	// puts it back when the last caller leaves. It composes rather than fighting: the last Replace wins —
 	// two repaints on one thing is a conflict somebody authored, not a blend anybody asked for — and every
 	// Add is hung on the end afterwards, so extra passes stack in the order they arrived.
+	//
+	// The array order is not the draw order: Unity sorts a renderer's materials by render queue, and two
+	// transparent passes at the same queue break the tie however the frame happens to. A Replace that must sit
+	// under an Add says so through the materials' queues (Card_Wave 3000, Card_Rainbow 3001), never here.
 	[DefaultExecutionOrder(50)]
 	public class PropMaterialOverrideController : MonoBehaviour
 	{

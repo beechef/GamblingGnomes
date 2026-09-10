@@ -1,23 +1,24 @@
 using DG.Tweening;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Game.Runtime.GameMode.Poker.Visual
 {
-	// Two quads back to back, because a card is a physical object: a face on one side, the back pattern
-	// on the other, half the card's thickness either side of the middle so the pair is not coplanar and
-	// cannot z-fight.
+	// One thin box with a picture on each side, because a card is a physical object: `Card_Face` samples
+	// `_BaseMap` on the face that looks down the card's own -Z and `_BackMap` everywhere else, so a single
+	// renderer carries both sides and there is no second quad to z-fight or to sort against the first.
 	//
-	// How big they are, where they sit and what the hit box measures are all authored in the prefab —
-	// every card in the deck is the same size, so none of it is a runtime question, and a runtime that
-	// worked it out again would be a second answer to a settled question and the one nobody can look at.
-	// This says which picture goes on which face and nothing else.
+	// How big it is, where it sits and what the hit box measures are all authored in the prefab — every
+	// card in the deck is the same size, so none of it is a runtime question, and a runtime that worked it
+	// out again would be a second answer to a settled question and the one nobody can look at. This says
+	// which picture goes on which side and nothing else.
 	public class PokerCardVisual : MonoBehaviour
 	{
-		[Header("Renderers")]
-		[Tooltip("The face. A quad rather than a sprite, because a SpriteRenderer draws one material and nothing else: an effect hanging a second pass on a card would be stored and never rendered.")]
-		[SerializeField] private MeshRenderer _frontRenderer;
+		[Header("Renderer")]
+		[Tooltip("The card itself. A mesh rather than a sprite, because a SpriteRenderer draws one material and nothing else: an effect hanging a second pass on a card would be stored and never rendered.")]
+		[FormerlySerializedAs("_frontRenderer")]
+		[SerializeField] private MeshRenderer _renderer;
 
-		[SerializeField] private MeshRenderer _backRenderer;
 		[SerializeField] private PokerCardDatabase _database;
 
 		[Header("Flip")]
@@ -62,6 +63,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		private static MaterialPropertyBlock _block;
 
 		private static readonly int BaseMapId = Shader.PropertyToID("_BaseMap");
+		private static readonly int BackMapId = Shader.PropertyToID("_BackMap");
 
 		public CardData Card { get; private set; }
 		public bool FaceUp { get; private set; } = true;
@@ -74,17 +76,17 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 		// How big this card is, in the units of whatever is laying it out. A group that arranges cards has
 		// to know — a fan turns about a point half a card below the middle — and the card is the only thing
-		// that does: the quad, its scale and the hit box are all authored in the prefab. An arrangement
+		// that does: the mesh, its scale and the hit box are all authored in the prefab. An arrangement
 		// carrying its own copy of the number is a second place to change when the deck is resized, and the
 		// one that silently keeps the old shape.
 		//
-		// Measured off the face quad, whose mesh is Unity's own 1 x 1, so its lossy scale is its size. The
+		// Measured off the card's mesh, which is Unity's own unit cube, so its lossy scale is its size. The
 		// division converts that back out of this card's own scale, which is what the parent applies anyway.
 		public Vector2 Size
 		{
 			get
 			{
-				var face = _frontRenderer ? _frontRenderer.transform : FlipRoot;
+				var face = _renderer ? _renderer.transform : FlipRoot;
 				var world = face.lossyScale;
 				var lossy = transform.lossyScale;
 				var local = transform.localScale;
@@ -157,26 +159,21 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			_initialized = true;
 			Card = card;
 
-			if (_database)
-			{
-				// A hand this client may not see shows its back from both sides rather than a blank face.
-				Draw(_frontRenderer, faceUp ? _database.GetFace(card) : _database.CardBack);
-				Draw(_backRenderer, _database.CardBack);
-			}
+			// A hand this client may not see shows its back on both sides rather than a blank face.
+			if (_database) Draw(_renderer, faceUp ? _database.GetFace(card) : _database.CardBack, _database.CardBack);
 
 			Flip(faceUp, animateFlip);
 		}
 
-		// A card's picture onto its quad, and nothing else. How big the quad is, where the two faces sit and
-		// what the hit box measures are the same on every card in the deck, so they are authored in the
-		// prefab where they can be seen and tuned — a runtime working them out again is a second answer to
-		// a settled question, and the one nobody can look at.
-		private static void Draw(MeshRenderer renderer, Sprite sprite)
+		// Both pictures onto the one renderer, and nothing else. How big the card is and what the hit box
+		// measures are the same on every card in the deck, so they are authored in the prefab where they
+		// can be seen and tuned.
+		private static void Draw(MeshRenderer renderer, Sprite front, Sprite back)
 		{
 			if (!renderer) return;
 
 			// Nothing to show is switched off rather than left holding the last card's face.
-			if (!sprite || !sprite.texture)
+			if (!front || !front.texture)
 			{
 				renderer.enabled = false;
 				return;
@@ -187,9 +184,9 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			_block ??= new MaterialPropertyBlock();
 
 			renderer.GetPropertyBlock(_block);
-			_block.SetTexture(BaseMapId, sprite.texture);
+			_block.SetTexture(BaseMapId, front.texture);
+			if (back && back.texture) _block.SetTexture(BackMapId, back.texture);
 			renderer.SetPropertyBlock(_block);
-
 		}
 
 		// How far the card stands off the table: under the cursor, or chosen and waiting for the rest of the
