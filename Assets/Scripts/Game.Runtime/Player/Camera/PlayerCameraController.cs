@@ -111,14 +111,21 @@ namespace Game.Runtime.Player.Camera
 
 			if (!state) return;
 
-			// Entered before the old one is left: a state that hands the look back and a state that takes
-			// it away are both writing the same flag, and leaving last would undo what arriving just set.
+			// Left before the new one is entered. It used to be the other way round, back when a state
+			// released the look flag on its way out and leaving last would have undone what arriving had
+			// just set — no state does that any more, and the order had quietly become the bug: a shot
+			// clears its look target in OnExit, so the outgoing state was wiping the target the incoming
+			// one had set a line earlier. The head then stayed pointed at whatever the last beat was about,
+			// which reads as a shot that never arrived rather than as one that arrived and was erased.
+			//
+			// Which of the two orders was wrong depended on the order two binders happened to run in, so it
+			// was reproducible and looked like a stuck camera.
 			var previous = _current;
 			_current = state;
 
-			state.Enter();
-
 			if (previous && previous != state) previous.Exit();
+
+			state.Enter();
 		}
 	}
 }
