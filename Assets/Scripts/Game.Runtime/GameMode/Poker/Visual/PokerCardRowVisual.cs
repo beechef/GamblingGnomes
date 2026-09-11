@@ -1,4 +1,5 @@
 using Game.Runtime.GameMode.Poker.Player;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker.Visual
@@ -7,8 +8,9 @@ namespace Game.Runtime.GameMode.Poker.Visual
 	// reaches for, and two cards overlapping by a fan's margin are two cards a raycast cannot tell apart.
 	public class PokerCardRowVisual : PokerCardGroupVisual
 	{
-		[Tooltip("Gap between the cards lying on the table.")]
-		[SerializeField] private float _spacing = 0.06f;
+		[Tooltip("Space left between the edges of neighbouring cards lying on the table.")]
+		[MinValue(0f)]
+		[SerializeField] private float _gap = 0.006f;
 
 		[Header("References")]
 		[SerializeField] private PokerPlayerData _data;
@@ -38,7 +40,9 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 		protected override Vector3 SlotPosition(int slot, int count)
 		{
-			var offset = (slot - (count - 1) * 0.5f) * _spacing;
+			// The step is measured off the card, so new art of another width keeps the same gap instead of
+			// sliding the cards into each other on one plane.
+			var offset = (slot - (count - 1) * 0.5f) * (CardSize.x + _gap);
 
 			// Negative, like everything else that lifts a card: a sprite is read from its own -Z, so that is
 			// the side the table anchor points at the ceiling and the direction anything coming off the

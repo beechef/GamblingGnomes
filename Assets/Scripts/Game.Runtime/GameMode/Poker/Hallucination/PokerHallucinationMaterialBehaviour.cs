@@ -53,7 +53,11 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 				// Only for a repaint. The override controller resolves one winning material and hands it to
 				// PlayerVisual, which has no way to express "and this one as well" — so an added pass goes
 				// the prop route whatever it landed on, rather than silently becoming a replacement.
-				var body = Config.Mode == PropPaintMode.Replace
+				//
+				// And only when the target says it handed over bodies. A card lies under the player holding
+				// it, so the walk up from a card finds that player's body too: Card_Wave repainted the
+				// whole gnome instead of the card it was aimed at.
+				var body = Config.Mode == PropPaintMode.Replace && Config.Target.ResolvesBodies
 					? PlayerRigController.FindOnBody<PlayerMaterialOverrideController>(found)
 					: null;
 

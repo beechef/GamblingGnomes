@@ -29,6 +29,11 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 
 		public virtual void Unsubscribe(PokerPlayer viewer, Action onChanged) { }
 
+		// Whether what this hands over is a player's body, as opposed to something that merely hangs under
+		// one. Cards and caps are children of the player they belong to, so asking the hierarchy finds the
+		// body above a card just as surely as above a head — and a card effect then repaints the player.
+		public virtual bool ResolvesBodies => false;
+
 		protected abstract void OnCollect(PokerPlayer viewer, List<Transform> into);
 	}
 }

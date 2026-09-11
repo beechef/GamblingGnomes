@@ -40,6 +40,8 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 
 		public override void Unsubscribe(PokerPlayer viewer, Action onChanged) => PokerPlayer.OnRegistryChanged -= onChanged;
 
+		public override bool ResolvesBodies => true;
+
 		private bool InScope(PokerPlayer viewer, PokerPlayer player)
 		{
 			return _scope switch
