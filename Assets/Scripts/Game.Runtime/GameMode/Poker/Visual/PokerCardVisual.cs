@@ -51,6 +51,14 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		private Tween _liftTween;
 		private bool _initialized;
 
+		// When a card lying in the deck leaves it, and how it travels once it does. Until then every
+		// placement and flip waits, so a layout laid out around it the moment it was dealt cannot pull it
+		// out of the deck ahead of its turn. Cleared when the card lands.
+		private float _dealAt;
+		private PokerDealController _deal;
+
+		private float DealWait => Mathf.Max(0f, _dealAt - Time.time);
+
 		// How far off the table the art is standing, and why. Two reasons, one height: a card being
 		// hovered or chosen, and a card mid-flip arcing over the surface it is lying on. They are summed
 		// and written in one place, because a card can only be at one height and two tweens writing the
@@ -107,10 +115,21 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			_liftTween?.Kill();
 		}
 
+		// Puts the card on top of the deck and holds it there for `delay` seconds; whatever places it next
+		// travels from here, the way `deal` says, once the wait is over. Called before the card is placed or
+		// given its face.
+		public void DealFrom(Transform deck, float delay, PokerDealController deal)
+		{
+			if (!deck) return;
+
+			transform.SetPositionAndRotation(deck.position, deck.rotation);
+			_dealAt = Time.time + Mathf.Max(0f, delay);
+			_deal = deal;
+		}
+
 		// Where the card sits, and under what. Reparenting keeps the world pose so the travel starts from
 		// wherever the card actually was — a card picked up off the table must not jump to the hand and
-		// then animate from there. The arc is along the table's own up rather than the card's facing,
-		// because a card being lifted rises off the surface it was lying on.
+		// then animate from there.
 		public void PlaceAt(Transform parent, Vector3 localPosition, Quaternion localRotation, bool animate)
 		{
 			_moveTween?.Kill();
@@ -123,28 +142,57 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 			if (transform.parent != parent) transform.SetParent(parent, true);
 
-			if (!animate)
+			// A card being dealt travels whatever the caller asked: a snap would take it out of the deck ahead
+			// of its turn, or cut its throw short. The travel is the deal's, held back for the wait, and it is
+			// wrapped rather than given a callback of its own so a deal is free to hang its own on it.
+			if (_deal)
 			{
-				transform.localPosition = localPosition;
-				transform.localRotation = localRotation;
+				_moveTween = DOTween.Sequence()
+					.AppendInterval(DealWait)
+					.Append(_deal.Travel(transform, localPosition, localRotation))
+					.OnComplete(() =>
+					{
+						_deal = null;
+						Land(localPosition, localRotation);
+					});
 				return;
 			}
 
-			var fromPosition = transform.localPosition;
-			var fromRotation = transform.localRotation;
-			var lift = parent ? parent.InverseTransformVector(Vector3.up) * _moveArc : Vector3.up * _moveArc;
+			if (!animate)
+			{
+				Land(localPosition, localRotation);
+				return;
+			}
 
-			_moveTween = DOVirtual.Float(0f, 1f, _moveDuration, t =>
+			_moveTween = ArcTween(transform, localPosition, localRotation, _moveDuration, _moveEase, _moveArc)
+				.OnComplete(() => Land(localPosition, localRotation));
+		}
+
+		private void Land(Vector3 localPosition, Quaternion localRotation)
+		{
+			transform.localPosition = localPosition;
+			transform.localRotation = localRotation;
+		}
+
+		// From wherever the card is to the given pose in its parent's space, rising `arc` along the parent's
+		// view of world up on the way — the table's own up, rather than the card's facing, because a card
+		// being lifted rises off the surface it was lying on. Public so a deal can throw a card the same way
+		// with numbers of its own.
+		public static Tween ArcTween(Transform card, Vector3 localPosition, Quaternion localRotation, float duration, Ease ease, float arc)
+		{
+			var parent = card.parent;
+			var fromPosition = card.localPosition;
+			var fromRotation = card.localRotation;
+			var lift = (parent ? parent.InverseTransformVector(Vector3.up) : Vector3.up) * arc;
+
+			return DOVirtual.Float(0f, 1f, duration, t =>
 				{
-					transform.localPosition = Vector3.Lerp(fromPosition, localPosition, t) + lift * Mathf.Sin(t * Mathf.PI);
-					transform.localRotation = Quaternion.Slerp(fromRotation, localRotation, t);
+					if (!card) return;
+
+					card.localPosition = Vector3.Lerp(fromPosition, localPosition, t) + lift * Mathf.Sin(t * Mathf.PI);
+					card.localRotation = Quaternion.Slerp(fromRotation, localRotation, t);
 				})
-				.SetEase(_moveEase)
-				.OnComplete(() =>
-				{
-					transform.localPosition = localPosition;
-					transform.localRotation = localRotation;
-				});
+				.SetEase(ease);
 		}
 
 		public void SetCard(CardData card, bool faceUp, PokerCardDatabase database = null, bool animateFlip = false)
@@ -257,6 +305,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 					ApplyArtHeight();
 				})
 				.SetEase(_flipEase)
+				.SetDelay(DealWait)
 				.OnComplete(() =>
 				{
 					if (!root) return;

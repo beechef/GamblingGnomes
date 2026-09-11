@@ -37,7 +37,7 @@ namespace Game.Runtime.GameMode.Poker.Abilities
 		private static PokerPlayer FindNeighbour(PokerGameMode gameMode, PokerPlayer player)
 		{
 			return PokerTableUtility.NextPlayer(gameMode.SeatedPlayers, player.Data.SeatIndex.Value,
-				candidate => candidate != player && candidate.Data.CardCount > 0);
+				candidate => candidate != player && candidate.Data.IsInHand);
 		}
 	}
 }

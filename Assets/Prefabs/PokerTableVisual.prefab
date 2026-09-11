@@ -326,6 +326,7 @@ Transform:
   m_Children:
   - {fileID: 2037710263621456765}
   - {fileID: 3404924220957953767}
+  - {fileID: 1424488558323286196}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &2783803985263191273
@@ -372,6 +373,73 @@ MonoBehaviour:
   _eatDuration: 0.5
   _eatRise: 0.35
   _relayoutDuration: 0.25
+--- !u!1 &6269372136113326957
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1424488558323286196}
+  - component: {fileID: 3778020390854628164}
+  - component: {fileID: 3512344416786793997}
+  m_Layer: 0
+  m_Name: Deck
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1424488558323286196
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6269372136113326957}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.4231, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 2568145076976995683}
+  - {fileID: 8126486383013147040}
+  m_Father: {fileID: 4595575644517756012}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3778020390854628164
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6269372136113326957}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2e968734d26ea13e5e32fe1c2519b7d9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Visual.PokerDeckVisual
+  _top: {fileID: 8126486383013147040}
+  _stack: {fileID: 4346643346373451806}
+  _database: {fileID: 11400000, guid: 81ffbfaf2b0219043836272fa19b4e8b, type: 2}
+  _controller: {fileID: 3512344416786793997}
+--- !u!114 &3512344416786793997
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6269372136113326957}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 94a293490b16a5dbd272f5f271594e40, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Visual.PokerDealArcController
+  _interval: 0.1
+  _duration: 0.4
+  _ease: 9
+  _arc: 0.08
 --- !u!1 &6282405333032259453
 GameObject:
   m_ObjectHideFlags: 0
@@ -464,3 +532,115 @@ SpriteRenderer:
   m_WasSpriteAssigned: 1
   m_SpriteSortPoint: 0
   m_BlendShapeWeights: []
+--- !u!1 &7099273872500896125
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8126486383013147040}
+  m_Layer: 0
+  m_Name: Top
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8126486383013147040
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7099273872500896125}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
+  m_LocalPosition: {x: 0, y: 0.015999999, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1424488558323286196}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &2584128423011585498
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1424488558323286196}
+    m_Modifications:
+    - target: {fileID: 35827909712756921, guid: 766e25a6debc8fc4c95fcf20063e4f4d, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 35827909712756921, guid: 766e25a6debc8fc4c95fcf20063e4f4d, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.0075
+      objectReference: {fileID: 0}
+    - target: {fileID: 35827909712756921, guid: 766e25a6debc8fc4c95fcf20063e4f4d, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 35827909712756921, guid: 766e25a6debc8fc4c95fcf20063e4f4d, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 35827909712756921, guid: 766e25a6debc8fc4c95fcf20063e4f4d, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 35827909712756921, guid: 766e25a6debc8fc4c95fcf20063e4f4d, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 35827909712756921, guid: 766e25a6debc8fc4c95fcf20063e4f4d, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 35827909712756921, guid: 766e25a6debc8fc4c95fcf20063e4f4d, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 35827909712756921, guid: 766e25a6debc8fc4c95fcf20063e4f4d, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 35827909712756921, guid: 766e25a6debc8fc4c95fcf20063e4f4d, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4100000000000000011, guid: 766e25a6debc8fc4c95fcf20063e4f4d, type: 3}
+      propertyPath: m_LocalScale.z
+      value: 0.015
+      objectReference: {fileID: 0}
+    - target: {fileID: 5323790224759338796, guid: 766e25a6debc8fc4c95fcf20063e4f4d, type: 3}
+      propertyPath: m_Name
+      value: Stack
+      objectReference: {fileID: 0}
+    - target: {fileID: 8697099536705004940, guid: 766e25a6debc8fc4c95fcf20063e4f4d, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 766e25a6debc8fc4c95fcf20063e4f4d, type: 3}
+--- !u!4 &2568145076976995683 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 35827909712756921, guid: 766e25a6debc8fc4c95fcf20063e4f4d, type: 3}
+  m_PrefabInstance: {fileID: 2584128423011585498}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &4346643346373451806 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2273976980707683780, guid: 766e25a6debc8fc4c95fcf20063e4f4d, type: 3}
+  m_PrefabInstance: {fileID: 2584128423011585498}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8b327c3daf64df447886d7b7a6802664, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Visual.PokerCardVisual

@@ -81,7 +81,7 @@ namespace Game.Runtime.GameMode.Poker.Abilities
 			foreach (var seated in gameMode.SeatedPlayers)
 			{
 				if (!seated || seated == player || !seated.Data) continue;
-				if (seated.Data.CardCount <= 0) continue;
+				if (!seated.Data.IsInHand) continue;
 
 				_candidates.Add(seated);
 			}

@@ -241,6 +241,8 @@ namespace Game.Runtime.GameMode.Poker.Player
 		// never limits the looking behaves as it always did.
 		public bool IsHoleCardVisible(int slot)
 		{
+			// A mucked hand stays on the table face down for everyone, its holder included.
+			if (IsFolded) return false;
 			if (HandRevealed.Value || IsHandVisibleToProvider()) return true;
 			if (!IsOwner) return false;
 
@@ -254,7 +256,11 @@ namespace Game.Runtime.GameMode.Poker.Player
 		// Where this card physically is. A card lifted off the table is in its holder's hand until the
 		// hand is shown, at which point everything goes back down for the table to read — which is why
 		// this is derived rather than replicated: the two facts it needs are already on the wire.
-		public bool IsHoleCardInHand(int slot) => !HandRevealed.Value && HasLookedAt(slot);
+		public bool IsHoleCardInHand(int slot) => !IsFolded && !HandRevealed.Value && HasLookedAt(slot);
+
+		// Folding puts the cards down rather than taking them away: they lie in front of the folder until the
+		// next deal clears them, so the table watches a hand being thrown in instead of one vanishing.
+		public bool IsFolded => Status.Value == PokerPlayerStatus.Folded;
 
 		public int LookedAtCount
 		{
@@ -274,7 +280,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		// the view that draws the cards, so the two cannot offer different answers.
 		public bool CanLookAt(int slot)
 		{
-			if (!HasLookLimit) return false;
+			if (!HasLookLimit || IsFolded) return false;
 			if (slot < 0 || slot >= HoleCards.Count) return false;
 			if (HasLookedAt(slot)) return false;
 
@@ -284,7 +290,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		// Sight somebody was granted, as opposed to a hand that is simply public. A showdown turns every hand
 		// face up for everyone; this is only true where an ability handed this client a look it was not owed,
 		// which is the difference anything drawing "what I have been shown" has to be able to see.
-		public bool IsHandVisibleByGrant => !IsOwner && !HandRevealed.Value && IsHandVisibleToProvider();
+		public bool IsHandVisibleByGrant => !IsOwner && !IsFolded && !HandRevealed.Value && IsHandVisibleToProvider();
 
 		private bool IsHandVisibleToProvider()
 		{
@@ -373,16 +379,14 @@ namespace Game.Runtime.GameMode.Poker.Player
 			ServerResetForHand();
 		}
 
-		// Mucking, as opposed to a swap: a clear is exactly what putting the cards down looks like on the
-		// wire, and PokerHandVisual plays its tear-down off the Clear event. ServerReplaceHoleCards writes
-		// slots instead for the opposite reason — a cheat must not read as a deal.
+		// The status alone: the cards stay where they are, and IsFolded is what turns them face down and puts
+		// them back on the table. The next deal's ServerResetForHand is what takes them away.
 		public void ServerFold()
 		{
 			if (!IsServer || !IsInHand) return;
 
 			Status.Value = PokerPlayerStatus.Folded;
 			HasActed.Value = true;
-			HoleCards.Clear();
 		}
 
 		public void ServerResetForHand()
@@ -690,7 +694,12 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 		private void HandleAbilitiesChanged(NetworkListEvent<FixedString64Bytes> changeEvent) => OnAbilitiesChanged?.Invoke();
 		private void HandleBoolChanged(bool previous, bool current) => OnStateChanged?.Invoke();
-		private void HandleStatusChanged(PokerPlayerStatus previous, PokerPlayerStatus current) => OnStateChanged?.Invoke();
+		// Folding is how the cards read as well as a fact about the player, so it raises both.
+		private void HandleStatusChanged(PokerPlayerStatus previous, PokerPlayerStatus current)
+		{
+			OnStateChanged?.Invoke();
+			OnHoleCardPresentationChanged?.Invoke();
+		}
 		private void HandleHoleCardsChanged(NetworkListEvent<CardData> changeEvent) => OnHoleCardsChanged?.Invoke(changeEvent);
 	}
 }

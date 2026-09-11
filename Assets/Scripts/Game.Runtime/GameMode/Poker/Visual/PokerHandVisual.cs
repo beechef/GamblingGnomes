@@ -245,13 +245,19 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			var index = _cards.Count;
 			var group = IsInHand(index) ? _hand : _table;
 
-			// Spawned under the group it belongs to, so a dealt card travels the short hop from that spot
-			// to its slot rather than flying in from wherever the prefab happened to sit.
+			// Spawned under the group it belongs to. A card being dealt then starts out on the deck in the
+			// middle of the table and waits there for its turn in the deal; one shown as it already stands
+			// (a late join) has nowhere to travel from and is put straight in its slot.
 			var visual = Instantiate(_cardPrefab, group ? group.Anchor : transform);
 			_cards.Add(visual);
 
+			var deck = PokerDeckVisual.Instance;
+			if (animate && deck) deck.Deal(visual, _data.SeatIndex.Value, index);
+
+			// The flip only for a face this client is about to see. A card dealt face down turned over on
+			// the way would show its back on both sides and read as a card spinning for no reason.
 			var visible = IsVisible(index);
-			visual.SetCard(visible ? card : CardData.None, visible, _database, animate);
+			visual.SetCard(visible ? card : CardData.None, visible, _database, animate && visible);
 
 			_shownFaceUpMask = CurrentFaceUpMask();
 			_shownInHandMask = CurrentInHandMask();

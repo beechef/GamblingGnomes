@@ -83,6 +83,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 			// Dropped rather than left standing. The bool drives the animator on both rigs, so lowering it
 			// is what the table watches the cards go face down.
 			if (_handPeek) _handPeek.ServerSetPeeking(false);
+
+			// Every fold is seen being thrown in, a timeout or a caught cheat as much as a button press.
+			if (_actionAnimator) _actionAnimator.ServerPlay(PlayerActionIds.Fold);
 		}
 
 		// The seat number is the fallback rather than the label: a player whose identity RPC has not
