@@ -6,8 +6,10 @@ using UnityEngine;
 namespace Game.Runtime.Player
 {
 	// Paints this player in the colour their index was handed, so a table of identical gnomes can be told
-	// apart at a glance. Which renderers wear it is authored — the hat today, whatever else the art grows
-	// tomorrow — so this stays a mechanism about colour rather than a component that knows what a hat is.
+	// apart at a glance. Where the colour is worn — which slot, which submesh of it, which shader property —
+	// belongs to the model being drawn: the hat on a gnome, wherever art decides on the next body. So this
+	// stays a mechanism about colour, and a body that changes model mid-hand wears it wherever the new one
+	// says.
 	//
 	// Painted through a MaterialPropertyBlock, never by assigning a material: the outfit material is shared
 	// by every gnome on the table, so writing to it would repaint all of them, and assigning a copy would
@@ -15,62 +17,65 @@ namespace Game.Runtime.Player
 	// per-renderer, costs no instance, and leaves the material list untouched.
 	public class PlayerColorVisual : NetworkBehaviour
 	{
-		[Header("Paint")]
-		[Tooltip("The renderers wearing this player's colour, on both rigs — everyone else's gnome and the owner's own hands are two different sets of meshes showing the same player.")]
-		[SerializeField] private List<Renderer> _renderers = new();
-
-		[Tooltip("Which material slot on those renderers takes the colour. The outline pass is appended after the authored ones, so a slot index stays put.")]
-		[MinValue(0)]
-		[SerializeField] private int _materialIndex;
-
-		[Tooltip("Shader property to write. URP's Lit and Unlit both call it _BaseColor.")]
-		[SerializeField] private string _colorProperty = "_BaseColor";
-
 		[Header("References")]
 		[Required]
 		[SerializeField] private PlayerColorDatabase _database;
 
 		[SerializeField] private PlayerData _data;
+		[SerializeField] private PlayerVisual _visual;
+
+		private readonly List<(Renderer Renderer, int SubmeshIndex)> _tinted = new();
 
 		private MaterialPropertyBlock _block;
-		private int _colorPropertyId;
 
 		public override void OnNetworkSpawn()
 		{
 			if (!_data) _data = NetworkObject.GetComponent<PlayerData>();
-			if (!_data || !_database) return;
-
-			_colorPropertyId = Shader.PropertyToID(_colorProperty);
+			if (!_visual) _visual = NetworkObject.GetComponent<PlayerVisual>();
+			if (!_data || !_visual || !_database) return;
 
 			_data.ColorIndex.OnValueChanged += HandleColorIndexChanged;
+			_visual.OnAppearanceChanged += Apply;
 
 			// The index is usually handed out before this client ever hears of the player, so there is no
 			// change coming to wake this up — the value as it already stands is the whole story.
-			Apply(_data.ColorIndex.Value);
+			Apply();
 		}
 
 		public override void OnNetworkDespawn()
 		{
+			if (_visual) _visual.OnAppearanceChanged -= Apply;
 			if (_data) _data.ColorIndex.OnValueChanged -= HandleColorIndexChanged;
 		}
 
-		private void HandleColorIndexChanged(int previous, int current) => Apply(current);
+		private void HandleColorIndexChanged(int previous, int current) => Apply();
 
-		private void Apply(int index)
+		private void Apply()
 		{
-			var color = _database.Get(index);
+			// What the last model tinted comes off first, so a body switching to one that wears the colour
+			// somewhere else does not keep it in both places.
+			foreach (var (renderer, submeshIndex) in _tinted)
+			{
+				if (renderer) renderer.SetPropertyBlock(null, submeshIndex);
+			}
 
+			_tinted.Clear();
+
+			var model = _visual.Model;
+			if (!model) return;
+
+			var color = _database.Get(_data.ColorIndex.Value);
 			_block ??= new MaterialPropertyBlock();
 
-			foreach (var renderer in _renderers)
+			foreach (var tint in model.Tints)
 			{
-				if (!renderer) continue;
+				if (string.IsNullOrEmpty(tint.ColorProperty) || !_visual.TryGetRenderer(tint.Slot, out var renderer)) continue;
 
-				// Read back first: another block may already be carrying something on this slot, and
-				// replacing it outright would quietly drop whatever that was.
-				renderer.GetPropertyBlock(_block, _materialIndex);
-				_block.SetColor(_colorPropertyId, color);
-				renderer.SetPropertyBlock(_block, _materialIndex);
+				_block.Clear();
+				_block.SetColor(tint.ColorProperty, color);
+				renderer.SetPropertyBlock(_block, tint.SubmeshIndex);
+
+				_tinted.Add((renderer, tint.SubmeshIndex));
 			}
 		}
 	}

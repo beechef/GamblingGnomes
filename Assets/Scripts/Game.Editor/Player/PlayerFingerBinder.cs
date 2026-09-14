@@ -6,19 +6,21 @@ using UnityEngine;
 
 namespace Game.Editor.Player
 {
-	// Binds the finger meshes the model already ships cut apart into PlayerFingerVisual, by the names the
-	// artist gave them. Run again after a rig is re-cut: sixteen objects dragged by hand is sixteen chances
-	// to drop one, and a finger left out is one a player keeps forever.
+	// Binds each finger's joint, on every rig that is drawn, into PlayerFingerVisual by the bone names the
+	// model ships with. Run again after a rig update: sixteen bones dragged by hand is sixteen chances to
+	// drop one, and a finger left out is one a player keeps forever.
 	public static class PlayerFingerBinder
 	{
-		// The order they come off in. Ends first and thumbs last, alternating hands so a player loses the use
-		// of both together rather than one whole hand and then the other.
-		private static readonly string[] FingerNames =
+		// The order they come off in — ends first and thumbs last, alternating hands so a player loses the
+		// use of both together rather than one whole hand and then the other — and the joint each comes off
+		// at. The second joint, so the first segment is left as a stump rather than the finger vanishing
+		// from the knuckle.
+		private static readonly (string Name, string Bone)[] Fingers =
 		{
-			"Pinky_L", "Pinky_R",
-			"Index_L", "Index_R",
-			"Middle_L", "Middle_R",
-			"Thumb_L", "Thumb_R"
+			("Pinky_L", "PinkyFinger2_L"), ("Pinky_R", "PinkyFinger2_R"),
+			("Index_L", "IndexFinger2_L"), ("Index_R", "IndexFinger2_R"),
+			("Middle_L", "MiddleFinger2_L"), ("Middle_R", "MiddleFinger2_R"),
+			("Thumb_L", "ThumbFinger2_L"), ("Thumb_R", "ThumbFinger2_R")
 		};
 
 		private const string FingersChildName = "Fingers";
@@ -42,7 +44,7 @@ namespace Game.Editor.Player
 				// A save that reports false has changed nothing and says nothing about why — treated as a hard
 				// stop rather than something to run again over, because the next read comes back green either way.
 				if (!saved) Debug.LogError($"Binding fingers wrote nothing to {path}. Check the asset database is not read only.");
-				else Debug.Log($"Bound {FingerNames.Length} fingers into {path}.");
+				else Debug.Log($"Bound {Fingers.Length} fingers into {path}.");
 			}
 			finally
 			{
@@ -50,36 +52,46 @@ namespace Game.Editor.Player
 			}
 		}
 
-		private static bool BindInto(GameObject root, string path)
+		public static bool BindInto(GameObject root, string path)
 		{
-			var pieces = CollectPieces(root);
+			var rigs = root.GetComponentsInChildren<PlayerBoneRig>(true);
+			var bones = CollectBones(rigs);
 
-			foreach (var fingerName in FingerNames)
+			foreach (var finger in Fingers)
 			{
-				if (pieces.TryGetValue(fingerName, out var found) && found.Count > 0) continue;
+				if (bones.TryGetValue(finger.Bone, out var found) && found.Count == rigs.Length) continue;
 
-				Debug.LogError($"{path} has no mesh named {fingerName}. The rig is not cut the way this expects — nothing was bound.");
+				Debug.LogError($"{path} does not carry {finger.Bone} on each of its {rigs.Length} rigs. The skeleton is not the one this expects — nothing was bound.");
+				return false;
+			}
+
+			var boneScale = root.GetComponentInChildren<PlayerBoneScaleController>(true);
+			if (!boneScale)
+			{
+				Debug.LogError($"{path} has no {nameof(PlayerBoneScaleController)}, and a finger is taken by scaling its bone through one — nothing was bound.");
 				return false;
 			}
 
 			var visual = ResolveFingerVisual(root);
 
 			var serialized = new SerializedObject(visual);
-			var fingers = serialized.FindProperty("_fingers");
-			fingers.arraySize = FingerNames.Length;
+			serialized.FindProperty("_boneScale").objectReferenceValue = boneScale;
 
-			for (var i = 0; i < FingerNames.Length; i++)
+			var fingers = serialized.FindProperty("_fingers");
+			fingers.arraySize = Fingers.Length;
+
+			for (var i = 0; i < Fingers.Length; i++)
 			{
 				var entry = fingers.GetArrayElementAtIndex(i);
-				entry.FindPropertyRelative("Name").stringValue = FingerNames[i];
+				entry.FindPropertyRelative("Name").stringValue = Fingers[i].Name;
 
-				var entryPieces = entry.FindPropertyRelative("Pieces");
-				var found = pieces[FingerNames[i]];
-				entryPieces.arraySize = found.Count;
+				var entryBones = entry.FindPropertyRelative("Bones");
+				var found = bones[Fingers[i].Bone];
+				entryBones.arraySize = found.Count;
 
-				for (var piece = 0; piece < found.Count; piece++)
+				for (var bone = 0; bone < found.Count; bone++)
 				{
-					entryPieces.GetArrayElementAtIndex(piece).objectReferenceValue = found[piece];
+					entryBones.GetArrayElementAtIndex(bone).objectReferenceValue = found[bone];
 				}
 			}
 
@@ -90,24 +102,28 @@ namespace Game.Editor.Player
 			return true;
 		}
 
-		// Every mesh carrying the finger's name, across every rig on the prefab — the owner's hand-only pair
-		// included, or a player keeps a finger only they can see. Bones are named FingerN_L and never collide.
-		private static Dictionary<string, List<GameObject>> CollectPieces(GameObject root)
+		// Only under a rig that is drawn. The outfit models carry their own copy of the skeleton, rebound
+		// onto the body's bones at runtime, so a bone found there is one nothing ever renders from.
+		private static Dictionary<string, List<Transform>> CollectBones(PlayerBoneRig[] rigs)
 		{
-			var wanted = new HashSet<string>(FingerNames);
-			var pieces = new Dictionary<string, List<GameObject>>();
+			var wanted = new HashSet<string>();
+			foreach (var finger in Fingers) wanted.Add(finger.Bone);
 
-			foreach (var child in root.GetComponentsInChildren<Transform>(true))
+			var bones = new Dictionary<string, List<Transform>>();
+
+			foreach (var rig in rigs)
 			{
-				if (!wanted.Contains(child.name)) continue;
-				if (!child.GetComponent<Renderer>()) continue;
+				foreach (var child in rig.GetComponentsInChildren<Transform>(true))
+				{
+					if (!wanted.Contains(child.name)) continue;
 
-				if (!pieces.TryGetValue(child.name, out var found)) pieces[child.name] = found = new List<GameObject>();
+					if (!bones.TryGetValue(child.name, out var found)) bones[child.name] = found = new List<Transform>();
 
-				found.Add(child.gameObject);
+					found.Add(child);
+				}
 			}
 
-			return pieces;
+			return bones;
 		}
 
 		private static PlayerFingerVisual ResolveFingerVisual(GameObject root)

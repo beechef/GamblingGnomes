@@ -1,0 +1,77 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 15637a06054cb32c7739ec5b96c6ca95, type: 3}
+  m_Name: PlayerModel_Gnome
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.PlayerModel
+  _parts:
+  - Slot: 0
+    Mesh: {fileID: 4700887527347615456, guid: ccae2c9bbf67cf945ae72b5a5898942a, type: 3}
+  - Slot: 1
+    Mesh: {fileID: -6121811496752012456, guid: ccae2c9bbf67cf945ae72b5a5898942a, type: 3}
+  - Slot: 4
+    Mesh: {fileID: -7218938661284853606, guid: 39bc1341774026a42bfa10073058dab3, type: 3}
+  _looks:
+  - Version: 0
+    Paints:
+    - Slot: 0
+      Materials:
+      - {fileID: 2100000, guid: e4562a68d24eff841b919224ac7b109a, type: 2}
+    - Slot: 1
+      Materials:
+      - {fileID: 2100000, guid: 93fb767cc69c87e4ca0665c318a519f1, type: 2}
+    - Slot: 4
+      Materials:
+      - {fileID: 2100000, guid: e4562a68d24eff841b919224ac7b109a, type: 2}
+  - Version: 1
+    Paints:
+    - Slot: 0
+      Materials:
+      - {fileID: 2100000, guid: c8679b498d4631844ae23cae96be9619, type: 2}
+    - Slot: 1
+      Materials:
+      - {fileID: 2100000, guid: fac6fbf9eef2ddd4c96539fadd156d66, type: 2}
+    - Slot: 4
+      Materials:
+      - {fileID: 2100000, guid: c8679b498d4631844ae23cae96be9619, type: 2}
+  _outfits:
+  - Id: 0
+    Parts:
+    - Slot: 2
+      Mesh: {fileID: -8750207363965523179, guid: a84d94a69c2261b45aa6f50cdfe93fef, type: 3}
+    - Slot: 3
+      Mesh: {fileID: -8792939255525638709, guid: 9c3a65dfc553dc64c9d2308139ffd295, type: 3}
+    - Slot: 5
+      Mesh: {fileID: 5203245852841169796, guid: 71fc3f893cb777e4cbea8ac2559e1772, type: 3}
+    Looks:
+    - Version: 0
+      Paints:
+      - Slot: 2
+        Materials:
+        - {fileID: 2100000, guid: f77928bcca4d33e4f871568f74ad9521, type: 2}
+      - Slot: 3
+        Materials:
+        - {fileID: 2100000, guid: f095a7dfaaf85f644a853fbc23d9e6a2, type: 2}
+      - Slot: 5
+        Materials:
+        - {fileID: 2100000, guid: f77928bcca4d33e4f871568f74ad9521, type: 2}
+    - Version: 1
+      Paints:
+      - Slot: 2
+        Materials:
+        - {fileID: 2100000, guid: 39cdb9ea3cecd3c4eb15351c3512c857, type: 2}
+      - Slot: 5
+        Materials:
+        - {fileID: 2100000, guid: 39cdb9ea3cecd3c4eb15351c3512c857, type: 2}
+  _tints:
+  - Slot: 3
+    SubmeshIndex: 0
+    ColorProperty: _BaseColor

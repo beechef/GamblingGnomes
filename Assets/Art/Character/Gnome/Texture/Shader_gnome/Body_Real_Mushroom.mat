@@ -7,8 +7,8 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Shader Graphs_LitEye_Default
-  m_Shader: {fileID: -6465566751694194690, guid: 4250822c19f204c4a8dab3f4ff913595, type: 3}
+  m_Name: Body_Real_Mushroom
+  m_Shader: {fileID: -6465566751694194690, guid: e5c993b5a4b088b45ba0ef2f2602ccb5, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
   m_ValidKeywords: []
@@ -25,15 +25,15 @@ Material:
     serializedVersion: 3
     m_TexEnvs:
     - _Base_Color:
-        m_Texture: {fileID: 2800000, guid: 766c8dd74c0e4a54cb26bfb5abd7fc2f, type: 3}
+        m_Texture: {fileID: 2800000, guid: 72fc300eafedf2c43a09cd156ae9315f, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Mask_Map:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: 3a7c65237e9ce2b4084140263dbdc043, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Normal_Map:
-        m_Texture: {fileID: 0}
+        m_Texture: {fileID: 2800000, guid: 084b3b859ecf10942888e8d60e98c5f1, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _Opacity:
@@ -54,15 +54,14 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _Metallic_Multiplier: 0
+    - _Metallic_Multiplier: 1
     - _QueueControl: 0
     - _QueueOffset: 0
-    - _Smoothness_Multiplier: 0
-    m_Colors:
-    - _EyeOffset: {r: 0, g: 0, b: 0, a: 0}
+    - _Smoothness_Multiplier: 1
+    m_Colors: []
   m_BuildTextureStacks: []
   m_AllowLocking: 1
---- !u!114 &2286888143565365975
+--- !u!114 &5501614008916129894
 MonoBehaviour:
   m_ObjectHideFlags: 11
   m_CorrespondingSourceObject: {fileID: 0}

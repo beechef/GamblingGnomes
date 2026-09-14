@@ -11,8 +11,6 @@ namespace Game.Runtime.Props
 		Default,
 		Smiling,
 		ExtraArm,
-		Breasts,
-		MushroomHead,
-		MushroomPerson
+		Breasts
 	}
 }

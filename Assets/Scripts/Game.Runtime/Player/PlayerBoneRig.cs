@@ -29,7 +29,7 @@ namespace Game.Runtime.Player
 			(PlayerBone.Spine, "Spine1_M"),
 			(PlayerBone.Chest, "Chest_M"),
 			(PlayerBone.Neck, "Neck_M"),
-			(PlayerBone.Head, "Head1_M"),
+			(PlayerBone.Head, "Head_M"),
 			(PlayerBone.HeadTop, "HeadEnd_M"),
 			(PlayerBone.Jaw, "Jaw_M"),
 			(PlayerBone.ShoulderLeft, "Shoulder_L"),

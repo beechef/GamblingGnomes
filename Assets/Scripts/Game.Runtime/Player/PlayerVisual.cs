@@ -1,38 +1,35 @@
 using System;
 using System.Collections.Generic;
 using Game.Runtime.Utility;
+using Sirenix.OdinInspector;
 using Unity.Netcode;
 using UnityEngine;
 
 namespace Game.Runtime.Player
 {
+	// The one writer of what this player's renderers draw: which mesh sits in each slot and what it is
+	// painted with. Three answers decide it — the model (a body, local, overridden by whatever this client
+	// is being made to see), the outfit (replicated, by id) and the version (local) — and the model
+	// resolves all three into a mesh and a material per slot. Every model shares one skeleton, so a switch
+	// only hands renderers new meshes: the camera, the props and every system holding a bone never notice.
 	public class PlayerVisual : NetworkBehaviour
 	{
 		[Serializable]
-		public struct PlayerSkin
+		public struct SlotRenderer
 		{
-			public string SkinName;
-			public Material BodyMaterial;
-			public Material OutfitMaterial;
-			public Material HatMaterial;
+			public PlayerSlot Slot;
+
+			[Tooltip("A SkinnedMeshRenderer on the shared skeleton, or a MeshRenderer whose MeshFilter is re-meshed.")]
+			public Renderer Renderer;
 		}
 
-		[Header("Skins")]
-		[SerializeField] private List<PlayerSkin> _skins = new();
+		[Header("Appearance")]
+		[Tooltip("What this player is drawn as when nothing asks otherwise.")]
+		[Required]
+		[SerializeField] private PlayerModel _defaultModel;
 
-		// A rig is however many meshes the artist cut it into — the gnome arrives as a body, a head and a
-		// piece per finger. Hiding "the body" therefore means hiding all of them: one renderer left behind
-		// is a head floating where the owner should see nothing.
-		[Header("Full Body")]
-		[SerializeField] private SkinnedMeshRenderer[] _bodyMeshRenderers;
-
-		[SerializeField] private SkinnedMeshRenderer _outfitMeshRenderer;
-		[SerializeField] private MeshRenderer _hatRenderer;
-
-		[Header("Hand Only")]
-		[SerializeField] private SkinnedMeshRenderer[] _handOnlyBodyMeshRenderers;
-
-		[SerializeField] private SkinnedMeshRenderer _handOnlyOutfitMeshRenderer;
+		[Tooltip("Every slot a model can fill, one renderer each. A slot the model leaves empty is hidden.")]
+		[SerializeField] private List<SlotRenderer> _slots = new();
 
 		// Picking this player out of the room. Replicated because the whole point of an outline here is
 		// that everybody watches an accuser's finger settle on somebody — one only the accuser could see
@@ -51,14 +48,24 @@ namespace Game.Runtime.Player
 		[HideInInspector] public NetworkVariable<bool> Outlined = new(false,
 			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
 
-		private readonly NetworkVariable<int> _skinIndex = new(0,
+		private readonly NetworkVariable<PlayerOutfitId> _outfit = new(PlayerOutfitId.Classic,
 			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
 
 		private Material _runtimeOutlineMaterial;
 
 		// What a hallucination is painting this body with, or null. Kept here because this is the one
-		// place a renderer's materials are written, and it has to survive a skin change and an outline.
+		// place a renderer's materials are written, and it has to survive a model change and an outline.
 		private Material _materialOverride;
+
+		// Local for the same reason: what this client is being made to see, handed down by
+		// PlayerAppearanceController, which resolves whose request wins.
+		private PlayerModel _modelOverride;
+		private PlayerLookVersion _version = PlayerLookVersion.Cartoon;
+
+		// Which slots the current model fills, so visibility can be asked again without resolving again.
+		private readonly HashSet<PlayerSlot> _filled = new();
+
+		private readonly List<Material> _resolvedMaterials = new();
 
 		// Lit for this client alone, on top of whatever the replicated flag says. Pointing at somebody before
 		// choosing them is not a move the table needs to watch - the choice is, and the server announces
@@ -69,33 +76,32 @@ namespace Game.Runtime.Player
 
 		private bool IsOutlined => Outlined.Value || _localOutlined;
 
+		public PlayerModel Model => _modelOverride ? _modelOverride : _defaultModel;
+
+		// Raised after every slot has been re-meshed and repainted, for anything drawing on top of them —
+		// the player's colour goes wherever the model now says it is worn.
+		public event Action OnAppearanceChanged;
+
 		private void Awake()
 		{
-			// Outfits ship with their own skeletons; rebinding onto the body rig lets one
-			// animated rig drive both meshes.
-			BoneRemapper.RemapBoneRenderer(_outfitMeshRenderer, RootBoneOf(_bodyMeshRenderers));
-			BoneRemapper.RemapBoneRenderer(_handOnlyOutfitMeshRenderer, RootBoneOf(_handOnlyBodyMeshRenderers));
+			// Outfits ship with their own skeletons; rebinding onto the body rig lets one animated rig drive
+			// both meshes.
+			BoneRemapper.RemapBoneRenderer(Find(PlayerSlot.Outfit) as SkinnedMeshRenderer, RootBoneOf(PlayerSlot.Body));
+			BoneRemapper.RemapBoneRenderer(Find(PlayerSlot.HandOutfit) as SkinnedMeshRenderer, RootBoneOf(PlayerSlot.HandBody));
 		}
 
 		protected override void OnNetworkPostSpawn()
 		{
-			SetEnabled(_bodyMeshRenderers, !IsOwner);
-			if (_outfitMeshRenderer) _outfitMeshRenderer.enabled = !IsOwner;
-			if (_hatRenderer) _hatRenderer.enabled = !IsOwner;
+			// Late join: whoever is already lit up stays lit up, and the model underneath carries the pass.
+			ApplyAppearance();
 
-			SetEnabled(_handOnlyBodyMeshRenderers, IsOwner);
-			if (_handOnlyOutfitMeshRenderer) _handOnlyOutfitMeshRenderer.enabled = IsOwner;
-
-			// Late join: whoever is already lit up stays lit up, and the skin underneath carries the pass.
-			ApplySkin(_skinIndex.Value);
-
-			_skinIndex.OnValueChanged += HandleSkinIndexChanged;
+			_outfit.OnValueChanged += HandleOutfitChanged;
 			Outlined.OnValueChanged += HandleOutlinedChanged;
 		}
 
 		public override void OnNetworkDespawn()
 		{
-			_skinIndex.OnValueChanged -= HandleSkinIndexChanged;
+			_outfit.OnValueChanged -= HandleOutfitChanged;
 			Outlined.OnValueChanged -= HandleOutlinedChanged;
 		}
 
@@ -104,6 +110,12 @@ namespace Game.Runtime.Player
 			base.OnDestroy();
 
 			if (_runtimeOutlineMaterial) Destroy(_runtimeOutlineMaterial);
+		}
+
+		public bool TryGetRenderer(PlayerSlot slot, out Renderer renderer)
+		{
+			renderer = Find(slot);
+			return renderer;
 		}
 
 		public void ServerSetOutlined(bool outlined)
@@ -121,22 +133,11 @@ namespace Game.Runtime.Player
 			ApplyOutline(IsOutlined);
 		}
 
-		public void SetSkin(int skinIndex)
+		public void ServerSetOutfit(PlayerOutfitId outfit)
 		{
 			if (!IsServer) return;
-			if (skinIndex < 0 || skinIndex >= _skins.Count) return;
 
-			_skinIndex.Value = skinIndex;
-		}
-
-		private void HandleSkinIndexChanged(int previous, int current)
-		{
-			ApplySkin(current);
-		}
-
-		private void HandleOutlinedChanged(bool previous, bool current)
-		{
-			ApplyOutline(IsOutlined);
+			_outfit.Value = outfit;
 		}
 
 		// One repaint for the whole body, composed here rather than written onto the renderers by
@@ -147,33 +148,74 @@ namespace Game.Runtime.Player
 			if (_materialOverride == material) return;
 
 			_materialOverride = material;
-			ApplySkin(_skinIndex.Value);
+			ApplyAppearance();
 		}
 
-		private void ApplySkin(int skinIndex)
+		public void SetModelOverride(PlayerModel model)
 		{
-			if (skinIndex < 0 || skinIndex >= _skins.Count) return;
+			if (_modelOverride == model) return;
 
-			var skin = _skins[skinIndex];
+			_modelOverride = model;
+			ApplyAppearance();
+		}
 
-			// The override stands in for whatever the skin would have painted, so a hallucination covers
-			// every piece the rig is cut into rather than the ones the skin happens to name.
-			var body = _materialOverride ? _materialOverride : skin.BodyMaterial;
-			var outfit = _materialOverride ? _materialOverride : skin.OutfitMaterial;
-			var hat = _materialOverride ? _materialOverride : skin.HatMaterial;
+		public void SetVersion(PlayerLookVersion version)
+		{
+			if (_version == version) return;
 
-			ApplyMaterial(_bodyMeshRenderers, body);
-			ApplyMaterial(_handOnlyBodyMeshRenderers, body);
-			ApplyMaterial(_outfitMeshRenderer, outfit);
-			ApplyMaterial(_handOnlyOutfitMeshRenderer, outfit);
-			ApplyMaterial(_hatRenderer, hat);
+			_version = version;
+			ApplyAppearance();
+		}
+
+		private void HandleOutfitChanged(PlayerOutfitId previous, PlayerOutfitId current) => ApplyAppearance();
+
+		private void HandleOutlinedChanged(bool previous, bool current) => ApplyOutline(IsOutlined);
+
+		private void ApplyAppearance()
+		{
+			var model = Model;
+			if (!model) return;
+
+			_filled.Clear();
+
+			foreach (var slot in _slots)
+			{
+				if (!slot.Renderer) continue;
+
+				model.Resolve(slot.Slot, _outfit.Value, _version, out var mesh, _resolvedMaterials);
+				if (!mesh) continue;
+
+				_filled.Add(slot.Slot);
+				WriteMesh(slot.Renderer, mesh);
+				WriteMaterials(slot.Renderer, _resolvedMaterials);
+			}
+
+			RefreshVisibility();
 
 			// Assigning a material replaces the whole list, so the pass sitting on top of it is hung again.
 			ApplyOutline(IsOutlined);
+
+			OnAppearanceChanged?.Invoke();
 		}
 
-		// Added to and taken off whatever a renderer is already wearing, rather than rebuilt out of a skin.
-		// Hanging it as part of the skin looked tidier and was the bug: a slot the skin leaves empty is a
+		// A renderer is drawn when its model fills it and it is on the rig this client renders: the owner
+		// sees the hand-only rig, everyone else the full body. Before spawn nobody owns anything yet, so the
+		// prefab stays as authored.
+		private void RefreshVisibility()
+		{
+			foreach (var slot in _slots)
+			{
+				if (!slot.Renderer) continue;
+
+				var onRenderedRig = !IsSpawned || IsHandOnly(slot.Slot) == IsOwner;
+				slot.Renderer.enabled = onRenderedRig && _filled.Contains(slot.Slot);
+			}
+		}
+
+		private static bool IsHandOnly(PlayerSlot slot) => slot is PlayerSlot.HandBody or PlayerSlot.HandOutfit;
+
+		// Added to and taken off whatever a renderer is already wearing, rather than rebuilt out of a model.
+		// Hanging it as part of the model looked tidier and was the bug: a slot the model leaves empty is a
 		// renderer the outline can never reach, and on a rig cut into ten meshes one unlit piece reads as
 		// the whole outline being broken.
 		//
@@ -181,13 +223,10 @@ namespace Game.Runtime.Player
 		// your own hands tells you something the rest of the table already knew.
 		private void ApplyOutline(bool outlined)
 		{
-			if (_bodyMeshRenderers != null)
+			foreach (var slot in _slots)
 			{
-				foreach (var renderer in _bodyMeshRenderers) ApplyOutline(renderer, outlined);
+				if (!IsHandOnly(slot.Slot)) ApplyOutline(slot.Renderer, outlined);
 			}
-
-			ApplyOutline(_outfitMeshRenderer, outlined);
-			ApplyOutline(_hatRenderer, outlined);
 		}
 
 		private void ApplyOutline(Renderer renderer, bool outlined)
@@ -221,40 +260,56 @@ namespace Game.Runtime.Player
 			return _runtimeOutlineMaterial;
 		}
 
-		private static Transform RootBoneOf(SkinnedMeshRenderer[] renderers)
+		private Renderer Find(PlayerSlot slot)
 		{
-			if (renderers == null) return null;
-
-			foreach (var renderer in renderers)
+			foreach (var entry in _slots)
 			{
-				if (renderer && renderer.rootBone) return renderer.rootBone;
+				if (entry.Slot == slot) return entry.Renderer;
 			}
 
 			return null;
 		}
 
-		private static void SetEnabled(SkinnedMeshRenderer[] renderers, bool enabled)
-		{
-			if (renderers == null) return;
+		private Transform RootBoneOf(PlayerSlot slot) => Find(slot) is SkinnedMeshRenderer skinned ? skinned.rootBone : null;
 
-			foreach (var renderer in renderers)
+		// Only the mesh changes hands: the renderer keeps the bones it was bound to, which is why every model
+		// is exported against the same skeleton in the same bone order. A mesh that was not is said out loud,
+		// because it would otherwise deform into a spike with nothing logged.
+		private static void WriteMesh(Renderer renderer, Mesh mesh)
+		{
+			if (renderer is SkinnedMeshRenderer skinned)
 			{
-				if (renderer) renderer.enabled = enabled;
+				if (skinned.sharedMesh == mesh) return;
+
+				if (mesh.bindposes.Length != skinned.bones.Length)
+				{
+					Debug.LogWarning($"{mesh.name} is skinned to {mesh.bindposes.Length} bones and {skinned.name} holds {skinned.bones.Length}. It was not exported against the shared skeleton and will deform wrong.", skinned);
+				}
+
+				skinned.sharedMesh = mesh;
+				return;
 			}
+
+			if (renderer.TryGetComponent<MeshFilter>(out var filter)) filter.sharedMesh = mesh;
 		}
 
-		private static void ApplyMaterial(SkinnedMeshRenderer[] renderers, Material material)
+		// One material per submesh, so the list is rebuilt to exactly the mesh's size: a model with fewer
+		// submeshes than the last one must not keep its leftovers. The override stands in for every one of
+		// them, so a hallucination covers the whole piece rather than its first submesh. A submesh the model
+		// names nothing for keeps what it wore, which PlayerModel's inspector flags as a mistake. The outline
+		// is gone from the new list and is hung again by the caller.
+		private void WriteMaterials(Renderer renderer, List<Material> materials)
 		{
-			if (renderers == null) return;
+			var current = renderer.sharedMaterials;
+			var next = new Material[materials.Count];
 
-			foreach (var renderer in renderers) ApplyMaterial(renderer, material);
-		}
+			for (var i = 0; i < next.Length; i++)
+			{
+				var material = _materialOverride ? _materialOverride : materials[i];
+				next[i] = material ? material : i < current.Length ? current[i] : null;
+			}
 
-		private static void ApplyMaterial(Renderer renderer, Material material)
-		{
-			if (!renderer || !material) return;
-
-			renderer.material = material;
+			renderer.sharedMaterials = next;
 		}
 	}
 }
