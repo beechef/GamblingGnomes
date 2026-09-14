@@ -145,21 +145,27 @@ namespace Game.Runtime.GameMode.Poker.Player
 		// that hands out its looks in more than one beat commits each of them on its own count.
 		private int Remaining => _data ? Mathf.Max(0, _data.ViewableHoleCards.Value - _data.LookedAtCount) : 0;
 
+		// The whole set in one ask: one decision is one replicated write, so the host and every client see
+		// the same single change and the hand visual can order the flight from the slots.
 		private void Commit()
 		{
+			var slots = 0;
+
 			foreach (var card in _selected)
 			{
 				if (!card) continue;
 
 				var slot = _handVisual.SlotOf(card);
-				if (slot < 0 || !_data.CanLookAt(slot)) continue;
+				if (slot < 0 || slot >= 31 || !_data.CanLookAt(slot)) continue;
 
-				_data.LookAtHoleCardRPC(slot);
+				slots |= 1 << slot;
 
 				// It is in the hand now, so it is no longer something to reach for. The set is re-opened by the
 				// stage rather than here, which keeps "may anyone pick" in one place.
 				card.Pickupable = false;
 			}
+
+			if (slots != 0) _data.LookAtHoleCardsRPC(slots);
 
 			ClearSelection();
 			SetHovered(null);

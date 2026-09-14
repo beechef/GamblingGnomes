@@ -19,7 +19,6 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 		[Tooltip("How high the card rises on its way, along the table's up.")]
 		[SerializeField] private float _arc = 0.08f;
-
 		public override float DelayFor(PokerDealTurn turn) => (turn.Slot * turn.Players + turn.Order) * _interval;
 
 		public override Tween Travel(Transform card, Vector3 localPosition, Quaternion localRotation)

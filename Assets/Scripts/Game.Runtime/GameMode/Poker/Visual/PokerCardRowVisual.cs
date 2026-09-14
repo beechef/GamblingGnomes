@@ -38,6 +38,14 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			return transform;
 		}
 
+		// Every card keeps the place it was dealt into, out of the whole hand, whichever of them are still
+		// lying here. Picking some up leaves gaps, as a hand on a real table does — closing them slid the
+		// rest across the wood while the picked cards were still lying there waiting their turn to fly, and
+		// the two overlapped. A card put back down returns to its own place.
+		protected override int SlotOf(int index) => OrderAt(index);
+
+		protected override int SlotCount => Mathf.Max(_data ? _data.CardCount : 0, HighestOrder + 1);
+
 		protected override Vector3 SlotPosition(int slot, int count)
 		{
 			// The step is measured off the card, so new art of another width keeps the same gap instead of

@@ -25,6 +25,10 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		[Required]
 		[SerializeField] private PokerCardGroupVisual _hand;
 
+		[Tooltip("Seconds between cards that change hands together setting off, highest slot first, so they do not fly the same path at the same moment and draw through each other. Spent lying where they were.")]
+		[Min(0f)]
+		[SerializeField] private float _handOverStagger = 0.15f;
+
 		[Header("References")]
 		[SerializeField] private PokerPlayerData _data;
 		[SerializeField] private PokerCardVisual _cardPrefab;
@@ -117,8 +121,9 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			// hand answers "did anything change", and what has to be redrawn is "which one".
 			var turned = faceUp ^ _shownFaceUpMask;
 
-			// Exactly the slots that changed hands. Everything else is still where it was, and only the
-			// group it sits in has to close the gap around it.
+			// Exactly the slots that changed hands. Everything else is still where it was; whether its group
+			// closes up around the ones that left is that arrangement's business (the fan does, the row on
+			// the table keeps every card where it was dealt).
 			var moved = inHand ^ _shownInHandMask;
 
 			_shownFaceUpMask = faceUp;
@@ -140,7 +145,32 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			//
 			// The mask still decides which card *travels*: an animation is a statement that something
 			// happened, and the ones merely being put right had nothing happen to them.
-			for (var i = 0; i < _cards.Count && i < 31; i++) HandOver(i, (moved & (1 << i)) != 0);
+			//
+			// Cards changing hands in one change leave one after another, highest slot first, each waiting a
+			// stagger for every moved card above it: sent together they fly the same path at the same depth,
+			// and two transparent faces that close draw through each other the whole way. Ordered here,
+			// because this is the one place the whole set is known — a pick is committed as one replicated
+			// write (LookAtHoleCardsRPC), so the host and every client arrive here with the same mask.
+			//
+			// The whole set leaves its group as one change, before any of it arrives in the other, and each
+			// group is laid out once afterwards. Every removal re-lays the group it came out of, so taking
+			// them one at a time — whether inside HandOver or in a pass of their own — re-placed the movers
+			// still in there and snapped them sideways across the table before their own turn came.
+			var count = Mathf.Min(_cards.Count, 31);
+			for (var i = 0; i < count; i++)
+			{
+				if ((moved & (1 << i)) != 0) LeaveGroup(i);
+			}
+
+			if (_table) _table.Layout(null);
+			if (_hand) _hand.Layout(null);
+
+			var ahead = 0;
+			for (var i = count - 1; i >= 0; i--)
+			{
+				var travels = (moved & (1 << i)) != 0;
+				HandOver(i, travels, travels ? ahead++ * _handOverStagger : 0f);
+			}
 
 			OnAnyHandChanged?.Invoke();
 		}
@@ -170,9 +200,9 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		}
 
 		// Which group this slot belongs in now, and the move if it is not already there. Both groups lay
-		// themselves out again as it leaves and arrives, so picking one card up closes the gap it left on
-		// the table without anything here knowing how either of them is arranged.
-		private void HandOver(int index, bool animate)
+		// themselves out again as it leaves and arrives, without anything here knowing how either of them
+		// is arranged.
+		private void HandOver(int index, bool animate, float delay = 0f)
 		{
 			if (index < 0 || index >= _cards.Count) return;
 
@@ -191,7 +221,18 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			// Both halves are no-ops when there is nothing to do: Remove leaves early on a card it does not
 			// hold, and Add on one it already does, so this is cheap enough to call for every card.
 			if (previous) previous.Remove(card);
-			if (target) target.Add(card, index, animate);
+			if (target) target.Add(card, index, animate, delay);
+		}
+
+		// Out of whichever group it is leaving, without arriving anywhere yet: it stays exactly where it
+		// lies until HandOver gives it its turn.
+		private void LeaveGroup(int index)
+		{
+			var card = _cards[index];
+			if (!card) return;
+
+			var previous = IsInHand(index) ? _table : _hand;
+			if (previous) previous.Remove(card, false);
 		}
 
 		private int CurrentInHandMask()

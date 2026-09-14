@@ -45,19 +45,19 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 		[Tooltip("How high the card arcs on its way. A card sliding flat across the table reads as a bug rather than as a pickup.")]
 		[SerializeField] private float _moveArc = 0.08f;
-
 		private Tween _flipTween;
 		private Tween _moveTween;
 		private Tween _liftTween;
 		private bool _initialized;
 
-		// When a card lying in the deck leaves it, and how it travels once it does. Until then every
-		// placement and flip waits, so a layout laid out around it the moment it was dealt cannot pull it
-		// out of the deck ahead of its turn. Cleared when the card lands.
-		private float _dealAt;
+		// When the card leaves where it lies — its turn in the deal, or its turn among cards picked up
+		// together — and, for a deal, how it travels. Until then every placement and flip waits, so a layout
+		// laid out around it the moment it was moved cannot send it off ahead of its turn. The deal is
+		// cleared when the card lands.
+		private float _departAt;
 		private PokerDealController _deal;
 
-		private float DealWait => Mathf.Max(0f, _dealAt - Time.time);
+		private float DepartWait => Mathf.Max(0f, _departAt - Time.time);
 
 		// How far off the table the art is standing, and why. Two reasons, one height: a card being
 		// hovered or chosen, and a card mid-flip arcing over the surface it is lying on. They are summed
@@ -123,49 +123,65 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			if (!deck) return;
 
 			transform.SetPositionAndRotation(deck.position, deck.rotation);
-			_dealAt = Time.time + Mathf.Max(0f, delay);
+			_departAt = Time.time + Mathf.Max(0f, delay);
 			_deal = deal;
 		}
 
 		// Where the card sits, and under what. Reparenting keeps the world pose so the travel starts from
 		// wherever the card actually was — a card picked up off the table must not jump to the hand and
-		// then animate from there.
-		public void PlaceAt(Transform parent, Vector3 localPosition, Quaternion localRotation, bool animate)
+		// then animate from there. `delay` holds it where it lies before it sets off, so cards moved
+		// together leave one after another instead of flying the same path at the same moment.
+		public void PlaceAt(Transform parent, Vector3 localPosition, Quaternion localRotation, bool animate, float delay = 0f)
 		{
-			_moveTween?.Kill();
+			// Asked before the kill: a card still waiting its turn or in the air keeps going to wherever it
+			// now belongs. A group re-lays every card each time another arrives, and snapping this one
+			// there cut its flight short — so cards picked up together all landed at once, on top of
+			// each other, rather than one after another.
+			var travelling = _moveTween != null && _moveTween.IsActive();
 
-			// A card that is travelling is not a card being hovered, so the lift is dropped before the rest
-			// changes.
+			_moveTween?.Kill();
 			_liftTween?.Kill();
-			_lift = 0f;
-			ApplyArtHeight();
 
 			if (transform.parent != parent) transform.SetParent(parent, true);
 
-			// A card being dealt travels whatever the caller asked: a snap would take it out of the deck ahead
-			// of its turn, or cut its throw short. The travel is the deal's, held back for the wait, and it is
-			// wrapped rather than given a callback of its own so a deal is free to hang its own on it.
-			if (_deal)
-			{
-				_moveTween = DOTween.Sequence()
-					.AppendInterval(DealWait)
-					.Append(_deal.Travel(transform, localPosition, localRotation))
-					.OnComplete(() =>
-					{
-						_deal = null;
-						Land(localPosition, localRotation);
-					});
-				return;
-			}
+			if (delay > 0f) _departAt = Mathf.Max(_departAt, Time.time + delay);
 
-			if (!animate)
+			var wait = DepartWait;
+
+			if (!animate && !travelling && wait <= 0f && !_deal)
 			{
+				_lift = 0f;
+				ApplyArtHeight();
 				Land(localPosition, localRotation);
 				return;
 			}
 
-			_moveTween = ArcTween(transform, localPosition, localRotation, _moveDuration, _moveEase, _moveArc)
-				.OnComplete(() => Land(localPosition, localRotation));
+			// The deal's travel when there is one, the card's own arc otherwise. Wrapped in a sequence of the
+			// card's rather than given a callback of its own, so a deal is free to hang its own on it.
+			var travel = _deal
+				? _deal.Travel(transform, localPosition, localRotation)
+				: ArcTween(transform, localPosition, localRotation, _moveDuration, _moveEase, _moveArc);
+
+			var sequence = DOTween.Sequence().AppendInterval(wait).Append(travel);
+
+			// A chosen card stands off the table while it waits and comes down over the flight, rather than
+			// dropping back onto the wood the moment it is committed and then taking off from there.
+			if (_lift > 0f)
+			{
+				sequence.Join(DOVirtual.Float(_lift, 0f, travel.Duration(), value =>
+				{
+					_lift = value;
+					ApplyArtHeight();
+				}));
+			}
+
+			_moveTween = sequence.OnComplete(() =>
+			{
+				_deal = null;
+				_lift = 0f;
+				ApplyArtHeight();
+				Land(localPosition, localRotation);
+			});
 		}
 
 		private void Land(Vector3 localPosition, Quaternion localRotation)
@@ -305,7 +321,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 					ApplyArtHeight();
 				})
 				.SetEase(_flipEase)
-				.SetDelay(DealWait)
+				.SetDelay(DepartWait)
 				.OnComplete(() =>
 				{
 					if (!root) return;

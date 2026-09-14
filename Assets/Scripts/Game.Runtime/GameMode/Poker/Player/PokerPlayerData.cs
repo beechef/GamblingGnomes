@@ -476,19 +476,47 @@ namespace Game.Runtime.GameMode.Poker.Player
 			foreach (var card in cards) HoleCards.Add(card);
 		}
 
-		// Turning one of your own cards over. Asked of the server rather than decided locally: the limit is
-		// a rule, and a client that lied about it would be reading a card the round says it may not.
+		// Turning your own cards over — the whole chosen set in one ask, one bit per slot. Asked of the
+		// server rather than decided locally: the limit is a rule, and a client that lied about it would be
+		// reading a card the round says it may not.
+		//
+		// One ask and one write because the player made one decision. Sent a slot at a time, the host
+		// heard each pick as its own change in whatever order the picks were made while a client heard
+		// the set at once — so anything drawn off the change (which card flies to the hand first) came out
+		// differently on the two, and the gesture played once per card. Refused whole, never in part, and
+		// it says which gate refused it.
 		[Rpc(SendTo.Server)]
-		public void LookAtHoleCardRPC(int slot)
+		public void LookAtHoleCardsRPC(int slots)
 		{
-			if (!CanLookAt(slot)) return;
+			var refusal = RefuseLook(slots);
+			if (refusal != null)
+			{
+				Debug.LogWarning($"[{nameof(PokerPlayerData)}] Look at hole cards refused for seat {SeatIndex.Value}: {refusal}.", this);
+				return;
+			}
 
-			LookedAtHoleCards.Value |= 1 << slot;
+			LookedAtHoleCards.Value |= slots;
 
-			// Reaching for a card is something the table watches, so the gesture is played on the server for
+			// Reaching for the cards is something the table watches, so the gesture is played on the server for
 			// everyone rather than locally by whoever pressed. A state the art has not landed yet is skipped
 			// silently by PlayerActionAnimator, so this can be wired before there is anything to play.
 			GetComponent<PokerPlayer>()?.ActionAnimator?.ServerPlay(PlayerActionIds.PickUpCard);
+		}
+
+		private string RefuseLook(int slots)
+		{
+			if (slots == 0) return "no cards named";
+
+			var count = 0;
+			for (var slot = 0; slot < 31; slot++)
+			{
+				if ((slots & (1 << slot)) == 0) continue;
+				if (!CanLookAt(slot)) return $"slot {slot} may not be looked at";
+
+				count++;
+			}
+
+			return LookedAtCount + count > ViewableHoleCards.Value ? "more cards than the round allows" : null;
 		}
 
 		// The mode stamps this beside the starting stats: how many of the five its round lets a player see.

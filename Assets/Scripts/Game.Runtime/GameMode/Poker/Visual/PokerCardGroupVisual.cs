@@ -33,6 +33,19 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 		protected float DepthStep => _depthStep;
 
+		// Where a card sits among the others, as the slot maths is handed it. By default its place in this
+		// group out of however many the group holds, so the arrangement closes up around a card that
+		// leaves — right for a fan being held. An arrangement that keeps every card where it was dealt
+		// answers with the card's place in the deal instead (PokerCardRowVisual).
+		protected virtual int SlotOf(int index) => index;
+
+		protected virtual int SlotCount => _cards.Count;
+
+		protected int OrderAt(int index) => _order[index];
+
+		// The latest place in the deal among the cards held here, or -1 while empty.
+		protected int HighestOrder => _order.Count > 0 ? _order[_order.Count - 1] : -1;
+
 		// How big the cards being arranged are, asked of one of them. An arrangement that needs the number
 		// takes it from the deck it is holding rather than carrying its own copy, so a card resized in its
 		// prefab reshapes every layout on its own instead of leaving one of them quietly on the old size.
@@ -53,9 +66,10 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		public bool Contains(PokerCardVisual card) => card && _cards.Contains(card);
 
 		// Taken in at its place in the deal. The card that has just arrived is the only one that travels:
-		// the rest are closing a gap where they already lie, and an arc played on them says something
-		// happened to cards nothing happened to.
-		public void Add(PokerCardVisual card, int order, bool animate)
+		// the rest are only being put right where they lie, and an arc played on them says something
+		// happened to cards nothing happened to. `delay` is how long it lies where it is before setting
+		// off — decided by whoever moved it, who alone knows what else moved with it.
+		public void Add(PokerCardVisual card, int order, bool animate, float delay = 0f)
 		{
 			if (!card || Contains(card)) return;
 
@@ -71,10 +85,12 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			_cards.Insert(at, card);
 			_order.Insert(at, order);
 
-			Layout(animate ? card : null);
+			Layout(animate ? card : null, delay);
 		}
 
-		public void Remove(PokerCardVisual card)
+		// `layout` off is for taking several out as one change: re-laying after each one re-places the cards
+		// still waiting to be taken, and the caller lays the group out once when the whole set is out.
+		public void Remove(PokerCardVisual card, bool layout = true)
 		{
 			var index = _cards.IndexOf(card);
 			if (index < 0) return;
@@ -82,7 +98,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			_cards.RemoveAt(index);
 			_order.RemoveAt(index);
 
-			Layout(null);
+			if (layout) Layout(null);
 		}
 
 		public void Clear()
@@ -91,8 +107,10 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			_order.Clear();
 		}
 
-		// All of them, because one card arriving or leaving changes where every other one belongs.
-		public void Layout(PokerCardVisual animated)
+		// All of them, because one card arriving or leaving changes where every other one belongs. The ones
+		// not animated here are placed without a tween — unless still waiting their turn or in the air, which
+		// PokerCardVisual keeps on its way rather than landing.
+		public void Layout(PokerCardVisual animated, float delay = 0f)
 		{
 			var anchor = ResolveAnchor();
 
@@ -100,8 +118,10 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			{
 				if (!_cards[i]) continue;
 
-				_cards[i].PlaceAt(anchor, SlotPosition(i, _cards.Count), SlotRotation(i, _cards.Count),
-					_cards[i] == animated);
+				var isAnimated = _cards[i] == animated;
+				var slot = SlotOf(i);
+				_cards[i].PlaceAt(anchor, SlotPosition(slot, SlotCount), SlotRotation(slot, SlotCount),
+					isAnimated, isAnimated ? delay : 0f);
 			}
 
 			if (_logLayout) LogLayout();
@@ -119,7 +139,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			{
 				line += "\n  slot " + i + "  deal order " + _order[i]
 					+ "  card " + (_cards[i] ? _cards[i].Card.ToString() : "none")
-					+ "  local " + SlotPosition(i, _cards.Count).ToString("F4");
+					+ "  local " + SlotPosition(SlotOf(i), SlotCount).ToString("F4");
 			}
 
 			Debug.Log(line, this);
