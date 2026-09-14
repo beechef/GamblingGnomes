@@ -68,21 +68,45 @@ namespace Game.Runtime.Player
 		{
 			if (!_database || !_database.TryFind(actionId, out var entry)) return;
 
-			var stateName = string.IsNullOrEmpty(entry.StateName) ? entry.Id : entry.StateName;
-
-			CrossFade(_bodyAnimator, stateName, entry);
-			CrossFade(_handOnlyAnimator, stateName, entry);
+			CrossFade(_bodyAnimator, entry);
+			CrossFade(_handOnlyAnimator, entry);
 		}
 
 		// A state the controller does not have yet is quietly skipped, so gestures can be scripted ahead
 		// of their animations landing — the same tolerance the seat poses get.
-		private static void CrossFade(Animator animator, string stateName, PlayerActionAnimationDatabase.Entry entry)
+		private static void CrossFade(Animator animator, PlayerActionAnimationDatabase.Entry entry)
 		{
 			if (!animator || !animator.isActiveAndEnabled) return;
 			if (entry.Layer >= animator.layerCount) return;
+
+			var stateName = StateFor(animator, entry);
 			if (!animator.HasState(entry.Layer, Animator.StringToHash(stateName))) return;
 
 			animator.CrossFade(stateName, Mathf.Max(0f, entry.CrossFade), entry.Layer);
+		}
+
+		// The alternate only when this rig has the flag on and the state to play; anything missing falls
+		// back to the entry's own state, so an alternate can be authored before its clip lands.
+		private static string StateFor(Animator animator, PlayerActionAnimationDatabase.Entry entry)
+		{
+			if (!entry.HasAlternate || !IsBoolOn(animator, entry.AlternateWhen)) return entry.DefaultStateName;
+
+			return animator.HasState(entry.Layer, Animator.StringToHash(entry.AlternateStateName))
+				? entry.AlternateStateName
+				: entry.DefaultStateName;
+		}
+
+		// Searched rather than read straight, because GetBool on a parameter the controller lacks logs a
+		// warning; once per gesture, never per frame.
+		private static bool IsBoolOn(Animator animator, string parameter)
+		{
+			foreach (var candidate in animator.parameters)
+			{
+				if (candidate.type == AnimatorControllerParameterType.Bool && candidate.name == parameter)
+					return animator.GetBool(candidate.nameHash);
+			}
+
+			return false;
 		}
 	}
 }

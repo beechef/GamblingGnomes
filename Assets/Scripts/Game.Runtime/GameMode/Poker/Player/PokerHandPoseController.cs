@@ -58,17 +58,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			// its transitions in a set order, and a frame where holding had gone false while showing was not
 			// yet true would take the ordinary lay-down instead.
 			_animatorStates.ServerSetBool(_showingCardsParameter, _data.HandRevealed.Value);
-			_animatorStates.ServerSetBool(_holdingCardsParameter, HoldingAnything());
-		}
-
-		private bool HoldingAnything()
-		{
-			for (var slot = 0; slot < _data.CardCount; slot++)
-			{
-				if (_data.IsHoleCardInHand(slot)) return true;
-			}
-
-			return false;
+			_animatorStates.ServerSetBool(_holdingCardsParameter, _data.IsHoldingCards);
 		}
 	}
 }

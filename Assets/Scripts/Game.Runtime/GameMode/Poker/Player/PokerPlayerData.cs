@@ -197,6 +197,21 @@ namespace Game.Runtime.GameMode.Poker.Player
 		// this is derived rather than replicated: the two facts it needs are already on the wire.
 		public bool IsHoleCardInHand(int slot) => !IsFolded && !HandRevealed.Value && HasLookedAt(slot);
 
+		// Whether any card is up in the hand rather than lying on the table: the pose the body is in, which
+		// anything done with the hands has to be performed around.
+		public bool IsHoldingCards
+		{
+			get
+			{
+				for (var slot = 0; slot < CardCount; slot++)
+				{
+					if (IsHoleCardInHand(slot)) return true;
+				}
+
+				return false;
+			}
+		}
+
 		// Folding puts the cards down rather than taking them away: they lie in front of the folder until the
 		// next deal clears them, so the table watches a hand being thrown in instead of one vanishing.
 		public bool IsFolded => Status.Value == PokerPlayerStatus.Folded;

@@ -18,27 +18,41 @@ MonoBehaviour:
     StateName: _Fold
     Layer: 1
     CrossFade: 0.15
+    AlternateWhen: 
+    AlternateStateName: 
   - Id: Bet
     StateName: _Bet
     Layer: 1
     CrossFade: 0.15
+    AlternateWhen: IsHaveCardOnHand
+    AlternateStateName: _BetHoldingCards
   - Id: Laugh
     StateName: _Laugh
     Layer: 1
     CrossFade: 0.15
+    AlternateWhen: 
+    AlternateStateName: 
   - Id: Idle
     StateName: Empty
     Layer: 1
     CrossFade: 0.25
+    AlternateWhen: 
+    AlternateStateName: 
   - Id: ConsumeItem
     StateName: _ConsumeItem
     Layer: 1
     CrossFade: 0.15
+    AlternateWhen: 
+    AlternateStateName: 
   - Id: Impact
     StateName: _Impact
     Layer: 1
     CrossFade: 0.15
+    AlternateWhen: 
+    AlternateStateName: 
   - Id: SnapFingers
     StateName: _SnapFingers
     Layer: 1
     CrossFade: 0.15
+    AlternateWhen: 
+    AlternateStateName: 

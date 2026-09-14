@@ -18,8 +18,8 @@ namespace Game.Runtime.GameMode.Poker.Visual
 	// caps onto a second list, so a cap changing hands is drawn by the one visual that draws every cap in
 	// the game.
 	//
-	// Driven off PotItems, the ledger PokerTableUtility already writes beside the scalar, so there is no
-	// second seeder and a late join replicates the plate as it stands. _caps is index-aligned with that
+	// Driven off PotItems, which only PokerTableUtility writes, so there is no second seeder and a late
+	// join replicates the plate as it stands. _caps is index-aligned with that
 	// list — a cap that could not be spawned holds a null slot rather than shifting everything after it,
 	// because an entry being eaten is named by its index.
 	public class PokerItemPotVisual : PokerVisual
@@ -53,6 +53,10 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		// from the air. The gesture is played off the same change that stakes the cap, so both clocks start
 		// together and the cap only has to wait for the gesture's own frames. Caps served by the settlement
 		// or by the Colorful pick carry another street and are dropped as before.
+		//
+		// The gesture is one of two clips — staking with the hands on the table, or with cards up in them —
+		// chosen off PokerPlayerData.IsHoldingCards, the same fact the animator's holding flag is written
+		// from. Two clips are two sets of frames, so each has its own pair here.
 		[Header("Bet")]
 		[Tooltip("Seconds after a cap is staked before it appears in its staker's hand — the frame the bet gesture's hand reaches the table.")]
 		[Min(0f)]
@@ -61,6 +65,14 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		[Tooltip("Seconds after a cap is staked before it leaves the hand for its spot — the frame the bet gesture puts it down.")]
 		[Min(0f)]
 		[SerializeField] private float _betReleaseDelay = 0.8f;
+
+		[Tooltip("The grab frame of the bet played while the staker is holding cards.")]
+		[Min(0f)]
+		[SerializeField] private float _betHoldingCardsGrabDelay;
+
+		[Tooltip("The release frame of the bet played while the staker is holding cards.")]
+		[Min(0f)]
+		[SerializeField] private float _betHoldingCardsReleaseDelay = 0.8f;
 
 		[Tooltip("Seconds the cap takes from the hand to its spot on the table.")]
 		[Min(0f)]
@@ -162,9 +174,11 @@ namespace Game.Runtime.GameMode.Poker.Visual
 				return;
 			}
 
-			if (IsStakedOnWager(item) && TryGetHand(item.OwnerClientId, out var hand))
+			if (IsStakedOnWager(item) && TryGetStaker(item.OwnerClientId, out var hand, out var holdingCards))
 			{
-				Carry(cap, hand, resting);
+				Carry(cap, hand, resting,
+					holdingCards ? _betHoldingCardsGrabDelay : _betGrabDelay,
+					holdingCards ? _betHoldingCardsReleaseDelay : _betReleaseDelay);
 				return;
 			}
 
@@ -175,23 +189,26 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		private static bool IsStakedOnWager(PokerBetItem item) => item.Phase is PokerPhase.FirstWager or PokerPhase.SecondWager;
 
 		// The hand on whichever rig this client draws for that player — the owner's own hands or the body
-		// everybody else sees — so the cap is in the hand that is actually on screen.
-		private bool TryGetHand(ulong clientId, out Transform hand)
+		// everybody else sees — so the cap is in the hand that is actually on screen; and whether that
+		// player is holding cards, which is which of the two bet clips is playing.
+		private bool TryGetStaker(ulong clientId, out Transform hand, out bool holdingCards)
 		{
 			hand = null;
+			holdingCards = false;
 			if (!GameMode) return false;
 
 			var player = GameMode.FindSeatedPlayer(clientId);
 			if (!player || !player.Rig) return false;
 
 			hand = player.Rig.GetBone(PlayerBone.HandRight);
+			holdingCards = player.Data && player.Data.IsHoldingCards;
 			return hand;
 		}
 
 		// Hidden until the hand reaches the table, then held until the gesture puts it down and it slides into
 		// its spot. One sequence targeting the cap's transform, so a re-layout or a clear that kills the cap's
 		// tweens takes this with it.
-		private void Carry(GameObject cap, Transform hand, Vector3 resting)
+		private void Carry(GameObject cap, Transform hand, Vector3 resting, float grabDelay, float releaseDelay)
 		{
 			var anchor = cap.transform.parent;
 			var worldScale = cap.transform.lossyScale;
@@ -201,7 +218,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 			var sequence = DOTween.Sequence().SetTarget(cap.transform).SetLink(cap);
 
-			sequence.AppendInterval(_betGrabDelay);
+			sequence.AppendInterval(grabDelay);
 			sequence.AppendCallback(() =>
 			{
 				cap.SetActive(true);
@@ -214,7 +231,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 				cap.transform.localScale = new Vector3(worldScale.x / handScale.x, worldScale.y / handScale.y, worldScale.z / handScale.z);
 			});
 
-			sequence.AppendInterval(Mathf.Max(0f, _betReleaseDelay - _betGrabDelay));
+			sequence.AppendInterval(Mathf.Max(0f, releaseDelay - grabDelay));
 			sequence.AppendCallback(() => cap.transform.SetParent(anchor, true));
 			sequence.Append(cap.transform.DOLocalMove(resting, _betPlaceDuration).SetEase(_betPlaceEase));
 			sequence.Join(cap.transform.DOLocalRotateQuaternion(Quaternion.identity, _betPlaceDuration));

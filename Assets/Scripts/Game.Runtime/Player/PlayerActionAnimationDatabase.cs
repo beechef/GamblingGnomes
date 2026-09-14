@@ -33,6 +33,21 @@ namespace Game.Runtime.Player
 
 			[MinValue(0f)]
 			public float CrossFade;
+
+			// The same act done two ways depending on the pose the body is already in — staking a cap with
+			// cards up in the hand is a different clip from staking it with the hands on the table. Asked of
+			// each rig's own animator as the gesture starts, so the choice is whatever that rig is doing.
+			[Tooltip("Optional: a bool parameter that, while on, plays the alternate state instead.")]
+			[ValueDropdown(nameof(BoolParameters))]
+			public string AlternateWhen;
+
+			[Tooltip("Animator state played instead while AlternateWhen is on. A rig without it falls back to the state above.")]
+			[ValueDropdown(nameof(StateNames), AppendNextDrawer = true)]
+			public string AlternateStateName;
+
+			public string DefaultStateName => string.IsNullOrEmpty(StateName) ? Id : StateName;
+
+			public bool HasAlternate => !string.IsNullOrEmpty(AlternateWhen) && !string.IsNullOrEmpty(AlternateStateName);
 		}
 
 		[Tooltip("Editor only: the controller the state dropdown reads. Nothing at runtime looks at it — the animator on the rig is whatever the prefab carries.")]
@@ -72,6 +87,26 @@ namespace Game.Runtime.Player
 					foreach (var layer in controller.layers)
 					{
 						CollectStateNames(layer.stateMachine, names);
+					}
+				}
+#endif
+
+				return names;
+			}
+		}
+
+		private IEnumerable<string> BoolParameters
+		{
+			get
+			{
+				var names = new List<string> { string.Empty };
+
+#if UNITY_EDITOR
+				if (_stateSource is UnityEditor.Animations.AnimatorController controller)
+				{
+					foreach (var parameter in controller.parameters)
+					{
+						if (parameter.type == AnimatorControllerParameterType.Bool) names.Add(parameter.name);
 					}
 				}
 #endif
