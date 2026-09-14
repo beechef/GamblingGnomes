@@ -418,7 +418,8 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			return true;
 		}
 
-		// The act, seen: the fold thrown, the coin put up. Checks stay quiet — the list of gestures is the
+		// The act, seen: the coin put up. Checks stay quiet and a fold plays its own gesture in
+		// PokerPlayer.ServerFold, whichever path folded them — the list of gestures is the
 		// database's business, this only names which act just happened.
 		private static void PlayActionGesture(PokerPlayer player, PokerActionType action)
 		{
@@ -427,10 +428,6 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 			switch (action)
 			{
-				case PokerActionType.Fold:
-					animator.ServerPlay(PlayerActionIds.Fold);
-					break;
-
 				case PokerActionType.Call:
 				case PokerActionType.Raise:
 				case PokerActionType.AllIn:

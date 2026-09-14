@@ -12,6 +12,16 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		[Header("Cards")]
 		[SerializeField] private int _holeCardsPerPlayer = 2;
 
+		[Tooltip("How many of their own cards a player may turn over. Zero or less is a hand held the ordinary way, where the holder sees all of it.")]
+		[MinValue(0)]
+		[SerializeField] private int _viewableHoleCards;
+
+		[Tooltip("On, the plate is wiped before the cards go out — the deal is where a hand starts. Off, whatever was already staked stands, which is what a round that wagers before dealing needs.")]
+		[SerializeField] private bool _clearPotOnDeal = true;
+
+		[Tooltip("On, the button moves before the cards go out — the deal is where a hand starts. Off, it stays put, which is what a round that wagers before it deals needs: the deal sits in the middle of that round, so a button rotating here re-orders the second wager against the first.")]
+		[SerializeField] private bool _rotateDealerOnDeal = true;
+
 		[Tooltip("How much board this hand needs. Laid on the table face down here, so the streets only turn over what is already lying there.")]
 		[SerializeField] private int _communityCardCount = 5;
 
@@ -57,9 +67,9 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			GameMode.ClearTurn();
 			Data.CommunityCards.Clear();
 			Data.Showdown.Clear();
-			PokerTableUtility.ResetPot(Data);
+			if (_clearPotOnDeal) PokerTableUtility.ResetPot(Data);
 
-			RotateDealer();
+			if (_rotateDealerOnDeal) RotateDealer();
 			DealHoleCards();
 			PokerTableUtility.CollectDealCost(Data, GameMode.SeatedPlayers, DealCost);
 			PostAnte();
@@ -93,7 +103,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			var players = GameMode.SeatedPlayers;
 			if (players.Count == 0) return;
 
-			var next = PokerTableUtility.NextPlayer(players, Data.DealerSeatIndex.Value, player => player.Data.IsAlive && player.Data.Chips > 0)
+			var next = PokerTableUtility.NextPlayer(players, Data.DealerSeatIndex.Value, player => GameMode.IsPlayingThisMatch(player.Data))
 			           ?? players[0];
 
 			Data.DealerSeatIndex.Value = next.Data.SeatIndex.Value;
@@ -123,7 +133,16 @@ namespace Game.Runtime.GameMode.Poker.Stages
 					continue;
 				}
 
-				if (data.Chips <= 0)
+				// Sat down after this match began. They keep the chair and watch it out, and Waiting is
+				// already what "seated but never dealt in" means — Busted would say they had run out of
+				// money, which is a different thing and the wrong thing to read off their seat.
+				if (!data.InMatch.Value)
+				{
+					data.Status.Value = PokerPlayerStatus.Waiting;
+					continue;
+				}
+
+				if (!GameMode.CanBeDealtIn(data))
 				{
 					data.Status.Value = PokerPlayerStatus.Busted;
 					continue;
@@ -132,6 +151,9 @@ namespace Game.Runtime.GameMode.Poker.Stages
 				_dealtCards.Clear();
 				for (var card = 0; card < HoleCardsPerPlayer; card++) _dealtCards.Add(GameMode.Deck.Draw());
 
+				// Before the cards, so a hand arrives already knowing how much of itself its holder may see:
+				// the view redraws on the list changing, and a limit written after would arrive too late.
+				data.ServerSetViewableHoleCards(_viewableHoleCards);
 				data.ServerSetHoleCards(_dealtCards);
 				data.Status.Value = PokerPlayerStatus.Active;
 			}

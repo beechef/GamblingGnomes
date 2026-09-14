@@ -121,7 +121,7 @@ namespace Game.Runtime.GameMode.Poker.Modules
 
 		// The dark must not outlive the hand it belonged to: a ranking board read by torchlight is nobody's
 		// idea of an event.
-		public override void OnGameEnded()
+		public override void OnHandEnded()
 		{
 			if (!IsServer) return;
 

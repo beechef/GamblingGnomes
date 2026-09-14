@@ -56,6 +56,19 @@ namespace Game.Runtime.Player
 
 		private Material _runtimeOutlineMaterial;
 
+		// What a hallucination is painting this body with, or null. Kept here because this is the one
+		// place a renderer's materials are written, and it has to survive a skin change and an outline.
+		private Material _materialOverride;
+
+		// Lit for this client alone, on top of whatever the replicated flag says. Pointing at somebody before
+		// choosing them is not a move the table needs to watch - the choice is, and the server announces
+		// that - so a hover that went over the wire would be a message per twitch of the mouse saying nothing.
+		// The two are ORed rather than one overwriting the other, so an accusation lighting this body and a
+		// cursor passing over it cannot switch each other off.
+		private bool _localOutlined;
+
+		private bool IsOutlined => Outlined.Value || _localOutlined;
+
 		private void Awake()
 		{
 			// Outfits ship with their own skeletons; rebinding onto the body rig lets one
@@ -100,6 +113,14 @@ namespace Game.Runtime.Player
 			Outlined.Value = outlined;
 		}
 
+		public void SetLocalOutlined(bool outlined)
+		{
+			if (_localOutlined == outlined) return;
+
+			_localOutlined = outlined;
+			ApplyOutline(IsOutlined);
+		}
+
 		public void SetSkin(int skinIndex)
 		{
 			if (!IsServer) return;
@@ -115,7 +136,18 @@ namespace Game.Runtime.Player
 
 		private void HandleOutlinedChanged(bool previous, bool current)
 		{
-			ApplyOutline(current);
+			ApplyOutline(IsOutlined);
+		}
+
+		// One repaint for the whole body, composed here rather than written onto the renderers by
+		// whoever asked. Assigning materials replaces the array outright, so a second writer would
+		// silently undo the first — which is exactly what the outline does every time it is hung.
+		public void SetMaterialOverride(Material material)
+		{
+			if (_materialOverride == material) return;
+
+			_materialOverride = material;
+			ApplySkin(_skinIndex.Value);
 		}
 
 		private void ApplySkin(int skinIndex)
@@ -124,14 +156,20 @@ namespace Game.Runtime.Player
 
 			var skin = _skins[skinIndex];
 
-			ApplyMaterial(_bodyMeshRenderers, skin.BodyMaterial);
-			ApplyMaterial(_handOnlyBodyMeshRenderers, skin.BodyMaterial);
-			ApplyMaterial(_outfitMeshRenderer, skin.OutfitMaterial);
-			ApplyMaterial(_handOnlyOutfitMeshRenderer, skin.OutfitMaterial);
-			ApplyMaterial(_hatRenderer, skin.HatMaterial);
+			// The override stands in for whatever the skin would have painted, so a hallucination covers
+			// every piece the rig is cut into rather than the ones the skin happens to name.
+			var body = _materialOverride ? _materialOverride : skin.BodyMaterial;
+			var outfit = _materialOverride ? _materialOverride : skin.OutfitMaterial;
+			var hat = _materialOverride ? _materialOverride : skin.HatMaterial;
+
+			ApplyMaterial(_bodyMeshRenderers, body);
+			ApplyMaterial(_handOnlyBodyMeshRenderers, body);
+			ApplyMaterial(_outfitMeshRenderer, outfit);
+			ApplyMaterial(_handOnlyOutfitMeshRenderer, outfit);
+			ApplyMaterial(_hatRenderer, hat);
 
 			// Assigning a material replaces the whole list, so the pass sitting on top of it is hung again.
-			ApplyOutline(Outlined.Value);
+			ApplyOutline(IsOutlined);
 		}
 
 		// Added to and taken off whatever a renderer is already wearing, rather than rebuilt out of a skin.

@@ -30,7 +30,7 @@ namespace Game.Runtime.UI.Poker
 		[Tooltip("Held up while nothing is happening on purpose — both of them are in and the table is waiting to find out.")]
 		[SerializeField] private string _judgingPrompt = "SHOWING HANDS...";
 
-		private PokerAbilityModule _module;
+		private PokerReportModule _module;
 
 		protected override bool WantsTick => _panel && _panel.activeSelf && Data && (Data.HasTurn || Data.HasStageTimer);
 
@@ -41,7 +41,7 @@ namespace Game.Runtime.UI.Poker
 
 		protected override void OnBind()
 		{
-			_module = GameMode.FindModule<PokerAbilityModule>();
+			_module = GameMode.FindModule<PokerReportModule>();
 			if (_module == null) return;
 
 			_module.ReportPhase.OnValueChanged += HandlePhaseChanged;

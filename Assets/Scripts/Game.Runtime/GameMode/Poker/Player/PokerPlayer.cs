@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Game.Runtime.Player;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Game.Runtime.GameMode.Poker.Player
 {
@@ -14,6 +15,8 @@ namespace Game.Runtime.GameMode.Poker.Player
 	{
 		[Header("References")]
 		[SerializeField] private PokerPlayerData _data;
+		[FormerlySerializedAs("_items")]
+		[SerializeField] private PokerItemConsumeController _itemConsume;
 
 		[Tooltip("The wallet the bets come out of. Lives beside this on the player, not on the table.")]
 		[SerializeField] private PlayerData _wallet;
@@ -52,6 +55,11 @@ namespace Game.Runtime.GameMode.Poker.Player
 		}
 
 		public PokerPlayerData Data => _data;
+
+		// The record of what this player has swallowed. Its own controller rather than more verbs on the
+		// data, and named for eating rather than for items in general: a stockpile of things they can
+		// choose to use is a different question and will want a component of its own.
+		public PokerItemConsumeController ItemConsume => _itemConsume;
 		public PlayerData Wallet => _wallet;
 		public PlayerRigController Rig => _rig;
 		public PlayerHeadStretchController HeadStretch => _headStretch;
@@ -75,6 +83,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 			// Dropped rather than left standing. The bool drives the animator on both rigs, so lowering it
 			// is what the table watches the cards go face down.
 			if (_handPeek) _handPeek.ServerSetPeeking(false);
+
+			// Every fold is seen being thrown in, a timeout or a caught cheat as much as a button press.
+			if (_actionAnimator) _actionAnimator.ServerPlay(PlayerActionIds.Fold);
 		}
 
 		// The seat number is the fallback rather than the label: a player whose identity RPC has not
@@ -106,6 +117,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		public override void OnNetworkSpawn()
 		{
 			if (!_data) _data = GetComponent<PokerPlayerData>();
+			if (!_itemConsume) _itemConsume = GetComponentInChildren<PokerItemConsumeController>(true);
 			if (!_wallet) _wallet = GetComponent<PlayerData>();
 			if (!_rig) _rig = GetComponent<PlayerRigController>();
 

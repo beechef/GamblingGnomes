@@ -41,7 +41,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		private readonly RaycastHit[] _hits = new RaycastHit[20];
 
 		private PokerGameMode _gameMode;
-		private PokerAbilityModule _module;
+		private PokerReportModule _module;
 		private ulong _sentAim = NoAim;
 		private bool _wasAiming;
 
@@ -70,7 +70,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		private void HandleGameModeChanged(PokerGameMode gameMode)
 		{
 			_gameMode = gameMode;
-			_module = gameMode ? gameMode.FindModule<PokerAbilityModule>() : null;
+			_module = gameMode ? gameMode.FindModule<PokerReportModule>() : null;
 			_sentAim = NoAim;
 		}
 

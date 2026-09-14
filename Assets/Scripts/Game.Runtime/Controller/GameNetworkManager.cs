@@ -60,6 +60,11 @@ namespace Game.Runtime.Controller
 
 		public bool IsInGame => CurrentLobby.HasValue || _networkManager.IsListening;
 
+		// Whether Steam's own callbacks are hooked up. Not a formality: OnLobbyCreated is where the host
+		// actually starts and the gameplay scene is loaded, so losing it means a room that opens on Steam
+		// and a game that never begins.
+		private bool _steamEventsBound;
+
 		private bool _joiningLobby;
 		private bool _leavingGame;
 		private Scene _gameplayScene;
@@ -89,12 +94,6 @@ namespace Game.Runtime.Controller
 
 		private void OnEnable()
 		{
-			SteamMatchmaking.OnLobbyCreated += OnLobbyCreated;
-			SteamMatchmaking.OnLobbyEntered += OnLobbyEntered;
-			SteamMatchmaking.OnLobbyMemberJoined += OnLobbyMemberJoined;
-			SteamMatchmaking.OnLobbyMemberLeave += OnLobbyMemberLeave;
-			SteamFriends.OnGameLobbyJoinRequested += OnGameLobbyJoinRequested;
-
 			_networkManager.OnClientConnectedCallback += OnClientConnected;
 			_networkManager.OnClientDisconnectCallback += OnClientDisconnected;
 			_networkManager.OnTransportFailure += OnTransportFailure;
@@ -103,16 +102,52 @@ namespace Game.Runtime.Controller
 
 		private void OnDisable()
 		{
-			SteamMatchmaking.OnLobbyCreated -= OnLobbyCreated;
-			SteamMatchmaking.OnLobbyEntered -= OnLobbyEntered;
-			SteamMatchmaking.OnLobbyMemberJoined -= OnLobbyMemberJoined;
-			SteamMatchmaking.OnLobbyMemberLeave -= OnLobbyMemberLeave;
-			SteamFriends.OnGameLobbyJoinRequested -= OnGameLobbyJoinRequested;
-
 			_networkManager.OnClientConnectedCallback -= OnClientConnected;
 			_networkManager.OnClientDisconnectCallback -= OnClientDisconnected;
 			_networkManager.OnTransportFailure -= OnTransportFailure;
 			_networkManager.OnServerStopped -= OnServerStopped;
+		}
+
+		// Steam's callbacks only dispatch once SteamClient.Init has run, and two objects in one scene wake
+		// in no guaranteed order — so subscribing in OnEnable is a coin toss, and losing it means
+		// OnLobbyCreated never arrives: the room opens on Steam and the gameplay scene is never loaded,
+		// with nothing logged to say why. Start, plus the initialised event, catches it either way round.
+		private void Start()
+		{
+			SteamController.OnInitialized += BindSteamEvents;
+
+			if (SteamController.IsInitialized) BindSteamEvents();
+		}
+
+		private void OnDestroy()
+		{
+			SteamController.OnInitialized -= BindSteamEvents;
+
+			UnbindSteamEvents();
+		}
+
+		private void BindSteamEvents()
+		{
+			if (_steamEventsBound) return;
+			_steamEventsBound = true;
+
+			SteamMatchmaking.OnLobbyCreated += OnLobbyCreated;
+			SteamMatchmaking.OnLobbyEntered += OnLobbyEntered;
+			SteamMatchmaking.OnLobbyMemberJoined += OnLobbyMemberJoined;
+			SteamMatchmaking.OnLobbyMemberLeave += OnLobbyMemberLeave;
+			SteamFriends.OnGameLobbyJoinRequested += OnGameLobbyJoinRequested;
+		}
+
+		private void UnbindSteamEvents()
+		{
+			if (!_steamEventsBound) return;
+			_steamEventsBound = false;
+
+			SteamFriends.OnGameLobbyJoinRequested -= OnGameLobbyJoinRequested;
+			SteamMatchmaking.OnLobbyMemberLeave -= OnLobbyMemberLeave;
+			SteamMatchmaking.OnLobbyMemberJoined -= OnLobbyMemberJoined;
+			SteamMatchmaking.OnLobbyEntered -= OnLobbyEntered;
+			SteamMatchmaking.OnLobbyCreated -= OnLobbyCreated;
 		}
 
 		public void ConfigureLobby(int maxPlayers, bool isPrivate, GameModeType gameMode)
@@ -133,6 +168,15 @@ namespace Game.Runtime.Controller
 				// Reported rather than only logged: every start has to end in an outcome the UI hears, or
 				// whatever covered the wait is left up with nothing coming to take it down.
 				OnConnectFailed?.Invoke("SteamClient invalid before CreateLobbyAsync.");
+				return;
+			}
+
+			// The host is started and the scene loaded from inside OnLobbyCreated, so a run that gets this
+			// far with nothing listening opens a Steam room and then sits there forever. Refused loudly
+			// rather than left to look like a scene that would not load.
+			if (!_steamEventsBound)
+			{
+				OnConnectFailed?.Invoke("Steam callbacks are not bound — OnLobbyCreated would never arrive.");
 				return;
 			}
 

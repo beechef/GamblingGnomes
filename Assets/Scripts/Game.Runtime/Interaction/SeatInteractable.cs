@@ -76,15 +76,23 @@ namespace Game.Runtime.Interaction
 			Occupant.Value = default;
 		}
 
+		// Sitting somebody down. Walking up and pressing the key is one caller; a mode that hands out
+		// chairs on arrival is another, and both go through here so a seat is taken the same way
+		// however the decision was made.
+		public void SeatServer(PlayerSeatController seatController)
+		{
+			if (!IsServer) return;
+			if (!seatController || seatController.IsSeated || IsOccupied) return;
+
+			Occupant.Value = new NetworkBehaviourReference(seatController);
+			seatController.SitServer(this);
+		}
+
 		protected override void OnInteractServer(NetworkBehaviourReference interactor)
 		{
 			if (!interactor.TryGet(out NetworkBehaviour behaviour)) return;
 
-			var seatController = behaviour.GetComponent<PlayerSeatController>();
-			if (!seatController || seatController.IsSeated) return;
-
-			Occupant.Value = new NetworkBehaviourReference(seatController);
-			seatController.SitServer(this);
+			SeatServer(behaviour.GetComponent<PlayerSeatController>());
 		}
 
 		protected virtual void OnOccupantChanged(ulong previousClientId, ulong currentClientId) { }

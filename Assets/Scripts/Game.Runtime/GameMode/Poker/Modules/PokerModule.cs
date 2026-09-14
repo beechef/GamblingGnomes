@@ -53,7 +53,14 @@ namespace Game.Runtime.GameMode.Poker.Modules
 		protected virtual void OnCollectConfigEntries(List<MatchConfigEntry> entries) { }
 
 		public virtual void OnGameStarted() { }
-		public virtual void OnGameEnded() { }
+		// Raised when a hand is put away — which is every hand, not only the last. The name used to say
+		// "game" while EndHand was what called it, and a module keeping anything across hands was quietly
+		// emptied by it.
+		public virtual void OnHandEnded() { }
+
+		// Raised once, when the match itself is over. Anything a player was allowed to carry between hands
+		// belongs to the match, and this is where it goes back.
+		public virtual void OnMatchEnded() { }
 		// Before the stage touches anything. The deal takes its ante inside StartStage, so a house rule
 		// about what a player is carrying belongs here rather than in OnStageStarted, which is already too
 		// late to have been asked.
@@ -77,6 +84,24 @@ namespace Game.Runtime.GameMode.Poker.Modules
 		// Player facing entry point for whatever the module exposes — an ability activation, a vote,
 		// a cheat attempt. Returning true marks the command as consumed.
 		public virtual bool HandleCommandServer(ulong clientId, FixedString32Bytes commandId, int payload) => false;
+
+		// Which stages a module acts in, matched by stage id. An empty list keeps the gate open —
+		// restriction is opt-in. Lives here rather than in one module because more than one asks it, and
+		// two copies of a gate is two answers to "is this module awake right now".
+		protected bool IsStageAllowed(List<PokerStage> stages)
+		{
+			if (stages == null || stages.Count == 0) return true;
+
+			var active = GameMode ? GameMode.ActiveStage : null;
+			if (!active) return false;
+
+			foreach (var stage in stages)
+			{
+				if (stage && stage.StageId == active.StageId) return true;
+			}
+
+			return false;
+		}
 
 		protected virtual void OnInitialize() { }
 		protected virtual void OnDeInitialize() { }

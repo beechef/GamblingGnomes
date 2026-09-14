@@ -44,6 +44,14 @@ namespace Game.Runtime.UI.Progress
 			KillTween();
 		}
 
+
+		// For a value that means different things at different heights — a rate that is fine low and fatal
+		// high. Left uncalled, the bar keeps whatever colour the prefab was authored with.
+		public void SetFillColor(Color colour)
+		{
+			if (_fill) _fill.color = colour;
+		}
+
 		public void SetProgress(float value, bool instant = false) => SetProgress(value, instant ? 0f : _duration);
 
 		// Takes the travel time from the caller when the wait itself decides it — a bar given a second to

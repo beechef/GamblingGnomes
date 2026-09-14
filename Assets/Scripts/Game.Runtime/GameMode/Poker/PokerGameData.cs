@@ -38,10 +38,25 @@ namespace Game.Runtime.GameMode.Poker
 		[HideInInspector] public NetworkVariable<int> LastRaise = new(0,
 			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
 
+		// How many chairs this table is laid with. Replicated rather than each client reading the lobby
+		// for itself: where the chairs stand has to be the same picture on every screen, and a client
+		// whose copy of the lobby says something else would draw the table wrong with nothing to warn it.
+		[HideInInspector] public NetworkVariable<int> ActiveSeatCount = new(0,
+			readPerm: NetworkVariableReadPermission.Everyone,
+			writePerm: NetworkVariableWritePermission.Server);
+
 		[HideInInspector] public NetworkVariable<int> DealerSeatIndex = new(-1,
 			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
 
 		[HideInInspector] public NetworkVariable<ulong> CurrentTurnClientId = new(NoTurn,
+			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
+
+		// Who the table is watching, which is a different question from who is being asked to move. A beat
+		// where everybody swallows what the hand cost them gives nobody a turn — nothing is being asked —
+		// and is still the moment every head in the room should be pointed at one player. Reading the focus
+		// off the turn works right up until such a beat exists, and then a bar somewhere announces "X'S
+		// TURN" over a player who has not been offered anything.
+		[HideInInspector] public NetworkVariable<ulong> FocusClientId = new(NoTurn,
 			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
 
 		[HideInInspector] public NetworkVariable<double> TurnEndTime = new(0d,
@@ -150,6 +165,10 @@ namespace Game.Runtime.GameMode.Poker
 				return Mathf.Clamp((float)remaining, 0f, TurnDuration.Value);
 			}
 		}
+
+		// Whether this turn is on a clock at all. A stage with no duration is one the table waits on, so
+		// the bar is hidden rather than drawn sitting at zero — which reads as a hung timer.
+		public bool HasTurnClock => HasTurn && TurnDuration.Value > 0f;
 
 		public float TurnNormalized => TurnDuration.Value <= 0f ? 0f : TurnRemaining / TurnDuration.Value;
 

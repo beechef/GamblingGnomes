@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using Game.Runtime.GameMode.Config;
+using Game.Runtime.Controller;
 using Game.Runtime.GameMode.Poker.Hands;
 using Game.Runtime.GameMode.Poker.Modules;
 using Game.Runtime.GameMode.Poker.Player;
 using Game.Runtime.GameMode.Poker.Stages;
+using Game.Runtime.Player;
 using Game.Runtime.UI;
 using Unity.Collections;
 using Unity.Netcode;
@@ -26,7 +28,7 @@ namespace Game.Runtime.GameMode.Poker
 		[SerializeField] private int _startingHealth = 8;
 
 		[Tooltip("What a unit of the players' money is. Types are drawn into each wallet as money arrives, and a bet spends the front of the wallet. Empty plays plain chips — the money game unchanged.")]
-		[SerializeField] private Mushrooms.PokerMushroomDatabase _mushroomDatabase;
+		[SerializeField] private Items.PokerItemDatabase _itemDatabase;
 
 		[Header("Stages")]
 		[Tooltip("The round loop as a preset. Swap this asset to change the game — modules still add to it, and any stage can be interrupted at runtime by InsertStage or PushOverlay.")]
@@ -59,7 +61,7 @@ namespace Game.Runtime.GameMode.Poker
 
 		public PokerGameData Data => _data;
 		public MatchConfigData ConfigData => _configData;
-		public Mushrooms.PokerMushroomDatabase MushroomDatabase => _mushroomDatabase;
+		public Items.PokerItemDatabase ItemDatabase => _itemDatabase;
 		public PokerRuleSettings Rules => _rules;
 		public PokerStageSequence Sequence => _sequence;
 		public PokerDeck Deck { get; } = new();
@@ -67,7 +69,7 @@ namespace Game.Runtime.GameMode.Poker
 
 		public IReadOnlyList<PokerSeat> Seats => _seats;
 		public IReadOnlyList<PokerModule> Modules => _modules;
-		public IReadOnlyList<PokerStage> Stages => _stageMachine.Stages;
+		public IReadOnlyList<PokerStage> Stages => _stageMachine != null ? _stageMachine.Stages : System.Array.Empty<PokerStage>();
 
 		// Seated players in seat order — the order the turn passes around the table.
 		public IReadOnlyList<PokerPlayer> SeatedPlayers => _seatedPlayers;
@@ -82,7 +84,7 @@ namespace Game.Runtime.GameMode.Poker
 
 				foreach (var player in _seatedPlayers)
 				{
-					if (player.Data.IsAlive && player.Data.Chips > 0) count++;
+					if (CanBeDealtIn(player.Data)) count++;
 				}
 
 				return count;
@@ -98,7 +100,30 @@ namespace Game.Runtime.GameMode.Poker
 		// One press of start begins a match, and a match is however many hands the table can still deal.
 		// Asked at the end of each one, because a hand is exactly what takes players out of the running:
 		// the same count the host's button is gated on, so a table that could be started can be continued.
-		public bool CanDealAnotherHand => _rules && FundedPlayerCount >= _rules.MinimumPlayersToStart;
+		// Those collected into this match, not everyone in a chair: a table kept alive by spectators who
+		// arrived after it began would deal hands nobody in them is playing.
+		public bool CanDealAnotherHand => _rules && MatchPlayerCount >= _rules.MinimumPlayersToStart;
+
+		// Whether the host may press start. The host holds the button rather than a hand, so their own seat
+		// counts as company even when they have gone under — a table whose host is unconscious would otherwise
+		// have no way back at all, since nothing revives a player between matches unless the idle stage is
+		// told to. Pressing it does not bring them round: the deal marks them out of the running like anybody
+		// else and they watch the match they started. This is a gate about who may press, never about who is
+		// dealt in, which is why the deal goes on asking CanBeDealtIn for itself.
+		public bool CanStartMatch
+		{
+			get
+			{
+				if (!_rules) return false;
+
+				var count = FundedPlayerCount;
+				var host = FindSeatedPlayer(NetworkManager.ServerClientId);
+
+				if (host && host.Data && !CanBeDealtIn(host.Data)) count++;
+
+				return count >= _rules.MinimumPlayersToStart;
+			}
+		}
 
 		public event Action OnSeatedPlayersChanged;
 		public event Action<PokerStage> OnStageChanged;
@@ -112,6 +137,13 @@ namespace Game.Runtime.GameMode.Poker
 		{
 			if (Instance && Instance != this)
 			{
+				// Loud, and switched off rather than only destroyed. Destroy is deferred to the end of the
+				// frame, so a duplicate left enabled goes on ticking with none of the state Awake would
+				// have built for it — which reads as a NullReferenceException every frame out of Update
+				// rather than as one line saying there are two tables in the scene.
+				Debug.LogWarning($"[PokerGameMode] A second table is already running; '{name}' is standing down.", this);
+
+				enabled = false;
 				Destroy(gameObject);
 				return;
 			}
@@ -130,6 +162,8 @@ namespace Game.Runtime.GameMode.Poker
 
 		public override void OnNetworkSpawn()
 		{
+			if (_stageMachine == null) return;
+
 			if (!_data) _data = GetComponentInChildren<PokerGameData>();
 			if (_seats.Count == 0) CollectRegisteredSeats();
 
@@ -144,8 +178,10 @@ namespace Game.Runtime.GameMode.Poker
 
 			RegisterMatchConfigs();
 
-			PokerPlayer.OnRegistryChanged += RefreshSeatedPlayers;
-			RefreshSeatedPlayers();
+			ServerLayTable();
+
+			PokerPlayer.OnRegistryChanged += HandlePlayerRegistryChanged;
+			HandlePlayerRegistryChanged();
 
 			OnInstanceChanged?.Invoke(this);
 
@@ -159,7 +195,7 @@ namespace Game.Runtime.GameMode.Poker
 
 		public override void OnNetworkDespawn()
 		{
-			PokerPlayer.OnRegistryChanged -= RefreshSeatedPlayers;
+			PokerPlayer.OnRegistryChanged -= HandlePlayerRegistryChanged;
 
 			OnInstanceChanged?.Invoke(null);
 
@@ -180,7 +216,10 @@ namespace Game.Runtime.GameMode.Poker
 
 		private void Update()
 		{
-			if (!IsServer || !IsSpawned) return;
+			// The machine is built in Awake, and the one path that skips it is the duplicate standing
+			// down above. NGO spawns a scene object whether or not its component is enabled, so this
+			// has to be asked here too rather than trusted to the disable.
+			if (!IsServer || !IsSpawned || _stageMachine == null) return;
 
 			_stageMachine.Tick(Time.deltaTime);
 		}
@@ -244,6 +283,127 @@ namespace Game.Runtime.GameMode.Poker
 		}
 
 		public void UnregisterSeat(PokerSeat seat) => _seats.Remove(seat);
+
+		// How many chairs to lay, taken from the lobby the table was opened for. Written once by the
+		// server and read by everyone, so the chairs stand in the same places on every screen — a client
+		// working it out from its own copy of the lobby would have nothing to warn it when they differed.
+		private void ServerLayTable()
+		{
+			if (!IsServer || !_data) return;
+
+			// The table says how many chairs it is laid with, not the lobby: how many people a room admits
+			// and how many can sit at this table are different questions, and only the second one is a rule.
+			var wanted = _rules ? _rules.SeatCount : _seats.Count;
+
+			_data.ActiveSeatCount.Value = Mathf.Clamp(wanted, 0, _seats.Count);
+		}
+
+		// Whether this player can be dealt into the next hand. One predicate rather than the same pair of
+		// tests written at five call sites: a table that does not play for money must not let an empty
+		// purse decide anything, and being conscious is the only condition left when it does not.
+		public bool CanBeDealtIn(PokerPlayerData data)
+		{
+			if (!data || !data.IsAlive) return false;
+
+			return !PlaysForMoney || data.Chips > 0;
+		}
+
+		// A place in the match, as opposed to a chair in the room. Everything the round *does* to a player
+		// asks this — dealing to them, letting them wager, feeding them a cap — so somebody who sat down
+		// halfway through watches the rest of it out rather than being collected into a game that was
+		// already scored around them.
+		//
+		// Deliberately not folded into CanBeDealtIn, which is asked *before* a match to decide whether one
+		// can start at all: at that moment nobody is stamped in yet, and a gate reading this would make the
+		// start button permanently dead.
+		public bool IsPlayingThisMatch(PokerPlayerData data) => data && data.InMatch.Value && CanBeDealtIn(data);
+
+		// Those still playing the match that is running. What decides whether there is another hand in it,
+		// where FundedPlayerCount decides whether a new match can begin.
+		public int MatchPlayerCount
+		{
+			get
+			{
+				var count = 0;
+
+				foreach (var player in _seatedPlayers)
+				{
+					if (player && IsPlayingThisMatch(player.Data)) count++;
+				}
+
+				return count;
+			}
+		}
+
+		public bool PlaysForMoney => !_rules || _rules.PlaysForMoney;
+
+		// A body arriving is a body to seat: chairs are handed out rather than chosen, so this is where
+		// somebody joining a table gets theirs. Seating raises the occupant change, which comes back
+		// through HandleSeatOccupied and refreshes the list — so the refresh below is for the arrival
+		// that found no free chair, and the pass terminates because a seated player is skipped.
+		private void HandlePlayerRegistryChanged()
+		{
+			ServerSeatArrivals();
+			RefreshSeatedPlayers();
+		}
+
+		// Lowest free chair, the same way PlayerManager claims the lowest free colour: a player who
+		// leaves frees the chair they were in rather than renumbering everyone behind them.
+		private void ServerSeatArrivals()
+		{
+			// The machine is built in Awake, and the one path that skips it is the duplicate standing
+			// down above. NGO spawns a scene object whether or not its component is enabled, so this
+			// has to be asked here too rather than trusted to the disable.
+			if (!IsServer || !IsSpawned || _stageMachine == null) return;
+
+			foreach (var player in PokerPlayer.All)
+			{
+				if (!player || !player.Data || player.Data.IsSeated) continue;
+
+				var seatController = player.GetComponent<PlayerSeatController>();
+				if (!seatController || seatController.IsSeated) continue;
+
+				// Only the chairs the table is laid with: the rest are switched off and belong to a bigger
+				// lobby than this one. Read off each chair's own SeatIndex rather than its place in this
+				// list, because that is the key the ring lays them out by — matching on list position
+				// instead put players in chairs that had been switched off, and it looked like a table
+				// with two fewer seats than the scene contains.
+				var laid = _data ? _data.ActiveSeatCount.Value : _seats.Count;
+
+				for (var slot = 0; slot < laid; slot++)
+				{
+					var wanted = SpreadSeatIndex(slot, laid);
+					var seat = FindSeat(wanted);
+					if (!seat || seat.IsOccupied) continue;
+
+					seat.SeatServer(seatController);
+					break;
+				}
+			}
+		}
+
+		// Chairs are filled across the table rather than around it: with four laid, the order is 1, 3, 2, 4
+		// so two players sit opposite each other instead of elbow to elbow with half the table empty.
+		// Interleaving the two halves is the whole rule — every arrival lands as far from the last as the
+		// remaining chairs allow, and it reads the same at any table size.
+		private static int SpreadSeatIndex(int slot, int count)
+		{
+			if (count <= 0) return 0;
+
+			// The first half is the *larger* half when the count is odd, or the two interleaved runs collide:
+			// at three chairs, count / 2 sends slots 1 and 2 to the same seat and leaves one never used.
+			return slot % 2 == 0 ? slot / 2 : (count + 1) / 2 + slot / 2;
+		}
+
+		private PokerSeat FindSeat(int seatIndex)
+		{
+			foreach (var seat in _seats)
+			{
+				if (seat && seat.SeatIndex == seatIndex) return seat;
+			}
+
+			return null;
+		}
 
 		public void RefreshSeatedPlayers()
 		{
@@ -338,7 +498,10 @@ namespace Game.Runtime.GameMode.Poker
 		// a body that never got the configured stats at all is touched — a fresh one is not in a hand.
 		private void ServerApplyStartingValues(bool resetPlayers)
 		{
-			if (!IsServer || !IsSpawned) return;
+			// The machine is built in Awake, and the one path that skips it is the duplicate standing
+			// down above. NGO spawns a scene object whether or not its component is enabled, so this
+			// has to be asked here too rather than trusted to the disable.
+			if (!IsServer || !IsSpawned || _stageMachine == null) return;
 
 			foreach (var player in PokerPlayer.All)
 			{
@@ -348,12 +511,17 @@ namespace Game.Runtime.GameMode.Poker
 
 				// Before the stats, so the money the reset hands out is typed by the table's own catalogue
 				// rather than falling back to plain chips for the first seeding.
-				player.Data.ServerSetStakeItemSource(_mushroomDatabase);
+				player.Data.ServerSetStakeItemSource(_itemDatabase);
 				player.Data.ServerSetStartingStats(_startingMoney, _startingHealth);
 
 				if (firstTime || (resetPlayers && _data && _data.Phase.Value == PokerPhase.Waiting))
 				{
 					player.Data.ServerResetForMatch();
+
+					// The record of what they have already swallowed belongs to the match too, and it lives on
+					// its own controller — reaching across from the data class to clear it would be a second
+					// place to keep in step.
+					if (player.ItemConsume) player.ItemConsume.ServerResetForMatch();
 				}
 			}
 		}
@@ -362,11 +530,19 @@ namespace Game.Runtime.GameMode.Poker
 		{
 			if (!IsServer) return;
 			if (IsGameRunning) return;
-			if (FundedPlayerCount < _rules.MinimumPlayersToStart) return;
+			if (!CanStartMatch) return;
 
 			foreach (var module in _modules)
 			{
 				if (module && !module.CanStartGame()) return;
+			}
+
+			// Who the match is being played by, decided once here. Everybody in a chair right now and able to
+			// be dealt in is collected; anybody who sits down after this watches it out. The host who pressed
+			// start while unconscious is not collected either — they hold the button, not a hand.
+			foreach (var player in _seatedPlayers)
+			{
+				if (player && player.Data) player.Data.InMatch.Value = CanBeDealtIn(player.Data);
 			}
 
 			foreach (var module in _modules)
@@ -394,7 +570,7 @@ namespace Game.Runtime.GameMode.Poker
 
 			foreach (var module in _modules)
 			{
-				if (module) module.OnGameEnded();
+				if (module) module.OnHandEnded();
 			}
 
 			ServerClearHands();
@@ -406,6 +582,13 @@ namespace Game.Runtime.GameMode.Poker
 			if (!IsServer) return;
 
 			EndHand();
+
+			// After the hand, so a module tearing down its match state is doing it over a table that has
+			// already put the hand away.
+			foreach (var module in _modules)
+			{
+				if (module) module.OnMatchEnded();
+			}
 
 			_data.Phase.Value = PokerPhase.Finished;
 		}
@@ -419,7 +602,10 @@ namespace Game.Runtime.GameMode.Poker
 
 			foreach (var player in PokerPlayer.All)
 			{
-				if (player && player.Data) player.Data.ServerResetForMatch();
+				if (!player) continue;
+
+				if (player.Data) player.Data.ServerResetForMatch();
+				if (player.ItemConsume) player.ItemConsume.ServerResetForMatch();
 			}
 		}
 
@@ -533,7 +719,7 @@ namespace Game.Runtime.GameMode.Poker
 		// funded test the deal uses to decide who is still in the running — so somebody out of money or
 		// out of blood may go, and nobody else may. Never dealt in at all is the other way out: a player
 		// who took a free chair mid hand is Waiting and was never collected.
-		private static bool IsCommittedToMatch(PokerPlayerData data)
+		private bool IsCommittedToMatch(PokerPlayerData data)
 		{
 			// Still holding cards, which includes all in — a stack at zero is not a way out while the
 			// money is still in the pot.
@@ -541,7 +727,7 @@ namespace Game.Runtime.GameMode.Poker
 
 			if (data.Status.Value == PokerPlayerStatus.Waiting) return false;
 
-			return data.IsAlive && data.Chips > 0;
+			return CanBeDealtIn(data);
 		}
 
 		public void HandleSeatOccupied(PokerSeat seat, ulong clientId)
@@ -632,6 +818,10 @@ namespace Game.Runtime.GameMode.Poker
 			_data.TurnDuration.Value = duration;
 			_data.TurnEndTime.Value = NetworkManager.ServerTime.Time + duration;
 
+			// A turn is also the commonest reason the table is looking at somebody, so every street gets the
+			// focus for nothing. A beat that gives no turn and is still about one player says so itself.
+			ServerSetFocus(clientId);
+
 			// After the turn is on the table rather than before it: a module changing what this player is
 			// carrying is answering a question they can already see being asked.
 			foreach (var module in _modules)
@@ -647,6 +837,18 @@ namespace Game.Runtime.GameMode.Poker
 			_data.CurrentTurnClientId.Value = PokerGameData.NoTurn;
 			_data.TurnDuration.Value = 0f;
 			_data.TurnEndTime.Value = 0d;
+
+			ServerSetFocus(PokerGameData.NoTurn);
+		}
+
+		// Who every head in the room should be pointed at. Set alongside the turn wherever there is one, and
+		// on its own by a beat that is about a player without asking them anything — the eating walks the
+		// seats one at a time and gives out no turns at all.
+		public void ServerSetFocus(ulong clientId)
+		{
+			if (!IsServer || !_data) return;
+
+			_data.FocusClientId.Value = clientId;
 		}
 
 		public bool IsTurnExpired()

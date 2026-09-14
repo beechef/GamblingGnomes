@@ -1,0 +1,36 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4b948563461ae8f4ca7f8d2b3d6bcaaf, type: 3}
+  m_Name: PokerHallucinationTiers_Sample
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Hallucination.PokerHallucinationTiers
+  _rungs:
+  - _threshold: 30
+    _pool:
+    - {fileID: 11400000, guid: 1a694d1c0786f2446ad439eb3ffba691, type: 2}
+    - {fileID: 11400000, guid: 416a6ea0eba3ac245b7dc1ec9831bdb8, type: 2}
+    - {fileID: 11400000, guid: ef3213cea98ad714ea6d9b8ecba5829d, type: 2}
+    - {fileID: 11400000, guid: 37fc58427ffd48742a77b1b8a606de4f, type: 2}
+    - {fileID: 11400000, guid: ce12a54ae546890429592da451540558, type: 2}
+    - {fileID: 11400000, guid: 83c64a48d3fca5244a8155e23e6281c5, type: 2}
+    _drawCount: 3
+  - _threshold: 50
+    _pool:
+    - {fileID: 11400000, guid: b74329537c4099843b5b2995b018d143, type: 2}
+    - {fileID: 11400000, guid: ee9e5c367dd794d468fa5527767c7451, type: 2}
+    - {fileID: 11400000, guid: 519370f6b9df37a42a061955d0501ec9, type: 2}
+    - {fileID: 11400000, guid: 556cd1ab4f5e387438cebb60f35e3e36, type: 2}
+    _drawCount: 5
+  - _threshold: 70
+    _pool:
+    - {fileID: 11400000, guid: 90257307507dc5f45a1f7784951a1c8e, type: 2}
+    - {fileID: 11400000, guid: b773d87054fb1fa4d93df7a2a9fad505, type: 2}
+    _drawCount: 3

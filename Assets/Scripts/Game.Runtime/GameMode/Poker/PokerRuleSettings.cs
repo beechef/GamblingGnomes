@@ -11,11 +11,15 @@ namespace Game.Runtime.GameMode.Poker
 		[Header("Table")]
 		[SerializeField] private int _minimumPlayersToStart = 2;
 
-		[Tooltip("What a player must be carrying to take a chair here. A stake nobody can meet is a seat that only ever folds, and it still fills a place the table counts as ready to deal — so the door is where it is checked rather than the first street.")]
-		[MinValue(1)]
-		[SerializeField] private int _minimumMoneyToSit = 1;
+		[Tooltip("How many chairs this table is laid with, and so the most players it holds. A property of the table rather than of the lobby: the room screen no longer offers it.")]
+		[PropertyRange(2, 6)]
+		[SerializeField] private int _seatCount = 4;
+
+		[Tooltip("Off, the table plays for something other than chips: money stops deciding who is dealt in, and a player with an empty purse is still in the game for as long as they are conscious.")]
+		[SerializeField] private bool _playsForMoney = true;
 
 		public int MinimumPlayersToStart => Mathf.Max(2, _minimumPlayersToStart);
-		public int MinimumMoneyToSit => Mathf.Max(1, _minimumMoneyToSit);
+		public int SeatCount => Mathf.Clamp(_seatCount, 2, 6);
+		public bool PlaysForMoney => _playsForMoney;
 	}
 }

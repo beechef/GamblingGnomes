@@ -14,6 +14,7 @@ namespace Game.Runtime.UI.Poker
 		[Header("Labels")]
 		[SerializeField] private TextMeshProUGUI _moneyLabel;
 		[SerializeField] private TextMeshProUGUI _healthLabel;
+		[SerializeField] private TextMeshProUGUI _hallucinationLabel;
 
 		private void Awake()
 		{
@@ -40,6 +41,7 @@ namespace Game.Runtime.UI.Poker
 
 			if (_moneyLabel) _moneyLabel.text = LocalData.Chips.ToString();
 			if (_healthLabel) _healthLabel.text = LocalData.Health.Value.ToString();
+			if (_hallucinationLabel) _hallucinationLabel.text = $"{LocalData.HallucinationRate.Value}%";
 		}
 	}
 }

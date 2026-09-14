@@ -136,7 +136,7 @@ namespace Game.Runtime.Player
 			_playerController.SetMovementEnabled(false);
 			_playerController.Teleport(anchor.position, anchor.rotation);
 			_playerController.ApplyLookConstraint(anchor.eulerAngles.y, pose.AllowRotation, pose.YawLimits,
-				pose.PitchLimits);
+				pose.FocusYawLimits, pose.PitchLimits);
 		}
 
 		private void ClearSeat(SeatInteractable previousSeat)

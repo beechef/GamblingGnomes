@@ -17,8 +17,16 @@ namespace Game.Runtime.Controller
 		public static bool IsLocked => _baseLocked && _unlockRequests <= 0;
 		public static int UnlockRequests => _unlockRequests;
 
+		// A different question from the lock. The lock says whether the hardware arrow is free; this says
+		// whether there is anything in the world worth pointing at, which is what decides whether a pad
+		// is given a cursor of its own or left to uGUI's own focus. A menu wants navigation, not an arrow.
+		public static bool IsPointerWanted => _pointerRequests > 0;
+
+		public static event Action OnPointerWantedChanged;
+
 		private static bool _baseLocked;
 		private static int _unlockRequests;
+		private static int _pointerRequests;
 		private static bool _applied;
 		private static bool _appliedLocked;
 		private static bool _appliedVisible;
@@ -31,6 +39,8 @@ namespace Game.Runtime.Controller
 			_unlockRequests = 0;
 			_applied = false;
 			OnLockChanged = null;
+			OnPointerWantedChanged = null;
+			_pointerRequests = 0;
 
 			InputSchemeController.OnSchemeChanged -= HandleSchemeChanged;
 		}
@@ -54,6 +64,24 @@ namespace Game.Runtime.Controller
 
 			_baseLocked = locked;
 			Apply();
+		}
+
+		public static void RequestPointer()
+		{
+			_pointerRequests++;
+			if (_pointerRequests == 1) OnPointerWantedChanged?.Invoke();
+		}
+
+		public static void ReleasePointer()
+		{
+			if (_pointerRequests <= 0)
+			{
+				Debug.LogWarning("[CursorController] ReleasePointer without a matching RequestPointer — the counter is already at zero.");
+				return;
+			}
+
+			_pointerRequests--;
+			if (_pointerRequests == 0) OnPointerWantedChanged?.Invoke();
 		}
 
 		public static void RequestUnlock()

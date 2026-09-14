@@ -10,12 +10,8 @@ namespace Game.Runtime.GameMode.Poker.Visual
 	public class PokerTurnArrowVisual : PokerVisual
 	{
 		[Header("References")]
-		[Tooltip("The arrow body. Hidden whenever no one is on the clock — leave the root itself enabled.")]
+		[Tooltip("The arrow body. Hidden whenever no one is on the clock — leave the root itself enabled. Where it sits is its own transform in the prefab, dragged onto the table top in the scene view; this only turns it.")]
 		[SerializeField] private GameObject _arrow;
-
-		[Header("Placement")]
-		[Tooltip("Height above this root the arrow turns at. The root sits at the middle of the table.")]
-		[SerializeField] private float _height = 0.62f;
 
 		[Header("Turning")]
 		[SerializeField] private float _turnDuration = 0.4f;
@@ -98,11 +94,12 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			var anchor = seat.CardAnchor;
 			if (!_arrow || !anchor) return;
 
+			// Left wherever the prefab put it — on the table top — and only turned. A height worked out here
+			// is a guess about the table that the scene view can show the answer to.
 			var arrowTransform = _arrow.transform;
-			arrowTransform.position = transform.position + Vector3.up * _height;
 
-			// Flattened before it becomes a rotation: a seat sits lower than the arrow, and following
-			// that drop would tip the pointer down into the table.
+			// Flattened before it becomes a rotation: the seat's anchor need not be level with the arrow,
+			// and following that difference would tip the pointer into the table.
 			var toSeat = anchor.position - arrowTransform.position;
 			toSeat.y = 0f;
 			if (toSeat.sqrMagnitude < 0.0001f) return;
