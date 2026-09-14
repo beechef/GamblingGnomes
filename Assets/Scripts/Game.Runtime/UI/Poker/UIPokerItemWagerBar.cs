@@ -55,14 +55,12 @@ namespace Game.Runtime.UI.Poker
 
 			Data.CurrentTurnClientId.OnValueChanged += HandleTurnChanged;
 			Data.StageId.OnValueChanged += HandleStageChanged;
-			Data.OverlayStageId.OnValueChanged += HandleStageChanged;
 
 			Refresh();
 		}
 
 		protected override void OnUnbind()
 		{
-			Data.OverlayStageId.OnValueChanged -= HandleStageChanged;
 			Data.StageId.OnValueChanged -= HandleStageChanged;
 			Data.CurrentTurnClientId.OnValueChanged -= HandleTurnChanged;
 
@@ -134,14 +132,11 @@ namespace Game.Runtime.UI.Poker
 
 		private void Refresh()
 		{
-			// Resolved from the replicated stage id, never from GameMode.ActiveStage: that is written only by
+			// Resolved from the replicated stage id, never from GameMode.CurrentStage: that is written only by
 			// the server's own stage machine, so on a client it is null forever and the bar never appears —
 			// right on the host, missing everywhere else.
 			var stage = GameMode ? GameMode.FindStage(Data.StageId.Value.ToString()) as PokerItemWagerStage : null;
-
-			// An overlay hands out turns of its own, and whoever is on that clock is being asked something
-			// else entirely.
-			var show = stage != null && IsLocalTurn && Data.OverlayStageId.Value.IsEmpty;
+			var show = stage != null && IsLocalTurn;
 
 			if (_panel) _panel.SetActive(show);
 			if (!show) return;

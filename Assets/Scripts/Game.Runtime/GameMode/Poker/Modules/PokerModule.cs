@@ -38,12 +38,12 @@ namespace Game.Runtime.GameMode.Poker.Modules
 		}
 
 		// Stages contributed here join the round in sequence order; a module wanting to interrupt
-		// instead should hold its stage back and call InsertStage or PushOverlay on the mode.
+		// instead should hold its stage back and call InsertStage on the mode.
 		public virtual void CollectStages(List<PokerStage> stages) { }
 
 		// The stages held back for that: they take no slot in the loop, but every peer still needs its own
-		// clone of them. Pushing one only ever happens on the server, so a client is never the one to make
-		// the clone — and a UI asking about the overlay it can see running would find nothing to ask.
+		// clone of them. Inserting one only ever happens on the server, so a client is never the one to make
+		// the clone — and a UI asking about the stage it can see running would find nothing to ask.
 		public virtual void CollectReferencedStages(List<PokerStage> stages) { }
 
 		// What this module offers the host to tune, declared under its ModuleId. A new module that
@@ -61,9 +61,9 @@ namespace Game.Runtime.GameMode.Poker.Modules
 		// Raised once, when the match itself is over. Anything a player was allowed to carry between hands
 		// belongs to the match, and this is where it goes back.
 		public virtual void OnMatchEnded() { }
-		// Before the stage touches anything. The deal takes its ante inside StartStage, so a house rule
-		// about what a player is carrying belongs here rather than in OnStageStarted, which is already too
-		// late to have been asked.
+		// Before the stage touches anything. A stage does its work inside StartStage, so a house rule about
+		// what a player is carrying belongs here rather than in OnStageStarted, which is already too late to
+		// have been asked.
 		public virtual void OnStageStarting(PokerStage stage) { }
 
 		public virtual void OnStageStarted(PokerStage stage) { }
@@ -71,8 +71,7 @@ namespace Game.Runtime.GameMode.Poker.Modules
 		public virtual void OnPlayerSeated(ulong clientId, int seatIndex) { }
 		public virtual void OnPlayerLeftSeat(ulong clientId) { }
 		// The moment the table actually asks somebody for something, which is where a house rule about what
-		// they are able to answer with belongs. Raised for an overlay's turns too — whether one of those
-		// counts is the module's business, and CurrentOverlay is how it tells them apart.
+		// they are able to answer with belongs.
 		public virtual void OnTurnBegan(ulong clientId) { }
 
 		public virtual void OnPlayerActed(ulong clientId, PokerActionType action, int amount) { }
@@ -92,7 +91,7 @@ namespace Game.Runtime.GameMode.Poker.Modules
 		{
 			if (stages == null || stages.Count == 0) return true;
 
-			var active = GameMode ? GameMode.ActiveStage : null;
+			var active = GameMode ? GameMode.CurrentStage : null;
 			if (!active) return false;
 
 			foreach (var stage in stages)

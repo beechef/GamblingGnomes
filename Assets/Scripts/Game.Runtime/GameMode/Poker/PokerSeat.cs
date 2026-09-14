@@ -63,7 +63,7 @@ namespace Game.Runtime.GameMode.Poker
 
 		// Chairs are handed out, not chosen: the mode seats whoever arrives, so walking up to one
 		// offers nothing. The generic seat still knows how to be sat in â PokerGameMode calls SeatServer â
-		// and Sandbox keeps the interaction it always had.
+		// and that is the only way anybody sits.
 		public override bool CanInteract(NetworkBehaviourReference interactor) => false;
 
 		// And nobody leaves. A chair belongs to a player for as long as they are at the table, whether

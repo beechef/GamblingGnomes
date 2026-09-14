@@ -1,5 +1,6 @@
 using Game.Runtime.GameMode.Poker.Items;
 using Game.Runtime.GameMode.Poker.Player;
+using Game.Runtime.Player;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -25,7 +26,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		[Tooltip("On, a player may put the cards down instead of wagering. The design gives this to the second wager only.")]
 		[SerializeField] private bool _allowFold;
 
-		[Tooltip("On, whoever took the last hand wagers first. Off, the walk starts from the dealer button, which rotates — the fair reading, since wagering first means everyone else sees your cap before choosing theirs.")]
+		[Tooltip("On, whoever took the last hand wagers first. Off, the walk starts from the first seat.")]
 		[SerializeField] private bool _winnerActsFirst = true;
 
 		[Header("Timing")]
@@ -47,7 +48,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 			// Clears HasActed, which is what "who still owes a cap" is read off. Without it the second
 			// wager would find everyone already marked from the first and end before asking anybody.
-			PokerTableUtility.ResetRoundBets(Data, GameMode.SeatedPlayers);
+			foreach (var player in GameMode.SeatedPlayers) player.Data.ServerResetForRound();
 
 			if (CountWagerers() <= 1)
 			{
@@ -59,19 +60,19 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		}
 
 		// NextPlayer walks forward from the seat it is given, so the seat handed back here is the one
-		// *before* whoever should wager first. With no winner yet — the first hand of a match — the dealer
-		// button serves, which is what rotates.
+		// *before* whoever should wager first. With no winner yet — the first hand of a match — the walk
+		// starts from the first seat.
 		private int FirstActorFromSeat()
 		{
-			if (!_winnerActsFirst) return Data.DealerSeatIndex.Value;
+			if (!_winnerActsFirst) return PokerPlayerData.NoSeat;
 
 			// The table already remembers who took the last hand; the seat is looked up from it rather than
 			// mirrored into a second value that could disagree with the first.
 			var winner = GameMode.FindSeatedPlayer(Data.LastWinnerClientId.Value);
-			if (!winner) return Data.DealerSeatIndex.Value;
+			if (!winner) return PokerPlayerData.NoSeat;
 
 			var winnerSeat = winner.Data.SeatIndex.Value;
-			if (winnerSeat < 0) return Data.DealerSeatIndex.Value;
+			if (winnerSeat < 0) return PokerPlayerData.NoSeat;
 
 			var seatCount = Mathf.Max(1, Data.ActiveSeatCount.Value);
 			return (winnerSeat - 1 + seatCount) % seatCount;
@@ -116,6 +117,10 @@ namespace Game.Runtime.GameMode.Poker.Stages
 					{
 						PokerTableUtility.WagerItem(Data, player, (PokerItemType)amount);
 					}
+
+					// The reach for the cap. PokerItemPotVisual puts the staked cap in this hand on the
+					// gesture's own frames, so the two start off the same change.
+					player.ActionAnimator?.ServerPlay(PlayerActionIds.Bet);
 					break;
 
 				case PokerActionType.Fold:
@@ -138,9 +143,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		// sent the round straight to the reveal, every time, and looped there. Seated and conscious is what
 		// is actually being asked; folding is the only thing that takes somebody out of it afterwards.
 		// A body that took a free chair mid-match is neither dealt in nor scored, so it is not asked to stake
-		// either — the street would sit waiting on an answer from somebody who is only watching. InMatch
-		// rather than IsPlayingThisMatch, because that one adds the purse and a wager costs no money: a
-		// player down to nothing still puts a cap up.
+		// either — the street would sit waiting on an answer from somebody who is only watching.
 		private static bool CanWager(PokerPlayerData data) =>
 			data && data.IsSeated && data.InMatch.Value && data.IsAlive && data.Status.Value != PokerPlayerStatus.Folded;
 

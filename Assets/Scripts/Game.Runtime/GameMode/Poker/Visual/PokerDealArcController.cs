@@ -21,7 +21,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		[SerializeField] private float _arc = 0.08f;
 		public override float DelayFor(PokerDealTurn turn) => (turn.Slot * turn.Players + turn.Order) * _interval;
 
-		public override Tween Travel(Transform card, Vector3 localPosition, Quaternion localRotation)
-			=> PokerCardVisual.ArcTween(card, localPosition, localRotation, _duration, _ease, _arc);
+		public override Tween Travel(Transform card, Transform parent, Vector3 localPosition, Quaternion localRotation)
+			=> PokerCardVisual.ArcTween(card, parent, localPosition, localRotation, _duration, _ease, _arc);
 	}
 }

@@ -18,19 +18,14 @@ namespace Game.Runtime.GameMode.Poker.Player
 		[FormerlySerializedAs("_items")]
 		[SerializeField] private PokerItemConsumeController _itemConsume;
 
-		[Tooltip("The wallet the bets come out of. Lives beside this on the player, not on the table.")]
-		[SerializeField] private PlayerData _wallet;
+		[Tooltip("Who this player is — the name the table shows. Lives beside this on the player, not on the table.")]
+		[FormerlySerializedAs("_wallet")]
+		[SerializeField] private PlayerData _identity;
 
 		[Tooltip("The rig this client renders for this player — where an ability aiming at them finds a hand or a head.")]
 		[SerializeField] private PlayerRigController _rig;
 
-		[SerializeField] private PlayerHeadStretchController _headStretch;
-
 		[SerializeField] private PlayerActionAnimator _actionAnimator;
-
-		[SerializeField] private PlayerHandPeekController _handPeek;
-
-		[SerializeField] private PlayerPointController _point;
 
 		[Tooltip("Who draws this player. Marking somebody out for the whole table is a change of how they are drawn, so it is asked of the thing already holding every renderer.")]
 		[SerializeField] private PlayerVisual _visual;
@@ -60,12 +55,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 		// data, and named for eating rather than for items in general: a stockpile of things they can
 		// choose to use is a different question and will want a component of its own.
 		public PokerItemConsumeController ItemConsume => _itemConsume;
-		public PlayerData Wallet => _wallet;
+		public PlayerData Identity => _identity;
 		public PlayerRigController Rig => _rig;
-		public PlayerHeadStretchController HeadStretch => _headStretch;
 		public PlayerActionAnimator ActionAnimator => _actionAnimator;
-		public PlayerHandPeekController HandPeek => _handPeek;
-		public PlayerPointController Point => _point;
 		public PlayerVisual Visual => _visual;
 		public ulong ClientId => OwnerClientId;
 
@@ -80,10 +72,6 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 			_data.ServerFold();
 
-			// Dropped rather than left standing. The bool drives the animator on both rigs, so lowering it
-			// is what the table watches the cards go face down.
-			if (_handPeek) _handPeek.ServerSetPeeking(false);
-
 			// Every fold is seen being thrown in, a timeout or a caught cheat as much as a button press.
 			if (_actionAnimator) _actionAnimator.ServerPlay(PlayerActionIds.Fold);
 		}
@@ -94,9 +82,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 		{
 			get
 			{
-				if (_wallet)
+				if (_identity)
 				{
-					var name = _wallet.DisplayName.Value.ToString();
+					var name = _identity.DisplayName.Value.ToString();
 					if (!string.IsNullOrEmpty(name)) return name;
 				}
 
@@ -118,13 +106,11 @@ namespace Game.Runtime.GameMode.Poker.Player
 		{
 			if (!_data) _data = GetComponent<PokerPlayerData>();
 			if (!_itemConsume) _itemConsume = GetComponentInChildren<PokerItemConsumeController>(true);
-			if (!_wallet) _wallet = GetComponent<PlayerData>();
+			if (!_identity) _identity = GetComponent<PlayerData>();
 			if (!_rig) _rig = GetComponent<PlayerRigController>();
 
 			// Feature components live on child objects of the player rather than piling up on the root.
-			if (!_headStretch) _headStretch = GetComponentInChildren<PlayerHeadStretchController>();
 			if (!_actionAnimator) _actionAnimator = GetComponentInChildren<PlayerActionAnimator>();
-			if (!_point) _point = GetComponentInChildren<PlayerPointController>();
 			if (!_visual) _visual = GetComponentInChildren<PlayerVisual>();
 
 			if (!Registry.Contains(this))

@@ -1,5 +1,4 @@
 using Game.Runtime.GameMode.Poker;
-using Game.Runtime.GameMode.Poker.Stages;
 using Game.Runtime.Player;
 using Game.Runtime.UI.Progress;
 using TMPro;
@@ -38,14 +37,12 @@ namespace Game.Runtime.UI.Poker
 			Data.StageDuration.OnValueChanged += HandleDurationChanged;
 			Data.Phase.OnValueChanged += HandlePhaseChanged;
 			Data.StageId.OnValueChanged += HandleStageChanged;
-			Data.OverlayStageId.OnValueChanged += HandleStageChanged;
 
 			Refresh();
 		}
 
 		protected override void OnUnbind()
 		{
-			Data.OverlayStageId.OnValueChanged -= HandleStageChanged;
 			Data.StageId.OnValueChanged -= HandleStageChanged;
 			Data.Phase.OnValueChanged -= HandlePhaseChanged;
 			Data.StageDuration.OnValueChanged -= HandleDurationChanged;
@@ -78,11 +75,7 @@ namespace Game.Runtime.UI.Poker
 
 		private void Refresh()
 		{
-			// An overlay runs its own clock over its own question, in the same place and the same style —
-			// so this one leaves rather than being buried under it. The overlay hands out turns of its own,
-			// which is why the turn alone is not enough to decide this: "X'S TURN" is true during an
-			// accusation and is not what the table needs to be reading.
-			var visible = (Data.HasTurn || ShowsStageClock()) && Data.OverlayStageId.Value.IsEmpty;
+			var visible = Data.HasTurn || Data.HasStageTimer;
 
 			if (_panel && _panel.activeSelf != visible) _panel.SetActive(visible);
 
@@ -98,19 +91,12 @@ namespace Game.Runtime.UI.Poker
 			OnTick();
 		}
 
-		// The simultaneous street draws its own countdown on the bet bar, so this one bows out rather
-		// than showing the same clock twice.
-		private bool ShowsStageClock() =>
-			Data.HasStageTimer
-			&& Data.OverlayStageId.Value.IsEmpty
-			&& GameMode.FindStage(Data.StageId.Value.ToString()) is not PokerSimultaneousBetStage;
-
 		private void RefreshTurn()
 		{
 			var turnClientId = Data.CurrentTurnClientId.Value;
 			var turnPlayer = GameMode.FindSeatedPlayer(turnClientId);
 
-			BindTurnIdentity(turnPlayer ? turnPlayer.Wallet : null);
+			BindTurnIdentity(turnPlayer ? turnPlayer.Identity : null);
 
 			if (!_titleLabel) return;
 

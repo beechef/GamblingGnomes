@@ -17,8 +17,13 @@ namespace Game.Runtime.GameMode.Poker.Stages
 	[CreateAssetMenu(fileName = "PokerStage_ItemConsume", menuName = "Game/Poker/Stages/Item Consume")]
 	public class PokerItemConsumeStage : PokerStage
 	{
+		[Header("Bite")]
+		[Tooltip("Caps one eating gesture swallows. The animation is one mouthful however many go into it, so this is how many a mouthful is.")]
+		[MinValue(1)]
+		[SerializeField] private int _itemsPerBite = 1;
+
 		[Header("Timing")]
-		[Tooltip("Seconds one cap takes to go down — the length of the gesture itself.")]
+		[Tooltip("Seconds one mouthful takes — the length of the eating animation, or the next bite cuts it off.")]
 		[MinValue(0.1f)]
 		[SerializeField] private float _biteDuration = 1.2f;
 
@@ -32,6 +37,11 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		[Tooltip("Seconds between one player finishing their plate and the next starting theirs, so two players eating do not read as one.")]
 		[MinValue(0f)]
 		[SerializeField] private float _handoverDuration = 0.4f;
+
+		[Header("Impact")]
+		[Tooltip("Seconds the table waits after a mouthful that lifted its eater onto a new hallucination rung, for the impact reaction to play out. Only a climb plays it; a bite that crossed nothing, or one that came down a rung, waits for nothing.")]
+		[MinValue(0f)]
+		[SerializeField] private float _impactDuration = 4.3f;
 
 		[Header("References")]
 		[Tooltip("Where the next hand begins. Named rather than left to the sequence, which wraps to its first entry — and that is the waiting room.")]
@@ -71,7 +81,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 			// They left, or went under mid-plate. Whatever is left on it goes with them: eating is a thing
 			// a player does, not a debt the table collects.
-			if (!eater || !TakeOneBite(eater, out var extra))
+			if (!eater || !TakeBite(eater, out var extra))
 			{
 				_waitingToHandOver = true;
 				_timer = _handoverDuration;
@@ -117,45 +127,61 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 		private PokerPlayer CurrentEater() => FindSeatedPlayerAtSeat(_seatIndex);
 
-		// True while there was something left to swallow. The cap comes off the table as it goes down
-		// rather than after, because the ledger is what the visual draws.
-		private bool TakeOneBite(PokerPlayer eater, out float extraWait)
+		// True while there was something left to swallow. One gesture per mouthful and _itemsPerBite caps
+		// in it; each cap comes off the table as it goes down rather than after, because the ledger is what
+		// the visual draws.
+		private bool TakeBite(PokerPlayer eater, out float extraWait)
 		{
 			extraWait = 0f;
 
-			if (!PokerTableUtility.ServerTakePotItem(Data, eater.ClientId, out var itemType)) return false;
+			if (PokerTableUtility.CountPotItems(Data, eater.ClientId) == 0) return false;
 
 			eater.ActionAnimator?.ServerPlay(PlayerActionIds.ConsumeItem);
 
-			// Read either side of the effect rather than predicted from it: what a cap costs depends on
+			// Read either side of the mouthful rather than predicted from it: what a cap costs depends on
 			// whether this eater has met that kind before, so only the rate itself can say where they
 			// landed.
 			var before = eater.Data ? eater.Data.HallucinationRate.Value : 0;
-
 			var database = GameMode.ItemDatabase;
-			if (database && database.TryGetEntry(itemType, out var entry) && entry.Effect)
+
+			for (var i = 0; i < Mathf.Max(1, _itemsPerBite); i++)
 			{
-				entry.Effect.ConsumeServer(GameMode, eater, itemType);
+				if (!PokerTableUtility.ServerTakePotItem(Data, eater.ClientId, out var itemType)) break;
+
+				if (database && database.TryGetEntry(itemType, out var entry) && entry.Effect)
+				{
+					entry.Effect.ConsumeServer(GameMode, eater, itemType);
+				}
 			}
 
 			var after = eater.Data ? eater.Data.HallucinationRate.Value : before;
 
-			extraWait = WaitForTransition(eater, before, after);
+			extraWait = WaitAfterBite(eater, before, after);
 
 			return true;
 		}
 
-		// The blink the eater's own screen is about to spend changing rooms. Their controller owns both the
-		// ladder and how long the blink takes, so it is asked rather than a second copy of either being
-		// kept here — and a bite that changed nothing waits for nothing.
-		private float WaitForTransition(PokerPlayer eater, int before, int after)
+		// A mouthful that moved its eater across a rung. Their controller owns both the ladder and how long
+		// the blink takes, so it is asked rather than a second copy of either being kept here. The blink is
+		// waited out in either direction — a bite landing inside it is a bite nobody saw — while the impact
+		// is a climb only: coming down a rung is relief, not a hit. The two run together, so the wait is
+		// whichever is longer.
+		private float WaitAfterBite(PokerPlayer eater, int before, int after)
 		{
-			if (!_waitForHallucinationTransition || before == after) return 0f;
+			if (before == after) return 0f;
 
 			var hallucination = eater.GetComponentInChildren<PokerHallucinationController>(true);
 			if (!hallucination || !hallucination.CrossesRung(before, after)) return 0f;
 
-			return hallucination.TransitionDuration;
+			var wait = _waitForHallucinationTransition ? hallucination.TransitionDuration : 0f;
+
+			if (after > before)
+			{
+				eater.ActionAnimator?.ServerPlay(PlayerActionIds.Impact);
+				wait = Mathf.Max(wait, _impactDuration);
+			}
+
+			return wait;
 		}
 
 		private PokerPlayer FindSeatedPlayerAtSeat(int seatIndex)

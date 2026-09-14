@@ -13,7 +13,6 @@ GameObject:
   - component: {fileID: 370272023844681654}
   - component: {fileID: 7373537335293292376}
   - component: {fileID: -9007372877243146254}
-  - component: {fileID: 2514047808573104141}
   m_Layer: 0
   m_Name: GameMode_Poker
   m_TagString: Untagged
@@ -186,6 +185,11 @@ MonoBehaviour:
       MinSecondsBetweenUpdates: 0
       MaxSecondsBetweenUpdates: 0
     m_InternalValue: 18446744073709551615
+  FocusClientId:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 18446744073709551615
   TurnEndTime:
     UpdateTraits:
       MinSecondsBetweenUpdates: 0
@@ -238,8 +242,7 @@ MonoBehaviour:
   _startingHealth: 8
   _itemDatabase: {fileID: 11400000, guid: 5178fb66ae0b30740a0e39488bef578b, type: 2}
   _sequence: {fileID: 11400000, guid: fef264d3b67498b4191fb3f76f2e9f4e, type: 2}
-  _modules:
-  - {fileID: 2514047808573104141}
+  _modules: []
   _hudPrefab: {fileID: 3807829601385342317, guid: ef9948bd034b1b74abea24c6ec82bd46, type: 3}
   _data: {fileID: 370272023844681654}
   _configData: {fileID: -9007372877243146254}
@@ -257,37 +260,3 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Config.MatchConfigData
   ShowTopMostFoldoutHeaderGroup: 1
---- !u!114 &2514047808573104141
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7894337194493779765}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1fdab145f51fa4043adcd332037f762c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Modules.PokerAbilityModule
-  ShowTopMostFoldoutHeaderGroup: 1
-  _moduleId: 
-  _pool: {fileID: 11400000, guid: 6799770125e6b7d46f8673cc18c90039, type: 2}
-  _abilitiesPerSeat: 0
-  _abilitiesPerLoss: 1
-  _handLimit: 0
-  _clearHandEachRound: 0
-  _guaranteedCheatCards: {x: 1, y: 2}
-  _abilityStages:
-  - {fileID: 11400000, guid: ba572d66ab8f3b94b801a1717c608737, type: 2}
-  _abilityWindowSeconds: 0
-  _enabledByDefault: 1
-  Enabled:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 1
-  AbilityWindowOpen:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 0

@@ -6,10 +6,10 @@ using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker
 {
-	// The round as a machine: which stage runs, what interrupts it and what comes next. Pulled out of
-	// the mode so the table's rules of motion can be read — and one day reused — without the seats,
-	// wallets and RPCs that surround them there. Plain class, not a component: the mode owns exactly
-	// one and its lifetime is the mode's spawn.
+	// The round as a machine: which stage runs, what is queued ahead of the loop and what comes next.
+	// Pulled out of the mode so the table's rules of motion can be read — and one day reused — without the
+	// seats and RPCs that surround them there. Plain class, not a component: the mode owns exactly one and
+	// its lifetime is the mode's spawn.
 	//
 	// Assets describe the round; this machine runs clones of them, so nothing a stage does at runtime
 	// is written back into the project. Mutating entry points are only ever called on the server — the
@@ -18,8 +18,8 @@ namespace Game.Runtime.GameMode.Poker
 	{
 		private readonly PokerGameMode _mode;
 		// Raised before the stage does any of its own work, which is a different moment from having
-		// started: the deal takes the ante inside StartStage, so a house rule that changes what somebody
-		// is carrying has to run ahead of it or it is answering a question already asked.
+		// started: a module that changes what somebody is carrying has to run ahead of the stage or it is
+		// answering a question already asked.
 		private readonly Action<PokerStage> _onStageStarting;
 		private readonly Action<PokerStage> _onStageStarted;
 		private readonly Action<PokerStage> _onStageEnded;
@@ -27,11 +27,10 @@ namespace Game.Runtime.GameMode.Poker
 		private readonly List<PokerStage> _sources = new();
 		private readonly List<PokerStage> _runtimeStages = new();
 
-		// Stages reached by reference rather than by sequence — a module's overlay, a hand over branch.
+		// Stages reached by reference rather than by sequence — a module's own stage, a hand-over branch.
 		// They run the same way, they just never take a slot in the loop.
 		private readonly List<PokerStage> _detachedStages = new();
 
-		private readonly List<PokerStage> _overlayStack = new();
 		private readonly Queue<PokerStage> _insertedStages = new();
 
 		private int _nextStageIndex;
@@ -45,15 +44,13 @@ namespace Game.Runtime.GameMode.Poker
 		}
 
 		public PokerStage CurrentStage { get; private set; }
-		public PokerStage CurrentOverlay => _overlayStack.Count > 0 ? _overlayStack[^1] : null;
-		public PokerStage ActiveStage => CurrentOverlay ? CurrentOverlay : CurrentStage;
 
 		public IReadOnlyList<PokerStage> Stages => _runtimeStages;
 
 		// Every peer builds the same list, so a client can look a running stage up by id and read its
 		// numbers — only the transitions are the server's alone. That has to cover the stages nothing in the
-		// sequence mentions too: an overlay is only ever pushed on the server, so a client that waited for
-		// Resolve to clone one would never have it, and the UI asking after a running overlay by id would be
+		// sequence mentions too: a module's stage is only ever inserted on the server, so a client that
+		// waited for Resolve to clone one would never have it, and the UI asking after it by id would be
 		// told there is no such stage.
 		public void Build(PokerStageSequence sequence, IReadOnlyList<PokerModule> modules)
 		{
@@ -105,8 +102,6 @@ namespace Game.Runtime.GameMode.Poker
 		{
 			if (CurrentStage) CurrentStage.EndStage();
 
-			for (var i = _overlayStack.Count - 1; i >= 0; i--) _overlayStack[i].EndStage();
-			_overlayStack.Clear();
 			_insertedStages.Clear();
 
 			foreach (var stage in _runtimeStages)
@@ -124,7 +119,7 @@ namespace Game.Runtime.GameMode.Poker
 
 		public void Tick(float deltaTime)
 		{
-			if (ActiveStage) ActiveStage.TickStage(deltaTime);
+			if (CurrentStage) CurrentStage.TickStage(deltaTime);
 		}
 
 		public PokerStage Find(string stageId)
@@ -207,38 +202,6 @@ namespace Game.Runtime.GameMode.Poker
 			if (!stage) return;
 
 			_insertedStages.Enqueue(Resolve(stage));
-		}
-
-		// Runs immediately on top, freezing everything below it until it is popped.
-		public void PushOverlay(PokerStage stage)
-		{
-			if (!stage) return;
-
-			var overlay = Resolve(stage);
-			if (!overlay) return;
-
-			if (ActiveStage) ActiveStage.PauseStage();
-
-			_overlayStack.Add(overlay);
-			_mode.Data.OverlayStageId.Value = overlay.StageId;
-
-			_onStageStarting?.Invoke(overlay);
-			overlay.StartStage();
-			_onStageStarted?.Invoke(overlay);
-		}
-
-		public void PopOverlay()
-		{
-			if (_overlayStack.Count == 0) return;
-
-			var overlay = _overlayStack[^1];
-			_overlayStack.RemoveAt(_overlayStack.Count - 1);
-
-			overlay.EndStage();
-			_onStageEnded?.Invoke(overlay);
-
-			_mode.Data.OverlayStageId.Value = CurrentOverlay ? CurrentOverlay.StageId : string.Empty;
-			if (ActiveStage) ActiveStage.ResumeStage();
 		}
 
 		private void SetCurrentStage(PokerStage stage)

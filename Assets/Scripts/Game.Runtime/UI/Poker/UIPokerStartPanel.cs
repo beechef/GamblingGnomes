@@ -17,8 +17,8 @@ namespace Game.Runtime.UI.Poker
 		[SerializeField] private UIButton _startButton;
 		[SerializeField] private TextMeshProUGUI _hintLabel;
 
-		// Every seat this panel is counting. It reads blood and money off other players' objects, so it has
-		// to hear those change — the seated list only says who is at the table, never what they are
+		// Every seat this panel is counting. It reads who is still conscious off other players' objects, so it
+		// has to hear those change — the seated list only says who is at the table, never what they are
 		// carrying. A match ending restores everyone at once, which arrives as a change on each of them and
 		// on nothing this panel was listening to: the button stayed dead until somebody stood up and sat
 		// down again, because that was the only thing that made the list say something.
@@ -95,9 +95,9 @@ namespace Game.Runtime.UI.Poker
 			if (!visible) return;
 
 			// Asked of the mode rather than counted here, so the button is never offered for a table the server
-			// would refuse to start — a seat filled by a player with nothing left to bet is not company, and the
+			// would refuse to start — a seat filled by a player who has gone under is not company, and the
 			// host's own seat is company whether or not they are still on their feet.
-			var readyCount = GameMode.FundedPlayerCount;
+			var readyCount = GameMode.DealablePlayerCount;
 			var required = GameMode.Rules ? GameMode.Rules.MinimumPlayersToStart : 2;
 			var canStart = GameMode.CanStartMatch;
 

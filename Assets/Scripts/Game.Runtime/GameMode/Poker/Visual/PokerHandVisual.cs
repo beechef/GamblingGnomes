@@ -29,6 +29,21 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		[Min(0f)]
 		[SerializeField] private float _handOverStagger = 0.15f;
 
+		// The hand pose starts on the same change that moves the cards, so both clocks start together and
+		// the card only has to wait for the frame its hand reaches the table. Seconds, measured from that
+		// change — the pose's transition plus the clip's contact frame.
+		[Tooltip("Seconds a picked-up card lies on the table before it flies, so it leaves the moment the pick-up animation's hand reaches it. Counted from the change that starts the pose; the stagger is added on top.")]
+		[Min(0f)]
+		[SerializeField] private float _pickUpDelay;
+
+		[Tooltip("Seconds a card put down stays in the hand before it flies to the table, so it lands as the put-down animation's hand reaches the table. Counted from the change that starts the pose; the stagger is added on top.")]
+		[Min(0f)]
+		[SerializeField] private float _putDownDelay;
+
+		[Tooltip("Seconds a card stays in the hand when the hand is turned over for the table, before it is thrown down — the show animation's release frame. Counted the same way.")]
+		[Min(0f)]
+		[SerializeField] private float _showDelay;
+
 		[Header("References")]
 		[SerializeField] private PokerPlayerData _data;
 		[SerializeField] private PokerCardVisual _cardPrefab;
@@ -169,7 +184,8 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			for (var i = count - 1; i >= 0; i--)
 			{
 				var travels = (moved & (1 << i)) != 0;
-				HandOver(i, travels, travels ? ahead++ * _handOverStagger : 0f);
+				var wait = IsInHand(i) ? _pickUpDelay : _data.HandRevealed.Value ? _showDelay : _putDownDelay;
+				HandOver(i, travels, travels ? wait + ahead++ * _handOverStagger : 0f);
 			}
 
 			OnAnyHandChanged?.Invoke();

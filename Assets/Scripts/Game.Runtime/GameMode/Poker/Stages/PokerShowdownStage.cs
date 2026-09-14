@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Game.Runtime.GameMode.Poker.Hands;
 using Game.Runtime.GameMode.Poker.Player;
+using Game.Runtime.Player;
 using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker.Stages
@@ -13,9 +14,6 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		[SerializeField] private PokerHandDatabase _handDatabase;
 
 		[Header("Settlement")]
-		[Tooltip("How the hand pays out. Poker hands the pot to the best hand; the plate feeds it to the worst; the mushroom round feeds the winner's own wager to everybody who lost.")]
-		[SerializeField] private PokerSettlement _settlement = PokerSettlement.WinnerTakesPot;
-
 		[Tooltip("Which wager a folder is made to eat their own copy of. The first, by the design — folding after seeing three cards still costs what was put up before them.")]
 		[SerializeField] private PokerPhase _foldPhase = PokerPhase.FirstWager;
 
@@ -33,7 +31,6 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		private readonly List<CardData> _evaluationBuffer = new();
 		private readonly List<Contender> _ranking = new();
 		private readonly List<(PokerPlayer Player, int RankGroup)> _contenders = new();
-		private readonly Dictionary<ulong, int> _winnings = new();
 
 		private readonly struct Contender
 		{
@@ -51,25 +48,19 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		{
 			Data.Phase.Value = PokerPhase.Showdown;
 			GameMode.ClearTurn();
-			PokerTableUtility.CollectBets(Data, GameMode.SeatedPlayers);
 
 			ResolveContenders();
 
-			// The winner is named before the settlement, because one of the settlements is about what the
-			// winner put up and would otherwise have nobody to ask.
+			// The winner is named before the settlement, because the settlement is about what the winner put
+			// up and would otherwise have nobody to ask.
 			var winner = _contenders.Count > 0 ? _contenders[0].Player : null;
 			Data.LastWinnerClientId.Value = winner ? winner.ClientId : PokerGameData.NoTurn;
 
-			if (_settlement == PokerSettlement.LosersEatWinnersWager)
-			{
-				PokerTableUtility.SwapPotToLosers(Data, winner, GameMode.SeatedPlayers,
-					GameMode.ItemDatabase, _foldPhase,
-					GameMode.FindModule<Modules.PokerAbilityModule>());
-			}
-			else
-			{
-				PokerTableUtility.SettlePots(Data, GameMode.SeatedPlayers, _contenders, _winnings);
-			}
+			// The winner's cackle, played as the board goes up. Skipped in silence until the art is on the
+			// rig, like every gesture.
+			if (winner) winner.ActionAnimator?.ServerPlay(PlayerActionIds.Laugh);
+
+			PokerTableUtility.SwapPotToLosers(Data, winner, GameMode.SeatedPlayers, GameMode.ItemDatabase, _foldPhase);
 
 			PublishRanking();
 
@@ -161,8 +152,6 @@ namespace Game.Runtime.GameMode.Poker.Stages
 				var (player, rankGroup) = _contenders[i];
 				var result = _ranking[i].Result;
 
-				_winnings.TryGetValue(player.ClientId, out var won);
-
 				// The name travels in a fixed buffer, so an overlong one is cut rather than allowed to
 				// throw on the way out.
 				var handName = result.DisplayName ?? string.Empty;
@@ -172,8 +161,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 				{
 					ClientId = player.ClientId,
 					Rank = rankGroup,
-					HandName = handName,
-					Winnings = won
+					HandName = handName
 				});
 			}
 		}
@@ -183,12 +171,6 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			_evaluationBuffer.Clear();
 
 			foreach (var card in player.Data.HoleCards) _evaluationBuffer.Add(card);
-
-			// The whole board sits on the table from the deal, so it is the part the table was actually
-			// shown that plays — a hand that ended early is read off a short board. The public count, not
-			// what anybody was allowed to peek at: a cheat buys a look, not a card.
-			var board = Mathf.Min(Data.RevealedCommunityCards.Value, Data.CommunityCards.Count);
-			for (var i = 0; i < board; i++) _evaluationBuffer.Add(Data.CommunityCards[i]);
 
 			return GameMode.HandEvaluator.Evaluate(_handDatabase, _evaluationBuffer);
 		}

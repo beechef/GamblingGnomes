@@ -4,8 +4,7 @@ using UnityEngine;
 namespace Game.Runtime.GameMode.Poker.Visual
 {
 	// Where one card falls in the deal, worked out by the deck from the replicated seats so every client
-	// agrees on it. Order counts round the table from the seat after the dealer, among the players being
-	// dealt in only.
+	// agrees on it. Order counts round the table from the first seat, among the players being dealt in only.
 	public readonly struct PokerDealTurn
 	{
 		public readonly int Slot;
@@ -28,9 +27,9 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		// Seconds this card lies on the deck before it leaves.
 		public abstract float DelayFor(PokerDealTurn turn);
 
-		// Carries the card from where it lies now to its slot, both in its parent's space. The card has
-		// already been parented to where it is going. The card holds it back for the wait and puts it
-		// exactly on the slot when it ends, so a subclass handles neither.
-		public abstract Tween Travel(Transform card, Vector3 localPosition, Quaternion localRotation);
+		// Carries the card from where it lies now to its slot in `parent`'s space. The card is not parented
+		// there until it lands — it holds it back for the wait, puts it exactly on the slot and only then
+		// takes the new parent, so a subclass handles none of that.
+		public abstract Tween Travel(Transform card, Transform parent, Vector3 localPosition, Quaternion localRotation);
 	}
 }

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using DG.Tweening;
 using Game.Runtime.GameMode.Poker.Items;
+using Game.Runtime.Player;
 using Sirenix.OdinInspector;
 using Unity.Netcode;
 using UnityEngine;
@@ -48,6 +49,30 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		[SerializeField] private float _dropDuration = 0.35f;
 		[SerializeField] private Ease _dropEase = Ease.OutBounce;
 
+		// A cap staked on a wager street is picked up and put down by the bet gesture rather than dropped
+		// from the air. The gesture is played off the same change that stakes the cap, so both clocks start
+		// together and the cap only has to wait for the gesture's own frames. Caps served by the settlement
+		// or by the Colorful pick carry another street and are dropped as before.
+		[Header("Bet")]
+		[Tooltip("Seconds after a cap is staked before it appears in its staker's hand — the frame the bet gesture's hand reaches the table.")]
+		[Min(0f)]
+		[SerializeField] private float _betGrabDelay;
+
+		[Tooltip("Seconds after a cap is staked before it leaves the hand for its spot — the frame the bet gesture puts it down.")]
+		[Min(0f)]
+		[SerializeField] private float _betReleaseDelay = 0.8f;
+
+		[Tooltip("Seconds the cap takes from the hand to its spot on the table.")]
+		[Min(0f)]
+		[SerializeField] private float _betPlaceDuration = 0.25f;
+
+		[SerializeField] private Ease _betPlaceEase = Ease.OutQuad;
+
+		[Tooltip("Where the cap sits in the hand, in the hand bone's own space.")]
+		[SerializeField] private Vector3 _handPosition;
+
+		[SerializeField] private Vector3 _handRotation;
+
 		[Header("Eating")]
 		[Tooltip("How long a cap takes to travel to its eater's mouth once it leaves the table. Shorter than the consume stage's bite, so the swallow lands inside the gesture.")]
 		[SerializeField] private float _eatDuration = 0.5f;
@@ -58,6 +83,10 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		[SerializeField] private float _relayoutDuration = 0.25f;
 
 		private readonly List<GameObject> _caps = new();
+
+		// Caps still being carried by a bet gesture. A re-layout leaves them alone: they are on their way to
+		// the spot it would send them to, and killing their tween would leave them stuck in the hand.
+		private readonly HashSet<GameObject> _carried = new();
 
 		protected override void OnBind()
 		{
@@ -133,8 +162,76 @@ namespace Game.Runtime.GameMode.Poker.Visual
 				return;
 			}
 
+			if (IsStakedOnWager(item) && TryGetHand(item.OwnerClientId, out var hand))
+			{
+				Carry(cap, hand, resting);
+				return;
+			}
+
 			cap.transform.localPosition = resting + Vector3.up * _dropHeight;
 			cap.transform.DOLocalMove(resting, _dropDuration).SetEase(_dropEase);
+		}
+
+		private static bool IsStakedOnWager(PokerBetItem item) => item.Phase is PokerPhase.FirstWager or PokerPhase.SecondWager;
+
+		// The hand on whichever rig this client draws for that player — the owner's own hands or the body
+		// everybody else sees — so the cap is in the hand that is actually on screen.
+		private bool TryGetHand(ulong clientId, out Transform hand)
+		{
+			hand = null;
+			if (!GameMode) return false;
+
+			var player = GameMode.FindSeatedPlayer(clientId);
+			if (!player || !player.Rig) return false;
+
+			hand = player.Rig.GetBone(PlayerBone.HandRight);
+			return hand;
+		}
+
+		// Hidden until the hand reaches the table, then held until the gesture puts it down and it slides into
+		// its spot. One sequence targeting the cap's transform, so a re-layout or a clear that kills the cap's
+		// tweens takes this with it.
+		private void Carry(GameObject cap, Transform hand, Vector3 resting)
+		{
+			var anchor = cap.transform.parent;
+			var worldScale = cap.transform.lossyScale;
+
+			cap.SetActive(false);
+			_carried.Add(cap);
+
+			var sequence = DOTween.Sequence().SetTarget(cap.transform).SetLink(cap);
+
+			sequence.AppendInterval(_betGrabDelay);
+			sequence.AppendCallback(() =>
+			{
+				cap.SetActive(true);
+				cap.transform.SetParent(hand, false);
+				cap.transform.localPosition = _handPosition;
+				cap.transform.localRotation = Quaternion.Euler(_handRotation);
+
+				// Kept at the size it has on the table, whatever scale the hand bone carries.
+				var handScale = hand.lossyScale;
+				cap.transform.localScale = new Vector3(worldScale.x / handScale.x, worldScale.y / handScale.y, worldScale.z / handScale.z);
+			});
+
+			sequence.AppendInterval(Mathf.Max(0f, _betReleaseDelay - _betGrabDelay));
+			sequence.AppendCallback(() => cap.transform.SetParent(anchor, true));
+			sequence.Append(cap.transform.DOLocalMove(resting, _betPlaceDuration).SetEase(_betPlaceEase));
+			sequence.Join(cap.transform.DOLocalRotateQuaternion(Quaternion.identity, _betPlaceDuration));
+			sequence.Join(cap.transform.DOScale(Vector3.one * _capScale, _betPlaceDuration));
+
+			// Wherever it was when the sequence ended — landed or killed — it is back on the table's books.
+			sequence.OnKill(() =>
+			{
+				_carried.Remove(cap);
+				if (!cap || cap.transform.parent == anchor) return;
+
+				cap.SetActive(true);
+				cap.transform.SetParent(anchor, false);
+				cap.transform.localPosition = resting;
+				cap.transform.localRotation = Quaternion.identity;
+				cap.transform.localScale = Vector3.one * _capScale;
+			});
 		}
 
 		private GameObject Spawn(PokerBetItem item)
@@ -192,7 +289,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 			for (var i = 0; i < _caps.Count && i < Data.PotItems.Count; i++)
 			{
-				if (!_caps[i]) continue;
+				if (!_caps[i] || _carried.Contains(_caps[i])) continue;
 
 				var slot = SlotPosition(CountCapsBefore(Data.PotItems[i].OwnerClientId, i));
 

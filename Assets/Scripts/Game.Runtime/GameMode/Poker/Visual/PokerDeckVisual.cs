@@ -4,7 +4,7 @@ using UnityEngine;
 namespace Game.Runtime.GameMode.Poker.Visual
 {
 	// The deck lying in the middle of the table. It knows where it is and whose turn each dealt card is —
-	// round the table from the seat after the dealer, worked out of the same replicated seats on every
+	// round the table in seat order, worked out of the same replicated seats on every
 	// client, so nothing about the deal travels on the wire. What the deal looks like, its pace and the
 	// way a card flies, is the PokerDealController it is handed: another deal is another controller.
 	//
@@ -56,10 +56,6 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		{
 			if (!IsBound) return new PokerDealTurn(slot, 0, 1);
 
-			var seats = Mathf.Max(1, Data.ActiveSeatCount.Value, seatIndex + 1);
-			var dealer = Data.DealerSeatIndex.Value;
-			var mine = SeatsAfterDealer(seatIndex, dealer, seats);
-
 			var dealt = 0;
 			var before = 0;
 
@@ -68,13 +64,10 @@ namespace Game.Runtime.GameMode.Poker.Visual
 				if (!player || !player.Data || !player.Data.InMatch.Value) continue;
 
 				dealt++;
-				if (SeatsAfterDealer(player.Data.SeatIndex.Value, dealer, seats) < mine) before++;
+				if (player.Data.SeatIndex.Value < seatIndex) before++;
 			}
 
 			return new PokerDealTurn(slot, before, dealt);
 		}
-
-		private static int SeatsAfterDealer(int seatIndex, int dealer, int seats)
-			=> ((seatIndex - dealer - 1) % seats + seats) % seats;
 	}
 }

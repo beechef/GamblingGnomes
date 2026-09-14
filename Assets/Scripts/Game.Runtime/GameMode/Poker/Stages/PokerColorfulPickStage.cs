@@ -1,5 +1,6 @@
 using Game.Runtime.GameMode.Poker.Items;
 using Game.Runtime.GameMode.Poker.Player;
+using Game.Runtime.Player;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -80,7 +81,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			var target = FindSeatedPlayerAtSeat(amount);
 			if (!target || !CanBeFed(target)) return false;
 
-			Serve(target);
+			Serve(target, GameMode.FindSeatedPlayer(clientId));
 			return true;
 		}
 
@@ -100,10 +101,21 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			return null;
 		}
 
-		private void Serve(PokerPlayer target)
+		// The chooser is null when the clock chose: a silence is not a choice, so it gets no gesture.
+		private void Serve(PokerPlayer target, PokerPlayer chooser = null)
 		{
 			_picked = true;
 			GameMode.ClearTurn();
+
+			// Chosen first, announced after: the winner points at people freely while deciding, and only
+			// the settled choice is acted out — a snap at whoever was named, with every head at the table
+			// turning to them. After ClearTurn, which drops the focus, and before the stage can finish,
+			// because the machine clears the focus at the handover and a focus written later would stick.
+			if (chooser)
+			{
+				chooser.ActionAnimator?.ServerPlay(PlayerActionIds.SnapFingers);
+				GameMode.ServerSetFocus(target.ClientId);
+			}
 
 			// Put down in front of them, not swallowed here: the eating is its own beat, and a cap that took
 			// effect during the announcement of who got it is a cap nobody watched go down. Through the same

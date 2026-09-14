@@ -40,14 +40,12 @@ namespace Game.Runtime.UI.Poker
 		{
 			Data.CurrentTurnClientId.OnValueChanged += HandleTurnChanged;
 			Data.StageId.OnValueChanged += HandleStageChanged;
-			Data.OverlayStageId.OnValueChanged += HandleStageChanged;
 
 			Refresh();
 		}
 
 		protected override void OnUnbind()
 		{
-			Data.OverlayStageId.OnValueChanged -= HandleStageChanged;
 			Data.StageId.OnValueChanged -= HandleStageChanged;
 			Data.CurrentTurnClientId.OnValueChanged -= HandleTurnChanged;
 
@@ -68,10 +66,10 @@ namespace Game.Runtime.UI.Poker
 
 		private void Refresh()
 		{
-			// Resolved from the replicated stage id: GameMode.ActiveStage is written only by the server's
+			// Resolved from the replicated stage id: GameMode.CurrentStage is written only by the server's
 			// own stage machine and is null on a client for the whole session.
 			var stage = GameMode ? GameMode.FindStage(Data.StageId.Value.ToString()) as PokerColorfulPickStage : null;
-			var show = stage != null && IsLocalTurn && Data.OverlayStageId.Value.IsEmpty && stage.CanBeFed(LocalPlayer);
+			var show = stage != null && IsLocalTurn && stage.CanBeFed(LocalPlayer);
 
 			if (_panel) _panel.SetActive(show);
 

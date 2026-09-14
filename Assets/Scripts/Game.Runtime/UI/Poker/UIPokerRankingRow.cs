@@ -15,7 +15,6 @@ namespace Game.Runtime.UI.Poker
 		[SerializeField] private TextMeshProUGUI _placeLabel;
 		[SerializeField] private TextMeshProUGUI _nameLabel;
 		[SerializeField] private TextMeshProUGUI _handLabel;
-		[SerializeField] private TextMeshProUGUI _winningsLabel;
 
 		[Header("Cards")]
 		[Tooltip("Where this row's hole cards are laid out.")]
@@ -49,9 +48,6 @@ namespace Game.Runtime.UI.Poker
 			if (_handLabel) _handLabel.text = entry.HandName.ToString();
 
 			if (_nameLabel) _nameLabel.text = player ? player.DisplayName : $"Player {entry.ClientId}";
-
-			// Nothing won is left blank rather than shown as a zero — a losing row should read as quiet.
-			if (_winningsLabel) _winningsLabel.text = entry.Winnings > 0 ? "+" + entry.Winnings : string.Empty;
 
 			RebuildCards();
 		}

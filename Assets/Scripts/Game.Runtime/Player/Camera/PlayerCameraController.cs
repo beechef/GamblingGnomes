@@ -49,10 +49,6 @@ namespace Game.Runtime.Player.Camera
 
 		public PlayerController PlayerController => _controller;
 
-		// The eye this client actually renders through. A shot that wants to start from the player's own
-		// view asks here rather than being authored at a height, because which rig is rendered — and so
-		// which camera is live — stays PlayerVisual's business.
-		public Transform Eye => _rig ? _rig.RenderedCamera : null;
 		public PlayerCameraState Current => _current;
 
 		public override void OnNetworkSpawn()

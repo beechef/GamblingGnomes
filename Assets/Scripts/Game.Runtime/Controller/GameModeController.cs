@@ -21,7 +21,7 @@ namespace Game.Runtime.Controller
 			return CurrentGameMode as T;
 		}
 
-		[Tooltip("The MonoBehaviour in this Gameplay scene that implements IGameMode (e.g. SandboxGameMode).")]
+		[Tooltip("The MonoBehaviour in this Gameplay scene that implements IGameMode (e.g. PokerGameMode).")]
 		[SerializeField] private MonoBehaviour _gameModeBehaviour;
 
 		private IGameMode _gameMode;

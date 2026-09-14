@@ -132,11 +132,12 @@ namespace Game.Runtime.Player
 
 			if (!IsOwner) return;
 
+			// The seat only says where to sit and how to pose. How far the head may turn once there is the
+			// player controller's to decide, and nobody else's.
 			var anchor = seat.SitAnchor;
 			_playerController.SetMovementEnabled(false);
 			_playerController.Teleport(anchor.position, anchor.rotation);
-			_playerController.ApplyLookConstraint(anchor.eulerAngles.y, pose.AllowRotation, pose.YawLimits,
-				pose.FocusYawLimits, pose.PitchLimits);
+			_playerController.ResetLook();
 		}
 
 		private void ClearSeat(SeatInteractable previousSeat)
@@ -151,7 +152,7 @@ namespace Game.Runtime.Player
 
 			if (!IsOwner) return;
 
-			_playerController.ClearLookConstraint();
+			_playerController.ResetLook();
 			_playerController.SetMovementEnabled(true);
 
 			if (!previousSeat) return;

@@ -24,7 +24,6 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 		public PokerGameMode GameMode { get; private set; }
 		public bool IsRunning { get; private set; }
-		public bool IsPaused { get; private set; }
 
 		protected PokerGameData Data => GameMode ? GameMode.Data : null;
 
@@ -46,25 +45,16 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 		protected virtual void OnCollectConfigEntries(List<MatchConfigEntry> entries) { }
 
-		// A clock that ran out during the pause gets a moment on resume rather than expiring on the
-		// first tick — the player it belongs to spent that time watching an overlay, not thinking.
-		private const float MinimumResumedSeconds = 1f;
-
 		private bool _exiting;
 		private float _exitRemaining;
 		private PokerStage _exitTarget;
 
-		private bool _hasPausedStageTimer;
-		private float _pausedStageTimerRemaining;
-
 		public void StartStage()
 		{
 			IsRunning = true;
-			IsPaused = false;
 
 			_exiting = false;
 			_exitTarget = null;
-			_hasPausedStageTimer = false;
 
 			OnStartStage();
 		}
@@ -74,47 +64,12 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			if (!IsRunning) return;
 
 			IsRunning = false;
-			IsPaused = false;
 			OnEndStage();
-		}
-
-		public void PauseStage()
-		{
-			if (!IsRunning || IsPaused) return;
-
-			IsPaused = true;
-
-			// The stage clock is an absolute server time, so left alone it would drain away under an
-			// overlay. It is taken down here and handed back on resume — every stage that runs one
-			// wants the same thing, so the base does it once rather than each subclass remembering to.
-			_hasPausedStageTimer = Data && Data.HasStageTimer;
-			if (_hasPausedStageTimer)
-			{
-				_pausedStageTimerRemaining = Data.StageTimeRemaining;
-				GameMode.ClearStageTimer();
-			}
-
-			OnPauseStage();
-		}
-
-		public void ResumeStage()
-		{
-			if (!IsRunning || !IsPaused) return;
-
-			IsPaused = false;
-
-			if (_hasPausedStageTimer)
-			{
-				_hasPausedStageTimer = false;
-				GameMode.BeginStageTimer(Mathf.Max(_pausedStageTimerRemaining, MinimumResumedSeconds));
-			}
-
-			OnResumeStage();
 		}
 
 		public void TickStage(float deltaTime)
 		{
-			if (!IsRunning || IsPaused) return;
+			if (!IsRunning) return;
 
 			// Once the stage has called it a day nothing else should run — it is only still here so the
 			// table can be looked at before the next one takes over.
@@ -129,11 +84,6 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			OnTickStage(deltaTime);
 		}
 
-		// What this stage takes off every player before anybody is asked anything — the deal's seat cost is
-		// the only one today. Declared here so a house rule can price a player against what is about to be
-		// charged rather than against an empty purse, which is one moment too late to help them.
-		public virtual int UpfrontCostPerPlayer => 0;
-
 		public virtual bool HandleAction(ulong clientId, PokerActionType action, int amount) => false;
 
 		// A player left the table mid stage. The seat index comes along because the player object may
@@ -146,8 +96,6 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		protected abstract void OnStartStage();
 		protected virtual void OnEndStage() { }
 		protected virtual void OnTickStage(float deltaTime) { }
-		protected virtual void OnPauseStage() { }
-		protected virtual void OnResumeStage() { }
 
 		protected void NextStage()
 		{

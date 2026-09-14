@@ -1,13 +1,12 @@
 namespace Game.Runtime.GameMode.Poker
 {
+	// Stored as an integer in the stage assets (_phase, _foldPhase) and stamped on every pot entry, so the
+	// numbers are fixed: retired values keep their gap rather than passing it on.
 	public enum PokerPhase : byte
 	{
 		Waiting = 0,
 		Dealing = 1,
-		PreFlop = 2,
-		Flop = 3,
-		Turn = 4,
-		River = 5,
+
 		// The two moments a round asks for a cap: one before the cards are dealt and one after three of
 		// them have been looked at. Separate values because the UI routes on the phase, and the second
 		// wager is the only one that also offers folding.

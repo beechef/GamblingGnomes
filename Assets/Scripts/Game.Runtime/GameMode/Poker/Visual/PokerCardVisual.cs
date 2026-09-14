@@ -127,10 +127,10 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			_deal = deal;
 		}
 
-		// Where the card sits, and under what. Reparenting keeps the world pose so the travel starts from
-		// wherever the card actually was — a card picked up off the table must not jump to the hand and
-		// then animate from there. `delay` holds it where it lies before it sets off, so cards moved
-		// together leave one after another instead of flying the same path at the same moment.
+		// Where the card sits, and under what. The new parent is only taken when the card lands: a card
+		// waiting its turn on the table has to lie still, and parented to a hand that is already moving it
+		// would ride that hand before it ever took off. `delay` holds it where it lies before it sets off, so
+		// cards moved together leave one after another instead of flying the same path at the same moment.
 		public void PlaceAt(Transform parent, Vector3 localPosition, Quaternion localRotation, bool animate, float delay = 0f)
 		{
 			// Asked before the kill: a card still waiting its turn or in the air keeps going to wherever it
@@ -142,8 +142,6 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			_moveTween?.Kill();
 			_liftTween?.Kill();
 
-			if (transform.parent != parent) transform.SetParent(parent, true);
-
 			if (delay > 0f) _departAt = Mathf.Max(_departAt, Time.time + delay);
 
 			var wait = DepartWait;
@@ -152,15 +150,15 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			{
 				_lift = 0f;
 				ApplyArtHeight();
-				Land(localPosition, localRotation);
+				Land(parent, localPosition, localRotation);
 				return;
 			}
 
 			// The deal's travel when there is one, the card's own arc otherwise. Wrapped in a sequence of the
 			// card's rather than given a callback of its own, so a deal is free to hang its own on it.
 			var travel = _deal
-				? _deal.Travel(transform, localPosition, localRotation)
-				: ArcTween(transform, localPosition, localRotation, _moveDuration, _moveEase, _moveArc);
+				? _deal.Travel(transform, parent, localPosition, localRotation)
+				: ArcTween(transform, parent, localPosition, localRotation, _moveDuration, _moveEase, _moveArc);
 
 			var sequence = DOTween.Sequence().AppendInterval(wait).Append(travel);
 
@@ -180,33 +178,48 @@ namespace Game.Runtime.GameMode.Poker.Visual
 				_deal = null;
 				_lift = 0f;
 				ApplyArtHeight();
-				Land(localPosition, localRotation);
+				Land(parent, localPosition, localRotation);
 			});
 		}
 
-		private void Land(Vector3 localPosition, Quaternion localRotation)
+		private void Land(Transform parent, Vector3 localPosition, Quaternion localRotation)
 		{
+			if (transform.parent != parent) transform.SetParent(parent, true);
+
 			transform.localPosition = localPosition;
 			transform.localRotation = localRotation;
 		}
 
-		// From wherever the card is to the given pose in its parent's space, rising `arc` along the parent's
-		// view of world up on the way — the table's own up, rather than the card's facing, because a card
-		// being lifted rises off the surface it was lying on. Public so a deal can throw a card the same way
-		// with numbers of its own.
-		public static Tween ArcTween(Transform card, Vector3 localPosition, Quaternion localRotation, float duration, Ease ease, float arc)
+		// From wherever the card is when it sets off to the given pose in `parent`'s space, in world space and
+		// rising `arc` along world up — a card being lifted rises off the surface it was lying on. The
+		// destination is read every frame, because a hand it is flying to is animating, and the start is read
+		// on the first one, because a card waiting in a hand to be put down moves with it until it leaves.
+		// Nothing is reparented here; the card takes its parent when it lands. Public so a deal can throw a
+		// card the same way with numbers of its own.
+		public static Tween ArcTween(Transform card, Transform parent, Vector3 localPosition, Quaternion localRotation,
+			float duration, Ease ease, float arc)
 		{
-			var parent = card.parent;
-			var fromPosition = card.localPosition;
-			var fromRotation = card.localRotation;
-			var lift = (parent ? parent.InverseTransformVector(Vector3.up) : Vector3.up) * arc;
+			var started = false;
+			var fromPosition = Vector3.zero;
+			var fromRotation = Quaternion.identity;
 
 			return DOVirtual.Float(0f, 1f, duration, t =>
 				{
 					if (!card) return;
 
-					card.localPosition = Vector3.Lerp(fromPosition, localPosition, t) + lift * Mathf.Sin(t * Mathf.PI);
-					card.localRotation = Quaternion.Slerp(fromRotation, localRotation, t);
+					if (!started)
+					{
+						started = true;
+						fromPosition = card.position;
+						fromRotation = card.rotation;
+					}
+
+					var toPosition = parent ? parent.TransformPoint(localPosition) : localPosition;
+					var toRotation = parent ? parent.rotation * localRotation : localRotation;
+
+					card.SetPositionAndRotation(
+						Vector3.Lerp(fromPosition, toPosition, t) + Vector3.up * (arc * Mathf.Sin(t * Mathf.PI)),
+						Quaternion.Slerp(fromRotation, toRotation, t));
 				})
 				.SetEase(ease);
 		}

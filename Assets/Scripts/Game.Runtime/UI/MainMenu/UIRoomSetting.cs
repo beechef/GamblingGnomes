@@ -117,7 +117,7 @@ namespace Game.Runtime.UI.MainMenu
 
 		private GameModeType SelectedGameMode() => _dropdownGameModes.Count > 0
 			? _dropdownGameModes[Mathf.Clamp(_gameModeDropdown.value, 0, _dropdownGameModes.Count - 1)]
-			: GameModeType.Sandbox;
+			: GameModeType.Poker;
 
 		private void PopulateGameModeDropdown()
 		{

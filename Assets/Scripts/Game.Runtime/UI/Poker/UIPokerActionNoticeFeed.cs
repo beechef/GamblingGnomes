@@ -21,7 +21,7 @@ namespace Game.Runtime.UI.Poker
 			// Sequence zero is the default a fresh table spawns with, not an announcement.
 			if (current.Sequence == 0) return;
 
-			AnnounceAmount(NameOf(current.ClientId), current.Action.ToString().ToUpperInvariant(), current.Amount);
+			Announce(NameOf(current.ClientId), current.Action.ToString().ToUpperInvariant());
 		}
 	}
 }

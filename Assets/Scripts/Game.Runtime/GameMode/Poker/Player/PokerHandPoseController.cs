@@ -18,6 +18,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 		[Tooltip("Bool parameter set while this player is holding any card off the table. A controller without it is skipped, so the pose can be driven before the art lands.")]
 		[SerializeField] private string _holdingCardsParameter = "IsHaveCardOnHand";
 
+		[Tooltip("Bool parameter set while this hand is turned over for the table. Putting cards down to show them is a throw, not the same lay-down a player makes when they are done looking, so the animator takes a different way out of holding them.")]
+		[SerializeField] private string _showingCardsParameter = "IsShowingCards";
+
 		[Header("References")]
 		[SerializeField] private PokerPlayerData _data;
 
@@ -51,6 +54,10 @@ namespace Game.Runtime.GameMode.Poker.Player
 		{
 			if (!_animatorStates || !_data) return;
 
+			// The showing flag first: both flags land in the same replicated write, but the animator reads
+			// its transitions in a set order, and a frame where holding had gone false while showing was not
+			// yet true would take the ordinary lay-down instead.
+			_animatorStates.ServerSetBool(_showingCardsParameter, _data.HandRevealed.Value);
 			_animatorStates.ServerSetBool(_holdingCardsParameter, HoldingAnything());
 		}
 

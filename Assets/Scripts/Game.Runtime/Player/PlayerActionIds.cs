@@ -7,16 +7,10 @@ namespace Game.Runtime.Player
 		public const string Idle = "Idle";
 		public const string Fold = "Fold";
 		public const string Bet = "Bet";
-		public const string Report = "Report";
-		public const string Reported = "Reported";
 		public const string Laugh = "Laugh";
-		public const string Disappointed = "Disappointed";
-		public const string WearGlasses = "WearGlasses";
-		public const string RemoveGlasses = "RemoveGlasses";
-		public const string ShuffleCards = "ShuffleCards";
 		public const string PickUpCard = "PickUpCard";
-		public const string Drink = "Drink";
-		public const string Spill = "Spill";
 		public const string ConsumeItem = "ConsumeItem";
+		public const string Impact = "Impact";
+		public const string SnapFingers = "SnapFingers";
 	}
 }

@@ -1,4 +1,3 @@
-using Sirenix.OdinInspector;
 using System;
 using Steamworks;
 using Unity.Collections;
@@ -11,20 +10,10 @@ namespace Game.Runtime.Player
 	// connection, so it is what a returning player would be matched on.
 	public class PlayerData : NetworkBehaviour
 	{
-		[Header("Wallet")]
-		[Tooltip("What a player arrives with, and gets back when a new match starts. A table charges its own price at the door, so this only has to cover that and the bets they want to make.")]
-		[MinValue(0)]
-		[SerializeField] private int _startingMoney = 20;
-
 		[HideInInspector] public NetworkVariable<FixedString64Bytes> DisplayName = new(default,
 			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
 
 		[HideInInspector] public NetworkVariable<ulong> PlayerId = new(0,
-			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
-
-		// The only money a player has: tables stake it directly rather than exchanging it for a stack, so
-		// a bet leaves here as it is placed and a pot lands here as it is won.
-		[HideInInspector] public NetworkVariable<int> Money = new(0,
 			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
 
 		// Which of the table's colours this player is wearing. An index rather than the colour itself, so
@@ -36,38 +25,10 @@ namespace Game.Runtime.Player
 
 		public event Action OnIdentityChanged;
 
-		// What a fresh purse holds. Read rather than duplicated, so whatever puts a player back to their
-		// starting position is putting them back to the number they actually arrived on. A mode may set
-		// its own configured amount over the prefab's; server-only, like every decision about money.
-		public int StartingMoney => _startingMoneyOverride >= 0 ? _startingMoneyOverride : Mathf.Max(0, _startingMoney);
-
-		private int _startingMoneyOverride = -1;
-
-		public void ServerSetStartingMoney(int amount)
-		{
-			if (!IsServer) return;
-
-			_startingMoneyOverride = Mathf.Max(0, amount);
-		}
-
-		public bool CanAfford(int amount) => Money.Value >= amount;
-
-		// A player put back to how they arrived. Owned here rather than written out by whoever needs it,
-		// so a wallet that grows a second thing to reset grows it in one place.
-		public void ServerResetToStart()
-		{
-			if (!IsServer) return;
-
-			ServerSetMoney(StartingMoney);
-		}
-
 		public override void OnNetworkSpawn()
 		{
 			DisplayName.OnValueChanged += HandleNameChanged;
 			PlayerId.OnValueChanged += HandleIdChanged;
-
-			// A fresh body arrives with a fresh purse.
-			if (IsServer) ServerResetToStart();
 
 			// Steam only knows whoever is signed in at this machine, so each player reports their own
 			// name and id. The server cannot ask on their behalf: the transport hands it a bare number,
@@ -128,31 +89,6 @@ namespace Game.Runtime.Player
 			if (!IsServer) return;
 
 			ColorIndex.Value = index;
-		}
-
-		public void ServerSetMoney(int amount)
-		{
-			if (!IsServer) return;
-
-			Money.Value = Mathf.Max(0, amount);
-		}
-
-		public void ServerDeposit(int amount)
-		{
-			if (!IsServer || amount <= 0) return;
-
-			Money.Value += amount;
-		}
-
-		// Refuses rather than clamping: paying part of what was asked would leave the caller believing a
-		// bet was covered when it was not.
-		public bool ServerTryWithdraw(int amount)
-		{
-			if (!IsServer) return false;
-			if (amount < 0 || Money.Value < amount) return false;
-
-			Money.Value -= amount;
-			return true;
 		}
 
 		private void HandleNameChanged(FixedString64Bytes previous, FixedString64Bytes current) => OnIdentityChanged?.Invoke();

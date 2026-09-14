@@ -1,5 +1,73 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &467043931898212318
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8322637423013813309}
+  - component: {fileID: 4977768931788666011}
+  - component: {fileID: 6150518281047201000}
+  m_Layer: 0
+  m_Name: Death
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8322637423013813309
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 467043931898212318}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7915523810459036602}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4977768931788666011
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 467043931898212318}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a5fb3dc54460ffe8760547697aa64faa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Player.PokerDeathPoseController
+  ShowTopMostFoldoutHeaderGroup: 1
+  _deadParameter: IsDead
+  _data: {fileID: 6935137486891752095}
+  _animatorStates: {fileID: 5503049138563897167}
+--- !u!114 &6150518281047201000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 467043931898212318}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2aa91c8f831cc980b85716bb2f40b2eb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Visual.PokerDeathVisual
+  ShowTopMostFoldoutHeaderGroup: 1
+  _headVanishDelay: 1.8
+  _vanishEffect: {fileID: 0}
+  _vanishEffectLifetime: 3
+  _data: {fileID: 6935137486891752095}
+  _rig: {fileID: 382404797062674536}
+  _boneScale: {fileID: 338084876826924209}
 --- !u!1 &717192683199291505
 GameObject:
   m_ObjectHideFlags: 0
@@ -10,7 +78,6 @@ GameObject:
   m_Component:
   - component: {fileID: 2401540123256720930}
   - component: {fileID: 4513404695735546853}
-  - component: {fileID: 6838944878377153600}
   - component: {fileID: 888175482120155821}
   m_Layer: 0
   m_Name: Table
@@ -48,19 +115,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Controller.TableCursorController
   ShowTopMostFoldoutHeaderGroup: 1
   _holdLookAction: {fileID: -2873660443980403870, guid: 052faaac586de48259a63d0c4782560b, type: 3}
---- !u!114 &6838944878377153600
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 717192683199291505}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 009540ab941743c44ba7b516ecbbfe86, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.PlayerLookTarget
-  _point: {fileID: 4726230110908427231}
 --- !u!114 &888175482120155821
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -147,61 +201,6 @@ MonoBehaviour:
   - {fileID: 11400000, guid: d57a567a04c7c424ea88044dbe27ce15, type: 2}
   _requiresPlaceInMatch: 0
   _data: {fileID: 6935137486891752095}
---- !u!1 &1651240911300962866
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 3438344367432844806}
-  - component: {fileID: 7599188654300488951}
-  m_Layer: 0
-  m_Name: Drink
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &3438344367432844806
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1651240911300962866}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 7915523810459036602}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &7599188654300488951
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1651240911300962866}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4058e2277d1f95d40aab9985a0ffa9fc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Player.PokerDrinkController
-  ShowTopMostFoldoutHeaderGroup: 1
-  _logGrants: 0
-  DrunkUntil:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 0
-  ExposedTarget:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
 --- !u!1 &1863945868604418551
 GameObject:
   m_ObjectHideFlags: 0
@@ -213,7 +212,6 @@ GameObject:
   - component: {fileID: 7173932181060956970}
   - component: {fileID: 6328082092965802174}
   - component: {fileID: 6398727710579312675}
-  - component: {fileID: 3631784473629482766}
   - component: {fileID: 2685139147258332424}
   m_Layer: 0
   m_Name: Cards
@@ -255,6 +253,9 @@ MonoBehaviour:
   _table: {fileID: 6057641942966068475}
   _hand: {fileID: 3345757001518581811}
   _handOverStagger: 0.15
+  _pickUpDelay: 0.5
+  _putDownDelay: 0.35
+  _showDelay: 0.15
   _data: {fileID: 6935137486891752095}
   _cardPrefab: {fileID: 2273976980707683780, guid: 766e25a6debc8fc4c95fcf20063e4f4d, type: 3}
   _database: {fileID: 11400000, guid: 81ffbfaf2b0219043836272fa19b4e8b, type: 2}
@@ -280,25 +281,6 @@ MonoBehaviour:
   _maxDistance: 4
   _hoverLift: 0.015
   _selectedLift: 0.035
---- !u!114 &3631784473629482766
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1863945868604418551}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 9a0ce27fc940f5449a21ab843e12ac18, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Visual.PokerRevealedCardsVisual
-  ShowTopMostFoldoutHeaderGroup: 1
-  _anchor: {fileID: 1211031270858436978}
-  _cardSpacing: 0.09
-  _depthStep: 0.001
-  _data: {fileID: 6935137486891752095}
-  _cardPrefab: {fileID: 2273976980707683780, guid: 766e25a6debc8fc4c95fcf20063e4f4d, type: 3}
-  _database: {fileID: 11400000, guid: 81ffbfaf2b0219043836272fa19b4e8b, type: 2}
 --- !u!114 &2685139147258332424
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -313,6 +295,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Player.PokerHandPoseController
   ShowTopMostFoldoutHeaderGroup: 1
   _holdingCardsParameter: IsHaveCardOnHand
+  _showingCardsParameter: IsShowingCards
   _data: {fileID: 6935137486891752095}
   _animatorStates: {fileID: 5503049138563897167}
 --- !u!1 &2062609971239066926
@@ -734,37 +717,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b3066befa2516d5419fe067e63b07c89, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.Camera.PlayerCameraFreeflyState
---- !u!1 &5029324686189226801
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 7260468181236647055}
-  m_Layer: 0
-  m_Name: Aim_Point
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &7260468181236647055
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5029324686189226801}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0.7071068, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 8966792870168296110}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &5347883484298159708
 GameObject:
   m_ObjectHideFlags: 0
@@ -812,59 +764,6 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   _data: {fileID: 6935137486891752095}
   _fingers: {fileID: 1929870118816623789}
---- !u!1 &5425319178545356803
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 8340736963894693341}
-  - component: {fileID: 5108417984520421552}
-  m_Layer: 0
-  m_Name: ReportAim
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &8340736963894693341
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5425319178545356803}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 7915523810459036602}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &5108417984520421552
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5425319178545356803}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2777e67af965d1d47b8af3a6b231c64d, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Player.PokerReportAimController
-  ShowTopMostFoldoutHeaderGroup: 1
-  _aimRange: 12
-  _aimRadius: 0.35
-  _playerLayers:
-    serializedVersion: 2
-    m_Bits: 4294967295
-  _drawDebugRays: 0
-  _logAimChanges: 0
-  _lookOrigin: {fileID: 7260468181236647055}
 --- !u!1 &5501318086319530288
 GameObject:
   m_ObjectHideFlags: 0
@@ -943,37 +842,6 @@ MonoBehaviour:
     - {fileID: 1083850778490005402}
     - {fileID: 83956604392752888}
   _boneScale: {fileID: 338084876826924209}
---- !u!1 &6772456168868988949
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1211031270858436978}
-  m_Layer: 0
-  m_Name: RevealedCards
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1211031270858436978
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6772456168868988949}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
-  m_LocalPosition: {x: 0, y: 1.25, z: 0.15}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 7915523810459036602}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &6876006055139249189
 GameObject:
   m_ObjectHideFlags: 0
@@ -1117,37 +985,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Player.PokerPlayerItemController
   ShowTopMostFoldoutHeaderGroup: 1
---- !u!1 &9143877374665817519
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 4726230110908427231}
-  m_Layer: 0
-  m_Name: PeekLookPoint
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &4726230110908427231
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9143877374665817519}
-  serializedVersion: 2
-  m_LocalRotation: {x: -0, y: 0.9870875, z: 0.1601821, w: 0}
-  m_LocalPosition: {x: 0, y: 1.046, z: 0.762}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 7915523810459036602}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &2812995479481287383
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1221,19 +1058,7 @@ PrefabInstance:
     m_AddedGameObjects:
     - targetCorrespondingSourceObject: {fileID: 5390899513882683757, guid: 8a531d709826a264e9027ff908ced981, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1211031270858436978}
-    - targetCorrespondingSourceObject: {fileID: 5390899513882683757, guid: 8a531d709826a264e9027ff908ced981, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 4726230110908427231}
-    - targetCorrespondingSourceObject: {fileID: 5390899513882683757, guid: 8a531d709826a264e9027ff908ced981, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 8340736963894693341}
-    - targetCorrespondingSourceObject: {fileID: 5390899513882683757, guid: 8a531d709826a264e9027ff908ced981, type: 3}
-      insertIndex: -1
       addedObject: {fileID: 8811620965672119008}
-    - targetCorrespondingSourceObject: {fileID: 5390899513882683757, guid: 8a531d709826a264e9027ff908ced981, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 3438344367432844806}
     - targetCorrespondingSourceObject: {fileID: 5390899513882683757, guid: 8a531d709826a264e9027ff908ced981, type: 3}
       insertIndex: -1
       addedObject: {fileID: 7173932181060956970}
@@ -1252,15 +1077,15 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 5390899513882683757, guid: 8a531d709826a264e9027ff908ced981, type: 3}
       insertIndex: -1
       addedObject: {fileID: 6961401803370160626}
+    - targetCorrespondingSourceObject: {fileID: 5390899513882683757, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8322637423013813309}
     - targetCorrespondingSourceObject: {fileID: 2734819149101292962, guid: 8a531d709826a264e9027ff908ced981, type: 3}
       insertIndex: -1
       addedObject: {fileID: 7181582182888109943}
     - targetCorrespondingSourceObject: {fileID: 2091228027814277692, guid: 8a531d709826a264e9027ff908ced981, type: 3}
       insertIndex: -1
       addedObject: {fileID: 7812846721506181505}
-    - targetCorrespondingSourceObject: {fileID: 6591500634726463609, guid: 8a531d709826a264e9027ff908ced981, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 7260468181236647055}
     m_AddedComponents:
     - targetCorrespondingSourceObject: {fileID: 6105733973742945484, guid: 8a531d709826a264e9027ff908ced981, type: 3}
       insertIndex: -1
@@ -1274,12 +1099,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 6105733973742945484, guid: 8a531d709826a264e9027ff908ced981, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2520641782098330038}
-    - targetCorrespondingSourceObject: {fileID: 6736061117846939037, guid: 8a531d709826a264e9027ff908ced981, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 7532137638287253186}
-    - targetCorrespondingSourceObject: {fileID: 9158856499958494448, guid: 8a531d709826a264e9027ff908ced981, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 4806397848947566528}
     - targetCorrespondingSourceObject: {fileID: 5967459511013491666, guid: 8a531d709826a264e9027ff908ced981, type: 3}
       insertIndex: -1
       addedObject: {fileID: 5503049138563897167}
@@ -1332,17 +1151,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5d9e6f5d3a24be2448c8cd21995b1aa7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.PlayerData
---- !u!114 &1379105487473239580 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 3758910702381786315, guid: 8a531d709826a264e9027ff908ced981, type: 3}
-  m_PrefabInstance: {fileID: 2812995479481287383}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8823272510886078282}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 685e1405813ac0946a72b2ecc8f5722b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.PlayerGlassesController
 --- !u!114 &2259382645207330846 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 4058645927303377609, guid: 8a531d709826a264e9027ff908ced981, type: 3}
@@ -1364,17 +1172,6 @@ Animator:
   m_CorrespondingSourceObject: {fileID: 469678322729097954, guid: 8a531d709826a264e9027ff908ced981, type: 3}
   m_PrefabInstance: {fileID: 2812995479481287383}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &2468990494341469443 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 381215773534263252, guid: 8a531d709826a264e9027ff908ced981, type: 3}
-  m_PrefabInstance: {fileID: 2812995479481287383}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6346432835813815847}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4b1c5cf126132734e87722d8eddf3add, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.PlayerHeadStretchController
 --- !u!4 &2673125152113937884 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 148932516519792395, guid: 8a531d709826a264e9027ff908ced981, type: 3}
@@ -1420,31 +1217,6 @@ Animator:
   m_CorrespondingSourceObject: {fileID: 1780258250985252200, guid: 8a531d709826a264e9027ff908ced981, type: 3}
   m_PrefabInstance: {fileID: 2812995479481287383}
   m_PrefabAsset: {fileID: 0}
---- !u!1 &6346432835813815847 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 9158856499958494448, guid: 8a531d709826a264e9027ff908ced981, type: 3}
-  m_PrefabInstance: {fileID: 2812995479481287383}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &4806397848947566528
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6346432835813815847}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 19f45b96cdac01f4ead1a1df310424c5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Player.PokerPeekController
-  ShowTopMostFoldoutHeaderGroup: 1
-  _logGrants: 0
-  _headStretch: {fileID: 2468990494341469443}
-  PeekRevealsHand:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 0
 --- !u!4 &7278498488627221500 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 4759090618432803115, guid: 8a531d709826a264e9027ff908ced981, type: 3}
@@ -1481,17 +1253,6 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 5390899513882683757, guid: 8a531d709826a264e9027ff908ced981, type: 3}
   m_PrefabInstance: {fileID: 2812995479481287383}
   m_PrefabAsset: {fileID: 0}
---- !u!114 &7969034684219841611 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 5304807904123281052, guid: 8a531d709826a264e9027ff908ced981, type: 3}
-  m_PrefabInstance: {fileID: 2812995479481287383}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8491933690262143237}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 31d4b9fbe5fdf45479d7bac8fd692a13, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.PlayerHandPeekController
 --- !u!4 &8299225902381317574 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6063254125736083217, guid: 8a531d709826a264e9027ff908ced981, type: 3}
@@ -1553,16 +1314,6 @@ MonoBehaviour:
       MinSecondsBetweenUpdates: 0
       MaxSecondsBetweenUpdates: 0
     m_InternalValue: 0
-  AbilityBusyUntil:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 0
-  ReportsLeft:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 0
   HallucinationRate:
     UpdateTraits:
       MinSecondsBetweenUpdates: 0
@@ -1600,10 +1351,7 @@ MonoBehaviour:
   _itemConsume: {fileID: 715681995083866239}
   _wallet: {fileID: 1277917375681613223}
   _rig: {fileID: 382404797062674536}
-  _headStretch: {fileID: 2468990494341469443}
   _actionAnimator: {fileID: 7776873476951557616}
-  _handPeek: {fileID: 7969034684219841611}
-  _point: {fileID: 0}
   _visual: {fileID: 0}
 --- !u!114 &8453734359539351025
 MonoBehaviour:
@@ -1661,35 +1409,6 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   _bodyAnimator: {fileID: 2417700236160604213}
   _handOnlyAnimator: {fileID: 4592962496778479551}
---- !u!1 &8823272510886078282 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 6736061117846939037, guid: 8a531d709826a264e9027ff908ced981, type: 3}
-  m_PrefabInstance: {fileID: 2812995479481287383}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &7532137638287253186
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8823272510886078282}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e00ce3b45ae0d1c4ead204c73334a08c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Player.PokerBoardPeekController
-  ShowTopMostFoldoutHeaderGroup: 1
-  _glasses: {fileID: 1379105487473239580}
-  PeekCards:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 0
---- !u!4 &8966792870168296110 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 6591500634726463609, guid: 8a531d709826a264e9027ff908ced981, type: 3}
-  m_PrefabInstance: {fileID: 2812995479481287383}
-  m_PrefabAsset: {fileID: 0}
 --- !u!4 &9010611455701359780 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6486831755484864115, guid: 8a531d709826a264e9027ff908ced981, type: 3}

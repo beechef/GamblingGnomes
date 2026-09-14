@@ -28,12 +28,6 @@ namespace Game.Runtime.Player
 		[SerializeField] private PlayerBoneRig _fullBodyRig;
 		[SerializeField] private PlayerBoneRig _handOnlyRig;
 
-		[Header("View")]
-		[Tooltip("The first person camera each rig hangs off a bone of. Anything that moves a head moves the bone this is attached to, so the view goes wherever the head goes.")]
-		[SerializeField] private Transform _fullBodyCamera;
-
-		[SerializeField] private Transform _handOnlyCamera;
-
 		[Header("Focus")]
 		[Tooltip("Where somebody else's head aims when they turn to look at this player — face height, on the full body rig, which is the one everybody else renders. A transform rather than a bone plus an offset in code: this rig's bones are Maya-style, so an offset authored against one is wrong before it is tried. Hung under the chest so it follows whatever pose the chair put them in.")]
 		[SerializeField] private Transform _focusPoint;
@@ -55,27 +49,8 @@ namespace Game.Runtime.Player
 		// one, everyone else's is the full body.
 		public PlayerBoneRig RenderedRig => IsOwner ? _handOnlyRig : _fullBodyRig;
 
-		public Transform RenderedCamera => IsOwner ? _handOnlyCamera : _fullBodyCamera;
-
-		// The head itself — the bone the mesh is skinned to and the one anything posing a head has to
-		// drive. The camera does not hang off it directly: there is a pivot in between (Head_M/Offset/
-		// Camera) holding the eye's offset, so taking the camera's parent hands back that pivot instead.
-		// Aiming the pivot turns the view and leaves the head where the clip left it, which reads as
-		// correct from inside the player's own eyes and as a head that never moves from every other seat
-		// at the table. The camera is a descendant either way, so the view still travels with the bone.
-		//
-		// The camera's parent is only the fallback, for a rig whose head bone is not named in its map.
-		public Transform RenderedHead
-		{
-			get
-			{
-				var bone = GetBone(PlayerBone.Head);
-				if (bone) return bone;
-
-				var camera = RenderedCamera;
-				return camera ? camera.parent : null;
-			}
-		}
+		// The head itself — the bone the mesh is skinned to and the one anything posing a head has to drive.
+		public Transform RenderedHead => GetBone(PlayerBone.Head);
 
 		public Transform GetBone(PlayerBone bone)
 		{

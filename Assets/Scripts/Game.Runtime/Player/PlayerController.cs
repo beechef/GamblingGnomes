@@ -32,7 +32,20 @@ namespace Game.Runtime.Player
 		[Tooltip("Curve on stick deflection. 1 is linear, which makes a small aiming correction travel as fast as a full sweep.")]
 		[Range(1f, 3f)]
 		[SerializeField] private float _gamepadLookExponent = 2f;
-		[SerializeField] private Vector2 _pitchLimits = new(-60f, 60f);
+
+		// The only place a look limit is set. A seat used to carry its own and hand them over on sitting
+		// down, which made two answers to one question and let a chair quietly override the player.
+		[Header("Look Limits")]
+		[Tooltip("Degrees the view may pitch down (negative) and up.")]
+		[SerializeField] private Vector2 _pitchLimits = new(-60f, 45f);
+
+		[Tooltip("Degrees the head may turn left and right of the body while a seat anchors it. Standing, yaw turns the whole body and is not limited.")]
+		[SerializeField] private Vector2 _yawLimits = new(-80f, 80f);
+
+		[Tooltip("Degrees the head may turn while something is aiming it at a point — reading a face across the table needs more than a player swivels by hand. Never narrower than Yaw Limits.")]
+		[SerializeField] private Vector2 _focusYawLimits = new(-150f, 150f);
+
+		[Header("Look Aim")]
 
 		[Tooltip("Degrees per second the look turns while something is aiming it at a point. A tween is the wrong tool here: the point is a player who is breathing and animating, so the target never stops moving and a tween would be killed and rebuilt every frame.")]
 		[SerializeField] private float _lookTurnSpeed = 220f;
@@ -71,8 +84,12 @@ namespace Game.Runtime.Player
 		[Tooltip("The transform sync this body replicates through. A teleport has to go through it, or every other screen walks the body to where it landed. Empty finds it on this object.")]
 		[SerializeField] private NetworkTransform _networkTransform;
 
-		[SerializeField] private CinemachineCamera _firstPersonCamera;
-		[SerializeField] private CinemachineCamera _ownerFirstPersonCamera;
+		// One view, outside the rig, facing where the look says. Only the owner ever looks through it, so
+		// there is no second camera for the body everyone else renders.
+		[FormerlySerializedAs("_ownerFirstPersonCamera")]
+		[SerializeField] private CinemachineCamera _camera;
+
+		[SerializeField] private PlayerCameraFollow _cameraFollow;
 
 		// Which bone the look aims depends on what the character is free to do, not on which rig is being
 		// rendered — so each rig supplies both, and the mode picks.
@@ -117,20 +134,11 @@ namespace Game.Runtime.Player
 
 		private bool _inputBound;
 		private bool _movementEnabled = true;
-		private bool _lookConstrained;
-		private bool _constraintAllowsRotation;
 		private bool _bodyAnchored;
 		private PlayerLookMode _seatLookMode;
 		private PlayerLookMode _overrideLookMode;
 		private bool _hasLookModeOverride;
-		private bool _lookSuspended;
 		private bool _lookInputDisabled;
-		private float _appliedLookYaw;
-		private float _appliedLookPitch;
-		private float _constraintYaw;
-		private Vector2 _constraintYawLimits;
-		private Vector2 _constraintFocusYawLimits;
-		private Vector2 _activePitchLimits;
 		private Transform _lookTarget;
 		private float _lastManualLookTime = float.NegativeInfinity;
 
@@ -144,10 +152,6 @@ namespace Game.Runtime.Player
 
 		private readonly List<AngleSample> _pitchHistory = new();
 		private readonly List<AngleSample> _lookYawHistory = new();
-
-		// Owner sees the hand-only rig, everyone else sees the full body rig, so each side only
-		// ever drives the bone and camera belonging to the rig it actually renders.
-		private CinemachineCamera ActiveCamera => IsOwner ? _ownerFirstPersonCamera : _firstPersonCamera;
 
 		// An override outranks the seat's answer and puts itself back when it is done, so whatever set it
 		// never has to know what the seat had decided — and cannot get it wrong on the way out.
@@ -163,10 +167,7 @@ namespace Game.Runtime.Player
 		{
 			if (!_networkTransform) _networkTransform = GetComponent<NetworkTransform>();
 
-			_firstPersonCamera.enabled = false;
-			_ownerFirstPersonCamera.enabled = false;
-
-			_activePitchLimits = _pitchLimits;
+			if (_camera) _camera.enabled = false;
 		}
 
 		public void SetMovementEnabled(bool enabled)
@@ -210,21 +211,8 @@ namespace Game.Runtime.Player
 			_hasLookModeOverride = false;
 		}
 
-		// Hands the look bones over to something that is placing the view itself. The neck stretch aims the
-		// head at what it went to read, and two writers on one bone leave whatever wrote last — so the look
-		// stops writing to a bone of its own for as long as the act lasts.
-		//
-		// It is handed over rather than thrown away: whoever took it calls ComposeLookOnto with the bone it
-		// settled on, and the player can still turn their head from there.
-		//
-		// Set on every peer, like the anchor and the look mode, because the act it belongs to is replicated.
-		public void SetLookSuspended(bool suspended)
-		{
-			_lookSuspended = suspended;
-		}
-
-		// Stops the player turning at all, which suspension on its own does not: a state that has aimed the
-		// view somewhere on their behalf must not also be taking their input for the same view.
+		// Stops the player turning at all: a state that has aimed the view somewhere on their behalf must not
+		// also be taking their input for the same view.
 		public void SetLookInputDisabled(bool disabled)
 		{
 			_lookInputDisabled = disabled;
@@ -252,84 +240,23 @@ namespace Game.Runtime.Player
 
 		public bool HasLookTarget => _lookTarget;
 
-		// A pose narrows what a player may swivel to; an aim is allowed more, because reading a face across
-		// the table is past what anybody turns in a chair. The wider pair is only in force while something
-		// is actually aiming — so it cannot be left behind, and the seat's own answer is never overwritten
-		// and put back, only covered.
-		private Vector2 ActiveYawLimits => _lookTarget ? _constraintFocusYawLimits : _constraintYawLimits;
+		// An aim is allowed more than a hand, because reading a face across the table is past what anybody
+		// turns in a chair. The wider pair is only in force while something is actually aiming, and never
+		// narrower than the hand's, so a focus pair tuned below it cannot freeze the head.
+		private Vector2 ActiveYawLimits => _lookTarget
+			? new Vector2(Mathf.Min(_focusYawLimits.x, _yawLimits.x), Mathf.Max(_focusYawLimits.y, _yawLimits.y))
+			: _yawLimits;
 
-		// The angles as everyone knows them. Whatever takes the look over needs a zero to measure the
-		// player's turn from, and it has to be a number every peer agrees on — so it is read from here,
-		// replicated by the act itself, rather than each client noting down whatever it happened to be
-		// showing when its own copy of the act began.
-		public float ReplicatedLookYaw => _lookYaw.Value;
-		public float ReplicatedLookPitch => _pitch.Value;
-
-		// The angles this peer last drew with, whether it drew them on a bone of its own or handed them to
-		// a taker. What a remote is actually working from, which is the one thing a "it only turns on my
-		// machine" report cannot be diagnosed without.
-		public float AppliedLookYaw => _appliedLookYaw;
-		public float AppliedLookPitch => _appliedLookPitch;
-
-		// Given back on the bone the taker settled on, so a neck stretched across the table can still be
-		// looked around from. Composed in the camera's own frame rather than the character's: the view is
-		// out there facing whatever the act aimed it at, and on this Maya-style rig the head bone's axes are
-		// a quarter turn off the way it is looking — pitched around those, looking up would go sideways.
-		//
-		// The baseline is handed in rather than remembered here, because it belongs to the act: measured
-		// locally it is a different number on every screen, and the turn everyone else watches drifts off
-		// the one the player is making.
-		public void ComposeLookOnto(Transform bone, float baselineYaw, float baselinePitch)
+		// Square with the body again, on sitting down and on standing up: whatever the head was turned toward
+		// on the way in is not where the new pose should leave it. Owner only — only the owner takes input.
+		public void ResetLook()
 		{
-			if (!_lookSuspended || !bone) return;
+			if (!IsOwner) return;
 
-			var camera = ActiveCamera;
-
-			ApplyLookTo(bone, camera ? camera.transform : bone,
-				Mathf.DeltaAngle(baselineYaw, _appliedLookYaw),
-				Mathf.DeltaAngle(baselinePitch, _appliedLookPitch));
-		}
-
-		// Sitting, lying down or any other anchored pose narrows what the look input is allowed to do:
-		// yaw is measured against the anchor's facing instead of being free, and pitch can be tightened.
-		// Only the owner takes input, so only the owner needs this; what bone the result lands on is
-		// SetBodyAnchored's business and is decided on every client.
-		public void ApplyLookConstraint(float referenceYaw, bool allowRotation, Vector2 yawLimits,
-			Vector2 focusYawLimits, Vector2 pitchLimits)
-		{
-			_lookConstrained = true;
-			_constraintAllowsRotation = allowRotation;
-			_constraintYaw = referenceYaw;
-			_constraintYawLimits = yawLimits;
-
-			// Widened to at least what the player may turn by hand, never narrowed. A pose authored before
-			// the focus pair existed deserializes it to zero, and taken at face value that is a head an aim
-			// can never turn at all — a silent freeze on every seat in the project rather than the old
-			// behaviour, which is what it has to fall back to.
-			_constraintFocusYawLimits = new Vector2(
-				Mathf.Min(focusYawLimits.x, yawLimits.x),
-				Mathf.Max(focusYawLimits.y, yawLimits.y));
-			_activePitchLimits = pitchLimits;
-
-			_currentPitch = Mathf.Clamp(_currentPitch, _activePitchLimits.x, _activePitchLimits.y);
+			_currentPitch = Mathf.Clamp(_currentPitch, _pitchLimits.x, _pitchLimits.y);
 			_pitch.Value = _currentPitch;
 			_lastSentPitch = _currentPitch;
 
-			// Starts square with the seat: whatever the body was turned toward on the way in is not where
-			// sitting down should leave it.
-			_currentLookYaw = 0f;
-			_lookYaw.Value = 0f;
-			_lastSentLookYaw = 0f;
-		}
-
-		public void ClearLookConstraint()
-		{
-			_lookConstrained = false;
-			_constraintAllowsRotation = true;
-			_activePitchLimits = _pitchLimits;
-			_constraintFocusYawLimits = _constraintYawLimits;
-
-			// Standing up must not leave the torso still turned — from here yaw is the character's again.
 			_currentLookYaw = 0f;
 			_lookYaw.Value = 0f;
 			_lastSentLookYaw = 0f;
@@ -361,8 +288,6 @@ namespace Game.Runtime.Player
 
 		public override void OnNetworkSpawn()
 		{
-			AlignCameraToBody();
-
 			_currentPitch = _pitch.Value;
 			_currentLookYaw = _lookYaw.Value;
 			ApplyLook(_currentLookYaw, _currentPitch);
@@ -381,7 +306,8 @@ namespace Game.Runtime.Player
 			// passed to InstantiateAndSpawn, and only the owner ever drives movement with it.
 			_characterController.enabled = true;
 
-			ActiveCamera.enabled = true;
+			if (_cameraFollow) _cameraFollow.Aim(_currentLookYaw, _currentPitch);
+			if (_camera) _camera.enabled = true;
 
 			_lastSentPitch = _currentPitch;
 			_lastSentLookYaw = _currentLookYaw;
@@ -469,11 +395,9 @@ namespace Game.Runtime.Player
 		// length of the frame. Feeding a stick through the mouse path is what makes it crawl.
 		private void ReadLookInput()
 		{
-			// Disabled outright, not merely suspended. Suspension hands the *bone* over and deliberately lets
-			// the player keep turning from there — that is what stops a peek being a cutscene. A camera state
-			// that has taken the view somewhere else needs the stronger thing: left reading, the angles still
-			// replicate, so every other client watches the head turn and the view snaps to wherever they had
-			// turned the moment the state lets go.
+			// A camera state that has taken the view somewhere else stops the input outright: left reading,
+			// the angles still replicate, so every other client watches the head turn and the view snaps to
+			// wherever they had turned the moment the state lets go.
 			if (_lookInputDisabled) return;
 
 			if (!_inputBound) return;
@@ -525,10 +449,9 @@ namespace Game.Runtime.Player
 			// free on their feet, yaw turns the whole character, so it rides along on NetworkTransform
 			// rather than needing its own NetworkVariable like pitch does.
 			if (_bodyAnchored) _currentLookYaw = ConstrainLookYaw(yawDelta);
-			else transform.Rotate(Vector3.up, ConstrainYawDelta(yawDelta));
+			else transform.Rotate(Vector3.up, yawDelta);
 
-			_currentPitch = Mathf.Clamp(_currentPitch + filteredY * -1f,
-				_activePitchLimits.x, _activePitchLimits.y);
+			_currentPitch = Mathf.Clamp(_currentPitch + filteredY * -1f, _pitchLimits.x, _pitchLimits.y);
 
 			SendLookAngles();
 		}
@@ -554,28 +477,12 @@ namespace Game.Runtime.Player
 		// fast as the sweep across the table. The sign is kept so the curve bends both ways.
 		private float Curved(float value) => Mathf.Sign(value) * Mathf.Pow(Mathf.Abs(value), _gamepadLookExponent);
 
-		// The look bone answers to the same two settings the character does: a pose that forbids turning
-		// forbids turning the head as well — a locked-in chair means facing one way, not facing one way
-		// with a free neck — and the limits are read straight off the pose's forward, which is where the
-		// body starts from.
+		// Anchored, the yaw is measured from the body's own forward — which the seat squared with the table —
+		// and held inside this controller's limits.
 		private float ConstrainLookYaw(float yawDelta)
 		{
-			if (!_constraintAllowsRotation) return 0f;
-
 			var limits = ActiveYawLimits;
 			return Mathf.Clamp(_currentLookYaw + yawDelta, limits.x, limits.y);
-		}
-
-		private float ConstrainYawDelta(float yawDelta)
-		{
-			if (!_lookConstrained) return yawDelta;
-			if (!_constraintAllowsRotation) return 0f;
-
-			var limits = ActiveYawLimits;
-			var currentOffset = Mathf.DeltaAngle(_constraintYaw, transform.eulerAngles.y);
-			var clampedOffset = Mathf.Clamp(currentOffset + yawDelta, limits.x, limits.y);
-
-			return clampedOffset - currentOffset;
 		}
 
 		private void Update()
@@ -614,6 +521,9 @@ namespace Game.Runtime.Player
 				SteerLookTowardTarget();
 
 				ApplyLook(_currentLookYaw, _currentPitch);
+
+				// The view takes the angles, not the bone: whatever the clip did to the head stays out of it.
+				if (_cameraFollow) _cameraFollow.Aim(_currentLookYaw, _currentPitch);
 				return;
 			}
 
@@ -638,47 +548,29 @@ namespace Game.Runtime.Player
 			// so a stick being let go to centre is not read as them stopping.
 			if (Time.time - _lastManualLookTime < _manualLookReleaseDelay) return;
 
-			// The eye rather than the bone: what has to end up pointing at the target is what the view is
-			// rendered from, and it hangs some way below the bone being turned.
-			var camera = ActiveCamera;
-			var eye = camera ? camera.transform : ActiveLookTransform;
+			// The eye is the camera. It stands still and only turns, so where it is is simply where it is —
+			// turning the head no longer swings it round the bone, and one solve is exact.
+			var eye = _camera ? _camera.transform : ActiveLookTransform;
 			if (!eye) return;
 
 			// Everything in the character's own frame, because that is the frame the two angles are turned
-			// in. The eye's forward read here is the pose the clip is holding — the look has not been
-			// applied yet this frame — so what comes out is the absolute pair, not a correction to add.
-			var bone = ActiveLookTransform;
-			var pivot = bone ? bone.position : eye.position;
+			// in. The resting direction is read off the follow rather than the camera: the camera still holds
+			// last frame's look, and solving from that would feed each answer back into its own question.
+			var restRotation = _cameraFollow ? _cameraFollow.RestingRotation : eye.rotation;
+			var rest = transform.InverseTransformDirection(restRotation * Vector3.forward);
+			var toTarget = transform.InverseTransformDirection(_lookTarget.position - eye.position);
+			if (toTarget.sqrMagnitude < 0.000001f) return;
 
-			var rest = transform.InverseTransformDirection(eye.forward);
-			var pivotLocal = transform.InverseTransformPoint(pivot);
-			var eyeOffset = transform.InverseTransformVector(eye.position - pivot);
-			var targetLocal = transform.InverseTransformPoint(_lookTarget.position);
-
-			var toEye = targetLocal - (pivotLocal + eyeOffset);
-			if (toEye.sqrMagnitude < 0.000001f) return;
-
-			SolveLookAngles(rest, toEye.normalized, _currentPitch, out var targetYaw, out var targetPitch);
-
-			// Turning the head swings the eye around the bone as well as pointing it, so the first answer
-			// aims from where the eye is *now* rather than where it will be. A hand's breadth of travel
-			// against a face a table away is a couple of degrees — enough to land the aim on a shoulder —
-			// so it is solved a second time from where the eye ends up.
-			var turned = Quaternion.AngleAxis(targetYaw, Vector3.up)
-						* Quaternion.AngleAxis(targetPitch, Vector3.right);
-
-			toEye = targetLocal - (pivotLocal + turned * eyeOffset);
-			if (toEye.sqrMagnitude > 0.000001f)
-				SolveLookAngles(rest, toEye.normalized, _currentPitch, out targetYaw, out targetPitch);
+			SolveLookAngles(rest, toTarget.normalized, _currentPitch, out var targetYaw, out var targetPitch);
 
 			var step = _lookTurnSpeed * Time.deltaTime;
 
 			var yawStep = Mathf.Clamp(Mathf.DeltaAngle(_currentLookYaw, targetYaw), -step, step);
 			if (_bodyAnchored) _currentLookYaw = ConstrainLookYaw(yawStep);
-			else transform.Rotate(Vector3.up, ConstrainYawDelta(yawStep));
+			else transform.Rotate(Vector3.up, yawStep);
 
 			_currentPitch = Mathf.Clamp(_currentPitch + Mathf.Clamp(targetPitch - _currentPitch, -step, step),
-				_activePitchLimits.x, _activePitchLimits.y);
+				_pitchLimits.x, _pitchLimits.y);
 
 			SendLookAngles();
 		}
@@ -774,22 +666,6 @@ namespace Game.Runtime.Player
 			return latest.Value;
 		}
 
-		// Squares the camera with the character's forward from wherever it hangs, rather than assuming it
-		// is parented to the bone the look drives — it is not, and must not be: the neck stretch walks the
-		// chain up to whichever bone carries the camera, so the view travels with a head sent across the
-		// table. Measured against its own parent, so moving the camera up or down the skeleton needs no
-		// change here.
-		private void AlignCameraToBody()
-		{
-			var camera = ActiveCamera;
-			if (!camera) return;
-
-			var parent = camera.transform.parent;
-			if (!parent) return;
-
-			camera.transform.localRotation = Quaternion.Inverse(parent.rotation) * transform.rotation;
-		}
-
 		// Composed on top of whatever the Animator has just written rather than replacing it: every clip in
 		// the set poses the chest, so a look that overwrote the bone outright would flatten the sitting
 		// pose and leave the character bolt upright at the table. The axes are read fresh each frame for
@@ -798,17 +674,7 @@ namespace Game.Runtime.Player
 		//
 		// Yaw first, then pitch: pitching inside the turned frame is what makes a body look up along the
 		// way it is facing rather than along the way it was placed.
-		private void ApplyLook(float yaw, float pitch)
-		{
-			// Kept whether or not it is applied, so the frame the look is handed over has a zero to measure
-			// the player's own turn from.
-			_appliedLookYaw = yaw;
-			_appliedLookPitch = pitch;
-
-			if (_lookSuspended) return;
-
-			ApplyLookTo(ActiveLookTransform, transform, yaw, pitch);
-		}
+		private void ApplyLook(float yaw, float pitch) => ApplyLookTo(ActiveLookTransform, transform, yaw, pitch);
 
 		private void ApplyLookTo(Transform lookTransform, Transform frame, float yaw, float pitch)
 		{

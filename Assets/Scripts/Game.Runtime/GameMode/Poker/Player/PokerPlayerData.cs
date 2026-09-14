@@ -1,7 +1,6 @@
 using Sirenix.OdinInspector;
 using System;
 using System.Collections.Generic;
-using Game.Runtime.GameMode.Poker.Items;
 using Game.Runtime.Player;
 using Unity.Collections;
 using Unity.Netcode;
@@ -20,10 +19,6 @@ namespace Game.Runtime.GameMode.Poker.Player
 		// something to tune, and every gain is a number of points out of this.
 		public const int MaxHallucination = 100;
 
-		[Header("References")]
-		[Tooltip("What the player bets with. There is no separate stack in front of them — the wallet is the stack.")]
-		[SerializeField] private PlayerData _wallet;
-
 		[Header("Blood")]
 		[Tooltip("Blood a player sits down with, and gets back when a new match starts.")]
 		[MinValue(1)]
@@ -34,14 +29,6 @@ namespace Game.Runtime.GameMode.Poker.Player
 		[SerializeField] private int _maxHealth = 10;
 
 		[HideInInspector] public NetworkVariable<int> SeatIndex = new(NoSeat,
-			readPerm: NetworkVariableReadPermission.Everyone,
-			writePerm: NetworkVariableWritePermission.Server);
-
-		[HideInInspector] public NetworkVariable<int> Bet = new(0,
-			readPerm: NetworkVariableReadPermission.Everyone,
-			writePerm: NetworkVariableWritePermission.Server);
-
-		[HideInInspector] public NetworkVariable<int> TotalBet = new(0,
 			readPerm: NetworkVariableReadPermission.Everyone,
 			writePerm: NetworkVariableWritePermission.Server);
 
@@ -70,36 +57,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 			readPerm: NetworkVariableReadPermission.Everyone,
 			writePerm: NetworkVariableWritePermission.Server);
 
-		// The ability game's per-player hand. Owner-read: which tricks somebody drew is the whole guessing
-		// game, so the network layer keeps them from everyone else. A list rather than a single slot because
-		// the wheel deals several and the player picks; spending one removes it, which is why there is no
-		// separate "used" flag — what is left in the list is what is left to play. Riding replicated state
-		// rather than a fired-off RPC means a client that spawns late still arrives knowing its own hand.
-		public readonly NetworkList<FixedString64Bytes> AbilityIds = new(null,
-			NetworkVariableReadPermission.Owner,
-			NetworkVariableWritePermission.Server);
-
-		// Server time this player is free to play another card. Owner-read for the same reason the hand is:
-		// "somebody is busy" would say that somebody just played something, and the whole guessing game is
-		// that only the act itself ever tells the table anything. Absolute rather than a countdown, so a
-		// client arriving mid-trick reads how long is left instead of starting the clock again.
-		[HideInInspector] public NetworkVariable<double> AbilityBusyUntil = new(0d,
-			readPerm: NetworkVariableReadPermission.Owner,
-			writePerm: NetworkVariableWritePermission.Server);
-
-		[HideInInspector] public NetworkVariable<int> ReportsLeft = new(0,
-			readPerm: NetworkVariableReadPermission.Everyone,
-			writePerm: NetworkVariableWritePermission.Server);
-
-		// The wallet, itemised: one type per unit of money, in the order they will be staked — a bet
-		// takes from the front, so which mushrooms it spends is the wallet's order and never a choice,
-		// and a player can read off the front what their next call will put on the table. Mirrors
-		// PlayerData.Money the way PotItems mirrors the pot: the scalar stays what every rule computes
-		// with, and the server re-syncs this list on every change of it, whoever moved the money.
-		public readonly NetworkList<PokerItemUnit> StakeItems = new(null,
-			NetworkVariableReadPermission.Everyone,
-			NetworkVariableWritePermission.Server);
-		// their heads. Only ever rises, except where an item brings it down.
+		// How far under the mushrooms have taken them, out of MaxHallucination. Public, because who is closest
+		// to going under is what the round's two real decisions are about. Only ever rises, except where an
+		// item brings it down.
 		[HideInInspector] public NetworkVariable<int> HallucinationRate = new(0,
 			readPerm: NetworkVariableReadPermission.Everyone,
 			writePerm: NetworkVariableWritePermission.Server);
@@ -174,10 +134,6 @@ namespace Game.Runtime.GameMode.Poker.Player
 		// rules, which are the three things IsHoleCardVisible and IsHoleCardInHand are built from.
 		public event Action OnHoleCardPresentationChanged;
 
-		// Separate from OnStateChanged: the wheel rebuilds its slots on this, and rebuilding a wheel every
-		// time a chip moves would fight whatever the player is currently spinning.
-		public event Action OnAbilitiesChanged;
-
 		// Separate from OnStateChanged for the same reason: blood is read as a body — fingers come off with
 		// it — and a hand rebuilt every time a chip moves is work on a value that did not change.
 		public event Action<int, int> OnHealthChanged;
@@ -186,22 +142,6 @@ namespace Game.Runtime.GameMode.Poker.Player
 		// picked on the change itself, and rebuilding them every time a chip moves would re-roll a
 		// hallucination nobody caused.
 		public event Action<int, int> OnHallucinationChanged;
-
-		// The wallet's itemised half changed — a unit drawn in, or spent off the front.
-		public event Action OnStakeItemsChanged;
-
-		// Stamped by the mode, the same way the configured starting stats are. Empty draws plain chips.
-		private PokerItemDatabase _stakeItemSource;
-
-		// Types of the units currently standing in front of the player as Bet, in the order they were
-		// staked. Server-only scratch: the pot ledger is what replicates, and it takes these at collect.
-		private readonly List<PokerItemType> _committedItemTypes = new();
-
-		private readonly List<PokerItemType> _drawBuffer = new();
-
-		// Money staked at the table is the same money the player owns, so there is nothing to buy in with
-		// and nothing to cash out — what is bet leaves the wallet and what is won lands back in it.
-		public int Chips => _wallet ? _wallet.Money.Value : 0;
 
 		// Derived rather than stored, so it can never disagree with the number everyone can already see —
 		// and so anything that ever sobers a player brings them back without a second flag to remember.
@@ -213,23 +153,22 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 		public int MaxHealth => Mathf.Max(1, _maxHealth);
 
-		// Whether the mode has stamped its configured stake onto this body yet. Server-only, like the
+		// Whether the mode has stamped its configured stats onto this body yet. Server-only, like the
 		// override itself — the latch is what lets a late joiner be reset exactly once.
 		public bool HasConfiguredStartingStats { get; private set; }
 
 		private int _startingHealthOverride = -1;
 
-		public void ServerSetStartingStats(int money, int health)
+		public void ServerSetStartingHealth(int health)
 		{
 			if (!IsServer) return;
 
-			if (_wallet) _wallet.ServerSetStartingMoney(money);
 			_startingHealthOverride = Mathf.Max(1, health);
 			HasConfiguredStartingStats = true;
 		}
 
 		public bool IsSeated => SeatIndex.Value != NoSeat;
-		public bool IsInHand => Status.Value is PokerPlayerStatus.Active or PokerPlayerStatus.AllIn;
+		public bool IsInHand => Status.Value == PokerPlayerStatus.Active;
 		public bool CanAct => Status.Value == PokerPlayerStatus.Active;
 		public int CardCount => HoleCards.Count;
 
@@ -304,55 +243,32 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 		public override void OnNetworkSpawn()
 		{
-			if (!_wallet) _wallet = GetComponent<PlayerData>();
-
-			// The stack is the wallet now, so a view watching this player still hears about every chip
-			// that moves — it just hears it from the wallet. The same change is what keeps the itemised
-			// wallet in step: money arriving draws its types there and then.
-			if (_wallet) _wallet.Money.OnValueChanged += HandleMoneyChanged;
-
-			if (IsServer)
-			{
-				ServerResetHealthToStart();
-				ServerSyncStakeItems();
-			}
+			if (IsServer) ServerResetHealthToStart();
 
 			SeatIndex.OnValueChanged += HandleIntChanged;
-			Bet.OnValueChanged += HandleIntChanged;
-			TotalBet.OnValueChanged += HandleIntChanged;
 			Status.OnValueChanged += HandleStatusChanged;
 			HasActed.OnValueChanged += HandleBoolChanged;
 			HandRevealed.OnValueChanged += HandleHandRevealedChanged;
-			ReportsLeft.OnValueChanged += HandleIntChanged;
 			Health.OnValueChanged += HandleHealthChanged;
 			LookedAtHoleCards.OnValueChanged += HandleLookedAtChanged;
 			HallucinationRate.OnValueChanged += HandleHallucinationChanged;
 
-			AbilityIds.OnListChanged += HandleAbilitiesChanged;
 			HoleCards.OnListChanged += HandleHoleCardsChanged;
-			StakeItems.OnListChanged += HandleStakeItemsChanged;
 
 			OnHandVisibilityRulesChanged += HandleVisibilityRulesChanged;
 		}
 
 		public override void OnNetworkDespawn()
 		{
-			if (_wallet) _wallet.Money.OnValueChanged -= HandleMoneyChanged;
-
 			SeatIndex.OnValueChanged -= HandleIntChanged;
-			Bet.OnValueChanged -= HandleIntChanged;
-			TotalBet.OnValueChanged -= HandleIntChanged;
 			Status.OnValueChanged -= HandleStatusChanged;
 			HasActed.OnValueChanged -= HandleBoolChanged;
 			HandRevealed.OnValueChanged -= HandleHandRevealedChanged;
-			ReportsLeft.OnValueChanged -= HandleIntChanged;
 			Health.OnValueChanged -= HandleHealthChanged;
 			HallucinationRate.OnValueChanged -= HandleHallucinationChanged;
 			LookedAtHoleCards.OnValueChanged -= HandleLookedAtChanged;
 
-			AbilityIds.OnListChanged -= HandleAbilitiesChanged;
 			HoleCards.OnListChanged -= HandleHoleCardsChanged;
-			StakeItems.OnListChanged -= HandleStakeItemsChanged;
 
 			OnHandVisibilityRulesChanged -= HandleVisibilityRulesChanged;
 		}
@@ -393,44 +309,27 @@ namespace Game.Runtime.GameMode.Poker.Player
 		{
 			if (!IsServer) return;
 
-			Bet.Value = 0;
-			TotalBet.Value = 0;
-			_committedItemTypes.Clear();
 			HasActed.Value = false;
 			HandRevealed.Value = false;
-			ReportsLeft.Value = 0;
 			HoleCards.Clear();
-
-			// What a player is carrying is PokerAbilityModule's, not this class's: a table whose items are
-			// meant to be stockpiled across hands had its inventory swept here regardless, which made that
-			// module's own setting a lie. The match reset below still empties it, because a stockpile
-			// belongs to the match it was built up in.
 
 			// A new hand is fresh cards nobody has dared to look at yet.
 			LookedAtHoleCards.Value = 0;
 		}
 
-		// A new match rather than a new hand. Blood and money are what a match is played *with* — they
-		// carry from hand to hand and losing the last of either is how a player stops being dealt in — so
-		// this is the one place they go back, and it belongs to the table going idle rather than to any
-		// hand ending.
+		// A new match rather than a new hand. Blood and hallucination are what a match is played *with* —
+		// they carry from hand to hand and going under is how a player stops being dealt in — so this is the
+		// one place they go back, and it belongs to the table going idle rather than to any hand ending.
 		public void ServerResetForMatch()
 		{
 			if (!IsServer) return;
 
 			ServerResetForHand();
 
-			AbilityIds.Clear();
-			AbilityBusyUntil.Value = 0d;
-
 			ServerResetHealthToStart();
 			HallucinationRate.Value = 0;
 			Status.Value = PokerPlayerStatus.Waiting;
 			InMatch.Value = false;
-
-			// The wallet resets itself. What a purse starts with is its own business, and reaching in to
-			// set it from here would be a second place to keep in step with the first.
-			if (_wallet) _wallet.ServerResetToStart();
 		}
 
 		public void ServerResetHealthToStart()
@@ -444,28 +343,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		{
 			if (!IsServer) return;
 
-			Bet.Value = 0;
 			HasActed.Value = false;
-			_committedItemTypes.Clear();
-		}
-
-		// A hand swapped where it lies, as opposed to dealt. Clearing the list and refilling it is what a
-		// deal looks like, and it looks like one to every table: the visuals tear their cards down and flip
-		// the replacements in one at a time. That is a tell, and the one card in the game whose whole worth
-		// is that nobody noticed cannot afford it. Writing each slot raises a Value change instead, which a
-		// hand nobody may see reads as no change at all — the card was a face-down back before and is a
-		// face-down back after, so nothing moves on any screen but the owner's.
-		public void ServerReplaceHoleCards(IReadOnlyList<CardData> cards)
-		{
-			if (!IsServer) return;
-
-			var shared = Mathf.Min(cards.Count, HoleCards.Count);
-			for (var i = 0; i < shared; i++) HoleCards[i] = cards[i];
-
-			// Only reached by a caller swapping a different number of cards than are being held, which a
-			// redraw never does — kept so this cannot silently drop or keep one.
-			for (var i = HoleCards.Count - 1; i >= cards.Count; i--) HoleCards.RemoveAt(i);
-			for (var i = shared; i < cards.Count; i++) HoleCards.Add(cards[i]);
 		}
 
 		public void ServerSetHoleCards(IReadOnlyList<CardData> cards)
@@ -534,129 +412,6 @@ namespace Game.Runtime.GameMode.Poker.Player
 			HandRevealed.Value = true;
 		}
 
-		public int ServerPlaceBet(int amount)
-		{
-			if (!IsServer) return 0;
-
-			var paid = Mathf.Clamp(amount, 0, Chips);
-			if (paid > 0)
-			{
-				if (!ServerDrawAndWithdraw(paid)) return 0;
-
-				_committedItemTypes.AddRange(_drawBuffer);
-			}
-
-			Bet.Value += paid;
-			TotalBet.Value += paid;
-
-			if (Chips <= 0) Status.Value = PokerPlayerStatus.AllIn;
-
-			return paid;
-		}
-
-		// Money that leaves a player without ever becoming a bet. It answers nothing on the street, so it
-		// must not land in front of them where a call would read it as already paid — the caller is the
-		// one that puts it in the pot, and the types drawn off the wallet go with it.
-		public int ServerPayIntoPot(int amount, List<PokerItemType> drawnTypes = null)
-		{
-			if (!IsServer) return 0;
-
-			var paid = Mathf.Clamp(amount, 0, Chips);
-			if (paid > 0)
-			{
-				if (!ServerDrawAndWithdraw(paid)) return 0;
-
-				drawnTypes?.AddRange(_drawBuffer);
-			}
-
-			if (Chips <= 0) Status.Value = PokerPlayerStatus.AllIn;
-
-			return paid;
-		}
-
-		// The units leave the front of the wallet in the same act as the money, so which mushrooms a
-		// stake spends is the wallet's order and never a choice. A refused withdrawal puts them back
-		// where they were — the draw and the money move together or not at all.
-		private bool ServerDrawAndWithdraw(int amount)
-		{
-			_drawBuffer.Clear();
-
-			for (var i = 0; i < amount; i++)
-			{
-				if (StakeItems.Count > 0)
-				{
-					_drawBuffer.Add(StakeItems[0]);
-					StakeItems.RemoveAt(0);
-				}
-				else
-				{
-					_drawBuffer.Add(PokerItemDatabase.PlainChip);
-				}
-			}
-
-			if (_wallet.ServerTryWithdraw(amount)) return true;
-
-			for (var i = _drawBuffer.Count - 1; i >= 0; i--) StakeItems.Insert(0, _drawBuffer[i]);
-			return false;
-		}
-
-		// The types standing in front of this player as Bet, handed over as the money is collected. The
-		// scalar is the authority: a count the committed list cannot cover is padded with plain chips
-		// rather than dropped, so the pot ledger never loses a unit to a path that bypassed PlaceBet.
-		public void ServerTakeCommittedItemTypes(int expected, List<PokerItemType> into)
-		{
-			into.Clear();
-			if (!IsServer) return;
-
-			for (var i = 0; i < expected; i++)
-			{
-				into.Add(i < _committedItemTypes.Count ? _committedItemTypes[i] : PokerItemDatabase.PlainChip);
-			}
-
-			_committedItemTypes.Clear();
-		}
-
-		// A new source re-types the whole wallet: the body spawned and self-seeded plain chips before the
-		// mode could say what a unit is here, and topping up around those would leave the starting stake
-		// untyped forever. Guarded on an actual change, because the mode re-stamps on every roster
-		// refresh and a re-deal mid-match would shuffle what a player already knows they are holding.
-		public void ServerSetStakeItemSource(PokerItemDatabase database)
-		{
-			if (!IsServer || _stakeItemSource == database) return;
-
-			_stakeItemSource = database;
-			StakeItems.Clear();
-			ServerSyncStakeItems();
-		}
-
-		// Money arriving from anywhere — a won pot, a house rule's sale, a match reset — is given its
-		// types here, which is what "assigned as it enters the wallet" means. Trims from the back on
-		// the way down, because the front is the spending order and only a real stake may take it.
-		public void ServerSyncStakeItems()
-		{
-			if (!IsServer) return;
-
-			while (StakeItems.Count < Chips)
-			{
-				StakeItems.Add(_stakeItemSource ? _stakeItemSource.DrawItemType() : PokerItemDatabase.PlainChip);
-			}
-
-			while (StakeItems.Count > Chips) StakeItems.RemoveAt(StakeItems.Count - 1);
-		}
-
-		public void ServerWinChips(int amount) => ServerGainChips(amount);
-
-		// Money arriving from anywhere at all. Kept beside ServerWinChips rather than folded into it,
-		// because a pot being paid out and a house rule selling somebody a stake are the same transfer and
-		// two different events — and a call site that reads "won" for the second one is a lie the next
-		// person to read it has to untangle.
-		public void ServerGainChips(int amount)
-		{
-			if (!IsServer || !_wallet) return;
-
-			_wallet.ServerDeposit(amount);
-		}
-
 		// Negative sobers, positive sends them further under; the clamp lives here for the same reason
 		// the health one does. Passing the ceiling is death, and IsAlive reads that off this number.
 		public void ServerChangeHallucination(int delta)
@@ -674,24 +429,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			Health.Value = Mathf.Clamp(Health.Value + delta, 0, MaxHealth);
 		}
 
-		public void ServerCollectBet()
-		{
-			if (!IsServer) return;
-
-			Bet.Value = 0;
-		}
-
-		private void HandleStateChanged() => OnStateChanged?.Invoke();
 		private void HandleIntChanged(int previous, int current) => OnStateChanged?.Invoke();
-
-		private void HandleMoneyChanged(int previous, int current)
-		{
-			if (IsServer) ServerSyncStakeItems();
-
-			OnStateChanged?.Invoke();
-		}
-
-		private void HandleStakeItemsChanged(NetworkListEvent<PokerItemUnit> changeEvent) => OnStakeItemsChanged?.Invoke();
 
 		private void HandleHealthChanged(int previous, int current)
 		{
@@ -720,7 +458,6 @@ namespace Game.Runtime.GameMode.Poker.Player
 			OnStateChanged?.Invoke();
 		}
 
-		private void HandleAbilitiesChanged(NetworkListEvent<FixedString64Bytes> changeEvent) => OnAbilitiesChanged?.Invoke();
 		private void HandleBoolChanged(bool previous, bool current) => OnStateChanged?.Invoke();
 		// Folding is how the cards read as well as a fact about the player, so it raises both.
 		private void HandleStatusChanged(PokerPlayerStatus previous, PokerPlayerStatus current)

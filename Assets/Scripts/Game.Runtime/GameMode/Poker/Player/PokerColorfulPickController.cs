@@ -35,7 +35,6 @@ namespace Game.Runtime.GameMode.Poker.Player
 		private int _lastPickFrame = -1;
 
 		private FixedString32Bytes _lastStageId;
-		private FixedString32Bytes _lastOverlayId;
 		private ulong _lastTurn = ulong.MaxValue;
 
 		public override void OnNetworkSpawn()
@@ -67,13 +66,11 @@ namespace Game.Runtime.GameMode.Poker.Player
 			var data = mode ? mode.Data : null;
 
 			var stageId = data ? data.StageId.Value : default;
-			var overlayId = data ? data.OverlayStageId.Value : default;
 			var turn = data ? data.CurrentTurnClientId.Value : PokerGameData.NoTurn;
 
-			if (!stageId.Equals(_lastStageId) || !overlayId.Equals(_lastOverlayId) || turn != _lastTurn)
+			if (!stageId.Equals(_lastStageId) || turn != _lastTurn)
 			{
 				_lastStageId = stageId;
-				_lastOverlayId = overlayId;
 				_lastTurn = turn;
 				_stage = ResolvePickStage(mode);
 			}
@@ -86,7 +83,6 @@ namespace Game.Runtime.GameMode.Poker.Player
 		private PokerColorfulPickStage ResolvePickStage(PokerGameMode mode)
 		{
 			if (!mode || !mode.Data) return null;
-			if (!mode.Data.OverlayStageId.Value.IsEmpty) return null;
 			if (mode.Data.CurrentTurnClientId.Value != OwnerClientId) return null;
 
 			return mode.FindStage(mode.Data.StageId.Value.ToString()) as PokerColorfulPickStage;

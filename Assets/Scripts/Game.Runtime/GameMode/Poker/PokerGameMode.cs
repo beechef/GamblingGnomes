@@ -20,18 +20,15 @@ namespace Game.Runtime.GameMode.Poker
 		[SerializeField] private PokerRuleSettings _rules;
 
 		[Header("Match")]
-		[Tooltip("Money every player starts a match with. The player prefab's own value is only the fallback for a table without a mode.")]
-		[SerializeField] private int _startingMoney = 10;
-
 		[Tooltip("Blood every player starts a match with. Capped at 8 — PokerBloodFingerVisual draws MaxHealth minus health as severed fingers, and the model has eight.")]
 		[Range(1, 8)]
 		[SerializeField] private int _startingHealth = 8;
 
-		[Tooltip("What a unit of the players' money is. Types are drawn into each wallet as money arrives, and a bet spends the front of the wallet. Empty plays plain chips — the money game unchanged.")]
+		[Tooltip("The kinds of cap this table is played with: what the wager bar offers, what a timeout wagers and what the settlement hands round.")]
 		[SerializeField] private Items.PokerItemDatabase _itemDatabase;
 
 		[Header("Stages")]
-		[Tooltip("The round loop as a preset. Swap this asset to change the game — modules still add to it, and any stage can be interrupted at runtime by InsertStage or PushOverlay.")]
+		[Tooltip("The round loop as a preset. Swap this asset to change the game — modules still add to it, and a stage can be queued ahead of the loop at runtime by InsertStage.")]
 		[SerializeField] private PokerStageSequence _sequence;
 
 		[Header("Modules")]
@@ -75,8 +72,8 @@ namespace Game.Runtime.GameMode.Poker
 		public IReadOnlyList<PokerPlayer> SeatedPlayers => _seatedPlayers;
 
 		// Sitting down is free, so a seat filled is not the same as a player who can play. Only the ones
-		// still breathing and with money left to stake make a hand worth dealing.
-		public int FundedPlayerCount
+		// still conscious make a hand worth dealing.
+		public int DealablePlayerCount
 		{
 			get
 			{
@@ -92,8 +89,6 @@ namespace Game.Runtime.GameMode.Poker
 		}
 
 		public PokerStage CurrentStage => _stageMachine?.CurrentStage;
-		public PokerStage CurrentOverlay => _stageMachine?.CurrentOverlay;
-		public PokerStage ActiveStage => _stageMachine?.ActiveStage;
 
 		public bool IsGameRunning => _data && _data.Phase.Value != PokerPhase.Waiting && _data.Phase.Value != PokerPhase.Finished;
 
@@ -116,7 +111,7 @@ namespace Game.Runtime.GameMode.Poker
 			{
 				if (!_rules) return false;
 
-				var count = FundedPlayerCount;
+				var count = DealablePlayerCount;
 				var host = FindSeatedPlayer(NetworkManager.ServerClientId);
 
 				if (host && host.Data && !CanBeDealtIn(host.Data)) count++;
@@ -263,8 +258,6 @@ namespace Game.Runtime.GameMode.Poker
 
 		public PokerStage FindStage(string stageId) => _stageMachine.Find(stageId);
 
-		public PokerStage ResolveRuntimeStage(PokerStage stage) => _stageMachine.Resolve(stage);
-
 		// Only picks up seats that spawned before this table did; the ones that come later register
 		// themselves on the way in.
 		private void CollectRegisteredSeats()
@@ -298,15 +291,9 @@ namespace Game.Runtime.GameMode.Poker
 			_data.ActiveSeatCount.Value = Mathf.Clamp(wanted, 0, _seats.Count);
 		}
 
-		// Whether this player can be dealt into the next hand. One predicate rather than the same pair of
-		// tests written at five call sites: a table that does not play for money must not let an empty
-		// purse decide anything, and being conscious is the only condition left when it does not.
-		public bool CanBeDealtIn(PokerPlayerData data)
-		{
-			if (!data || !data.IsAlive) return false;
-
-			return !PlaysForMoney || data.Chips > 0;
-		}
+		// Whether this player can be dealt into the next hand. One predicate rather than the same test
+		// written at every call site, so a second condition is one edit here.
+		public bool CanBeDealtIn(PokerPlayerData data) => data && data.IsAlive;
 
 		// A place in the match, as opposed to a chair in the room. Everything the round *does* to a player
 		// asks this — dealing to them, letting them wager, feeding them a cap — so somebody who sat down
@@ -319,7 +306,7 @@ namespace Game.Runtime.GameMode.Poker
 		public bool IsPlayingThisMatch(PokerPlayerData data) => data && data.InMatch.Value && CanBeDealtIn(data);
 
 		// Those still playing the match that is running. What decides whether there is another hand in it,
-		// where FundedPlayerCount decides whether a new match can begin.
+		// where DealablePlayerCount decides whether a new match can begin.
 		public int MatchPlayerCount
 		{
 			get
@@ -334,8 +321,6 @@ namespace Game.Runtime.GameMode.Poker
 				return count;
 			}
 		}
-
-		public bool PlaysForMoney => !_rules || _rules.PlaysForMoney;
 
 		// A body arriving is a body to seat: chairs are handed out rather than chosen, so this is where
 		// somebody joining a table gets theirs. Seating raises the occupant change, which comes back
@@ -417,7 +402,7 @@ namespace Game.Runtime.GameMode.Poker
 			_seatedPlayers.Sort((left, right) => left.Data.SeatIndex.Value.CompareTo(right.Data.SeatIndex.Value));
 			OnSeatedPlayersChanged?.Invoke();
 
-			// A body that arrived after the config seed still gets the configured stake — the prefab's own
+			// A body that arrived after the config seed still gets the configured stats — the prefab's own
 			// self-reset at spawn only knows the authored default.
 			ServerApplyStartingValues(resetPlayers: false);
 		}
@@ -477,13 +462,6 @@ namespace Game.Runtime.GameMode.Poker
 
 		private void CollectModeConfigEntries(List<MatchConfigEntry> entries)
 		{
-			entries.Add(new MatchConfigInt("Match", "Match", "StartingMoney", "Starting Money", 1, 99, 1,
-				() => _startingMoney,
-				value =>
-				{
-					_startingMoney = value;
-					ServerApplyStartingValues(resetPlayers: true);
-				}));
 			entries.Add(new MatchConfigInt("Match", "Match", "StartingHealth", "Starting Health", 1, 8, 1,
 				() => _startingHealth,
 				value =>
@@ -493,9 +471,9 @@ namespace Game.Runtime.GameMode.Poker
 				}));
 		}
 
-		// An edit while the table is waiting re-resets every body on the spot, so the readouts and the
-		// start button's funded count answer to the new numbers without anyone re-seating. Mid-match only
-		// a body that never got the configured stats at all is touched — a fresh one is not in a hand.
+		// An edit while the table is waiting re-resets every body on the spot, so the readouts answer to the
+		// new numbers without anyone re-seating. Mid-match only a body that never got the configured stats
+		// at all is touched — a fresh one is not in a hand.
 		private void ServerApplyStartingValues(bool resetPlayers)
 		{
 			// The machine is built in Awake, and the one path that skips it is the duplicate standing
@@ -509,10 +487,7 @@ namespace Game.Runtime.GameMode.Poker
 
 				var firstTime = !player.Data.HasConfiguredStartingStats;
 
-				// Before the stats, so the money the reset hands out is typed by the table's own catalogue
-				// rather than falling back to plain chips for the first seeding.
-				player.Data.ServerSetStakeItemSource(_itemDatabase);
-				player.Data.ServerSetStartingStats(_startingMoney, _startingHealth);
+				player.Data.ServerSetStartingHealth(_startingHealth);
 
 				if (firstTime || (resetPlayers && _data && _data.Phase.Value == PokerPhase.Waiting))
 				{
@@ -593,8 +568,8 @@ namespace Game.Runtime.GameMode.Poker
 			_data.Phase.Value = PokerPhase.Finished;
 		}
 
-		// Blood and money are what a match is played with, so putting them back is what makes the next one
-		// a new match rather than a continuation. Every registered player, not only the seated: whoever
+		// Blood and hallucination are what a match is played with, so putting them back is what makes the next
+		// one a new match rather than a continuation. Every registered player, not only the seated: whoever
 		// left their chair mid-match is still carrying whatever the match did to them.
 		public void ServerResetMatchStats()
 		{
@@ -618,10 +593,6 @@ namespace Game.Runtime.GameMode.Poker
 			foreach (var player in PokerPlayer.All)
 			{
 				if (player && player.Data && player.Data.CardCount > 0) player.Data.HoleCards.Clear();
-
-				// Cards swept away face down: a peek pose held over the next deal would show a lift with
-				// nothing in it.
-				if (player && player.HandPeek) player.HandPeek.ServerSetPeeking(false);
 			}
 		}
 
@@ -652,20 +623,6 @@ namespace Game.Runtime.GameMode.Poker
 			if (!IsServer) return;
 
 			_stageMachine.Insert(stage);
-		}
-
-		public void PushOverlay(PokerStage stage)
-		{
-			if (!IsServer) return;
-
-			_stageMachine.PushOverlay(stage);
-		}
-
-		public void PopOverlay()
-		{
-			if (!IsServer) return;
-
-			_stageMachine.PopOverlay();
 		}
 
 		private void NotifyStageStarting(PokerStage stage)
@@ -714,15 +671,12 @@ namespace Game.Runtime.GameMode.Poker
 		}
 
 		// Being collected into a match commits the player to the match, not to the hand: folding is a
-		// decision about these cards, and standing up afterwards with the stake still on them would make
-		// folding a way out of the game. What releases them is having nothing left to play with — the same
-		// funded test the deal uses to decide who is still in the running — so somebody out of money or
-		// out of blood may go, and nobody else may. Never dealt in at all is the other way out: a player
+		// decision about these cards, and standing up afterwards would make folding a way out of the game.
+		// What releases them is being out of the running — the same test the deal uses — so somebody who
+		// has gone under may go, and nobody else may. Never dealt in at all is the other way out: a player
 		// who took a free chair mid hand is Waiting and was never collected.
 		private bool IsCommittedToMatch(PokerPlayerData data)
 		{
-			// Still holding cards, which includes all in — a stack at zero is not a way out while the
-			// money is still in the pot.
 			if (data.IsInHand) return true;
 
 			if (data.Status.Value == PokerPlayerStatus.Waiting) return false;
@@ -737,8 +691,7 @@ namespace Game.Runtime.GameMode.Poker
 			var player = PokerPlayer.Find(clientId);
 			if (!player || !player.Data) return;
 
-			// Sitting down costs nothing and hands out nothing: the player stakes the money they already
-			// own, so there is no buy-in to take and no stack to grant.
+			// Sitting down costs nothing and hands out nothing.
 			player.Data.ServerTakeSeat(seat.SeatIndex);
 			RefreshSeatedPlayers();
 
@@ -759,26 +712,19 @@ namespace Game.Runtime.GameMode.Poker
 				{
 					player.ServerFold();
 
-					// The chips they had in front of them stay behind as dead money — collected now,
-					// because once their object despawns no street-end sweep will ever see them, and the
-					// players who pushed them out would win back nothing but their own bets.
-					PokerTableUtility.ForfeitBet(_data, player);
-
 					// The cards go back with the seat: an unseated player is outside every stage's reset
 					// sweep, and would otherwise carry the hand around for the rest of the session.
 					player.Data.HoleCards.Clear();
 				}
 				else
 				{
-					// Nothing to settle: the money never left the wallet to begin with, so standing up is
-					// only a matter of giving up the seat.
 					player.Data.ServerLeaveSeat();
 				}
 			}
 
 			RefreshSeatedPlayers();
 
-			if (ActiveStage) ActiveStage.HandlePlayerLeft(clientId, seat ? seat.SeatIndex : -1);
+			if (CurrentStage) CurrentStage.HandlePlayerLeft(clientId, seat ? seat.SeatIndex : -1);
 
 			foreach (var module in _modules)
 			{
@@ -807,7 +753,7 @@ namespace Game.Runtime.GameMode.Poker
 
 			// Clearing the turn is not enough on its own — a street waiting on a player who has gone
 			// waits forever, and the table freezes for everyone still in it.
-			if (ActiveStage) ActiveStage.HandlePlayerLeft(clientId, seatIndex);
+			if (CurrentStage) CurrentStage.HandlePlayerLeft(clientId, seatIndex);
 		}
 
 		public void BeginTurn(ulong clientId, float duration)
@@ -883,32 +829,6 @@ namespace Game.Runtime.GameMode.Poker
 			return NetworkManager.ServerTime.Time >= _data.StageEndTime.Value;
 		}
 
-		// The whole board comes off the shuffle at the deal and goes down on the table there and then, so no
-		// stage can change what the river will be after seeing how the betting went. It goes down face
-		// down: the cards are all dealt, and how much of them the table has been shown is a separate thing
-		// the streets move.
-		public void ServerDealCommunityCards(List<CardData> cards)
-		{
-			if (!IsServer) return;
-
-			_data.CommunityCards.Clear();
-			foreach (var card in cards) _data.CommunityCards.Add(card);
-
-			_data.RevealedCommunityCards.Value = 0;
-		}
-
-		// Turns the next few cards of the board over for the whole table. Nothing is dealt here — the cards
-		// have been lying there since the deal, and this only says how many of them everyone may see.
-		public void RevealCommunityCards(int amount)
-		{
-			if (!IsServer) return;
-
-			var revealed = Mathf.Clamp(_data.RevealedCommunityCards.Value + amount, 0, _data.CommunityCards.Count);
-			if (revealed == _data.RevealedCommunityCards.Value) return;
-
-			_data.RevealedCommunityCards.Value = revealed;
-		}
-
 		[Rpc(SendTo.Server)]
 		public void RequestStartGameRPC(RpcParams rpcParams = default)
 		{
@@ -930,27 +850,14 @@ namespace Game.Runtime.GameMode.Poker
 				if (module && !module.CanPlayerAct(senderClientId, action, amount)) return;
 			}
 
-			// Measured across the stage rather than trusted from the sender: the request says "call", but
-			// what that actually cost is the stage's answer, and the announcement shows the real number.
-			var actor = FindSeatedPlayer(senderClientId);
-			var betBefore = actor ? actor.Data.Bet.Value : 0;
+			if (!CurrentStage || !CurrentStage.HandleAction(senderClientId, action, amount)) return;
 
-			if (ActiveStage == null || !ActiveStage.HandleAction(senderClientId, action, amount)) return;
-
-			// An overlay prices its moves in its own currency and announces them itself. Measuring one here
-			// would read the change in Bet, which an overlay never touches, and go out as a bare verb with
-			// nothing after it — beside the overlay's own card saying the same thing properly.
-			if (CurrentOverlay == null)
+			_data.ActionNotice.Value = new PokerActionNotice
 			{
-				var paid = actor ? Mathf.Max(0, actor.Data.Bet.Value - betBefore) : 0;
-				_data.ActionNotice.Value = new PokerActionNotice
-				{
-					ClientId = senderClientId,
-					Action = action,
-					Amount = paid,
-					Sequence = _data.ActionNotice.Value.Sequence + 1
-				};
-			}
+				ClientId = senderClientId,
+				Action = action,
+				Sequence = _data.ActionNotice.Value.Sequence + 1
+			};
 
 			foreach (var module in _modules)
 			{
