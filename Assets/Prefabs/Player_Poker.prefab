@@ -344,7 +344,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Camera.PokerWagerCameraState
   _allowManualLook: 1
-  _anchor: 0
+  _anchor: 2
   _data: {fileID: 6935137486891752095}
 --- !u!114 &1414198216273599940
 MonoBehaviour:
@@ -528,7 +528,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Camera.PokerWagerCameraState
   _allowManualLook: 1
-  _anchor: 1
+  _anchor: 2
   _data: {fileID: 6935137486891752095}
 --- !u!114 &667791231251871484
 MonoBehaviour:
@@ -997,9 +997,13 @@ PrefabInstance:
       propertyPath: m_IsActive
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 3473195568649657332, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4215504733409586116, guid: 8a531d709826a264e9027ff908ced981, type: 3}
       propertyPath: GlobalObjectIdHash
-      value: 2383396945
+      value: 3585866065
       objectReference: {fileID: 0}
     - target: {fileID: 4342641369339303799, guid: 8a531d709826a264e9027ff908ced981, type: 3}
       propertyPath: m_IsActive
@@ -1167,6 +1171,17 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 575132620951576955, guid: 8a531d709826a264e9027ff908ced981, type: 3}
   m_PrefabInstance: {fileID: 2812995479481287383}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &2386824806186768469 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 438662258472082050, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+  m_PrefabInstance: {fileID: 2812995479481287383}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8336770729751643675}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ca8ce24398785e14ebbe68f947488535, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.PlayerVisual
 --- !u!95 &2417700236160604213 stripped
 Animator:
   m_CorrespondingSourceObject: {fileID: 469678322729097954, guid: 8a531d709826a264e9027ff908ced981, type: 3}
@@ -1276,7 +1291,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Player.PokerPlayerData
   ShowTopMostFoldoutHeaderGroup: 1
-  _wallet: {fileID: 1277917375681613223}
   _startingHealth: 8
   _maxHealth: 8
   SeatIndex:
@@ -1284,16 +1298,6 @@ MonoBehaviour:
       MinSecondsBetweenUpdates: 0
       MaxSecondsBetweenUpdates: 0
     m_InternalValue: -1
-  Bet:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 0
-  TotalBet:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 0
   Status:
     UpdateTraits:
       MinSecondsBetweenUpdates: 0
@@ -1349,10 +1353,11 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   _data: {fileID: 6935137486891752095}
   _itemConsume: {fileID: 715681995083866239}
-  _wallet: {fileID: 1277917375681613223}
+  _identity: {fileID: 1277917375681613223}
   _rig: {fileID: 382404797062674536}
   _actionAnimator: {fileID: 7776873476951557616}
-  _visual: {fileID: 0}
+  _handIk: {fileID: 8832795126120928936}
+  _visual: {fileID: 2386824806186768469}
 --- !u!114 &8453734359539351025
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1409,6 +1414,17 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   _bodyAnimator: {fileID: 2417700236160604213}
   _handOnlyAnimator: {fileID: 4592962496778479551}
+--- !u!114 &8832795126120928936 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6745723886630753407, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+  m_PrefabInstance: {fileID: 2812995479481287383}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f1803ac02bc2e3c5348bb912ece16ae, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.PlayerHandIkController
 --- !u!4 &9010611455701359780 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6486831755484864115, guid: 8a531d709826a264e9027ff908ced981, type: 3}

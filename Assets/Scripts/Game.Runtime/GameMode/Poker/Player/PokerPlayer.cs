@@ -27,6 +27,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 		[SerializeField] private PlayerActionAnimator _actionAnimator;
 
+		[Tooltip("Puts a hand on what it is reaching for, so a gesture that ends near the right spot ends on it. Both rigs carry a constraint; this drives whichever one this client draws.")]
+		[SerializeField] private PlayerHandIkController _handIk;
+
 		[Tooltip("Who draws this player. Marking somebody out for the whole table is a change of how they are drawn, so it is asked of the thing already holding every renderer.")]
 		[SerializeField] private PlayerVisual _visual;
 
@@ -58,6 +61,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		public PlayerData Identity => _identity;
 		public PlayerRigController Rig => _rig;
 		public PlayerActionAnimator ActionAnimator => _actionAnimator;
+		public PlayerHandIkController HandIk => _handIk;
 		public PlayerVisual Visual => _visual;
 		public ulong ClientId => OwnerClientId;
 
@@ -111,6 +115,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 			// Feature components live on child objects of the player rather than piling up on the root.
 			if (!_actionAnimator) _actionAnimator = GetComponentInChildren<PlayerActionAnimator>();
+			if (!_handIk) _handIk = GetComponentInChildren<PlayerHandIkController>(true);
 			if (!_visual) _visual = GetComponentInChildren<PlayerVisual>();
 
 			if (!Registry.Contains(this))
