@@ -261,13 +261,19 @@ namespace Game.Runtime.GameMode.Poker.Visual
 				//
 				// The hold point is a transform on the rig, dragged into place in the scene view, because
 				// where a fist closes around something is a thing to be looked at rather than computed — the
-				// same reason the chair owns where a cap lands on the table.
-				cap.transform.SetParent(hand, false);
-				ApplyHoldPose(cap.transform, hand);
+				// same reason the chair owns where a cap lands on the table. The cap hangs on it at zero:
+				// CapHold *is* the pose, so the cap carries no offset of its own and retuning the grip never
+				// touches this file.
+				var holder = HoldPoint(hand);
 
-				// Kept at the size it has on the table, whatever scale the hand bone carries.
-				var handScale = hand.lossyScale;
-				cap.transform.localScale = new Vector3(worldScale.x / handScale.x, worldScale.y / handScale.y, worldScale.z / handScale.z);
+				cap.transform.SetParent(holder, false);
+				cap.transform.localPosition = Vector3.zero;
+				cap.transform.localRotation = Quaternion.identity;
+
+				// Kept at the size it has on the table, whatever scale the chain down to the hold point
+				// carries — the holder rather than the hand, since that is what the cap hangs from now.
+				var holderScale = holder.lossyScale;
+				cap.transform.localScale = new Vector3(worldScale.x / holderScale.x, worldScale.y / holderScale.y, worldScale.z / holderScale.z);
 			});
 
 			sequence.AppendInterval(Mathf.Max(0f, releaseDelay - grabDelay));
@@ -290,26 +296,21 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			});
 		}
 
-		// The pose a carried cap is held in, in the hand bone's own space. The hold transform is authored on
-		// the rig, so retuning where a cap sits in the fist is a drag in the scene view rather than a number
-		// here — the same reason the seat owns where a cap lands on the table.
-		private static void ApplyHoldPose(Transform cap, Transform hand)
+		// What a carried cap hangs from. Authored on the rig, so retuning where a cap sits in the fist is a
+		// drag in the scene view rather than a number here — the same reason the seat owns where a cap lands
+		// on the table.
+		private static Transform HoldPoint(Transform hand)
 		{
-			if (!cap || !hand) return;
+			if (!hand) return null;
 
 			var hold = hand.Find(CapHoldName);
-			if (hold)
-			{
-				cap.SetPositionAndRotation(hold.position, hold.rotation);
-				return;
-			}
+			if (hold) return hold;
 
-			// No hold point authored yet: the palm bone is the nearest honest answer, and a cap at the wrist
-			// origin would sit inside the forearm.
+			// No hold point authored yet: the palm bone is the nearest honest answer, and a cap hung on the
+			// wrist itself would sit inside the forearm.
 			var palm = hand.Find(PalmBoneName);
 
-			cap.position = palm ? palm.position : hand.position;
-			cap.rotation = hand.rotation;
+			return palm ? palm : hand;
 		}
 
 		private GameObject Spawn(PokerBetItem item)
