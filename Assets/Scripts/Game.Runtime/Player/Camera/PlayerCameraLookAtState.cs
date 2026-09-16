@@ -44,7 +44,27 @@ namespace Game.Runtime.Player.Camera
 		{
 			if (!IsActive || !Controller || !Controller.PlayerController) return;
 
-			Controller.PlayerController.SetLookTarget(ResolveTarget());
+			var target = ResolveTarget();
+
+			Controller.PlayerController.SetLookTarget(target);
+
+			// Nothing to look at *yet* is not the same answer as nothing to look at. A state is entered the
+			// frame its stage id arrives, which is routinely before the seat index, the turn or the other
+			// player's body have replicated — and the subclasses only re-aim from OnValueChanged, so a value
+			// that was already set when this entered raises no event and the shot keeps whatever angle the
+			// player happened to be holding. That is the same state coming out at a different angle every
+			// time, and it is the late-join rule in a different coat: read the current value on arrival
+			// rather than waiting for a change that has already happened.
+			_waitingForTarget = !target;
+		}
+
+		private bool _waitingForTarget;
+
+		private void LateUpdate()
+		{
+			if (!_waitingForTarget || !IsActive) return;
+
+			Aim();
 		}
 	}
 }
