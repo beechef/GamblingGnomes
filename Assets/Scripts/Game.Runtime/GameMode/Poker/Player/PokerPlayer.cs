@@ -17,6 +17,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		[SerializeField] private PokerPlayerData _data;
 		[FormerlySerializedAs("_items")]
 		[SerializeField] private PokerItemConsumeController _itemConsume;
+		[SerializeField] private PokerItemCarryController _itemCarry;
 
 		[Tooltip("Who this player is — the name the table shows. Lives beside this on the player, not on the table.")]
 		[FormerlySerializedAs("_wallet")]
@@ -58,6 +59,10 @@ namespace Game.Runtime.GameMode.Poker.Player
 		// data, and named for eating rather than for items in general: a stockpile of things they can
 		// choose to use is a different question and will want a component of its own.
 		public PokerItemConsumeController ItemConsume => _itemConsume;
+
+		// Carrying a staked cap through the bet gesture. On the player because which rig is drawn, where a
+		// fist closes and which frame the hand arrives on are all this body's own business.
+		public PokerItemCarryController ItemCarry => _itemCarry;
 		public PlayerData Identity => _identity;
 		public PlayerRigController Rig => _rig;
 		public PlayerActionAnimator ActionAnimator => _actionAnimator;
@@ -110,6 +115,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		{
 			if (!_data) _data = GetComponent<PokerPlayerData>();
 			if (!_itemConsume) _itemConsume = GetComponentInChildren<PokerItemConsumeController>(true);
+			if (!_itemCarry) _itemCarry = GetComponentInChildren<PokerItemCarryController>(true);
 			if (!_identity) _identity = GetComponent<PlayerData>();
 			if (!_rig) _rig = GetComponent<PlayerRigController>();
 
