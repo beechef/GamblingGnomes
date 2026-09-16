@@ -4,9 +4,14 @@ using UnityEngine;
 
 namespace Game.Runtime.Player
 {
-	// A model's bones under the names the game uses for them, so anything that wants a head, a hand or a
-	// foot asks for that rather than knowing what this particular skeleton calls it. One of these sits on
-	// each model; two rigs built on the same skeleton can be given the same setup.
+	// A model's key transforms under the names the game uses for them, so anything that wants a head, a hand
+	// or the point a hand holds a prop at asks for that rather than knowing what this particular skeleton
+	// calls it. One of these sits on each model; two rigs built on the same skeleton get the same setup.
+	//
+	// The transforms are references, never found by name at runtime. A name lookup looks resilient and is the
+	// opposite: when the art put POT_attach_R between the wrist and the hand, `Wrist_R.Find("CapHold")`
+	// stopped finding a hold point that was still sitting right there, and every staked cap was glued to the
+	// wrist origin with nothing logged. A reference follows the object wherever the rig moves it.
 	public class PlayerBoneRig : MonoBehaviour
 	{
 		[Serializable]
@@ -14,15 +19,14 @@ namespace Game.Runtime.Player
 		{
 			public PlayerBone Bone;
 
-			[Tooltip("Left empty, the bone is looked up by name under the root instead.")]
 			public Transform Transform;
 
+			[Tooltip("Editor only: fills in Transform when it is empty. Never read at runtime.")]
 			public string BoneName;
 		}
 
-		// The skeleton this project ships with, filled in when the component is added. A model built on
-		// anything else overrides the names, or has its bones dropped in by hand — the hand-only rig is
-		// exactly that case, since its FBX still calls these two Neck7_M and Head_M.
+		// The skeleton this project ships with, filled in when the component is added and resolved into
+		// references on the spot.
 		private static readonly (PlayerBone Bone, string Name)[] DefaultBoneNames =
 		{
 			(PlayerBone.Root, "Root_M"),
@@ -45,11 +49,12 @@ namespace Game.Runtime.Player
 			(PlayerBone.FootLeft, "Ankle_L"),
 			(PlayerBone.FootRight, "Ankle_R"),
 			(PlayerBone.ToeLeft, "Toes_L"),
-			(PlayerBone.ToeRight, "Toes_R")
+			(PlayerBone.ToeRight, "Toes_R"),
+			(PlayerBone.HoldRight, "CapHold")
 		};
 
 		[Header("Rig")]
-		[Tooltip("Where bones are searched for by name. Empty searches from this object down.")]
+		[Tooltip("Where the editor searches for a binding's name. Empty searches from this object down.")]
 		[SerializeField] private Transform _root;
 
 		[SerializeField] private List<BoneBinding> _bones = new();
@@ -84,30 +89,16 @@ namespace Game.Runtime.Player
 			_built = true;
 			_resolved.Clear();
 
-			Dictionary<string, Transform> byName = null;
-
 			foreach (var binding in _bones)
 			{
-				var boneTransform = binding.Transform;
-
-				if (!boneTransform && !string.IsNullOrEmpty(binding.BoneName))
-				{
-					byName ??= CollectByName();
-					byName.TryGetValue(binding.BoneName, out boneTransform);
-				}
-
-				if (boneTransform) _resolved[binding.Bone] = boneTransform;
+				if (binding.Transform) _resolved[binding.Bone] = binding.Transform;
 			}
 		}
 
-		private Dictionary<string, Transform> CollectByName()
-		{
-			var byName = new Dictionary<string, Transform>();
-
-			foreach (var child in Root.GetComponentsInChildren<Transform>(true)) byName[child.name] = child;
-
-			return byName;
-		}
+#if UNITY_EDITOR
+		// A binding authored by name is turned into a reference while it is being edited, so a rig that
+		// has been looked at in the inspector carries every transform and runtime never searches.
+		private void OnValidate() => ResolveNamesToReferences();
 
 		private void Reset()
 		{
@@ -117,6 +108,33 @@ namespace Game.Runtime.Player
 			{
 				_bones.Add(new BoneBinding { Bone = bone, BoneName = boneName });
 			}
+
+			ResolveNamesToReferences();
 		}
+
+		public void ResolveNamesToReferences()
+		{
+			Dictionary<string, Transform> byName = null;
+
+			for (var i = 0; i < _bones.Count; i++)
+			{
+				var binding = _bones[i];
+				if (binding.Transform || string.IsNullOrEmpty(binding.BoneName)) continue;
+
+				if (byName == null)
+				{
+					byName = new Dictionary<string, Transform>();
+					foreach (var child in Root.GetComponentsInChildren<Transform>(true)) byName[child.name] = child;
+				}
+
+				if (!byName.TryGetValue(binding.BoneName, out var found)) continue;
+
+				binding.Transform = found;
+				_bones[i] = binding;
+			}
+
+			_built = false;
+		}
+#endif
 	}
 }

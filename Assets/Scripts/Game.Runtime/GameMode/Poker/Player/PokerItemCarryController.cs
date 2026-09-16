@@ -18,15 +18,6 @@ namespace Game.Runtime.GameMode.Poker.Player
 	// seconds here. A second clip therefore needs no number in this file: it carries its own frames.
 	public class PokerItemCarryController : MonoBehaviour
 	{
-		// Where a held cap sits, as a transform authored under the wrist on both rigs. A bone is the wrong
-		// answer: Cup_R is the base of the hand, so a cap sitting on it reads as held at the joint rather
-		// than in the fingers, and every bone on this skeleton carries axes nobody picked.
-		private const string CapHoldName = "CapHold";
-
-		// The palm, as a last resort for a rig with no hold point yet — still far better than the wrist
-		// origin, which is inside the forearm.
-		private const string PalmBoneName = "Cup_R";
-
 		[SerializeField] private PlayerRigController _rig;
 		[SerializeField] private PlayerHandIkController _handIk;
 
@@ -285,17 +276,18 @@ namespace Game.Runtime.GameMode.Poker.Player
 			carried.Cap.transform.localScale = carried.RestingScale;
 		}
 
+		// Where a held cap sits is a point authored in the hand on both rigs, handed over by the rig by what
+		// it is rather than found by name. A rig without one is a setup that cannot look right, so it says so
+		// and holds the cap at the wrist rather than not at all.
 		private Transform HoldPoint()
 		{
-			var hand = _rig ? _rig.GetBone(PlayerBone.HandRight) : null;
-			if (!hand) return null;
+			if (!_rig) return null;
 
-			var hold = hand.Find(CapHoldName);
-			if (hold) return hold;
+			if (_rig.TryGetBone(PlayerBone.HoldRight, out var hold)) return hold;
 
-			var palm = hand.Find(PalmBoneName);
+			Debug.LogWarning($"[{nameof(PokerItemCarryController)}] {_rig.RenderedRig} has no {nameof(PlayerBone.HoldRight)} bound; the cap is held at the wrist.", this);
 
-			return palm ? palm : hand;
+			return _rig.GetBone(PlayerBone.HandRight);
 		}
 	}
 }
