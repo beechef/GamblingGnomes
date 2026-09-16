@@ -42,8 +42,8 @@ namespace Game.Runtime.Player
 		[Tooltip("What the pass is painted while this player is picked out.")]
 		[SerializeField] private Color _outlineColor = new(1f, 0.2f, 0.2f, 1f);
 
-		[Tooltip("What it is painted the rest of the time. Clear, normally: the pass is always there and its colour is the whole difference between lit and not.")]
-		[SerializeField] private Color _idleOutlineColor = new(1f, 1f, 1f, 0f);
+		[Tooltip("What it is painted the rest of the time — the stroke every body wears. Black: the pass is always there and its colour is the whole difference between a drawn line and a highlight.")]
+		[SerializeField] private Color _idleOutlineColor = new(0f, 0f, 0f, 1f);
 
 		[SerializeField] private float _outlineWidth = 0.02f;
 
@@ -224,8 +224,9 @@ namespace Game.Runtime.Player
 		// outline can never reach, and on a rig cut into ten meshes one unlit piece reads as the whole
 		// outline being broken.
 		//
-		// The pass is worn all the time — every slot, both rigs, the hat included — and being picked out is
-		// a change of its colour. Adding and removing the material rebuilds every renderer's array on a beat
+		// The pass is worn all the time — every slot, both rigs, the hat included — and it is the black
+		// stroke the character is drawn with, so being picked out is a change of its colour rather than a
+		// pass appearing. Adding and removing the material rebuilds every renderer's array on a beat
 		// that only wanted a different colour, and leaves the lit look depending on a pass that has to be
 		// re-hung after each repaint to exist at all.
 		//
