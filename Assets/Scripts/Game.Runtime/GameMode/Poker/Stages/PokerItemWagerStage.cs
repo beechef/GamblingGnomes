@@ -33,17 +33,30 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		[Tooltip("Seconds a player has to choose. Zero or less runs no clock at all: no bar, no timeout, and the table waits for an answer.")]
 		[SerializeField] private float _turnDuration = -1f;
 
+		[Tooltip("Seconds the table holds after somebody wagers before the next player is asked, so the bet gesture and the cap landing in front of them are seen rather than cut off by the next turn opening. Zero passes the turn on immediately.")]
+		[MinValue(0f)]
+		[SerializeField] private float _resolveDelay = 1f;
+
 		[Header("References")]
 		[Tooltip("Where the hand jumps when everyone but one player has folded.")]
 		[SerializeField] private PokerStage _handOverStage;
 
 		private float _turnElapsed;
 
+		// A wager has been taken and is being watched. A flag rather than a sentinel seat, because NoSeat is
+		// itself a seat this walk can legitimately start from.
+		private bool _resolving;
+		private int _resolvingFromSeat;
+		private float _resolveElapsed;
+
 		public bool AllowFold => _allowFold;
 		public int ItemsPerWager => Mathf.Max(1, _itemsPerWager);
 
 		protected override void OnStartStage()
 		{
+			_resolving = false;
+			_resolveElapsed = 0f;
+
 			Data.Phase.Value = _phase;
 
 			// Clears HasActed, which is what "who still owes a cap" is read off. Without it the second
@@ -80,6 +93,21 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 		protected override void OnTickStage(float deltaTime)
 		{
+			// Ahead of the turn clock, and not behind its guard: the hold runs while nobody holds a turn, and
+			// a street with no clock at all still has wagers to watch.
+			if (_resolving)
+			{
+				_resolveElapsed += deltaTime;
+				if (_resolveElapsed < _resolveDelay) return;
+
+				var from = _resolvingFromSeat;
+				_resolving = false;
+				_resolveElapsed = 0f;
+
+				ResolveAdvance(from);
+				return;
+			}
+
 			// No clock at all rather than a hidden one: the wager is the moment the table is meant to
 			// take its time over, so a turn with no duration simply waits. Set a duration and the bar
 			// appears and the timeout comes back with it.
@@ -179,7 +207,26 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			AdvanceTurn(seatIndex);
 		}
 
+		// The turn is taken off whoever just acted straight away — they have answered, and leaving it on
+		// them would let them answer twice — but the next player is not asked until the beat is over, so
+		// the bet gesture and the cap landing are watched rather than cut off. Both exits wait: a street
+		// that ends on this wager has the same animation to finish.
 		private void AdvanceTurn(int fromSeatIndex)
+		{
+			if (_resolveDelay > 0f)
+			{
+				GameMode.ClearTurn();
+
+				_resolving = true;
+				_resolvingFromSeat = fromSeatIndex;
+				_resolveElapsed = 0f;
+				return;
+			}
+
+			ResolveAdvance(fromSeatIndex);
+		}
+
+		private void ResolveAdvance(int fromSeatIndex)
 		{
 			if (CountWagerers() <= 1)
 			{
