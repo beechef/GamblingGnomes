@@ -140,6 +140,51 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.Animation.Rigging::UnityEngine.Animations.Rigging.Rig
   m_Weight: 1
   m_Effectors: []
+--- !u!1 &1358603559276658103
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4687764949515419909}
+  - component: {fileID: 4155858350611474465}
+  m_Layer: 0
+  m_Name: BlendShape
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4687764949515419909
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1358603559276658103}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5390899513882683757}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4155858350611474465
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1358603559276658103}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cee2746f9b3eec8e0512f2ebaf434648, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.PlayerBlendShapeController
+  _visual: {fileID: 438662258472082050}
 --- !u!1 &1963953616726257421
 GameObject:
   m_ObjectHideFlags: 0
@@ -881,6 +926,7 @@ Transform:
   - {fileID: 8668871406396262160}
   - {fileID: 4191804885743636339}
   - {fileID: 8970837248746302766}
+  - {fileID: 4687764949515419909}
   - {fileID: 5902648994882241729}
   - {fileID: 706149254454036334}
   - {fileID: 1342288486050778252}
@@ -1153,7 +1199,7 @@ MonoBehaviour:
     Renderer: {fileID: 7028616302419616132}
   _outlineMaterial: {fileID: 2100000, guid: cf63c0574f02c9fa5131caf0ad468e93, type: 2}
   _outlineColor: {r: 1, g: 1, b: 1, a: 1}
-  _idleOutlineColor: {r: 1, g: 1, b: 1, a: 0}
+  _idleOutlineColor: {r: 0, g: 0, b: 0, a: 1}
   _outlineWidth: 0.005
   Outlined:
     UpdateTraits:
