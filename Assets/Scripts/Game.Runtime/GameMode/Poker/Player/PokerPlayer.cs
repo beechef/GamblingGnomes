@@ -18,6 +18,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		[FormerlySerializedAs("_items")]
 		[SerializeField] private PokerItemConsumeController _itemConsume;
 		[SerializeField] private PokerItemCarryController _itemCarry;
+		[SerializeField] private PokerWinnerPoseController _winnerPose;
 
 		[Tooltip("Who this player is — the name the table shows. Lives beside this on the player, not on the table.")]
 		[FormerlySerializedAs("_wallet")]
@@ -63,6 +64,10 @@ namespace Game.Runtime.GameMode.Poker.Player
 		// Carrying a staked cap through the bet gesture. On the player because which rig is drawn, where a
 		// fist closes and which frame the hand arrives on are all this body's own business.
 		public PokerItemCarryController ItemCarry => _itemCarry;
+
+		// The held celebration. Named as a pose rather than as a gesture, because it lasts as long as the
+		// round says and not as long as a clip.
+		public PokerWinnerPoseController WinnerPose => _winnerPose;
 		public PlayerData Identity => _identity;
 		public PlayerRigController Rig => _rig;
 		public PlayerActionAnimator ActionAnimator => _actionAnimator;
@@ -116,6 +121,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			if (!_data) _data = GetComponent<PokerPlayerData>();
 			if (!_itemConsume) _itemConsume = GetComponentInChildren<PokerItemConsumeController>(true);
 			if (!_itemCarry) _itemCarry = GetComponentInChildren<PokerItemCarryController>(true);
+			if (!_winnerPose) _winnerPose = GetComponentInChildren<PokerWinnerPoseController>(true);
 			if (!_identity) _identity = GetComponent<PlayerData>();
 			if (!_rig) _rig = GetComponent<PlayerRigController>();
 

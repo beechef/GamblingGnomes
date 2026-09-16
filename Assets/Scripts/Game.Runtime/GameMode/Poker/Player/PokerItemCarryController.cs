@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using DG.Tweening;
 using Game.Runtime.Player;
@@ -5,20 +6,18 @@ using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker.Player
 {
-	// Carrying a staked cap through the bet gesture: hidden until the hand reaches the table, held in the
-	// fist, then put down on the spot the table picked. It lives on the player because everything it knows
-	// is the player's — which rig is drawn, where a fist closes, where the arm is aimed, and which frame of
-	// the clip the hand arrives on. The table owns the ledger and the spot, and hands a cap over.
+	// A cap in this player's hand, for as long as an animation is holding it. Two acts need that and they
+	// differ only in how they end — a wager puts the cap down on the table, a mouthful swallows it — so a
+	// carry holds its own pair of cues and its own ending rather than this branching on which act it is.
 	//
-	// When the hand arrives is the clip's own business, raised as an animation event rather than counted in
-	// seconds here. A second bet clip therefore needs no number in this file: it carries its own two cues.
+	// It lives on the player because everything it knows is the player's — which rig is drawn, where a fist
+	// closes, where the arm is aimed, and which frame of the clip the hand arrives on. The table owns the
+	// ledger and the spot, and hands a cap over.
+	//
+	// When the hand arrives is the clip's own business, raised as an animation cue rather than counted in
+	// seconds here. A second clip therefore needs no number in this file: it carries its own frames.
 	public class PokerItemCarryController : MonoBehaviour
 	{
-		// Typed in the Animation window on the other side, which is the cost of authoring cues on the clip
-		// itself. Renaming one means re-authoring every clip that raises it.
-		public const string GrabCue = "BetGrab";
-		public const string ReleaseCue = "BetRelease";
-
 		// Where a held cap sits, as a transform authored under the wrist on both rigs. A bone is the wrong
 		// answer: Cup_R is the base of the hand, so a cap sitting on it reads as held at the joint rather
 		// than in the fingers, and every bone on this skeleton carries axes nobody picked.
@@ -31,13 +30,28 @@ namespace Game.Runtime.GameMode.Poker.Player
 		[SerializeField] private PlayerRigController _rig;
 		[SerializeField] private PlayerHandIkController _handIk;
 
+		[Header("Wager")]
+		[Tooltip("Cue raised when the bet gesture's hand reaches the table for the cap.")]
+		[SerializeField] private string _betGrabCue = "BetGrab";
+
+		[Tooltip("Cue raised when the bet gesture puts the cap down.")]
+		[SerializeField] private string _betReleaseCue = "BetRelease";
+
 		[Tooltip("Seconds the cap takes from the hand to its spot on the table once the gesture lets go.")]
 		[Min(0f)]
 		[SerializeField] private float _placeDuration = 0.25f;
 
 		[SerializeField] private Ease _placeEase = Ease.OutQuad;
 
-		[Tooltip("How long a cap waits for a cue that never comes before it is simply put on the table. A clip missing its events must not leave a cap invisible for the rest of the hand.")]
+		[Header("Eating")]
+		[Tooltip("Cue raised when the eating gesture's hand picks the cap up off the table.")]
+		[SerializeField] private string _eatGrabCue = "EatGrab";
+
+		[Tooltip("Cue raised at the frame the cap goes into the mouth and is gone.")]
+		[SerializeField] private string _eatSwallowCue = "EatSwallow";
+
+		[Header("Safety")]
+		[Tooltip("How long a cap waits for a cue that never comes before it ends anyway. A clip missing its cues must not leave a cap invisible for the rest of the hand.")]
 		[Min(0f)]
 		[SerializeField] private float _cueTimeout = 3f;
 
@@ -51,6 +65,13 @@ namespace Game.Runtime.GameMode.Poker.Player
 			public Vector3 Resting;
 			public Vector3 WorldScale;
 			public Vector3 RestingScale;
+			public string GrabCue;
+			public string EndCue;
+
+			// What happens at the end cue. Null puts the cap back on the table; anything else is handed the
+			// cap and owns it from there — the pot visual destroys the one that was eaten.
+			public Action<GameObject> OnEnd;
+
 			public bool Held;
 			public Tween Timeout;
 		}
@@ -77,30 +98,51 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 			_relays.Clear();
 
-			for (var i = _carrying.Count - 1; i >= 0; i--) Land(_carrying[i]);
+			for (var i = _carrying.Count - 1; i >= 0; i--) End(_carrying[i]);
 
 			_carrying.Clear();
 		}
 
-		// Taken from the table: hidden where it lies until the gesture's hand comes down for it.
+		// Staked: taken off the table, hidden where it lay until the gesture's hand comes down for it, and
+		// put back down on the spot the table picked.
 		public void Carry(GameObject cap, Transform returnParent, Vector3 resting, Transform placementAnchor)
 		{
 			if (!cap) return;
 
 			if (_handIk && placementAnchor) _handIk.Aim(placementAnchor);
 
+			Begin(cap, returnParent, resting, _betGrabCue, _betReleaseCue, null, true);
+		}
+
+		// Eaten: the same hold, ending at the mouth. The caller is handed the cap back rather than this
+		// destroying it, because what a swallowed cap costs — coming off the registry, off the ledger — is
+		// the business of whoever was drawing it. It stays visible where it lies until the hand takes it,
+		// since a cap already on the table has no reason to vanish first.
+		public void Consume(GameObject cap, Action<GameObject> onSwallowed)
+		{
+			if (!cap) return;
+
+			Begin(cap, cap.transform.parent, cap.transform.localPosition, _eatGrabCue, _eatSwallowCue, onSwallowed, false);
+		}
+
+		private void Begin(GameObject cap, Transform returnParent, Vector3 resting, string grabCue, string endCue, Action<GameObject> onEnd, bool hideUntilGrabbed)
+		{
 			var carried = new Carried
 			{
 				Cap = cap,
 				ReturnParent = returnParent,
 				Resting = resting,
 				WorldScale = cap.transform.lossyScale,
-				RestingScale = cap.transform.localScale
+				RestingScale = cap.transform.localScale,
+				GrabCue = grabCue,
+				EndCue = endCue,
+				OnEnd = onEnd
 			};
 
 			carried.Timeout = DOVirtual.DelayedCall(_cueTimeout, () => Release(cap), false);
 
-			cap.SetActive(false);
+			if (hideUntilGrabbed) cap.SetActive(false);
+
 			_carrying.Add(carried);
 		}
 
@@ -121,7 +163,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			{
 				if (_carrying[i].Cap != cap) continue;
 
-				Land(_carrying[i]);
+				End(_carrying[i]);
 				_carrying.RemoveAt(i);
 				return;
 			}
@@ -129,32 +171,32 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 		private void HandleCue(string cue)
 		{
-			// A cap destroyed under us — the pot cleared, or one eaten mid-gesture — is dropped here rather
+			// A cap destroyed under us — the pot cleared, or one taken mid-gesture — is dropped here rather
 			// than left for its timeout, so nothing is ever put back onto a corpse.
 			for (var i = _carrying.Count - 1; i >= 0; i--)
 			{
 				if (_carrying[i].Cap) continue;
 
-				var timeout = _carrying[i].Timeout;
-				_carrying[i].Timeout = null;
-				timeout?.Kill();
+				KillTimeout(_carrying[i]);
 				_carrying.RemoveAt(i);
 			}
 
-			switch (cue)
+			// Each carry answers to its own pair, so a mouthful and a wager can be in flight at once without
+			// either one hearing the other's cue.
+			for (var i = _carrying.Count - 1; i >= 0; i--)
 			{
-				case GrabCue:
-					foreach (var carried in _carrying) Grab(carried);
-					break;
+				var carried = _carrying[i];
 
-				case ReleaseCue:
-					for (var i = _carrying.Count - 1; i >= 0; i--)
-					{
-						Place(_carrying[i]);
-						_carrying.RemoveAt(i);
-					}
+				if (!carried.Held && cue == carried.GrabCue)
+				{
+					Grab(carried);
+					continue;
+				}
 
-					break;
+				if (cue != carried.EndCue) continue;
+
+				Finish(carried);
+				_carrying.RemoveAt(i);
 			}
 		}
 
@@ -178,13 +220,18 @@ namespace Game.Runtime.GameMode.Poker.Player
 			carried.Cap.transform.localScale = new Vector3(carried.WorldScale.x / scale.x, carried.WorldScale.y / scale.y, carried.WorldScale.z / scale.z);
 		}
 
-		private void Place(Carried carried)
+		// The end cue arrived: a mouthful is handed to whoever owns it, a wager slides to its spot.
+		private void Finish(Carried carried)
 		{
-			var timeout = carried.Timeout;
-			carried.Timeout = null;
-			timeout?.Kill();
+			KillTimeout(carried);
 
 			if (!carried.Cap) return;
+
+			if (carried.OnEnd != null)
+			{
+				carried.OnEnd(carried.Cap);
+				return;
+			}
 
 			carried.Cap.SetActive(true);
 			carried.Cap.transform.SetParent(carried.ReturnParent, true);
@@ -200,13 +247,34 @@ namespace Game.Runtime.GameMode.Poker.Player
 			carried.Cap.transform.DOScale(carried.RestingScale, _placeDuration);
 		}
 
-		// Wherever it had got to, it is back on the table's books at its spot.
-		private void Land(Carried carried)
+		// No cue came, or the carry was cancelled. A wager goes back on the table; a mouthful is still owed
+		// to whoever handed it over, so it ends the way its cue would have ended it rather than being left
+		// in the fist.
+		private void End(Carried carried)
+		{
+			KillTimeout(carried);
+
+			if (!carried.Cap) return;
+
+			if (carried.OnEnd != null)
+			{
+				carried.OnEnd(carried.Cap);
+				return;
+			}
+
+			Land(carried);
+		}
+
+		private static void KillTimeout(Carried carried)
 		{
 			var timeout = carried.Timeout;
 			carried.Timeout = null;
 			timeout?.Kill();
+		}
 
+		// Wherever it had got to, it is back on the table's books at its spot.
+		private void Land(Carried carried)
+		{
 			if (!carried.Cap) return;
 
 			carried.Cap.transform.DOKill();

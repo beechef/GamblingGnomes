@@ -34,5 +34,14 @@ namespace Game.Runtime.GameMode.Poker.Items
 
 			eater.Data.ServerChangeHallucination(metBefore ? _repeatGain : _newTypeGain);
 		}
+
+		// The same question the bite itself asks, minus the writing. Read through the controller rather
+		// than remembered here, or the preview and the price could disagree.
+		protected override int OnPreviewHallucinationGain(PokerGameMode gameMode, PokerPlayer eater, PokerItemType itemType)
+		{
+			var consume = eater.ItemConsume;
+
+			return consume && consume.HasConsumed(itemType) ? _repeatGain : _newTypeGain;
+		}
 	}
 }

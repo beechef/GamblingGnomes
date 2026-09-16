@@ -56,6 +56,14 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			var winner = _contenders.Count > 0 ? _contenders[0].Player : null;
 			Data.LastWinnerClientId.Value = winner ? winner.ClientId : PokerGameData.NoTurn;
 
+			// The celebration is held from here until the table comes round to the Colorful pick, so it is
+			// raised on the winner and dropped on everybody else — a player who took the last hand and lost
+			// this one must not still be wearing it.
+			foreach (var player in GameMode.SeatedPlayers)
+			{
+				if (player) player.WinnerPose?.ServerSetSmiling(player == winner);
+			}
+
 			// The winner's cackle, played as the board goes up. Skipped in silence until the art is on the
 			// rig, like every gesture.
 			if (winner) winner.ActionAnimator?.ServerPlay(PlayerActionIds.Laugh);

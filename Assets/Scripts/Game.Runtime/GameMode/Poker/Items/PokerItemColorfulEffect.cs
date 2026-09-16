@@ -38,5 +38,9 @@ namespace Game.Runtime.GameMode.Poker.Items
 			// question anything asks and a later sobering could still bring them back.
 			if (Random.Range(0, 100) < against) data.ServerChangeHallucination(PokerPlayerData.MaxHallucination);
 		}
+
+		// The flat gain alone. The roll on top of it is chance, and one that fires is a player going under
+		// rather than a player taking a hit — that has its own pose and no impact belongs in front of it.
+		protected override int OnPreviewHallucinationGain(PokerGameMode gameMode, PokerPlayer eater, PokerItemType itemType) => _gain;
 	}
 }
