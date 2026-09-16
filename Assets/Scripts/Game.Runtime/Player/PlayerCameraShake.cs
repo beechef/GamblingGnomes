@@ -32,8 +32,9 @@ namespace Game.Runtime.Player
 		[Tooltip("Cues that shake the view, each at its own strength. Anything not named here is ignored.")]
 		[SerializeField] private Shake[] _shakes =
 		{
-			new() { Cue = "ImpactShake", Force = 3f },
-			new() { Cue = "EatSwallow", Force = 0.5f }
+			new() { Cue = "ImpactShake", Force = 6f },
+			new() { Cue = "EatSwallow", Force = 1f },
+			new() { Cue = "SmileShake", Force = 0.6f }
 		};
 
 		private readonly List<PlayerAnimationEventRelay> _relays = new();
