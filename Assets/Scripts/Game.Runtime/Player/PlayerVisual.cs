@@ -36,10 +36,15 @@ namespace Game.Runtime.Player
 		// would say nothing to anyone else. Cosmetic, and carrying no reason: whatever put it there is the
 		// one that takes it away.
 		[Header("Outline")]
-		[Tooltip("Second pass hung on the full body rig. The owner is never outlined to themselves — a glow on your own hands marks you to nobody.")]
+		[Tooltip("Second pass worn by every part of the full body rig, the hat included. The owner is never outlined to themselves — a glow on your own hands marks you to nobody.")]
 		[SerializeField] private Material _outlineMaterial;
 
+		[Tooltip("What the pass is painted while this player is picked out.")]
 		[SerializeField] private Color _outlineColor = new(1f, 0.2f, 0.2f, 1f);
+
+		[Tooltip("What it is painted the rest of the time. Clear, normally: the pass is always there and its colour is the whole difference between lit and not.")]
+		[SerializeField] private Color _idleOutlineColor = new(1f, 1f, 1f, 0f);
+
 		[SerializeField] private float _outlineWidth = 0.02f;
 
 		private static readonly int OutlineColorId = Shader.PropertyToID("_OutlineColor");
@@ -214,35 +219,41 @@ namespace Game.Runtime.Player
 
 		private static bool IsHandOnly(PlayerSlot slot) => slot is PlayerSlot.HandBody or PlayerSlot.HandOutfit;
 
-		// Added to and taken off whatever a renderer is already wearing, rather than rebuilt out of a model.
-		// Hanging it as part of the model looked tidier and was the bug: a slot the model leaves empty is a
-		// renderer the outline can never reach, and on a rig cut into ten meshes one unlit piece reads as
-		// the whole outline being broken.
+		// Added to whatever a renderer is already wearing, rather than rebuilt out of a model. Hanging it as
+		// part of the model looked tidier and was the bug: a slot the model leaves empty is a renderer the
+		// outline can never reach, and on a rig cut into ten meshes one unlit piece reads as the whole
+		// outline being broken.
 		//
-		// Only the body rig is lit: the hand-only pair is what the owner sees of themselves, and a glow on
+		// The pass is worn all the time — every part of the body, the hat included — and being picked out
+		// is a change of its colour. Adding and removing the material rebuilds every renderer's array on a
+		// beat that only wanted a different colour, and leaves the lit look depending on a pass that has to
+		// be re-hung after each repaint to exist at all.
+		//
+		// Only the body rig wears it: the hand-only pair is what the owner sees of themselves, and a glow on
 		// your own hands tells you something the rest of the table already knew.
 		private void ApplyOutline(bool outlined)
 		{
-			foreach (var slot in _slots)
-			{
-				if (!IsHandOnly(slot.Slot)) ApplyOutline(slot.Renderer, outlined);
-			}
-		}
-
-		private void ApplyOutline(Renderer renderer, bool outlined)
-		{
-			if (!renderer) return;
-
 			var outline = ResolveOutlineMaterial();
 			if (!outline) return;
 
-			var current = renderer.sharedMaterials;
-			var wearing = current.Length > 0 && current[^1] == outline;
-			if (wearing == outlined) return;
+			outline.SetColor(OutlineColorId, outlined ? _outlineColor : _idleOutlineColor);
 
-			var next = new Material[outlined ? current.Length + 1 : current.Length - 1];
-			for (var i = 0; i < next.Length && i < current.Length; i++) next[i] = current[i];
-			if (outlined) next[^1] = outline;
+			foreach (var slot in _slots)
+			{
+				if (!IsHandOnly(slot.Slot)) WearOutline(slot.Renderer, outline);
+			}
+		}
+
+		private static void WearOutline(Renderer renderer, Material outline)
+		{
+			if (!renderer) return;
+
+			var current = renderer.sharedMaterials;
+			if (current.Length > 0 && current[^1] == outline) return;
+
+			var next = new Material[current.Length + 1];
+			for (var i = 0; i < current.Length; i++) next[i] = current[i];
+			next[^1] = outline;
 
 			renderer.sharedMaterials = next;
 		}
@@ -254,7 +265,7 @@ namespace Game.Runtime.Player
 			if (_runtimeOutlineMaterial || !_outlineMaterial) return _runtimeOutlineMaterial;
 
 			_runtimeOutlineMaterial = new Material(_outlineMaterial);
-			_runtimeOutlineMaterial.SetColor(OutlineColorId, _outlineColor);
+			_runtimeOutlineMaterial.SetColor(OutlineColorId, _idleOutlineColor);
 			_runtimeOutlineMaterial.SetFloat(OutlineWidthId, _outlineWidth);
 
 			return _runtimeOutlineMaterial;
