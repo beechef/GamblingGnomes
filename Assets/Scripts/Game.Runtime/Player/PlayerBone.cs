@@ -24,6 +24,10 @@ namespace Game.Runtime.Player
 		FootLeft,
 		FootRight,
 		ToeLeft,
-		ToeRight
+		ToeRight,
+
+		// Not a bone: an authored point in the right hand where a small prop sits when held, hung under the
+		// hand so it follows the fingers. Appended, because the value is what a binding serializes.
+		HoldRight
 	}
 }

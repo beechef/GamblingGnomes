@@ -18,15 +18,6 @@ namespace Game.Runtime.GameMode.Poker.Player
 	// seconds here. A second clip therefore needs no number in this file: it carries its own frames.
 	public class PokerItemCarryController : MonoBehaviour
 	{
-		// Where a held cap sits, as a transform authored under the wrist on both rigs. A bone is the wrong
-		// answer: Cup_R is the base of the hand, so a cap sitting on it reads as held at the joint rather
-		// than in the fingers, and every bone on this skeleton carries axes nobody picked.
-		private const string CapHoldName = "CapHold";
-
-		// The palm, as a last resort for a rig with no hold point yet — still far better than the wrist
-		// origin, which is inside the forearm.
-		private const string PalmBoneName = "Cup_R";
-
 		[SerializeField] private PlayerRigController _rig;
 		[SerializeField] private PlayerHandIkController _handIk;
 
@@ -55,8 +46,13 @@ namespace Game.Runtime.GameMode.Poker.Player
 		[Min(0f)]
 		[SerializeField] private float _cueTimeout = 3f;
 
+		[Tooltip("How recently a grab cue may have fired and still take a cap handed over after it. The gesture and the ledger change that hands the cap over replicate separately and arrive in either order, and a grab a couple of frames into its clip is easily passed before the cap turns up.")]
+		[Min(0f)]
+		[SerializeField] private float _lateCueWindow = 0.5f;
+
 		private readonly List<PlayerAnimationEventRelay> _relays = new();
 		private readonly List<Carried> _carrying = new();
+		private readonly Dictionary<string, float> _lastCueTimes = new();
 
 		private class Carried
 		{
@@ -141,9 +137,16 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 			carried.Timeout = DOVirtual.DelayedCall(_cueTimeout, () => Release(cap), false);
 
-			if (hideUntilGrabbed) cap.SetActive(false);
-
 			_carrying.Add(carried);
+
+			// The hand already closed on it: the gesture arrived first and this cap caught up afterwards.
+			if (WasCueJustRaised(grabCue))
+			{
+				Grab(carried);
+				return;
+			}
+
+			if (hideUntilGrabbed) cap.SetActive(false);
 		}
 
 		// A cap on its way is one the table must leave alone, and one a clear has to be able to take back.
@@ -169,8 +172,13 @@ namespace Game.Runtime.GameMode.Poker.Player
 			}
 		}
 
+		private bool WasCueJustRaised(string cue) =>
+			!string.IsNullOrEmpty(cue) && _lastCueTimes.TryGetValue(cue, out var time) && Time.time - time <= _lateCueWindow;
+
 		private void HandleCue(string cue)
 		{
+			if (!string.IsNullOrEmpty(cue)) _lastCueTimes[cue] = Time.time;
+
 			// A cap destroyed under us — the pot cleared, or one taken mid-gesture — is dropped here rather
 			// than left for its timeout, so nothing is ever put back onto a corpse.
 			for (var i = _carrying.Count - 1; i >= 0; i--)
@@ -285,17 +293,18 @@ namespace Game.Runtime.GameMode.Poker.Player
 			carried.Cap.transform.localScale = carried.RestingScale;
 		}
 
+		// Where a held cap sits is a point authored in the hand on both rigs, handed over by the rig by what
+		// it is rather than found by name. A rig without one is a setup that cannot look right, so it says so
+		// and holds the cap at the wrist rather than not at all.
 		private Transform HoldPoint()
 		{
-			var hand = _rig ? _rig.GetBone(PlayerBone.HandRight) : null;
-			if (!hand) return null;
+			if (!_rig) return null;
 
-			var hold = hand.Find(CapHoldName);
-			if (hold) return hold;
+			if (_rig.TryGetBone(PlayerBone.HoldRight, out var hold)) return hold;
 
-			var palm = hand.Find(PalmBoneName);
+			Debug.LogWarning($"[{nameof(PokerItemCarryController)}] {_rig.RenderedRig} has no {nameof(PlayerBone.HoldRight)} bound; the cap is held at the wrist.", this);
 
-			return palm ? palm : hand;
+			return _rig.GetBone(PlayerBone.HandRight);
 		}
 	}
 }
