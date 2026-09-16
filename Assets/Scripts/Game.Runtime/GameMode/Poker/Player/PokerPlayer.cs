@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Game.Runtime.GameMode.Poker.Hallucination;
 using Game.Runtime.Player;
 using Unity.Netcode;
 using UnityEngine;
@@ -19,6 +20,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		[SerializeField] private PokerItemConsumeController _itemConsume;
 		[SerializeField] private PokerItemCarryController _itemCarry;
 		[SerializeField] private PokerWinnerPoseController _winnerPose;
+		[SerializeField] private PokerHallucinationRollController _hallucinationRoll;
 
 		[Tooltip("Who this player is — the name the table shows. Lives beside this on the player, not on the table.")]
 		[FormerlySerializedAs("_wallet")]
@@ -68,6 +70,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		// The held celebration. Named as a pose rather than as a gesture, because it lasts as long as the
 		// round says and not as long as a clip.
 		public PokerWinnerPoseController WinnerPose => _winnerPose;
+		public PokerHallucinationRollController HallucinationRoll => _hallucinationRoll;
 		public PlayerData Identity => _identity;
 		public PlayerRigController Rig => _rig;
 		public PlayerActionAnimator ActionAnimator => _actionAnimator;
@@ -122,6 +125,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			if (!_itemConsume) _itemConsume = GetComponentInChildren<PokerItemConsumeController>(true);
 			if (!_itemCarry) _itemCarry = GetComponentInChildren<PokerItemCarryController>(true);
 			if (!_winnerPose) _winnerPose = GetComponentInChildren<PokerWinnerPoseController>(true);
+			if (!_hallucinationRoll) _hallucinationRoll = GetComponentInChildren<PokerHallucinationRollController>(true);
 			if (!_identity) _identity = GetComponent<PlayerData>();
 			if (!_rig) _rig = GetComponent<PlayerRigController>();
 

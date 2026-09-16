@@ -72,6 +72,10 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 		// the eyelids reads this same number rather than carrying one of its own to keep in step.
 		public float TransitionDuration => Mathf.Max(0f, _transitionDuration);
 
+		// The ladder itself, for anything drawing where its rungs sit. Read as authored, so every screen shows the
+		// same marks whether or not it is the one running the effects.
+		public PokerHallucinationTiers Tiers => _tiers;
+
 		// Whether moving between these two rates climbs or loses a rung — which is exactly when the screen
 		// spends TransitionDuration blinking. Asked by the server, which has this component too and can read
 		// the ladder off it: anything pacing a beat around the blink has to know whether one is coming, and
