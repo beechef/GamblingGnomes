@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using DG.Tweening;
 using Game.Runtime.GameMode.Poker.Player;
+using Game.Runtime.Player;
 using Sirenix.OdinInspector;
 using Unity.Netcode;
 using UnityEngine;
@@ -29,24 +31,28 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		[Min(0f)]
 		[SerializeField] private float _handOverStagger = 0.15f;
 
-		// The hand pose starts on the same change that moves the cards, so both clocks start together and
-		// the card only has to wait for the frame its hand reaches the table. Seconds, measured from that
-		// change — the pose's transition plus the clip's contact frame.
-		[Tooltip("Seconds a picked-up card lies on the table before it flies, so it leaves the moment the pick-up animation's hand reaches it. Counted from the change that starts the pose; the stagger is added on top.")]
-		[Min(0f)]
-		[SerializeField] private float _pickUpDelay;
 
-		[Tooltip("Seconds a card put down stays in the hand before it flies to the table, so it lands as the put-down animation's hand reaches the table. Counted from the change that starts the pose; the stagger is added on top.")]
-		[Min(0f)]
-		[SerializeField] private float _putDownDelay;
+		// A card sets off when the hand reaches it, and which frame that is belongs to the clip rather than
+		// to a number counted here: the same beat lands on a different frame in each of the three clips,
+		// and a retime moves it without anybody remembering to. The pose is started by the same replicated
+		// change that moves the cards, so the clip is already running when the wait begins.
+		[Header("Cues")]
+		[Tooltip("Marker raised when the pick-up animation's hand reaches the cards lying on the table.")]
+		[SerializeField] private string _pickUpCue = "CardPickUp";
 
-		[Tooltip("Seconds a card stays in the hand when the hand is turned over for the table, before it is thrown down — the show animation's release frame. Counted the same way.")]
+		[Tooltip("Marker raised when the put-down animation's hand reaches the table.")]
+		[SerializeField] private string _putDownCue = "CardPutDown";
+
+		[Tooltip("Marker raised when the hand is turned over for the table and the cards are thrown down.")]
+		[SerializeField] private string _showCue = "CardShow";
+
+		[Tooltip("Seconds a set waits for a marker that never comes before it travels anyway. A clip missing its marker must not leave a hand half on the table for the rest of the round.")]
 		[Min(0f)]
-		[SerializeField] private float _showDelay;
+		[SerializeField] private float _cueTimeout = 2f;
 
 		[Header("References")]
 		[SerializeField] private PokerPlayerData _data;
-		[SerializeField] private PokerCardVisual _cardPrefab;
+		[SerializeField] private PokerCardVisual _cardPrefab;		
 		[SerializeField] private PokerCardDatabase _database;
 
 		private readonly List<PokerCardVisual> _cards = new();
@@ -67,10 +73,20 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		private int _shownFaceUpMask;
 		private int _shownInHandMask;
 
+		// The set that has left its group and is lying where it was, waiting for the clip to say the hand has
+		// reached it. One set at a time: a second presentation change supersedes the first, and whatever it
+		// has not accounted for is released rather than left waiting for a cue that has already gone by.
+		private readonly List<PlayerAnimationEventRelay> _relays = new();
+		private string _awaitedCue;
+		private int _awaitedMask;
+		private Tween _cueTimeoutTween;
+
 		public override void OnNetworkSpawn()
 		{
 			if (!_data) _data = GetComponentInParent<PokerPlayerData>();
 			if (!_data) return;
+
+			BindRelays();
 
 			_data.OnHoleCardsChanged += HandleHoleCardsChanged;
 			_data.OnHoleCardPresentationChanged += HandlePresentationChanged;
@@ -85,6 +101,9 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 			_data.OnHoleCardsChanged -= HandleHoleCardsChanged;
 			_data.OnHoleCardPresentationChanged -= HandlePresentationChanged;
+
+			UnbindRelays();
+			ReleaseAwaited();
 		}
 
 		private void HandleHoleCardsChanged(NetworkListEvent<CardData> change)
@@ -180,15 +199,97 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			if (_table) _table.Layout(null);
 			if (_hand) _hand.Layout(null);
 
-			var ahead = 0;
+			// Everything that is not travelling is put straight where it belongs at once — nothing happened
+			// to it, so it has nothing to wait for. The movers stay lying where they are until the clip says
+			// the hand has reached them.
 			for (var i = count - 1; i >= 0; i--)
 			{
-				var travels = (moved & (1 << i)) != 0;
-				var wait = IsInHand(i) ? _pickUpDelay : _data.HandRevealed.Value ? _showDelay : _putDownDelay;
-				HandOver(i, travels, travels ? wait + ahead++ * _handOverStagger : 0f);
+				if ((moved & (1 << i)) == 0) HandOver(i, false);
 			}
 
+			ReleaseAwaited();
+
+			if (moved != 0) AwaitCue(CueFor(moved), moved);
+
 			OnAnyHandChanged?.Invoke();
+		}
+
+
+		// Both rigs, each gating itself on being drawn, rather than the one RenderedRig answers with:
+		// ownership is not settled when a spawned prefab wakes, and a relay picked once here would be the
+		// wrong rig for the rest of the session on whichever machine lost that race.
+		private void BindRelays()
+		{
+			UnbindRelays();
+
+			var rig = GetComponentInParent<PlayerRigController>(true);
+			if (!rig) return;
+
+			rig.GetComponentsInChildren(true, _relays);
+
+			foreach (var relay in _relays) relay.OnAnimationCue += HandleAnimationCue;
+		}
+
+		private void UnbindRelays()
+		{
+			foreach (var relay in _relays)
+			{
+				if (relay) relay.OnAnimationCue -= HandleAnimationCue;
+			}
+
+			_relays.Clear();
+		}
+
+		// Which way this set is going decides which clip is playing, and so which marker it waits for.
+		private string CueFor(int mask)
+		{
+			if (!_data) return _putDownCue;
+
+			var intoHand = (CurrentInHandMask() & mask) != 0;
+
+			return intoHand ? _pickUpCue : _data.HandRevealed.Value ? _showCue : _putDownCue;
+		}
+
+		private void AwaitCue(string cue, int mask)
+		{
+			_awaitedCue = cue;
+			_awaitedMask = mask;
+
+			// A clip with no marker on it, or a pose that never started, must not leave a hand half on the
+			// table. The timeout is a backstop, never a delay anybody tunes.
+			_cueTimeoutTween = DOVirtual.DelayedCall(_cueTimeout, () => ReleaseAwaited(true), false);
+		}
+
+		private void HandleAnimationCue(string cue)
+		{
+			if (string.IsNullOrEmpty(_awaitedCue) || cue != _awaitedCue) return;
+
+			ReleaseAwaited(true);
+		}
+
+		// Sends the waiting set on its way, highest slot first, each holding a stagger for every mover above
+		// it so they do not fly the same path at the same moment and draw through each other.
+		private void ReleaseAwaited(bool travel = false)
+		{
+			var timeout = _cueTimeoutTween;
+			_cueTimeoutTween = null;
+			timeout?.Kill();
+
+			var mask = _awaitedMask;
+
+			_awaitedCue = null;
+			_awaitedMask = 0;
+
+			if (mask == 0) return;
+
+			var ahead = 0;
+
+			for (var i = Mathf.Min(_cards.Count, 31) - 1; i >= 0; i--)
+			{
+				if ((mask & (1 << i)) == 0) continue;
+
+				HandOver(i, travel, travel ? ahead++ * _handOverStagger : 0f);
+			}
 		}
 
 		// Re-asks the data where every card belongs and puts both groups straight, without animating any of
