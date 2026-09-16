@@ -83,11 +83,12 @@ namespace Game.Runtime.GameMode.Poker.Visual
 					AddCap(change.Value, true);
 					break;
 
-				// One cap off the table is one being eaten, so it goes up rather than simply disappearing:
-				// this is the moment the round's consequence actually happens and it has to be watchable.
+				// One cap off the table is one being eaten, so it is picked up and put in a mouth rather than
+				// simply disappearing: this is the moment the round's consequence actually happens and it has
+				// to be watchable. The removed entry still names its owner, which is who is eating it.
 				case NetworkListEvent<PokerBetItem>.EventType.RemoveAt:
 				case NetworkListEvent<PokerBetItem>.EventType.Remove:
-					EatCap(change.Index);
+					EatCap(change.Index, change.Value.OwnerClientId);
 					break;
 
 				case NetworkListEvent<PokerBetItem>.EventType.Clear:
@@ -190,7 +191,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		// Lifted and gone. Taken off the register as it is destroyed rather than as it leaves the ledger:
 		// it is on screen for the whole swallow, and dropping it early would have it shed whatever a
 		// hallucination had painted on it halfway to the eater's mouth.
-		private void EatCap(int index)
+		private void EatCap(int index, ulong ownerClientId)
 		{
 			if (index < 0 || index >= _caps.Count) { RebuildAll(); return; }
 
@@ -201,21 +202,43 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 			cap.transform.DOKill();
 
+			// Handed to the eater, who picks it up at the frame their own gesture's hand reaches it and is
+			// rid of it at the frame it goes in the mouth. Where a fist closes and which frame that is are
+			// the player's business, not the table's — the same split the wager already makes.
+			if (TryGetCarrier(ownerClientId, out var carrier))
+			{
+				carrier.Consume(cap, SwallowCap);
+				Relayout();
+				return;
+			}
+
+			// No carrier on that body: the cap still has to leave, so it goes up and out as it used to.
 			if (_eatDuration <= 0f)
 			{
-				PokerItemCapRegistry.Remove(cap);
-				Destroy(cap);
+				SwallowCap(cap);
 				Relayout();
 				return;
 			}
 
 			var lifted = cap.transform.localPosition + Vector3.up * _eatRise;
 			cap.transform.DOLocalMove(lifted, _eatDuration).SetEase(Ease.InQuad)
-				.OnComplete(() => { PokerItemCapRegistry.Remove(cap); if (cap) Destroy(cap); });
+				.OnComplete(() => SwallowCap(cap));
 
 			cap.transform.DOScale(Vector3.zero, _eatDuration).SetEase(Ease.InQuad);
 
 			Relayout();
+		}
+
+		// Gone. Taken off the register as it is destroyed rather than as it left the ledger: it is on screen
+		// for the whole mouthful, and dropping it early would have it shed whatever a hallucination had
+		// painted on it halfway to the eater's mouth.
+		private void SwallowCap(GameObject cap)
+		{
+			if (!cap) return;
+
+			PokerItemCapRegistry.Remove(cap);
+			cap.transform.DOKill();
+			Destroy(cap);
 		}
 
 		// Closing the gap an eaten cap left, in front of every chair at once: the caps are index-aligned

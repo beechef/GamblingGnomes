@@ -1,4 +1,6 @@
 using System;
+using Game.Runtime.Utility;
+using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -55,6 +57,15 @@ namespace Game.Runtime.UI.Button
 		}
 
 		private bool _keyPressed;
+
+		// A handler is free to hide, replace or destroy this button, and most of them do — so the press
+		// animation would never be seen if OnClick ran on the same frame as the release. The click is held
+		// here instead, long enough for the visuals to draw the press before whatever it triggers lands.
+		[Header("Click")]
+		[MinValue(0f)]
+		[SerializeField] private float _clickDelay = 0.1f;
+
+		private bool _clicking;
 
 		public bool IsInteractable
 		{
@@ -136,9 +147,46 @@ namespace Game.Runtime.UI.Button
 			RefreshState(true);
 		}
 
-		private void Click()
+		// async void because this is the uGUI onClick listener, which is the one case the project allows
+		// it — and it catches, so a throw has somewhere to go. The guard is released in finally: released
+		// on the success path alone, one throw would leave the button dead for the rest of the session.
+		private async void Click()
 		{
-			if (!IsInteractable) return;
+			if (!IsInteractable || _clicking) return;
+
+			if (_clickDelay <= 0f)
+			{
+				Raise();
+				return;
+			}
+
+			_clicking = true;
+
+			try
+			{
+				await AwaitableUtility.WaitUnscaledAsync(_clickDelay, destroyCancellationToken);
+
+				Raise();
+			}
+			catch (OperationCanceledException)
+			{
+			}
+			catch (Exception exception)
+			{
+				Debug.LogException(exception, this);
+			}
+			finally
+			{
+				_clicking = false;
+			}
+		}
+
+		// Asked again on the far side of the wait: a button switched off or made uninteractable while the
+		// press was still being drawn must not go on to fire, and the object itself may be gone by then.
+		private void Raise()
+		{
+			if (!this || !isActiveAndEnabled || !IsInteractable) return;
+
 			OnClick?.Invoke();
 
 			// A click is the moment a screen tends to change underneath the pointer, and uGUI delivers the

@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using Game.Runtime.GameMode.Poker.Items;
 using Game.Runtime.GameMode.Poker.Hallucination;
 using Game.Runtime.GameMode.Poker.Player;
 using Game.Runtime.Player;
@@ -52,6 +54,12 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		private int _seatIndex;
 		private bool _waitingToHandOver;
 
+		// A mouthful that has been taken off the table and not yet paid for. The effect is what starts the
+		// blink, so it is held back until the hit is over — otherwise the room changes on top of the impact
+		// instead of after it, which is the one beat the whole round is played for.
+		private readonly List<PokerItemType> _pendingItems = new();
+		private bool _pendingImpact;
+
 		protected override void OnStartStage()
 		{
 			Data.Phase.Value = PokerPhase.Eating;
@@ -61,6 +69,9 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			_timer = 0f;
 			_waitingToHandOver = false;
 
+			_pendingItems.Clear();
+			_pendingImpact = false;
+
 			// Nobody was handed anything — everyone folded out, or the settlement had nothing to give.
 			if (!AdvanceToNextEater()) FinishEating();
 		}
@@ -69,6 +80,21 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		{
 			_timer -= deltaTime;
 			if (_timer > 0f) return;
+
+			// One mouthful runs as three beats in a row, never together: it goes down, then the hit plays if
+			// it moved them onto a new rung, and only then does the world change. Each is a step through
+			// this rather than a duration added to the one before it, so nothing can overlap.
+			if (_pendingItems.Count > 0)
+			{
+				if (_pendingImpact)
+				{
+					PlayImpact();
+					return;
+				}
+
+				ApplyPending();
+				return;
+			}
 
 			if (_waitingToHandOver)
 			{
@@ -81,14 +107,11 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 			// They left, or went under mid-plate. Whatever is left on it goes with them: eating is a thing
 			// a player does, not a debt the table collects.
-			if (!eater || !TakeBite(eater, out var extra))
+			if (!eater || !TakeBite(eater))
 			{
 				_waitingToHandOver = true;
 				_timer = _handoverDuration;
-				return;
 			}
-
-			_timer = _biteDuration + _gapBetweenBites + extra;
 		}
 
 		// The table is cleared on the way out. Anything still standing belongs to somebody who left or went
@@ -130,58 +153,100 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		// True while there was something left to swallow. One gesture per mouthful and _itemsPerBite caps
 		// in it; each cap comes off the table as it goes down rather than after, because the ledger is what
 		// the visual draws.
-		private bool TakeBite(PokerPlayer eater, out float extraWait)
+		private bool TakeBite(PokerPlayer eater)
 		{
-			extraWait = 0f;
-
 			if (PokerTableUtility.CountPotItems(Data, eater.ClientId) == 0) return false;
 
 			eater.ActionAnimator?.ServerPlay(PlayerActionIds.ConsumeItem);
 
-			// Read either side of the mouthful rather than predicted from it: what a cap costs depends on
-			// whether this eater has met that kind before, so only the rate itself can say where they
-			// landed.
-			var before = eater.Data ? eater.Data.HallucinationRate.Value : 0;
-			var database = GameMode.ItemDatabase;
+			// Off the table now, paid for later: the cap leaving the ledger is what the visual plays as the
+			// mouthful, and that has to happen while the gesture is running rather than after it.
+			_pendingItems.Clear();
 
 			for (var i = 0; i < Mathf.Max(1, _itemsPerBite); i++)
 			{
 				if (!PokerTableUtility.ServerTakePotItem(Data, eater.ClientId, out var itemType)) break;
 
+				_pendingItems.Add(itemType);
+			}
+
+			if (_pendingItems.Count == 0) return false;
+
+			_pendingImpact = WouldClimbRung(eater);
+			_timer = _biteDuration;
+
+			return true;
+		}
+
+		// Asked of the effects before the bite is paid for, so the hit can be played in front of the change
+		// rather than on top of it. Exact rather than predicted: the only thing a price turns on is a record
+		// nothing has written yet. A climb only — coming down a rung is relief, not a hit.
+		private bool WouldClimbRung(PokerPlayer eater)
+		{
+			if (!eater.Data) return false;
+
+			var database = GameMode.ItemDatabase;
+			var gain = 0;
+
+			foreach (var itemType in _pendingItems)
+			{
 				if (database && database.TryGetEntry(itemType, out var entry) && entry.Effect)
+				{
+					gain += entry.Effect.PreviewHallucinationGain(GameMode, eater, itemType);
+				}
+			}
+
+			if (gain <= 0) return false;
+
+			var hallucination = eater.GetComponentInChildren<PokerHallucinationController>(true);
+			var before = eater.Data.HallucinationRate.Value;
+
+			return hallucination && hallucination.CrossesRung(before, before + gain);
+		}
+
+		private void PlayImpact()
+		{
+			_pendingImpact = false;
+			_timer = _impactDuration;
+
+			FindSeatedPlayerAtSeat(_seatIndex)?.ActionAnimator?.ServerPlay(PlayerActionIds.Impact);
+		}
+
+		// The hit is over, so the world is allowed to change: the effect lands, which is what starts the
+		// eater's blink, and the next mouthful waits that out — one landing inside the blink is one nobody
+		// saw. The rate is read either side rather than taken from the preview, because a Colorful roll can
+		// have moved it further than any preview could say.
+		private void ApplyPending()
+		{
+			var eater = FindSeatedPlayerAtSeat(_seatIndex);
+			var database = GameMode.ItemDatabase;
+			var before = eater && eater.Data ? eater.Data.HallucinationRate.Value : 0;
+
+			foreach (var itemType in _pendingItems)
+			{
+				if (eater && database && database.TryGetEntry(itemType, out var entry) && entry.Effect)
 				{
 					entry.Effect.ConsumeServer(GameMode, eater, itemType);
 				}
 			}
 
-			var after = eater.Data ? eater.Data.HallucinationRate.Value : before;
+			_pendingItems.Clear();
 
-			extraWait = WaitAfterBite(eater, before, after);
+			var after = eater && eater.Data ? eater.Data.HallucinationRate.Value : before;
 
-			return true;
+			_timer = TransitionWait(eater, before, after) + _gapBetweenBites;
 		}
 
-		// A mouthful that moved its eater across a rung. Their controller owns both the ladder and how long
-		// the blink takes, so it is asked rather than a second copy of either being kept here. The blink is
-		// waited out in either direction — a bite landing inside it is a bite nobody saw — while the impact
-		// is a climb only: coming down a rung is relief, not a hit. The two run together, so the wait is
-		// whichever is longer.
-		private float WaitAfterBite(PokerPlayer eater, int before, int after)
+		// How long the room spends changing. Their controller owns both the ladder and how long the blink
+		// takes, so it is asked rather than a second copy of either being kept here — and it is waited out
+		// in either direction, since a bite landing inside the blink is a bite nobody saw.
+		private float TransitionWait(PokerPlayer eater, int before, int after)
 		{
-			if (before == after) return 0f;
+			if (!eater || before == after || !_waitForHallucinationTransition) return 0f;
 
 			var hallucination = eater.GetComponentInChildren<PokerHallucinationController>(true);
-			if (!hallucination || !hallucination.CrossesRung(before, after)) return 0f;
 
-			var wait = _waitForHallucinationTransition ? hallucination.TransitionDuration : 0f;
-
-			if (after > before)
-			{
-				eater.ActionAnimator?.ServerPlay(PlayerActionIds.Impact);
-				wait = Mathf.Max(wait, _impactDuration);
-			}
-
-			return wait;
+			return hallucination && hallucination.CrossesRung(before, after) ? hallucination.TransitionDuration : 0f;
 		}
 
 		private PokerPlayer FindSeatedPlayerAtSeat(int seatIndex)

@@ -179,7 +179,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Camera.PokerOwnSeatCameraState
   _allowManualLook: 0
-  _aimDelay: 0.5
+  _aimDelay: 0
   _anchor: 2
   _data: {fileID: 6935137486891752095}
 --- !u!114 &8382578662399497633
@@ -254,9 +254,10 @@ MonoBehaviour:
   _table: {fileID: 6057641942966068475}
   _hand: {fileID: 3345757001518581811}
   _handOverStagger: 0.15
-  _pickUpDelay: 0.5
-  _putDownDelay: 0.35
-  _showDelay: 0.15
+  _pickUpCue: CardPickUp
+  _putDownCue: CardPutDown
+  _showCue: CardShow
+  _cueTimeout: 2
   _data: {fileID: 6935137486891752095}
   _cardPrefab: {fileID: 2273976980707683780, guid: 766e25a6debc8fc4c95fcf20063e4f4d, type: 3}
   _database: {fileID: 11400000, guid: 81ffbfaf2b0219043836272fa19b4e8b, type: 2}
@@ -345,7 +346,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Camera.PokerWagerCameraState
   _allowManualLook: 1
-  _aimDelay: 1
+  _aimDelay: 0
   _anchor: 2
   _data: {fileID: 6935137486891752095}
 --- !u!114 &1414198216273599940
@@ -465,7 +466,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Camera.PokerFocusPlayerCameraState
   _allowManualLook: 1
-  _aimDelay: 0.5
+  _aimDelay: 0
 --- !u!114 &6817390561801407297
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -531,7 +532,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Camera.PokerWagerCameraState
   _allowManualLook: 1
-  _aimDelay: 1
+  _aimDelay: 0
   _anchor: 2
   _data: {fileID: 6935137486891752095}
 --- !u!114 &667791231251871484
@@ -654,7 +655,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Camera.PokerOwnSeatCameraState
   _allowManualLook: 1
-  _aimDelay: 0.5
+  _aimDelay: 0
   _anchor: 0
   _data: {fileID: 6935137486891752095}
 --- !u!114 &48590640832765361
@@ -816,36 +817,36 @@ MonoBehaviour:
   _fingers:
   - Name: Pinky_L
     Bones:
-    - {fileID: 2673125152113937884}
-    - {fileID: 3114243222141168830}
+    - {fileID: 0}
+    - {fileID: 0}
   - Name: Pinky_R
     Bones:
-    - {fileID: 3373854668701582030}
-    - {fileID: 2374114358856639404}
+    - {fileID: 0}
+    - {fileID: 0}
   - Name: Index_L
     Bones:
-    - {fileID: 7552251044520170205}
-    - {fileID: 7416908327885419455}
+    - {fileID: 0}
+    - {fileID: 0}
   - Name: Index_R
     Bones:
-    - {fileID: 9010611455701359780}
-    - {fileID: 8299225902381317574}
+    - {fileID: 0}
+    - {fileID: 0}
   - Name: Middle_L
     Bones:
-    - {fileID: 2867912186165155940}
-    - {fileID: 3020794313629956358}
+    - {fileID: 0}
+    - {fileID: 0}
   - Name: Middle_R
     Bones:
-    - {fileID: 4592509017729350615}
-    - {fileID: 3574455139265977013}
+    - {fileID: 0}
+    - {fileID: 0}
   - Name: Thumb_L
     Bones:
-    - {fileID: 7719927684206850718}
-    - {fileID: 7278498488627221500}
+    - {fileID: 0}
+    - {fileID: 0}
   - Name: Thumb_R
     Bones:
-    - {fileID: 1083850778490005402}
-    - {fileID: 83956604392752888}
+    - {fileID: 0}
+    - {fileID: 0}
   _boneScale: {fileID: 338084876826924209}
 --- !u!1 &6876006055139249189
 GameObject:
@@ -1005,8 +1006,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Player.PokerItemCarryController
   _rig: {fileID: 382404797062674536}
   _handIk: {fileID: 8832795126120928936}
+  _betGrabCue: BetGrab
+  _betReleaseCue: BetRelease
   _placeDuration: 0.25
   _placeEase: 6
+  _eatGrabCue: EatGrab
+  _eatSwallowCue: EatSwallow
   _cueTimeout: 3
 --- !u!1001 &2812995479481287383
 PrefabInstance:
@@ -1197,12 +1202,10 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 5967459511013491666, guid: 8a531d709826a264e9027ff908ced981, type: 3}
       insertIndex: -1
       addedObject: {fileID: 5503049138563897167}
+    - targetCorrespondingSourceObject: {fileID: 5967459511013491666, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4197549116505931211}
   m_SourcePrefab: {fileID: 100100000, guid: 8a531d709826a264e9027ff908ced981, type: 3}
---- !u!4 &83956604392752888 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 2748183590077711407, guid: 8a531d709826a264e9027ff908ced981, type: 3}
-  m_PrefabInstance: {fileID: 2812995479481287383}
-  m_PrefabAsset: {fileID: 0}
 --- !u!4 &215543839289335669 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2734819149101292962, guid: 8a531d709826a264e9027ff908ced981, type: 3}
@@ -1230,11 +1233,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 917bfe7928b428848a247b6bd5a71e27, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.PlayerRigController
---- !u!4 &1083850778490005402 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 2883246001981646157, guid: 8a531d709826a264e9027ff908ced981, type: 3}
-  m_PrefabInstance: {fileID: 2812995479481287383}
-  m_PrefabAsset: {fileID: 0}
 --- !u!114 &1277917375681613223 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 3942293894947819376, guid: 8a531d709826a264e9027ff908ced981, type: 3}
@@ -1257,11 +1255,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0acc1df1aad3599428a2d3278c4a36e1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.PlayerController
---- !u!4 &2374114358856639404 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 575132620951576955, guid: 8a531d709826a264e9027ff908ced981, type: 3}
-  m_PrefabInstance: {fileID: 2812995479481287383}
-  m_PrefabAsset: {fileID: 0}
 --- !u!114 &2386824806186768469 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 438662258472082050, guid: 8a531d709826a264e9027ff908ced981, type: 3}
@@ -1278,69 +1271,14 @@ Animator:
   m_CorrespondingSourceObject: {fileID: 469678322729097954, guid: 8a531d709826a264e9027ff908ced981, type: 3}
   m_PrefabInstance: {fileID: 2812995479481287383}
   m_PrefabAsset: {fileID: 0}
---- !u!4 &2673125152113937884 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 148932516519792395, guid: 8a531d709826a264e9027ff908ced981, type: 3}
-  m_PrefabInstance: {fileID: 2812995479481287383}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &2867912186165155940 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 55479759716506291, guid: 8a531d709826a264e9027ff908ced981, type: 3}
-  m_PrefabInstance: {fileID: 2812995479481287383}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &3020794313629956358 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 1073475263132466129, guid: 8a531d709826a264e9027ff908ced981, type: 3}
-  m_PrefabInstance: {fileID: 2812995479481287383}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &3114243222141168830 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 878703072487370345, guid: 8a531d709826a264e9027ff908ced981, type: 3}
-  m_PrefabInstance: {fileID: 2812995479481287383}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &3373854668701582030 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 710322505067479065, guid: 8a531d709826a264e9027ff908ced981, type: 3}
-  m_PrefabInstance: {fileID: 2812995479481287383}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &3574455139265977013 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 1626574066536650850, guid: 8a531d709826a264e9027ff908ced981, type: 3}
-  m_PrefabInstance: {fileID: 2812995479481287383}
-  m_PrefabAsset: {fileID: 0}
 --- !u!4 &4182802488479903979 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 2091228027814277692, guid: 8a531d709826a264e9027ff908ced981, type: 3}
   m_PrefabInstance: {fileID: 2812995479481287383}
   m_PrefabAsset: {fileID: 0}
---- !u!4 &4592509017729350615 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 1779514362890434816, guid: 8a531d709826a264e9027ff908ced981, type: 3}
-  m_PrefabInstance: {fileID: 2812995479481287383}
-  m_PrefabAsset: {fileID: 0}
 --- !u!95 &4592962496778479551 stripped
 Animator:
   m_CorrespondingSourceObject: {fileID: 1780258250985252200, guid: 8a531d709826a264e9027ff908ced981, type: 3}
-  m_PrefabInstance: {fileID: 2812995479481287383}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &7278498488627221500 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 4759090618432803115, guid: 8a531d709826a264e9027ff908ced981, type: 3}
-  m_PrefabInstance: {fileID: 2812995479481287383}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &7416908327885419455 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 4749013577400856936, guid: 8a531d709826a264e9027ff908ced981, type: 3}
-  m_PrefabInstance: {fileID: 2812995479481287383}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &7552251044520170205 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 5748625243982893066, guid: 8a531d709826a264e9027ff908ced981, type: 3}
-  m_PrefabInstance: {fileID: 2812995479481287383}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &7719927684206850718 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 5488609418718834761, guid: 8a531d709826a264e9027ff908ced981, type: 3}
   m_PrefabInstance: {fileID: 2812995479481287383}
   m_PrefabAsset: {fileID: 0}
 --- !u!114 &7776873476951557616 stripped
@@ -1357,11 +1295,6 @@ MonoBehaviour:
 --- !u!4 &7915523810459036602 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5390899513882683757, guid: 8a531d709826a264e9027ff908ced981, type: 3}
-  m_PrefabInstance: {fileID: 2812995479481287383}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &8299225902381317574 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 6063254125736083217, guid: 8a531d709826a264e9027ff908ced981, type: 3}
   m_PrefabInstance: {fileID: 2812995479481287383}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &8336770729751643675 stripped
@@ -1445,6 +1378,7 @@ MonoBehaviour:
   _data: {fileID: 6935137486891752095}
   _itemConsume: {fileID: 715681995083866239}
   _itemCarry: {fileID: 4926342603919299137}
+  _winnerPose: {fileID: 4197549116505931211}
   _identity: {fileID: 1277917375681613223}
   _rig: {fileID: 382404797062674536}
   _actionAnimator: {fileID: 7776873476951557616}
@@ -1506,6 +1440,21 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   _bodyAnimator: {fileID: 2417700236160604213}
   _handOnlyAnimator: {fileID: 4592962496778479551}
+--- !u!114 &4197549116505931211
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8491933690262143237}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 221d58634f2fbfbc8868869ab4637a72, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Player.PokerWinnerPoseController
+  ShowTopMostFoldoutHeaderGroup: 1
+  _animatorStates: {fileID: 5503049138563897167}
+  _smilingParameter: IsSmiling
 --- !u!114 &8832795126120928936 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 6745723886630753407, guid: 8a531d709826a264e9027ff908ced981, type: 3}
@@ -1517,11 +1466,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5f1803ac02bc2e3c5348bb912ece16ae, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.PlayerHandIkController
---- !u!4 &9010611455701359780 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 6486831755484864115, guid: 8a531d709826a264e9027ff908ced981, type: 3}
-  m_PrefabInstance: {fileID: 2812995479481287383}
-  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &5025079544960778462
 PrefabInstance:
   m_ObjectHideFlags: 0

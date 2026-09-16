@@ -11,6 +11,8 @@ GameObject:
   - component: {fileID: 4863384955165601446}
   - component: {fileID: 4944336734381520693}
   - component: {fileID: 7663743362514728319}
+  - component: {fileID: 2411789941330197316}
+  - component: {fileID: 5564260659128263186}
   m_Layer: 0
   m_Name: Icon
   m_TagString: Untagged
@@ -75,6 +77,45 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!114 &2411789941330197316
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 46380692629364023}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a8c25f3d68f076642ad0470626c43251, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Button.UIButtonScaleVisual
+  _button: {fileID: 342601452257255324}
+  _target: {fileID: 4863384955165601446}
+  _normalScale: 1
+  _hoveredScale: 1.2
+  _pressedScale: 0.94
+  _disabledScale: 1
+  _duration: 0.12
+  _ease: 27
+--- !u!114 &5564260659128263186
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 46380692629364023}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 425d40a40743d2e195095d3b1c7b9e84, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Button.UIButtonRotationVisual
+  _button: {fileID: 342601452257255324}
+  _target: {fileID: 4863384955165601446}
+  _hoveredAngle: 15
+  _pressedAngle: -5
+  _disabledAngle: 0
+  _duration: 0.1
+  _ease: 27
 --- !u!1 &1655568605129214950
 GameObject:
   m_ObjectHideFlags: 0
@@ -929,7 +970,7 @@ MonoBehaviour:
   _target: {fileID: 3331198427334929258}
   _normalAlpha: 1
   _hoveredAlpha: 1
-  _pressedAlpha: 1
+  _pressedAlpha: 0.9
   _disabledAlpha: 0.5
   _duration: 0.12
   _ease: 6

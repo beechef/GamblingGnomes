@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Collections.Generic;
 using Game.Runtime.GameMode.Poker.Player;
+using Game.Runtime.Utility;
 using Unity.Netcode;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -149,8 +150,7 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 
 				// Unscaled: a blink is exactly the sort of beat a paused game would otherwise hold open
 				// forever.
-				var deadline = Time.unscaledTime + TransitionDuration * 0.5f;
-				while (Time.unscaledTime < deadline) await Awaitable.NextFrameAsync(ct);
+				await AwaitableUtility.WaitUnscaledAsync(TransitionDuration * 0.5f, ct);
 
 				ApplyRungs();
 			}

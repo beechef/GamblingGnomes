@@ -33,7 +33,7 @@ namespace Game.Runtime.UI.Button
 
 		private Tween _tween;
 
-		private void Reset()
+		protected override void OnReset()
 		{
 			_target = transform as RectTransform;
 		}
