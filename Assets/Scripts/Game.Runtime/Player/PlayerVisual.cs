@@ -224,13 +224,14 @@ namespace Game.Runtime.Player
 		// outline can never reach, and on a rig cut into ten meshes one unlit piece reads as the whole
 		// outline being broken.
 		//
-		// The pass is worn all the time — every part of the body, the hat included — and being picked out
-		// is a change of its colour. Adding and removing the material rebuilds every renderer's array on a
-		// beat that only wanted a different colour, and leaves the lit look depending on a pass that has to
-		// be re-hung after each repaint to exist at all.
+		// The pass is worn all the time — every slot, both rigs, the hat included — and being picked out is
+		// a change of its colour. Adding and removing the material rebuilds every renderer's array on a beat
+		// that only wanted a different colour, and leaves the lit look depending on a pass that has to be
+		// re-hung after each repaint to exist at all.
 		//
-		// Only the body rig wears it: the hand-only pair is what the owner sees of themselves, and a glow on
-		// your own hands tells you something the rest of the table already knew.
+		// Every slot rather than the body rig alone, so what the prefab is authored with and what runs are
+		// the same list: the owner's own hands light up with the rest of them, which is a player being told
+		// the table is pointing at them rather than the useless glow the body-only rule was written about.
 		private void ApplyOutline(bool outlined)
 		{
 			var outline = ResolveOutlineMaterial();
@@ -238,10 +239,7 @@ namespace Game.Runtime.Player
 
 			outline.SetColor(OutlineColorId, outlined ? _outlineColor : _idleOutlineColor);
 
-			foreach (var slot in _slots)
-			{
-				if (!IsHandOnly(slot.Slot)) WearOutline(slot.Renderer, outline);
-			}
+			foreach (var slot in _slots) WearOutline(slot.Renderer, outline);
 		}
 
 		private static void WearOutline(Renderer renderer, Material outline)
