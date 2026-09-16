@@ -1,5 +1,4 @@
 using System;
-using Game.Runtime.AnimationVfx;
 using UnityEngine;
 
 namespace Game.Runtime.Player
@@ -14,27 +13,17 @@ namespace Game.Runtime.Player
 	// gate AnimationVfxPlayer keeps, for the same reason.
 	//
 	// The cue is named by the event's string parameter rather than by a function per cue, so adding one is
-	// typing a name in the Animation window and never a method here. A clip inside an FBX cannot keep an
-	// event through a re-export, so its markers come from _markers instead and arrive indistinguishably.
+	// typing a name on the clip and never a method here. The events live on the clips themselves — in an
+	// FBX's import settings or in a project-owned .anim — so what a clip raises is visible on the clip.
 	public class PlayerAnimationEventRelay : MonoBehaviour
 	{
 		public const string EventFunction = nameof(OnAnimationCueEvent);
-
-		[Tooltip("Markers installed onto clips this rig plays. For clips inside an FBX, where an event authored in the Animation window would be lost on the next export. A clip the project owns can carry its own instead.")]
-		[SerializeField] private AnimationMarkerDatabase _markers;
 
 		public event Action<string> OnAnimationCue;
 
 		private Renderer[] _renderers;
 
-		private void Awake()
-		{
-			_renderers = GetComponentsInChildren<Renderer>(true);
-
-			// Idempotent: every event this database wrote before is stripped first, so both rigs installing
-			// the same rows never stacks a second copy.
-			if (_markers) _markers.InstallEvents();
-		}
+		private void Awake() => _renderers = GetComponentsInChildren<Renderer>(true);
 
 		// Named by the clip, so renaming it breaks every event authored against it — grep before touching.
 		private void OnAnimationCueEvent(string cue)
