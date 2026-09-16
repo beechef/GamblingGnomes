@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading;
 using DG.Tweening;
 using Game.Runtime.UI.Progress;
+using Game.Runtime.Utility;
 using Sirenix.OdinInspector;
 using TMPro;
 using UnityEngine;
@@ -128,18 +129,16 @@ namespace Game.Runtime.UI.Loading
 			HoldThenHide(remaining).LogExceptionsAndForget();
 		}
 
-		// Counted in unscaled time down to the deadline rather than awaited as a span: a loading screen is
-		// usually up while the game is stopped, and a scaled wait would never end there.
+		// The hold is its own cancellable beat: a hide that arrives while one is running replaces it.
 		private async Awaitable HoldThenHide(float seconds)
 		{
 			_hold = CancellationTokenSource.CreateLinkedTokenSource(destroyCancellationToken);
 
 			var token = _hold.Token;
-			var until = Time.unscaledTime + seconds;
 
 			try
 			{
-				while (Time.unscaledTime < until) await Awaitable.NextFrameAsync(token);
+				await AwaitableUtility.WaitUnscaledAsync(seconds, token);
 
 				ApplyHidden(false);
 			}

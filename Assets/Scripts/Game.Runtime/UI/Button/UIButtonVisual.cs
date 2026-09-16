@@ -14,9 +14,17 @@ namespace Game.Runtime.UI.Button
 
 		protected UIButton Button => _button;
 
+		// Non-virtual, so a subclass cannot hide it and leave the button unfilled — the whole point of
+		// the lookup is that a visual may sit on a child of the button, or on another object entirely,
+		// and still find what it draws for. A subclass fills its own references in OnReset.
 		private void Reset()
 		{
 			_button = GetComponentInParent<UIButton>();
+			OnReset();
+		}
+
+		protected virtual void OnReset()
+		{
 		}
 
 		private void OnEnable()

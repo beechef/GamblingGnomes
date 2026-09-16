@@ -20,7 +20,7 @@ namespace Game.Runtime.UI.Button
 		[SerializeField] private Color _pressedColor = new(0.60f, 0.12f, 0.10f);
 		[SerializeField] private Color _disabledColor = new(0.45f, 0.42f, 0.38f);
 
-		private void Reset()
+		protected override void OnReset()
 		{
 			_label = GetComponentInChildren<TextMeshProUGUI>();
 		}

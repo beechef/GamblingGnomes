@@ -32,7 +32,7 @@ namespace Game.Runtime.UI.Button
 		private Vector2 _restPosition;
 		private bool _restCaptured;
 
-		private void Reset()
+		protected override void OnReset()
 		{
 			_target = transform as RectTransform;
 		}

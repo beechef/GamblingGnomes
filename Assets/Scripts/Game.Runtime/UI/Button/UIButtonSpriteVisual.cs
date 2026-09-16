@@ -29,7 +29,7 @@ namespace Game.Runtime.UI.Button
 		[SerializeField] private Color _pressedColor = Color.white;
 		[SerializeField] private Color _disabledColor = Color.white;
 
-		private void Reset()
+		protected override void OnReset()
 		{
 			_image = GetComponent<Image>();
 			if (_image) _normal = _image.sprite;
