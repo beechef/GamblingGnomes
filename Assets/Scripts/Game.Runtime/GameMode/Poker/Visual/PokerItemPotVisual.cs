@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using DG.Tweening;
 using Game.Runtime.GameMode.Poker.Items;
 using Game.Runtime.GameMode.Poker.Player;
-using Game.Runtime.Player;
 using Sirenix.OdinInspector;
 using Unity.Netcode;
 using UnityEngine;
@@ -50,37 +49,6 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		[SerializeField] private float _dropDuration = 0.35f;
 		[SerializeField] private Ease _dropEase = Ease.OutBounce;
 
-		// A cap staked on a wager street is picked up and put down by the bet gesture rather than dropped
-		// from the air. The gesture is played off the same change that stakes the cap, so both clocks start
-		// together and the cap only has to wait for the gesture's own frames. Caps served by the settlement
-		// or by the Colorful pick carry another street and are dropped as before.
-		//
-		// The gesture is one of two clips — staking with the hands on the table, or with cards up in them —
-		// chosen off PokerPlayerData.IsHoldingCards, the same fact the animator's holding flag is written
-		// from. Two clips are two sets of frames, so each has its own pair here.
-		[Header("Bet")]
-		[Tooltip("Seconds after a cap is staked before it appears in its staker's hand — the frame the bet gesture's hand reaches the table.")]
-		[Min(0f)]
-		[SerializeField] private float _betGrabDelay;
-
-		[Tooltip("Seconds after a cap is staked before it leaves the hand for its spot — the frame the bet gesture puts it down.")]
-		[Min(0f)]
-		[SerializeField] private float _betReleaseDelay = 0.8f;
-
-		[Tooltip("The grab frame of the bet played while the staker is holding cards.")]
-		[Min(0f)]
-		[SerializeField] private float _betHoldingCardsGrabDelay;
-
-		[Tooltip("The release frame of the bet played while the staker is holding cards.")]
-		[Min(0f)]
-		[SerializeField] private float _betHoldingCardsReleaseDelay = 0.8f;
-
-		[Tooltip("Seconds the cap takes from the hand to its spot on the table.")]
-		[Min(0f)]
-		[SerializeField] private float _betPlaceDuration = 0.25f;
-
-		[SerializeField] private Ease _betPlaceEase = Ease.OutQuad;
-
 		[Header("Eating")]
 		[Tooltip("How long a cap takes to travel to its eater's mouth once it leaves the table. Shorter than the consume stage's bite, so the swallow lands inside the gesture.")]
 		[SerializeField] private float _eatDuration = 0.5f;
@@ -90,21 +58,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		[Tooltip("Seconds the caps left in front of a player take to close the gap once one is eaten.")]
 		[SerializeField] private float _relayoutDuration = 0.25f;
 
-		// Where a held cap sits, as a transform authored under the wrist on both rigs. A bone is the wrong
-		// answer for this: Cup_R is the *base* of the hand, so a cap sitting on it reads as held at the
-		// joint rather than in the fingers, and every bone on this skeleton carries axes nobody picked. A
-		// transform of its own is dragged into place in the scene view and needs no number in code.
-		private const string CapHoldName = "CapHold";
-
-		// The palm, as a last resort for a rig that has not been given a hold point yet. Still far better
-		// than the wrist origin, which is inside the forearm.
-		private const string PalmBoneName = "Cup_R";
-
 		private readonly List<GameObject> _caps = new();
-
-		// Caps still being carried by a bet gesture. A re-layout leaves them alone: they are on their way to
-		// the spot it would send them to, and killing their tween would leave them stuck in the hand.
-		private readonly HashSet<GameObject> _carried = new();
 
 		protected override void OnBind()
 		{
@@ -180,18 +134,12 @@ namespace Game.Runtime.GameMode.Poker.Visual
 				return;
 			}
 
-			if (IsStakedOnWager(item) && TryGetStaker(item.OwnerClientId, out var staker, out var hand, out var holdingCards))
+			// Handed to the staker, who carries it through their own bet gesture: when the hand arrives is
+			// a cue on the clip, and where a fist closes is a transform on the rig. Neither is the table's
+			// business, and both differ per clip, which is why no frame is counted here.
+			if (IsStakedOnWager(item) && TryGetCarrier(item.OwnerClientId, out var carrier))
 			{
-				var grabDelay = holdingCards ? _betHoldingCardsGrabDelay : _betGrabDelay;
-				var releaseDelay = holdingCards ? _betHoldingCardsReleaseDelay : _betReleaseDelay;
-
-				// The hand is sent to the spot the cap is going to. When that aim counts is the gesture
-				// clip's own business — Animation_Bet.anim carries the weight curve — so this only says
-				// where. Without it the clip lets go wherever it was authored and the cap is snapped the
-				// rest of the way, which is the jump this exists to remove.
-				if (staker.HandIk) staker.HandIk.Aim(PlacementAnchor(item.OwnerClientId));
-
-				Carry(cap, hand, resting, grabDelay, releaseDelay);
+				carrier.Carry(cap, cap.transform.parent, resting, PlacementAnchor(item.OwnerClientId));
 				return;
 			}
 
@@ -201,6 +149,19 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 		private static bool IsStakedOnWager(PokerBetItem item) => item.Phase is PokerPhase.FirstWager or PokerPhase.SecondWager;
 
+		// The staker's own carry controller, which knows which rig this client draws for them and hears that
+		// rig's animation cues.
+		private bool TryGetCarrier(ulong clientId, out PokerItemCarryController carrier)
+		{
+			carrier = null;
+			if (!GameMode) return false;
+
+			var player = GameMode.FindSeatedPlayer(clientId);
+			carrier = player ? player.ItemCarry : null;
+
+			return carrier;
+		}
+
 		// Where this player's stake is put down — the chair's own spot, which is also what the hand is sent
 		// to. One answer for both, so the cap and the hand reaching for it can never be aimed at two
 		// different places.
@@ -208,109 +169,6 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		{
 			var seat = FindSeat(clientId);
 			return seat ? seat.ItemAnchor : null;
-		}
-
-		// The hand on whichever rig this client draws for that player — the owner's own hands or the body
-		// everybody else sees — so the cap is in the hand that is actually on screen; and whether that
-		// player is holding cards, which is which of the two bet clips is playing.
-		private bool TryGetStaker(ulong clientId, out PokerPlayer staker, out Transform hand, out bool holdingCards)
-		{
-			staker = null;
-			hand = null;
-			holdingCards = false;
-			if (!GameMode) return false;
-
-			var player = GameMode.FindSeatedPlayer(clientId);
-			if (!player || !player.Rig) return false;
-
-			staker = player;
-			hand = player.Rig.GetBone(PlayerBone.HandRight);
-			holdingCards = player.Data && player.Data.IsHoldingCards;
-			return hand;
-		}
-
-		// Hidden until the hand reaches the table, then held until the gesture puts it down and it slides into
-		// its spot. One sequence targeting the cap's transform, so a re-layout or a clear that kills the cap's
-		// tweens takes this with it.
-		private void Carry(GameObject cap, Transform hand, Vector3 resting, float grabDelay, float releaseDelay)
-		{
-			var anchor = cap.transform.parent;
-			var worldScale = cap.transform.lossyScale;
-
-			cap.SetActive(false);
-			_carried.Add(cap);
-
-			var sequence = DOTween.Sequence().SetTarget(cap.transform).SetLink(cap);
-
-			sequence.AppendInterval(grabDelay);
-			sequence.AppendCallback(() =>
-			{
-				cap.SetActive(true);
-
-				// Held where the rig says a hand holds something. Two wrong answers came before this one, and
-				// both are worth remembering because each looked reasonable in code.
-				//
-				// A hand-authored local offset was the first: the wrist's axes are nothing like the world's
-				// on this Maya-style skeleton — measured at the release frame its right is
-				// (0.231, -0.743, 0.628) — so a local euler of zero is not "unrotated", and a position along
-				// the bone's right slides the cap somewhere nobody picked.
-				//
-				// Parking it at the *table spot* and parenting worldPositionStays was the second, and worse:
-				// at the grab frame that spot is 0.49 from the wrist, so the cap rode half a metre out on the
-				// end of the arm and the gesture flung it around the room.
-				//
-				// The hold point is a transform on the rig, dragged into place in the scene view, because
-				// where a fist closes around something is a thing to be looked at rather than computed — the
-				// same reason the chair owns where a cap lands on the table. The cap hangs on it at zero:
-				// CapHold *is* the pose, so the cap carries no offset of its own and retuning the grip never
-				// touches this file.
-				var holder = HoldPoint(hand);
-
-				cap.transform.SetParent(holder, false);
-				cap.transform.localPosition = Vector3.zero;
-				cap.transform.localRotation = Quaternion.identity;
-
-				// Kept at the size it has on the table, whatever scale the chain down to the hold point
-				// carries — the holder rather than the hand, since that is what the cap hangs from now.
-				var holderScale = holder.lossyScale;
-				cap.transform.localScale = new Vector3(worldScale.x / holderScale.x, worldScale.y / holderScale.y, worldScale.z / holderScale.z);
-			});
-
-			sequence.AppendInterval(Mathf.Max(0f, releaseDelay - grabDelay));
-			sequence.AppendCallback(() => cap.transform.SetParent(anchor, true));
-			sequence.Append(cap.transform.DOLocalMove(resting, _betPlaceDuration).SetEase(_betPlaceEase));
-			sequence.Join(cap.transform.DOLocalRotateQuaternion(Quaternion.identity, _betPlaceDuration));
-			sequence.Join(cap.transform.DOScale(Vector3.one * _capScale, _betPlaceDuration));
-
-			// Wherever it was when the sequence ended — landed or killed — it is back on the table's books.
-			sequence.OnKill(() =>
-			{
-				_carried.Remove(cap);
-				if (!cap || cap.transform.parent == anchor) return;
-
-				cap.SetActive(true);
-				cap.transform.SetParent(anchor, false);
-				cap.transform.localPosition = resting;
-				cap.transform.localRotation = Quaternion.identity;
-				cap.transform.localScale = Vector3.one * _capScale;
-			});
-		}
-
-		// What a carried cap hangs from. Authored on the rig, so retuning where a cap sits in the fist is a
-		// drag in the scene view rather than a number here — the same reason the seat owns where a cap lands
-		// on the table.
-		private static Transform HoldPoint(Transform hand)
-		{
-			if (!hand) return null;
-
-			var hold = hand.Find(CapHoldName);
-			if (hold) return hold;
-
-			// No hold point authored yet: the palm bone is the nearest honest answer, and a cap hung on the
-			// wrist itself would sit inside the forearm.
-			var palm = hand.Find(PalmBoneName);
-
-			return palm ? palm : hand;
 		}
 
 		private GameObject Spawn(PokerBetItem item)
@@ -368,9 +226,13 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 			for (var i = 0; i < _caps.Count && i < Data.PotItems.Count; i++)
 			{
-				if (!_caps[i] || _carried.Contains(_caps[i])) continue;
+				var owner = Data.PotItems[i].OwnerClientId;
 
-				var slot = SlotPosition(CountCapsBefore(Data.PotItems[i].OwnerClientId, i));
+				// A cap on its way through a bet gesture is left alone: it is already travelling to the spot
+				// this would send it to, and killing its tween would leave it stuck in the hand.
+				if (!_caps[i] || (TryGetCarrier(owner, out var carrier) && carrier.IsCarrying(_caps[i]))) continue;
+
+				var slot = SlotPosition(CountCapsBefore(owner, i));
 
 				_caps[i].transform.DOKill();
 				_caps[i].transform.DOLocalMove(slot, _relayoutDuration).SetEase(Ease.OutQuad);

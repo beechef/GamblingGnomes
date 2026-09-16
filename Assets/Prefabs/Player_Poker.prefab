@@ -955,6 +955,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7482711709937781520}
   - component: {fileID: 715681995083866239}
+  - component: {fileID: 4926342603919299137}
   m_Layer: 0
   m_Name: Items
   m_TagString: Untagged
@@ -990,6 +991,23 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Player.PokerPlayerItemController
   ShowTopMostFoldoutHeaderGroup: 1
+--- !u!114 &4926342603919299137
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8336348170960471977}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5f1186db92aa0c5c5dacbf08e39e180e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Player.PokerItemCarryController
+  _rig: {fileID: 382404797062674536}
+  _handIk: {fileID: 8832795126120928936}
+  _placeDuration: 0.25
+  _placeEase: 6
+  _cueTimeout: 3
 --- !u!1001 &2812995479481287383
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1426,6 +1444,7 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   _data: {fileID: 6935137486891752095}
   _itemConsume: {fileID: 715681995083866239}
+  _itemCarry: {fileID: 4926342603919299137}
   _identity: {fileID: 1277917375681613223}
   _rig: {fileID: 382404797062674536}
   _actionAnimator: {fileID: 7776873476951557616}
