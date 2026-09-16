@@ -36,6 +36,11 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			{
 				var data = player.Data;
 				data.Status.Value = GameMode.CanBeDealtIn(data) ? PokerPlayerStatus.Waiting : PokerPlayerStatus.Dead;
+
+				// The same reason as the pot above: the only thing that drops the winner's celebration is the
+				// Colorful pick, and a match ending at the showdown goes straight here past it — so the last
+				// hand's winner would otherwise go on smiling through the idle table and into the next match.
+				player.WinnerPose?.ServerSetSmiling(false);
 			}
 		}
 	}

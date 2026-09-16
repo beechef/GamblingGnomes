@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Unity.Cinemachine;
 using Unity.Netcode;
@@ -14,11 +15,26 @@ namespace Game.Runtime.Player
 	// would feel the hit that landed on somebody else. Whoever it happened to is the only one who feels it.
 	public class PlayerCameraShake : NetworkBehaviour
 	{
-		[Tooltip("What the impulse is fired from. Its own signal and strength are authored on the source, so retuning a shake never touches this file.")]
+		[Serializable]
+		private struct Shake
+		{
+			[Tooltip("Cue a clip raises at the frame the knock lands.")]
+			public string Cue;
+
+			[Tooltip("Multiplier on the source's own velocity. 1 is the shake as authored on the source; a hit and a swallow are the same signal at different strengths.")]
+			[Min(0f)]
+			public float Force;
+		}
+
+		[Tooltip("What the impulse is fired from. The signal's shape is authored on the source, so retuning how a shake feels never touches this file.")]
 		[SerializeField] private CinemachineImpulseSource _source;
 
-		[Tooltip("Cues that shake the view. A clip raises one of these at the frame the hit lands; anything not named here is ignored.")]
-		[SerializeField] private string[] _cues = { "ImpactShake" };
+		[Tooltip("Cues that shake the view, each at its own strength. Anything not named here is ignored.")]
+		[SerializeField] private Shake[] _shakes =
+		{
+			new() { Cue = "ImpactShake", Force = 3f },
+			new() { Cue = "EatSwallow", Force = 0.5f }
+		};
 
 		private readonly List<PlayerAnimationEventRelay> _relays = new();
 
@@ -77,11 +93,11 @@ namespace Game.Runtime.Player
 		{
 			if (!_source || string.IsNullOrEmpty(cue)) return;
 
-			foreach (var named in _cues)
+			foreach (var shake in _shakes)
 			{
-				if (named != cue) continue;
+				if (shake.Cue != cue) continue;
 
-				_source.GenerateImpulse();
+				if (shake.Force > 0f) _source.GenerateImpulseWithForce(shake.Force);
 				return;
 			}
 		}

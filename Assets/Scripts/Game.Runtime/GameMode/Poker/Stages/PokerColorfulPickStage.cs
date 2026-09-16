@@ -56,14 +56,6 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 			ClearPendingServe();
 
-			// The celebration ends here: from this beat the winner is choosing who eats, which is a decision
-			// rather than a victory lap. Dropped on everybody, because the only thing that raised it was the
-			// showdown and nothing else is watching the flag.
-			foreach (var player in GameMode.SeatedPlayers)
-			{
-				if (player) player.WinnerPose?.ServerSetSmiling(false);
-			}
-
 			var winner = GameMode.FindSeatedPlayer(Data.LastWinnerClientId.Value);
 
 			// Nobody won it — everyone folded out, or the hand never happened. There is no choice to put
@@ -141,6 +133,11 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			_picked = true;
 			GameMode.ClearTurn();
 
+			// The winner gloats for as long as they are deciding, and stops the moment a name is settled —
+			// the clock choosing counts too. Dropped before the snap, because the smile's layer sits above
+			// the gestures and would hide it while it held.
+			StopSmiling();
+
 			// Chosen first, announced after: the winner points at people freely while deciding, and only
 			// the settled choice is acted out — a snap at whoever was named, with every head at the table
 			// turning to them. After ClearTurn, which drops the focus, and before the stage can finish,
@@ -216,7 +213,21 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 		// A stage outlives the bodies it subscribed to, so the handlers come off on every way out of the
 		// wait — the cue landing, the timeout, and the stage ending under either.
-		protected override void OnEndStage() => ClearPendingServe();
+		// Also the smile: a winner nobody can feed ends this stage the moment it opens, without a choice ever
+		// being made, and the eating that follows would play under a celebration still hiding every gesture.
+		protected override void OnEndStage()
+		{
+			ClearPendingServe();
+			StopSmiling();
+		}
+
+		private void StopSmiling()
+		{
+			foreach (var player in GameMode.SeatedPlayers)
+			{
+				if (player) player.WinnerPose?.ServerSetSmiling(false);
+			}
+		}
 
 		private void ClearPendingServe()
 		{
