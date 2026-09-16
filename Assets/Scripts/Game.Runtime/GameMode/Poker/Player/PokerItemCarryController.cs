@@ -46,8 +46,13 @@ namespace Game.Runtime.GameMode.Poker.Player
 		[Min(0f)]
 		[SerializeField] private float _cueTimeout = 3f;
 
+		[Tooltip("How recently a grab cue may have fired and still take a cap handed over after it. The gesture and the ledger change that hands the cap over replicate separately and arrive in either order, and a grab a couple of frames into its clip is easily passed before the cap turns up.")]
+		[Min(0f)]
+		[SerializeField] private float _lateCueWindow = 0.5f;
+
 		private readonly List<PlayerAnimationEventRelay> _relays = new();
 		private readonly List<Carried> _carrying = new();
+		private readonly Dictionary<string, float> _lastCueTimes = new();
 
 		private class Carried
 		{
@@ -132,9 +137,16 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 			carried.Timeout = DOVirtual.DelayedCall(_cueTimeout, () => Release(cap), false);
 
-			if (hideUntilGrabbed) cap.SetActive(false);
-
 			_carrying.Add(carried);
+
+			// The hand already closed on it: the gesture arrived first and this cap caught up afterwards.
+			if (WasCueJustRaised(grabCue))
+			{
+				Grab(carried);
+				return;
+			}
+
+			if (hideUntilGrabbed) cap.SetActive(false);
 		}
 
 		// A cap on its way is one the table must leave alone, and one a clear has to be able to take back.
@@ -160,8 +172,13 @@ namespace Game.Runtime.GameMode.Poker.Player
 			}
 		}
 
+		private bool WasCueJustRaised(string cue) =>
+			!string.IsNullOrEmpty(cue) && _lastCueTimes.TryGetValue(cue, out var time) && Time.time - time <= _lateCueWindow;
+
 		private void HandleCue(string cue)
 		{
+			if (!string.IsNullOrEmpty(cue)) _lastCueTimes[cue] = Time.time;
+
 			// A cap destroyed under us — the pot cleared, or one taken mid-gesture — is dropped here rather
 			// than left for its timeout, so nothing is ever put back onto a corpse.
 			for (var i = _carrying.Count - 1; i >= 0; i--)
