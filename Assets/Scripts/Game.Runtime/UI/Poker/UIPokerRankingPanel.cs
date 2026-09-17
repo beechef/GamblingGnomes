@@ -58,8 +58,16 @@ namespace Game.Runtime.UI.Poker
 		private UIPokerRankingEntryVisual _winnerVisual;
 
 		private bool _shown;
-		private Sequence _reveal;
 		private Tween _fade;
+
+		// The reveal is a timeline every place is laid on by its index, not one sequence built when the board
+		// goes up: the server adds the showdown one entry at a time and each add is its own change, so when
+		// the board first appears only the winner is in the list. A row arriving a moment later still takes
+		// its own slot on the timeline instead of being snapped into place.
+		private Sequence _winnerReveal;
+		private readonly List<Sequence> _rowReveals = new();
+		private float _revealStartedAt = -1f;
+		private float _rowsAt;
 
 		private void Awake()
 		{
@@ -105,9 +113,9 @@ namespace Game.Runtime.UI.Poker
 			if (_panel && !_panel.activeSelf) _panel.SetActive(true);
 
 			RefreshWinner();
-			RefreshRows(showdown.Count - 1, appearing);
+			if (appearing) PlayWinnerReveal();
 
-			if (appearing) PlayReveal(showdown.Count - 1);
+			RefreshRows(showdown.Count - 1, appearing);
 		}
 
 		// Views already made are re-bound rather than rebuilt, so a board refreshed on the reveal landing
@@ -139,48 +147,67 @@ namespace Game.Runtime.UI.Poker
 
 				_rows.Add(row);
 				_rowVisuals.Add(row.GetComponent<UIPokerRankingEntryVisual>());
+				_rowReveals.Add(null);
 			}
 
 			for (var i = 0; i < _rows.Count; i++)
 			{
 				var used = i < count;
-				var arriving = used && !_rows[i].gameObject.activeSelf;
+
+				// Rows kept from the last board are still switched on, so a board going up treats every one of
+				// them as arriving.
+				var arriving = used && (appearing || !_rows[i].gameObject.activeSelf);
 
 				if (_rows[i].gameObject.activeSelf != used) _rows[i].gameObject.SetActive(used);
 				if (!used) continue;
 
-				// A place landing after the board has already arrived is simply there; the reveal is for the
-				// moment the board goes up.
-				if (arriving && !appearing && _rowVisuals[i]) _rowVisuals[i].ShowAtRest();
-
 				var entry = Data.Showdown[i + 1];
 				_rows[i].SetEntry(entry, PokerPlayer.Find(entry.ClientId));
+
+				if (arriving) RevealRow(i);
 			}
 		}
 
-		private void PlayReveal(int rowCount)
+		private void PlayWinnerReveal()
 		{
 			KillTweens();
 
-			if (_winnerVisual) _winnerVisual.Conceal();
-			for (var i = 0; i < rowCount && i < _rowVisuals.Count; i++)
-				if (_rowVisuals[i]) _rowVisuals[i].Conceal();
+			_revealStartedAt = Time.time;
+			_rowsAt = _rowsDelay;
 
-			_reveal = DOTween.Sequence().SetLink(gameObject);
+			if (!_winnerVisual) return;
 
-			var rowsAt = 0f;
-			if (_winnerVisual)
-			{
-				var winner = _winnerVisual.Reveal();
-				_reveal.Insert(0f, winner);
-				rowsAt = winner.Duration() + _rowsDelay;
-			}
-
-			for (var i = 0; i < rowCount && i < _rowVisuals.Count; i++)
-			{
-				if (_rowVisuals[i]) _reveal.Insert(rowsAt + i * _rowStagger, _rowVisuals[i].Reveal());
-			}
+			_winnerVisual.Conceal();
+			_winnerReveal = _winnerVisual.Reveal().SetLink(gameObject);
+			_rowsAt = _winnerReveal.Duration() + _rowsDelay;
 		}
+
+		// Placed on the board's timeline by index. A row whose slot has already started rises at once; one
+		// arriving long after the board finished arriving is simply there.
+		private void RevealRow(int index)
+		{
+			var visual = _rowVisuals[index];
+			if (!visual) return;
+
+			_rowReveals[index]?.Kill();
+			_rowReveals[index] = null;
+
+			var delay = _revealStartedAt < 0f ? float.NegativeInfinity : _revealStartedAt + _rowsAt + index * _rowStagger - Time.time;
+
+			if (delay < -LateRowGrace)
+			{
+				visual.ShowAtRest();
+				return;
+			}
+
+			visual.Conceal();
+			_rowReveals[index] = DOTween.Sequence()
+				.AppendInterval(Mathf.Max(0f, delay))
+				.Append(visual.Reveal())
+				.SetLink(gameObject);
+		}
+
+		private const float LateRowGrace = 1f;
 
 		// Faded rather than switched off, and switched off only once the fade is done, since a switched-off
 		// object draws no fade. The rows keep their own copy of the hand, so the board still reads correctly
@@ -194,7 +221,7 @@ namespace Game.Runtime.UI.Poker
 			}
 
 			_shown = false;
-			_reveal?.Kill();
+			KillReveal();
 
 			if (!_panelGroup || _fadeOutDuration <= 0f || !_panel || !_panel.activeInHierarchy)
 			{
@@ -213,10 +240,23 @@ namespace Game.Runtime.UI.Poker
 				});
 		}
 
+		private void KillReveal()
+		{
+			_winnerReveal?.Kill();
+			_winnerReveal = null;
+
+			for (var i = 0; i < _rowReveals.Count; i++)
+			{
+				_rowReveals[i]?.Kill();
+				_rowReveals[i] = null;
+			}
+
+			_revealStartedAt = -1f;
+		}
+
 		private void KillTweens()
 		{
-			_reveal?.Kill();
-			_reveal = null;
+			KillReveal();
 
 			_fade?.Kill();
 			_fade = null;

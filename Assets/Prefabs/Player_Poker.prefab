@@ -819,6 +819,8 @@ MonoBehaviour:
   _allowManualLook: 0
   _aimDelay: 0
   _binder: {fileID: 865620800125653941}
+  _showBodyDelay: 0.5
+  _hideBodyDelay: 0.5
 --- !u!114 &865620800125653941
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1431,6 +1433,10 @@ PrefabInstance:
     m_TransformParent: {fileID: 0}
     m_Modifications:
     - target: {fileID: 143754864431922835, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0.35
+      objectReference: {fileID: 0}
+    - target: {fileID: 143754864431922835, guid: 8a531d709826a264e9027ff908ced981, type: 3}
       propertyPath: m_LocalRotation.w
       value: 0
       objectReference: {fileID: 0}
@@ -1444,11 +1450,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 143754864431922835, guid: 8a531d709826a264e9027ff908ced981, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -0.65
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 143754864431922835, guid: 8a531d709826a264e9027ff908ced981, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 1
+      value: 1.15
       objectReference: {fileID: 0}
     - target: {fileID: 143754864431922835, guid: 8a531d709826a264e9027ff908ced981, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
@@ -1681,6 +1687,10 @@ PrefabInstance:
     - target: {fileID: 6493719984833351058, guid: 8a531d709826a264e9027ff908ced981, type: 3}
       propertyPath: m_LocalPosition.z
       value: 0.35
+      objectReference: {fileID: 0}
+    - target: {fileID: 8372505286817105917, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+      propertyPath: _enableBillboard
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 8996715273764896689, guid: 8a531d709826a264e9027ff908ced981, type: 3}
       propertyPath: m_PresetInfoIsWorld
