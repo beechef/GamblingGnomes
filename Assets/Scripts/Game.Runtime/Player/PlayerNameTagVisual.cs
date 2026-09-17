@@ -10,6 +10,7 @@ namespace Game.Runtime.Player
 	{
 		[Header("References")]
 		[SerializeField] private PlayerData _data;
+
 		[SerializeField] private Canvas _canvas;
 		[SerializeField] private TextMeshProUGUI _label;
 
@@ -19,6 +20,8 @@ namespace Game.Runtime.Player
 
 		[Tooltip("On, the owner never sees their own tag — it would hang in the middle of a first person view.")]
 		[SerializeField] private bool _hideForOwner = true;
+
+		[SerializeField] private bool _enableBillboard = false;
 
 		private void Awake()
 		{
@@ -52,6 +55,11 @@ namespace Game.Runtime.Player
 			if (_hideForOwner && _data.IsSpawned && _data.IsOwner)
 			{
 				if (_canvas.enabled) _canvas.enabled = false;
+				return;
+			}
+
+			if (!_enableBillboard)
+			{
 				return;
 			}
 

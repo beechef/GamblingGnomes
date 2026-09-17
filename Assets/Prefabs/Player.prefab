@@ -474,6 +474,7 @@ MonoBehaviour:
   _label: {fileID: 4384528394672060480}
   _maxDistance: 30
   _hideForOwner: 1
+  _enableBillboard: 0
 --- !u!1 &2875323534029960455
 GameObject:
   m_ObjectHideFlags: 0
@@ -1732,7 +1733,7 @@ MonoBehaviour:
     m_Hint: {fileID: 1486301459090628669}
     m_TargetPositionWeight: 1
     m_TargetRotationWeight: 0
-    m_HintWeight: 1
+    m_HintWeight: 0
     m_MaintainTargetPositionOffset: 0
     m_MaintainTargetRotationOffset: 0
 --- !u!1 &7206852433046607721
@@ -2011,7 +2012,7 @@ MonoBehaviour:
     m_Hint: {fileID: 6493719984833351058}
     m_TargetPositionWeight: 1
     m_TargetRotationWeight: 0
-    m_HintWeight: 1
+    m_HintWeight: 0
     m_MaintainTargetPositionOffset: 0
     m_MaintainTargetRotationOffset: 0
 --- !u!1 &7930245520488458129
@@ -2608,6 +2609,10 @@ PrefabInstance:
     - target: {fileID: -1001430942718952751, guid: 71fc3f893cb777e4cbea8ac2559e1772, type: 3}
       propertyPath: m_LocalPosition.z
       value: -1.5815435e-17
+      objectReference: {fileID: 0}
+    - target: {fileID: -993462009012048083, guid: 71fc3f893cb777e4cbea8ac2559e1772, type: 3}
+      propertyPath: m_UpdateWhenOffscreen
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -993462009012048083, guid: 71fc3f893cb777e4cbea8ac2559e1772, type: 3}
       propertyPath: m_Materials.Array.size
@@ -3734,6 +3739,10 @@ PrefabInstance:
       value: -0.047610223
       objectReference: {fileID: 0}
     - target: {fileID: 1381973542931377642, guid: ccae2c9bbf67cf945ae72b5a5898942a, type: 3}
+      propertyPath: m_UpdateWhenOffscreen
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 1381973542931377642, guid: ccae2c9bbf67cf945ae72b5a5898942a, type: 3}
       propertyPath: m_Materials.Array.size
       value: 2
       objectReference: {fileID: 0}
@@ -4320,6 +4329,10 @@ PrefabInstance:
     - target: {fileID: 7702490695105600958, guid: ccae2c9bbf67cf945ae72b5a5898942a, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: -61.730343
+      objectReference: {fileID: 0}
+    - target: {fileID: 7725559213693224141, guid: ccae2c9bbf67cf945ae72b5a5898942a, type: 3}
+      propertyPath: m_UpdateWhenOffscreen
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 7725559213693224141, guid: ccae2c9bbf67cf945ae72b5a5898942a, type: 3}
       propertyPath: m_Materials.Array.size
@@ -5544,6 +5557,10 @@ PrefabInstance:
       value: 0.74790883
       objectReference: {fileID: 0}
     - target: {fileID: 4172319529147732287, guid: a84d94a69c2261b45aa6f50cdfe93fef, type: 3}
+      propertyPath: m_UpdateWhenOffscreen
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4172319529147732287, guid: a84d94a69c2261b45aa6f50cdfe93fef, type: 3}
       propertyPath: m_Materials.Array.size
       value: 2
       objectReference: {fileID: 0}
@@ -6129,6 +6146,10 @@ PrefabInstance:
     - target: {fileID: 674008549257568378, guid: 39bc1341774026a42bfa10073058dab3, type: 3}
       propertyPath: m_LocalPosition.z
       value: 5.684342e-16
+      objectReference: {fileID: 0}
+    - target: {fileID: 760097764320143463, guid: 39bc1341774026a42bfa10073058dab3, type: 3}
+      propertyPath: m_UpdateWhenOffscreen
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 760097764320143463, guid: 39bc1341774026a42bfa10073058dab3, type: 3}
       propertyPath: m_Materials.Array.size
