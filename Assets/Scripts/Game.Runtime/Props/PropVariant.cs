@@ -9,7 +9,8 @@ namespace Game.Runtime.Props
 	public enum PropVariant
 	{
 		Default,
-		Smiling,
+		// Value 1 is serialized in every look and effect that names it — renamed from Smiling, never renumbered.
+		Transformed = 1,
 		ExtraArm,
 		Breasts
 	}

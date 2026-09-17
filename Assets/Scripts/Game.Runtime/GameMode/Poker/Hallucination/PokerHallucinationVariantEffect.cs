@@ -17,7 +17,7 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 		[SerializeField] private PokerHallucinationTarget _target;
 
 		[Tooltip("Which of its looks each prop is asked for. A prop that has not authored this one is left as it was.")]
-		[SerializeField] private PropVariant _variant = PropVariant.Smiling;
+		[SerializeField] private PropVariant _variant = PropVariant.Transformed;
 
 		public PokerHallucinationTarget Target => _target;
 		public PropVariant Variant => _variant;

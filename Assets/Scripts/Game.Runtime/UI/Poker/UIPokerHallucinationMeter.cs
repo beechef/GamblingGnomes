@@ -42,12 +42,12 @@ namespace Game.Runtime.UI.Poker
 		[Tooltip("Anchored along the fill's width; its horizontal anchor is the value it points at.")]
 		[SerializeField] private RectTransform _knot;
 
-		[Tooltip("Full passes end to end before the last one settles on the number.")]
+		[Tooltip("Full passes end to end (there and back) before the skull runs on to the number. With the sweep's duration this sets how fast it travels.")]
 		[Min(0)]
 		[SerializeField] private int _sweepLoops = 3;
 
-		[SerializeField] private Ease _sweepEase = Ease.InOutSine;
-		[SerializeField] private Ease _settleEase = Ease.OutCubic;
+		[Tooltip("Ease over the whole distance — every pass and the run onto the number are one tween, so OutExpo spins fast and slows onto the result. The duration itself is PokerConsumePacing.RollSweepDuration, because the server pays the roll on that same clock.")]
+		[SerializeField] private Ease _sweepEase = Ease.OutExpo;
 
 		[Tooltip("Seconds the skull takes to go back to the end once the result has been held. How long it holds arrives with the roll, from the beat's pacing, so the skull leaves exactly when the table moves on.")]
 		[Min(0f)]
@@ -269,23 +269,30 @@ namespace Game.Runtime.UI.Poker
 			_knotSequence?.Kill();
 
 			var target = Mathf.Clamp01(roll / (float)PokerPlayerData.MaxHallucination);
-			var legs = _sweepLoops * 2 + 1;
-			var leg = sweep / legs;
+
+			// The whole sweep is one distance travelled: every loop is two bar-lengths, and the run onto the number
+			// is what is left of the last one.
+			var loops = _sweepLoops;
+			var distance = loops * 2f + (1f - target);
 
 			var sequence = DOTween.Sequence().SetLink(gameObject);
 			sequence.AppendInterval(leadIn);
-
-			for (var i = 0; i < _sweepLoops; i++)
-			{
-				sequence.Append(KnotTween(0f, leg, _sweepEase));
-				sequence.Append(KnotTween(1f, leg, _sweepEase));
-			}
-
-			sequence.Append(KnotTween(target, leg, _settleEase));
+			sequence.Append(DOTween.To(() => 0f, travelled => PlaceKnot(KnotAlong(travelled, loops)), distance, sweep).SetEase(_sweepEase));
 			sequence.AppendInterval(hold);
 			sequence.Append(KnotTween(1f, _returnDuration, _returnEase));
 
 			_knotSequence = sequence;
+		}
+
+		// Where the skull is after travelling this far from the end of the bar: back and forth for the loops, then
+		// straight down onto the number.
+		private static float KnotAlong(float travelled, int loops)
+		{
+			var looping = loops * 2f;
+			if (travelled >= looping) return 1f - (travelled - looping);
+
+			var phase = Mathf.Repeat(travelled, 2f);
+			return phase <= 1f ? 1f - phase : phase - 1f;
 		}
 
 		private Tween KnotTween(float to, float duration, Ease ease) =>

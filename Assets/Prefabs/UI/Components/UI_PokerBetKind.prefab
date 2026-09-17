@@ -51,7 +51,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.UIModelView
   _pivot: {fileID: 2301095594349449802}
   _root: {fileID: 1421940612696631001}
-  _bounds: {x: 75, y: 75, z: 96}
+  _bounds: {x: 100, y: 100, z: 100}
 --- !u!1 &2892791031498106647
 GameObject:
   m_ObjectHideFlags: 0
@@ -76,13 +76,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2892791031498106647}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: -0.1736482, w: 0.9848078}
+  m_LocalRotation: {x: 0, y: 1, z: 0, w: 0}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1421940612696631001}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 180, z: 0}
 --- !u!1 &4312216107166262520
 GameObject:
   m_ObjectHideFlags: 0
@@ -138,6 +138,7 @@ GameObject:
   - component: {fileID: 8738489342796537184}
   - component: {fileID: 8285134118567287731}
   - component: {fileID: 5076906489024170430}
+  - component: {fileID: 7312422598737886777}
   m_Layer: 5
   m_Name: UI_PokerBetKind
   m_TagString: Untagged
@@ -362,6 +363,25 @@ MonoBehaviour:
   _root: {fileID: 1421940612696631001}
   _outline: {fileID: 2100000, guid: 712ea6f8513b37949b31811fcce9c143, type: 2}
   _litWhilePressed: 1
+--- !u!114 &7312422598737886777
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4702627318684888590}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 425d40a40743d2e195095d3b1c7b9e84, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Button.UIButtonRotationVisual
+  _button: {fileID: 5587583676526602881}
+  _target: {fileID: 1171151273948017058}
+  _hoveredAngle: -10
+  _pressedAngle: 0
+  _disabledAngle: 0
+  _duration: 0.1
+  _ease: 27
 --- !u!1 &7987740238016517507
 GameObject:
   m_ObjectHideFlags: 0

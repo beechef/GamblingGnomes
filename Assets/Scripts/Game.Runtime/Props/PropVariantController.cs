@@ -4,8 +4,8 @@ using UnityEngine;
 
 namespace Game.Runtime.Props
 {
-	// A prop that can be asked to look like something else, and answers for itself. What Smiling means is
-	// authored on the prop — a mushroom grows a face, a card curls, and neither of them is described by
+	// A prop that can be asked to look like something else, and answers for itself. What Transformed means is
+	// authored on the prop — a mushroom plays its transform animation, a card curls, and neither of them is described by
 	// whatever asked for the change. That is the whole point of naming the variant rather than handing the
 	// prop a prefab to wear: one hallucination can be pointed at everything on the table and each thing
 	// knows its own version of it.
