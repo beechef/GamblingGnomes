@@ -1,56 +1,41 @@
 using Unity.Collections;
-using System.Collections.Generic;
 using Game.Runtime.GameMode.Poker;
-using Game.Runtime.GameMode.Poker.Items;
 using Game.Runtime.GameMode.Poker.Stages;
 using Game.Runtime.UI.Button;
-using Game.Runtime.UI.Progress;
-using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace Game.Runtime.UI.Poker
 {
-	// Which cap to put up. One button per kind, built from the table's own mushroom database rather than
-	// authored one by one: the kinds are data, so a fifth cap is an entry in an asset and not a prefab
-	// edit, and a button can never offer a kind the server would refuse.
+	// What the player can do on their own wager turn: bet, use an item, or fold. Betting does not put a cap
+	// up by itself — it opens the picker, because which kind is the actual decision — and the two are panels
+	// of one group, so the menu and the picker are never up at once and neither is up off the turn.
 	//
-	// Placeholder art: the button prefab is the project's plain one, tinted with the kind's own colour
-	// and labelled with its name.
+	// This component stays on an object that is always active and only switches the panels, or it would
+	// switch itself off with the menu and never hear the turn come round again.
 	public class UIPokerItemWagerBar : UIPokerView
 	{
-		[Header("Panel")]
-		[SerializeField] private GameObject _panel;
+		[Header("Panels")]
+		[SerializeField] private UIPanelStateGroup _panels;
+		[SerializeField] private GameObject _menuPanel;
+		[SerializeField] private GameObject _pickerPanel;
+		[SerializeField] private UIPokerBetPicker _picker;
 
-		[Header("Buttons")]
-		[Tooltip("Button prefab cloned once per mushroom kind. Instantiated under the row below.")]
-		[SerializeField] private UIButton _buttonPrefab;
+		[Header("Menu")]
+		[SerializeField] private UIButton _betButton;
 
-		[Tooltip("Row the kind buttons are laid into. A layout group, so a kind added or removed reflows.")]
-		[SerializeField] private RectTransform _buttonRow;
-
-		[Tooltip("Shown only on the wager that allows it — the second one.")]
+		[Tooltip("Shown only on the wager that allows it. What the rules forbid is hidden, not greyed.")]
 		[SerializeField] private UIButton _foldButton;
 
-		[Header("Turn Timer")]
-		[Tooltip("Hidden outright when the stage runs no clock, rather than drawn sitting at zero.")]
-		[SerializeField] private UITimerBar _timerBar;
-
-		private readonly List<UIButton> _kindButtons = new();
-		private readonly List<PokerItemType> _kindTypes = new();
-
-		// The clock is the only thing here that changes every frame, and only while it is running.
-		protected override bool WantsTick => IsLocalTurn && Data && Data.HasTurnClock;
+		private PokerItemWagerStage _stage;
 
 		private void Awake()
 		{
-			if (_panel) _panel.SetActive(false);
+			if (_panels) _panels.HideAll();
 		}
 
 		protected override void OnBind()
 		{
-			BuildKindButtons();
-
+			if (_betButton) _betButton.OnClick += HandleBet;
 			if (_foldButton) _foldButton.OnClick += HandleFold;
 
 			Data.CurrentTurnClientId.OnValueChanged += HandleTurnChanged;
@@ -65,101 +50,55 @@ namespace Game.Runtime.UI.Poker
 			Data.CurrentTurnClientId.OnValueChanged -= HandleTurnChanged;
 
 			if (_foldButton) _foldButton.OnClick -= HandleFold;
+			if (_betButton) _betButton.OnClick -= HandleBet;
 
-			ClearKindButtons();
-
-			if (_panel) _panel.SetActive(false);
-		}
-
-		protected override void OnTick()
-		{
-			if (!_timerBar) return;
-
-			_timerBar.SetTime(Data.TurnRemaining, Data.TurnNormalized);
+			CloseAll();
 		}
 
 		private void HandleTurnChanged(ulong previous, ulong current) => Refresh();
 		private void HandleStageChanged(FixedString32Bytes previous, FixedString32Bytes current) => Refresh();
 
-		// Rebuilt on bind rather than on every refresh: the database does not change while a table runs,
-		// and re-instantiating a row of buttons under the pointer is how a click lands on nothing.
-		private void BuildKindButtons()
-		{
-			ClearKindButtons();
-
-			var database = GameMode ? GameMode.ItemDatabase : null;
-			if (!database || !_buttonPrefab || !_buttonRow) return;
-
-			foreach (var entry in database.Entries)
-			{
-				if (entry == null) continue;
-
-				var itemType = entry.Type;
-
-				// A kind nobody may ever wager is not drawn at all. Greying it would say "not now" about
-				// something the rules say "not here" to — the Colorful cap is only ever fed to somebody.
-				if (!entry.Wagerable) continue;
-
-				var button = Instantiate(_buttonPrefab, _buttonRow);
-				button.name = $"Button_Wager_{entry.DisplayName}";
-
-				var label = button.GetComponentInChildren<TextMeshProUGUI>();
-				if (label) label.text = entry.DisplayName;
-
-				var image = button.GetComponent<Image>();
-				if (image) image.color = entry.Color;
-
-				// Captured per button rather than read back off the click: the row's order is the
-				// database's order, and nothing later is allowed to depend on that staying true.
-				var wagered = itemType;
-				button.OnClick += () => HandleWager(wagered);
-
-				_kindButtons.Add(button);
-				_kindTypes.Add(itemType);
-			}
-		}
-
-		private void ClearKindButtons()
-		{
-			foreach (var button in _kindButtons)
-			{
-				if (button) Destroy(button.gameObject);
-			}
-
-			_kindButtons.Clear();
-			_kindTypes.Clear();
-		}
-
 		private void Refresh()
 		{
 			// Resolved from the replicated stage id, never from GameMode.CurrentStage: that is written only by
-			// the server's own stage machine, so on a client it is null forever and the bar never appears —
-			// right on the host, missing everywhere else.
-			var stage = GameMode ? GameMode.FindStage(Data.StageId.Value.ToString()) as PokerItemWagerStage : null;
-			var show = stage != null && IsLocalTurn;
+			// the server's own stage machine, so on a client it is null forever.
+			_stage = GameMode ? GameMode.FindStage(Data.StageId.Value.ToString()) as PokerItemWagerStage : null;
 
-			if (_panel) _panel.SetActive(show);
-			if (!show) return;
-
-			// What the rules forbid is hidden; what this player cannot do right now is greyed. Folding is
-			// not on offer at the first wager at all, so it goes rather than dimming.
-			if (_foldButton) _foldButton.gameObject.SetActive(stage.AllowFold);
-
-			for (var i = 0; i < _kindButtons.Count; i++)
+			if (_stage == null || !IsLocalTurn)
 			{
-				var button = _kindButtons[i];
-				if (button) button.IsInteractable = stage.IsWagerable((int)_kindTypes[i]);
+				CloseAll();
+				return;
 			}
 
-			if (_timerBar) _timerBar.gameObject.SetActive(Data.HasTurnClock);
+			// A turn that is still ours keeps whichever panel the player is on; only a fresh turn opens the menu.
+			if (_panels && !_panels.IsShowing(_pickerPanel)) ShowMenu();
 		}
 
-		private void HandleWager(PokerItemType itemType) => Submit(PokerActionType.Wager, (int)itemType);
-		private void HandleFold() => Submit(PokerActionType.Fold, 0);
-
-		private void Submit(PokerActionType action, int amount)
+		private void ShowMenu()
 		{
-			if (GameMode) GameMode.SubmitActionRPC(action, amount);
+			if (_picker) _picker.Close();
+			if (_panels) _panels.Show(_menuPanel);
+
+			if (_foldButton && _stage != null) _foldButton.gameObject.SetActive(_stage.AllowFold);
+		}
+
+		private void HandleBet()
+		{
+			if (_stage == null || !IsLocalTurn) return;
+
+			if (_panels) _panels.Show(_pickerPanel);
+			if (_picker) _picker.Open(GameMode, LocalPlayer, _stage, ShowMenu);
+		}
+
+		private void HandleFold()
+		{
+			if (GameMode) GameMode.SubmitActionRPC(PokerActionType.Fold, 0);
+		}
+
+		private void CloseAll()
+		{
+			if (_picker) _picker.Close();
+			if (_panels) _panels.HideAll();
 		}
 	}
 }

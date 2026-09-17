@@ -13,7 +13,7 @@ GameObject:
   - component: {fileID: 7663743362514728319}
   - component: {fileID: 2411789941330197316}
   - component: {fileID: 5564260659128263186}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: Icon
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -127,7 +127,7 @@ GameObject:
   - component: {fileID: 3192062416110595009}
   - component: {fileID: 3824228438883632639}
   - component: {fileID: 2938071532049399047}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: KeyBadge
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -203,7 +203,7 @@ GameObject:
   - component: {fileID: 5028673275121449005}
   - component: {fileID: 8232149127562179504}
   - component: {fileID: 601494674606288206}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: Content
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -282,7 +282,7 @@ GameObject:
   - component: {fileID: 1786376449912092753}
   - component: {fileID: 4485059085293089332}
   - component: {fileID: 7842552576817173887}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: Label
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -305,8 +305,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_AnchoredPosition: {x: -5, y: 0}
+  m_SizeDelta: {x: -120, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &4485059085293089332
 CanvasRenderer:
@@ -369,7 +369,7 @@ MonoBehaviour:
   m_enableAutoSizing: 1
   m_fontSizeMin: 18
   m_fontSizeMax: 40
-  m_fontStyle: 0
+  m_fontStyle: 8
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
   m_textAlignment: 65535
@@ -419,7 +419,7 @@ GameObject:
   - component: {fileID: 7530808771204911999}
   - component: {fileID: 957280603382252140}
   - component: {fileID: 8390718721396653218}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: Key
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -556,7 +556,7 @@ GameObject:
   - component: {fileID: 7682085291442463514}
   - component: {fileID: 3799569330385735980}
   - component: {fileID: 5113254185670992096}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: Key
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -693,7 +693,7 @@ GameObject:
   - component: {fileID: 4284103545525205320}
   - component: {fileID: 2577339928953950256}
   - component: {fileID: 602924791896662941}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: KeyBadge_1
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -776,7 +776,7 @@ GameObject:
   - component: {fileID: 2801246708585047222}
   - component: {fileID: 3218858165755190399}
   - component: {fileID: 1755802412371582965}
-  m_Layer: 0
+  m_Layer: 5
   m_Name: Button_Plate
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -879,6 +879,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84f47ffb0cc60f8409595baa4eeeef58, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Button.UIButton
+  _clickDelay: 0.1
 --- !u!114 &4670398718888393169
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -16,6 +16,7 @@ namespace Game.Runtime.UI.Selection
 		[SerializeField] private RectTransform _pointerAnchor;
 
 		public event Action<UISelectionItem> OnPointed;
+		public event Action<UISelectionItem> OnUnpointed;
 		public event Action<UISelectionItem> OnSubmitted;
 
 		private UIButton _button;
@@ -40,13 +41,15 @@ namespace Game.Runtime.UI.Selection
 		private void OnEnable()
 		{
 			Button.OnHover += HandleHover;
+			Button.OnUnHover += HandleUnHover;
 			Button.OnClick += HandleClick;
 		}
 
 		private void OnDisable()
 		{
-			Button.OnHover -= HandleHover;
 			Button.OnClick -= HandleClick;
+			Button.OnUnHover -= HandleUnHover;
+			Button.OnHover -= HandleHover;
 
 			// An item switched off cannot stay the marked one, or the pointer would sit over nothing.
 			Button.IsSelected = false;
@@ -71,6 +74,8 @@ namespace Game.Runtime.UI.Selection
 
 			if (events.currentSelectedGameObject != gameObject) events.SetSelectedGameObject(gameObject);
 		}
+
+		private void HandleUnHover() => OnUnpointed?.Invoke(this);
 
 		// Both a click and a Submit on the focused entry arrive as onClick — uGUI routes the second into
 		// the first — so confirming needs no second path either.

@@ -1,3 +1,4 @@
+using Game.Runtime.GameMode.Poker;
 using UnityEngine;
 
 namespace Game.Runtime.UI.Poker
@@ -25,21 +26,27 @@ namespace Game.Runtime.UI.Poker
 		protected override void OnBind()
 		{
 			LocalData.OnStateChanged += Refresh;
+			Data.Phase.OnValueChanged += HandlePhaseChanged;
 
 			Refresh();
 		}
 
 		protected override void OnUnbind()
 		{
+			if (Data) Data.Phase.OnValueChanged -= HandlePhaseChanged;
 			if (LocalData) LocalData.OnStateChanged -= Refresh;
 
 			if (_meter) _meter.Unbind();
 			if (_panel) _panel.SetActive(false);
 		}
 
+		private void HandlePhaseChanged(PokerPhase previous, PokerPhase current) => Refresh();
+
+		// Down while the table waits for the host to start: nothing has been eaten and nothing can be, so the
+		// meter would only be an empty bar under the start button. Heads keep theirs — that is another view.
 		private void Refresh()
 		{
-			var show = LocalData && LocalData.IsSeated;
+			var show = LocalData && LocalData.IsSeated && Data && Data.Phase.Value != PokerPhase.Waiting;
 
 			if (_panel && _panel.activeSelf != show) _panel.SetActive(show);
 			if (!_meter) return;

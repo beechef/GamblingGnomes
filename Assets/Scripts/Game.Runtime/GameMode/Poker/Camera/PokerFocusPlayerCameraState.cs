@@ -13,9 +13,14 @@ namespace Game.Runtime.GameMode.Poker.Camera
 	// face; you offer the spot in front of your own chest, because aiming your own eye at your own face is
 	// aiming it at something a hand's breadth away and the head comes out wrenched round. The rig owns
 	// both points, so this only has to ask which one it wants.
+	//
+	// Watching somebody else, the view also cuts to that player's own spectator camera, which frames them
+	// far better than a head turned across the table can. The head still turns underneath it, so the rest
+	// of the room sees this player looking. The eater is never cut away from their own eyes.
 	public class PokerFocusPlayerCameraState : PlayerCameraLookAtState
 	{
 		private PokerGameData _bound;
+		private PlayerSpectatorCamera _watching;
 
 		protected override void OnEnter()
 		{
@@ -27,11 +32,27 @@ namespace Game.Runtime.GameMode.Poker.Camera
 		protected override void OnExit()
 		{
 			Unbind();
+			Watch(null);
 
 			base.OnExit();
 		}
 
-		private void OnDestroy() => Unbind();
+		private void OnDestroy()
+		{
+			Unbind();
+			Watch(null);
+		}
+
+		private void Watch(PlayerSpectatorCamera spectatorCamera)
+		{
+			if (_watching == spectatorCamera) return;
+
+			if (_watching) _watching.Release();
+
+			_watching = spectatorCamera;
+
+			if (_watching) _watching.Hold();
+		}
 
 		private void Bind()
 		{
@@ -68,6 +89,11 @@ namespace Game.Runtime.GameMode.Poker.Camera
 
 			var player = PokerPlayer.Find(clientId);
 			if (!player || !player.Rig) return null;
+
+			// Resolved here because this is where the answer lands, retries included: the eater's body can
+			// arrive a few frames after the focus does. A focus cleared between two eaters keeps the cut
+			// where it is, for the same reason the head does.
+			Watch(player.IsOwner ? null : player.Rig.SpectatorCamera);
 
 			return player.IsOwner ? player.Rig.SelfFocusPoint : player.Rig.FocusPoint;
 		}

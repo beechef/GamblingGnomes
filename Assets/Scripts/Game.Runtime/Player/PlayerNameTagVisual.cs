@@ -58,11 +58,6 @@ namespace Game.Runtime.Player
 				return;
 			}
 
-			if (!_enableBillboard)
-			{
-				return;
-			}
-
 			// Read fresh rather than cached: leaving a table and joining another swaps the camera out
 			// underneath a tag that outlives neither.
 			var view = GameCamera.View;
@@ -73,6 +68,11 @@ namespace Game.Runtime.Player
 
 			if (_canvas.enabled != visible) _canvas.enabled = visible;
 			if (!visible) return;
+			
+			if (!_enableBillboard)
+			{
+				return;
+			}
 
 			// Flattened before it becomes a rotation: following the camera's pitch would tilt the text
 			// away from the horizon every time somebody looked down at it.
