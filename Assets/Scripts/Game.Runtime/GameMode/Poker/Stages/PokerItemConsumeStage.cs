@@ -24,26 +24,10 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		[MinValue(1)]
 		[SerializeField] private int _itemsPerBite = 1;
 
-		[Header("Timing")]
-		[Tooltip("Seconds one mouthful takes — the length of the eating animation, or the next bite cuts it off.")]
-		[MinValue(0.1f)]
-		[SerializeField] private float _biteDuration = 1.2f;
-
-		[Tooltip("Seconds of quiet between one cap going down and the same player starting the next, so a plate of three reads as three mouthfuls rather than one long one.")]
-		[MinValue(0f)]
-		[SerializeField] private float _gapBetweenBites;
-
-		[Tooltip("Added to that gap when the cap just eaten pushed its eater across a hallucination rung. The screen spends the controller's own transition blinking, and a bite landing inside that blink is a bite nobody saw — so the wait is however long the blink is, read off the player rather than typed here.")]
-		[SerializeField] private bool _waitForHallucinationTransition = true;
-
-		[Tooltip("Seconds between one player finishing their plate and the next starting theirs, so two players eating do not read as one.")]
-		[MinValue(0f)]
-		[SerializeField] private float _handoverDuration = 0.4f;
-
-		[Header("Impact")]
-		[Tooltip("Seconds the table waits after a mouthful that lifted its eater onto a new hallucination rung, for the impact reaction to play out. Only a climb plays it; a bite that crossed nothing, or one that came down a rung, waits for nothing.")]
-		[MinValue(0f)]
-		[SerializeField] private float _impactDuration = 4.3f;
+		[Header("Pacing")]
+		[Tooltip("Every wait this beat makes — the mouthful, the hit, the handover, a Colorful roll's sweep and hold. One asset, so the beat is retuned in one place.")]
+		[Required]
+		[SerializeField] private PokerConsumePacing _pacing;
 
 		[Header("References")]
 		[Tooltip("Where the next hand begins. Named rather than left to the sequence, which wraps to its first entry — and that is the waiting room.")]
@@ -110,7 +94,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			if (!eater || !TakeBite(eater))
 			{
 				_waitingToHandOver = true;
-				_timer = _handoverDuration;
+				_timer = _pacing.HandoverDuration;
 			}
 		}
 
@@ -118,6 +102,16 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		// under mid-plate — eating is a thing a player does, not a debt the table collects — and the pot is
 		// carried into the next round rather than wiped by the deal, so a cap nobody is going to swallow
 		// would sit there gathering the next hand's stakes around it.
+		// Cut short by anything — the match ending, a stage pushed over it — a roll that was queued and never
+		// started still has to be paid, or leaving the beat would be a way to survive the Colorful cap.
+		protected override void OnEndStage()
+		{
+			foreach (var player in GameMode.SeatedPlayers)
+			{
+				if (player && player.HallucinationRoll) player.HallucinationRoll.ServerFlushQueuedRoll();
+			}
+		}
+
 		private void FinishEating()
 		{
 			PokerTableUtility.ResetPot(Data);
@@ -173,7 +167,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			if (_pendingItems.Count == 0) return false;
 
 			_pendingImpact = WouldClimbRung(eater);
-			_timer = _biteDuration;
+			_timer = _pacing.BiteDuration;
 
 			return true;
 		}
@@ -207,7 +201,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		private void PlayImpact()
 		{
 			_pendingImpact = false;
-			_timer = _impactDuration;
+			_timer = _pacing.ImpactDuration;
 
 			FindSeatedPlayerAtSeat(_seatIndex)?.ActionAnimator?.ServerPlay(PlayerActionIds.Impact);
 		}
@@ -232,9 +226,34 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 			_pendingItems.Clear();
 
+			// A Colorful cap queued its roll rather than playing it: this beat owns when things happen, so it
+			// starts the sweep with its own pacing and then waits it out below.
+			if (eater && eater.HallucinationRoll)
+			{
+				eater.HallucinationRoll.ServerStartQueuedRoll(_pacing.RollLeadIn, _pacing.RollSweepDuration, _pacing.RollResultHold);
+			}
+
 			var after = eater && eater.Data ? eater.Data.HallucinationRate.Value : before;
 
-			_timer = TransitionWait(eater, before, after) + _gapBetweenBites;
+			_timer = Mathf.Max(TransitionWait(eater, before, after), RollWait(eater)) + _pacing.GapBetweenBites;
+		}
+
+		// A Colorful roll is still being shown when the effect returns: the skull sweeps every bar and a
+		// fatal one only puts its eater under once it stops. The next mouthful waits out the whole of that,
+		// and the blink the death itself sets off after it — asked of the roller rather than typed here.
+		private static float RollWait(PokerPlayer eater)
+		{
+			var roll = eater ? eater.HallucinationRoll : null;
+			if (!roll) return 0f;
+
+			var remaining = roll.ServerRollRemaining;
+			if (remaining <= 0f) return 0f;
+
+			if (!roll.ServerRollFatal) return remaining;
+
+			var hallucination = eater.GetComponentInChildren<PokerHallucinationController>(true);
+
+			return remaining + (hallucination ? hallucination.TransitionDuration : 0f);
 		}
 
 		// How long the room spends changing. Their controller owns both the ladder and how long the blink
@@ -242,7 +261,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		// in either direction, since a bite landing inside the blink is a bite nobody saw.
 		private float TransitionWait(PokerPlayer eater, int before, int after)
 		{
-			if (!eater || before == after || !_waitForHallucinationTransition) return 0f;
+			if (!eater || before == after || !_pacing.WaitForHallucinationTransition) return 0f;
 
 			var hallucination = eater.GetComponentInChildren<PokerHallucinationController>(true);
 

@@ -3,6 +3,7 @@ using Game.Runtime.Controller;
 using Game.Runtime.GameMode.Poker.Stages;
 using Game.Runtime.GameMode.Poker.Visual;
 using Game.Runtime.Player;
+using Game.Runtime.UI.CursorVisuals;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
@@ -46,6 +47,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		private readonly List<PokerCardVisual> _liftBuffer = new();
 
 		private PokerCardVisual _hovered;
+		private int _cursorHandle;
 
 		private bool _picking;
 		private int _lastPickFrame = -1;
@@ -255,6 +257,23 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 			ApplyLift(previous);
 			ApplyLift(card);
+
+			SetInteractCursor(card);
+		}
+
+		// A card that would answer a click shows the same pointer a button does.
+		private void SetInteractCursor(bool interact)
+		{
+			return;
+			
+			var cursor = CursorVisualController.Instance;
+
+			if (interact && _cursorHandle == 0 && cursor) _cursorHandle = cursor.Request(CursorVisualState.Interact);
+			else if (!interact && _cursorHandle != 0)
+			{
+				if (cursor) cursor.Release(_cursorHandle);
+				_cursorHandle = 0;
+			}
 		}
 
 		// One height, decided in one place: being chosen outranks being under the cursor, so a card the

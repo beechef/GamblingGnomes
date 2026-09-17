@@ -40,9 +40,15 @@ namespace Game.Runtime.UI.Button
 
 		private void OnDisable()
 		{
-			if (!_button) return;
+			if (_button) _button.OnStateChanged -= HandleStateChanged;
 
-			_button.OnStateChanged -= HandleStateChanged;
+			OnDisabled();
+		}
+
+		// A subclass that must undo something when switched off does it here. Declaring OnDisable itself would
+		// hide this one and leave the button subscription behind, the same trap Reset/OnReset exists for.
+		protected virtual void OnDisabled()
+		{
 		}
 
 		// A state that arrives without having changed is a redraw, not a transition — UIButton forces one

@@ -26,17 +26,28 @@ namespace Game.Runtime.GameMode.Poker.Items
 
 			var rateBefore = data.HallucinationRate.Value;
 			data.ServerChangeHallucination(_gain);
+			var rateAfter = data.HallucinationRate.Value;
 
-			var against = _rollAfterGain ? data.HallucinationRate.Value : rateBefore;
+			var against = _rollAfterGain ? rateAfter : rateBefore;
 			if (against <= 0) return;
 
 			// Already at the ceiling is not a roll to make: they are gone either way, and rolling would
 			// only invite a reading where the highest rate somehow survives.
 			if (!data.IsAlive) return;
 
-			// Going under is written as the ceiling rather than as a flag, so IsAlive keeps being the one
-			// question anything asks and a later sobering could still bring them back.
-			if (Random.Range(0, 100) < against) data.ServerChangeHallucination(PokerPlayerData.MaxHallucination);
+			var roll = Random.Range(0, PokerPlayerData.MaxHallucination);
+			var fatal = roll < against;
+
+			// Shown before it is paid: queued on the eater's roller, which the running beat starts with its own
+			// pacing — every bar sweeps onto the number, and only then is a fatal roll's eater put under. A body
+			// with no roller still has to pay, so it pays at once.
+			if (eater.HallucinationRoll)
+			{
+				eater.HallucinationRoll.ServerQueueRoll(roll, fatal, rateBefore, rateAfter);
+				return;
+			}
+
+			if (fatal) data.ServerChangeHallucination(PokerPlayerData.MaxHallucination);
 		}
 
 		// The flat gain alone. The roll on top of it is chance, and one that fires is a player going under

@@ -72,6 +72,16 @@ namespace Game.Runtime.Player
 
 		private readonly List<Material> _resolvedMaterials = new();
 
+		// Which rig this client draws for this body: the full body, or the hands alone. Local, because it
+		// is a question about this screen — everyone else always sees a body — and it starts as ownership
+		// says, the owner looking out through their own hands. A beat that wants the owner to watch
+		// themselves from outside (going under) turns it on for as long as it lasts.
+		private bool _renderAllBody = true;
+
+		public bool RenderAllBody => _renderAllBody;
+
+		public event Action<bool> OnRenderAllBodyChanged;
+
 		// Lit for this client alone, on top of whatever the replicated flag says. Pointing at somebody before
 		// choosing them is not a move the table needs to watch - the choice is, and the server announces
 		// that - so a hover that went over the wire would be a message per twitch of the mouse saying nothing.
@@ -97,6 +107,9 @@ namespace Game.Runtime.Player
 
 		protected override void OnNetworkPostSpawn()
 		{
+			// Settled before the first appearance is drawn, so the owner never shows a frame of their own body.
+			_renderAllBody = !IsOwner;
+
 			// Late join: whoever is already lit up stays lit up, and the model underneath carries the pass.
 			ApplyAppearance();
 
@@ -203,16 +216,26 @@ namespace Game.Runtime.Player
 			OnAppearanceChanged?.Invoke();
 		}
 
-		// A renderer is drawn when its model fills it and it is on the rig this client renders: the owner
-		// sees the hand-only rig, everyone else the full body. Before spawn nobody owns anything yet, so the
-		// prefab stays as authored.
+		public void SetRenderAllBody(bool renderAllBody)
+		{
+			if (_renderAllBody == renderAllBody) return;
+
+			_renderAllBody = renderAllBody;
+
+			RefreshVisibility();
+			OnRenderAllBodyChanged?.Invoke(_renderAllBody);
+		}
+
+		// A renderer is drawn when its model fills it and it is on the rig this client renders: the full
+		// body while RenderAllBody is on, the hand-only rig otherwise. Before spawn nobody owns anything yet,
+		// so the prefab stays as authored.
 		private void RefreshVisibility()
 		{
 			foreach (var slot in _slots)
 			{
 				if (!slot.Renderer) continue;
 
-				var onRenderedRig = !IsSpawned || IsHandOnly(slot.Slot) == IsOwner;
+				var onRenderedRig = !IsSpawned || IsHandOnly(slot.Slot) != _renderAllBody;
 				slot.Renderer.enabled = onRenderedRig && _filled.Contains(slot.Slot);
 			}
 		}

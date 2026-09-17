@@ -1,52 +1,47 @@
 using Game.Runtime.GameMode.Poker.Player;
-using TMPro;
+using Game.Runtime.UI.Poker;
 using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker.Visual
 {
-	// How far gone somebody is, over their head where the table can read it. Rides the name tag's own
-	// canvas rather than bringing a second one: that canvas already turns to face the viewer, already
-	// hides at range and already hides for the owner, and none of that is worth writing twice. Poker
-	// lives here rather than on PlayerNameTagVisual, which knows nothing of mushrooms.
+	// How far gone somebody is, over their head where the table can read it: the same meter the owner has
+	// on their HUD, handed the body it hangs on. Rides the name tag's own canvas rather than bringing a
+	// second one — that canvas already turns to face the viewer, already hides at range and already hides
+	// for the owner, and none of that is worth writing twice.
 	public class PokerHallucinationTagVisual : MonoBehaviour
 	{
 		[Header("References")]
-		[SerializeField] private PokerPlayerData _data;
-		[SerializeField] private TextMeshProUGUI _label;
+		[SerializeField] private PokerPlayer _player;
+		[SerializeField] private UIPokerHallucinationMeter _meter;
 
-		[Header("Colours")]
-		[SerializeField] private Color _steadyColor = Color.white;
-		[SerializeField] private Color _goneColor = new(1f, 0.35f, 0.3f);
+		private bool _started;
 
 		private void Awake()
 		{
-			if (!_data) _data = GetComponentInParent<PokerPlayerData>();
+			if (!_player) _player = GetComponentInParent<PokerPlayer>();
+		}
+
+		// From Start, not Awake or the first OnEnable: a spawned player is enabled before the values it
+		// arrives with are applied, and the meter draws what it reads when it binds.
+		private void Start()
+		{
+			_started = true;
+			Bind();
 		}
 
 		private void OnEnable()
 		{
-			if (_data) _data.OnHallucinationChanged += HandleChanged;
-
-			Refresh();
+			if (_started) Bind();
 		}
 
 		private void OnDisable()
 		{
-			if (_data) _data.OnHallucinationChanged -= HandleChanged;
+			if (_meter) _meter.Unbind();
 		}
 
-		private void HandleChanged(int previous, int current) => Refresh();
-
-		// Read rather than waited for: a client arriving at a table already halfway under would
-		// otherwise show nothing until the next mouthful.
-		private void Refresh()
+		private void Bind()
 		{
-			if (!_data || !_label) return;
-
-			var rate = _data.HallucinationRate.Value;
-
-			_label.text = $"{rate}%";
-			_label.color = Color.Lerp(_steadyColor, _goneColor, rate / (float)PokerPlayerData.MaxHallucination);
+			if (_meter && _player) _meter.Bind(_player);
 		}
 	}
 }

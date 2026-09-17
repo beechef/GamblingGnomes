@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using DG.Tweening;
+using Game.Runtime.Controller;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -30,6 +31,9 @@ namespace Game.Runtime.UI.Selection
 
 		[Tooltip("On, coming back to this list returns to whatever was chosen when it was last shown — stepping into a sub-screen and back does not lose the player's place. Off, it starts from the first entry every time.")]
 		[SerializeField] private bool _restoreSelectionOnEnable = true;
+
+		[Tooltip("On, a mouse only marks what it is over: nothing is chosen until it hovers an entry, and leaving the entry lets go. A pad keeps the sticky selection starting from the first entry, because it has no pointer to say which one is meant.")]
+		[SerializeField] private bool _followHoverOnMouse;
 
 		[Header("Pointer Motion")]
 		[Tooltip("Nudge from the item's right edge — positive x moves the pointer further out.")]
@@ -61,13 +65,8 @@ namespace Game.Runtime.UI.Selection
 
 		private void OnEnable()
 		{
-			foreach (var item in _items)
-			{
-				if (!item) continue;
-
-				item.OnPointed += Select;
-				item.OnSubmitted += HandleSubmitted;
-			}
+			SubscribeItems();
+			InputSchemeController.OnSchemeChanged += HandleSchemeChanged;
 
 			_snapNextSelection = true;
 
@@ -79,13 +78,8 @@ namespace Game.Runtime.UI.Selection
 
 		private void OnDisable()
 		{
-			foreach (var item in _items)
-			{
-				if (!item) continue;
-
-				item.OnPointed -= Select;
-				item.OnSubmitted -= HandleSubmitted;
-			}
+			InputSchemeController.OnSchemeChanged -= HandleSchemeChanged;
+			UnsubscribeItems();
 
 			// Remembered, then genuinely let go. A group still holding its old choice would read the very
 			// same entry arriving again as "nothing changed" and return without marking the button or
@@ -115,6 +109,61 @@ namespace Game.Runtime.UI.Selection
 		{
 			if (isActiveAndEnabled) RequestPointerUpdate();
 		}
+
+		// For a list built at runtime, whose entries did not exist when the group woke up.
+		public void SetItems(IEnumerable<UISelectionItem> items)
+		{
+			if (isActiveAndEnabled) UnsubscribeItems();
+
+			_items.Clear();
+			_items.AddRange(items);
+
+			if (Selected && !_items.Contains(Selected)) Select(null, true);
+
+			if (!isActiveAndEnabled) return;
+
+			SubscribeItems();
+			RequestPointerUpdate();
+		}
+
+		private void SubscribeItems()
+		{
+			foreach (var item in _items)
+			{
+				if (!item) continue;
+
+				item.OnPointed += Select;
+				item.OnUnpointed += HandleUnpointed;
+				item.OnSubmitted += HandleSubmitted;
+			}
+		}
+
+		private void UnsubscribeItems()
+		{
+			foreach (var item in _items)
+			{
+				if (!item) continue;
+
+				item.OnSubmitted -= HandleSubmitted;
+				item.OnUnpointed -= HandleUnpointed;
+				item.OnPointed -= Select;
+			}
+		}
+
+		private bool FollowsHover => _followHoverOnMouse && !InputSchemeController.IsGamepad;
+
+		private void HandleUnpointed(UISelectionItem item)
+		{
+			if (!FollowsHover || Selected != item) return;
+
+			Select(null);
+
+			var events = EventSystem.current;
+			if (events && events.currentSelectedGameObject == item.gameObject) events.SetSelectedGameObject(null);
+		}
+
+		// Picking up a pad over a list with nothing marked gives the stick somewhere to start from.
+		private void HandleSchemeChanged(InputScheme scheme) => RequestPointerUpdate();
 
 		public void Select(UISelectionItem item) => Select(item, _snapNextSelection);
 
@@ -159,6 +208,8 @@ namespace Game.Runtime.UI.Selection
 		// Where the list starts from: last time's choice if it is still offerable, otherwise the top.
 		private void ApplyInitialSelection()
 		{
+			if (FollowsHover) return;
+
 			var target = _restoreSelectionOnEnable ? Selectable(_lastSelected) : null;
 			if (!target && _selectFirstOnEnable) target = FirstSelectable();
 			if (!target) return;

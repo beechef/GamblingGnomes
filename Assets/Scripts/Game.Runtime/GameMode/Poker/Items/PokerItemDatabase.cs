@@ -21,10 +21,12 @@ namespace Game.Runtime.GameMode.Poker.Items
 			[SerializeField] private PokerItemType _type = PokerItemType.Green;
 
 			[SerializeField] private string _displayName;
+			[Tooltip("Small mark for the kind — the row of kinds already eaten under a hallucination bar.")]
 			[SerializeField] private Sprite _icon;
+
 			[SerializeField] private Color _color = Color.white;
 
-			[Tooltip("What this kind looks like on the table. Its own model per kind rather than one shape recoloured: a cap is a thing, and telling two of them apart by tint is a placeholder, not a design.")]
+			[Tooltip("What this kind looks like on the table. The bet picker draws this very prefab too, so a hallucination painting the caps reaches the picker as well. Its own model per kind rather than one shape recoloured: a cap is a thing, and telling two of them apart by tint is a placeholder, not a design.")]
 			[SerializeField] private GameObject _worldPrefab;
 
 			[Tooltip("Rarity, against the other entries' weights. Zero never comes up without the entry losing its place in the list.")]

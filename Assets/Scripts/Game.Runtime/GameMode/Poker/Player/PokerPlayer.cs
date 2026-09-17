@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Game.Runtime.GameMode.Poker.Hallucination;
 using Game.Runtime.Player;
 using Unity.Netcode;
 using UnityEngine;
@@ -19,6 +20,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		[SerializeField] private PokerItemConsumeController _itemConsume;
 		[SerializeField] private PokerItemCarryController _itemCarry;
 		[SerializeField] private PokerWinnerPoseController _winnerPose;
+		[SerializeField] private PokerHallucinationRollController _hallucinationRoll;
 
 		[Tooltip("Who this player is — the name the table shows. Lives beside this on the player, not on the table.")]
 		[FormerlySerializedAs("_wallet")]
@@ -34,6 +36,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 		[Tooltip("Who draws this player. Marking somebody out for the whole table is a change of how they are drawn, so it is asked of the thing already holding every renderer.")]
 		[SerializeField] private PlayerVisual _visual;
+
+		[Tooltip("The name over this player's head, lit up with the outline when somebody points at them.")]
+		[SerializeField] private PlayerNameTagVisual _nameTag;
 
 		private static readonly List<PokerPlayer> Registry = new();
 
@@ -68,11 +73,13 @@ namespace Game.Runtime.GameMode.Poker.Player
 		// The held celebration. Named as a pose rather than as a gesture, because it lasts as long as the
 		// round says and not as long as a clip.
 		public PokerWinnerPoseController WinnerPose => _winnerPose;
+		public PokerHallucinationRollController HallucinationRoll => _hallucinationRoll;
 		public PlayerData Identity => _identity;
 		public PlayerRigController Rig => _rig;
 		public PlayerActionAnimator ActionAnimator => _actionAnimator;
 		public PlayerHandIkController HandIk => _handIk;
 		public PlayerVisual Visual => _visual;
+		public PlayerNameTagVisual NameTag => _nameTag;
 		public ulong ClientId => OwnerClientId;
 
 		// Folding is putting the cards down, and that is three things that must not come apart: the status
@@ -122,6 +129,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			if (!_itemConsume) _itemConsume = GetComponentInChildren<PokerItemConsumeController>(true);
 			if (!_itemCarry) _itemCarry = GetComponentInChildren<PokerItemCarryController>(true);
 			if (!_winnerPose) _winnerPose = GetComponentInChildren<PokerWinnerPoseController>(true);
+			if (!_hallucinationRoll) _hallucinationRoll = GetComponentInChildren<PokerHallucinationRollController>(true);
 			if (!_identity) _identity = GetComponent<PlayerData>();
 			if (!_rig) _rig = GetComponent<PlayerRigController>();
 
@@ -129,6 +137,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			if (!_actionAnimator) _actionAnimator = GetComponentInChildren<PlayerActionAnimator>();
 			if (!_handIk) _handIk = GetComponentInChildren<PlayerHandIkController>(true);
 			if (!_visual) _visual = GetComponentInChildren<PlayerVisual>();
+			if (!_nameTag) _nameTag = GetComponentInChildren<PlayerNameTagVisual>(true);
 
 			if (!Registry.Contains(this))
 			{

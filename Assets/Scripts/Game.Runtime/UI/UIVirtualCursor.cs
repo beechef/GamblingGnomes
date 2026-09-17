@@ -65,6 +65,7 @@ namespace Game.Runtime.UI
 		{
 			InputSchemeController.OnSchemeChanged += HandleSchemeChanged;
 			CursorController.OnPointerWantedChanged += Refresh;
+			CursorController.OnArrowHiddenChanged += Refresh;
 
 			Refresh();
 		}
@@ -73,6 +74,7 @@ namespace Game.Runtime.UI
 		{
 			InputSchemeController.OnSchemeChanged -= HandleSchemeChanged;
 			CursorController.OnPointerWantedChanged -= Refresh;
+			CursorController.OnArrowHiddenChanged -= Refresh;
 
 			_click?.Disable();
 			_click?.Dispose();
@@ -130,7 +132,9 @@ namespace Game.Runtime.UI
 				_input.enabled = wanted;
 			}
 
-			if (_cursor && _cursor.gameObject.activeSelf != wanted) _cursor.gameObject.SetActive(wanted);
+			// The device keeps running under a pointer drawn by somebody else — only the arrow steps aside.
+			var drawn = wanted && !CursorController.IsArrowHidden;
+			if (_cursor && _cursor.gameObject.activeSelf != drawn) _cursor.gameObject.SetActive(drawn);
 		}
 
 		private void TakeActionsOff()

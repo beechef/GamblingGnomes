@@ -35,7 +35,12 @@ namespace Game.Runtime.Player
 		[Tooltip("Where this player looks when a shot is about them — a fixed point out in front of their chest, authored on the prefab and hung off no model at all. Only the owner ever reads it, and the rig they render is the hand-only one: a point on the body rig would freeze for them, since that rig is switched off and culled. A point on the root cannot.")]
 		[SerializeField] private Transform _selfFocusPoint;
 
+		[Tooltip("A shot of this player from outside, for another client to cut to while a moment is about them. Never used by the owner, who stays in their own eyes.")]
+		[SerializeField] private Camera.PlayerSpectatorCamera _spectatorCamera;
+
 		public Transform FocusPoint => _focusPoint;
+
+		public Camera.PlayerSpectatorCamera SpectatorCamera => _spectatorCamera;
 
 		// Aiming your own eye at your own FocusPoint aims it at a point on your own chest a hand's breadth
 		// away: the solver has nothing sane to answer with and the head comes out wrenched round, which
