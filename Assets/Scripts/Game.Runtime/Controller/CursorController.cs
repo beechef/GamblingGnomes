@@ -24,9 +24,17 @@ namespace Game.Runtime.Controller
 
 		public static event Action OnPointerWantedChanged;
 
+		// A third question: whether the ordinary arrow is the one drawn. A screen that draws a pointer of its own
+		// (CursorVisualController) asks for it to be hidden — the hardware arrow on a keyboard and the pad's
+		// software arrow alike — while the pointer itself keeps working underneath.
+		public static bool IsArrowHidden => _arrowHiddenRequests > 0;
+
+		public static event Action OnArrowHiddenChanged;
+
 		private static bool _baseLocked;
 		private static int _unlockRequests;
 		private static int _pointerRequests;
+		private static int _arrowHiddenRequests;
 		private static bool _applied;
 		private static bool _appliedLocked;
 		private static bool _appliedVisible;
@@ -41,6 +49,8 @@ namespace Game.Runtime.Controller
 			OnLockChanged = null;
 			OnPointerWantedChanged = null;
 			_pointerRequests = 0;
+			_arrowHiddenRequests = 0;
+			OnArrowHiddenChanged = null;
 
 			InputSchemeController.OnSchemeChanged -= HandleSchemeChanged;
 		}
@@ -84,6 +94,30 @@ namespace Game.Runtime.Controller
 			if (_pointerRequests == 0) OnPointerWantedChanged?.Invoke();
 		}
 
+		public static void RequestArrowHidden()
+		{
+			_arrowHiddenRequests++;
+			if (_arrowHiddenRequests != 1) return;
+
+			Apply();
+			OnArrowHiddenChanged?.Invoke();
+		}
+
+		public static void ReleaseArrowHidden()
+		{
+			if (_arrowHiddenRequests <= 0)
+			{
+				Debug.LogWarning("[CursorController] ReleaseArrowHidden without a matching RequestArrowHidden — the counter is already at zero.");
+				return;
+			}
+
+			_arrowHiddenRequests--;
+			if (_arrowHiddenRequests != 0) return;
+
+			Apply();
+			OnArrowHiddenChanged?.Invoke();
+		}
+
 		public static void RequestUnlock()
 		{
 			_unlockRequests++;
@@ -110,7 +144,7 @@ namespace Game.Runtime.Controller
 
 			// A pointer left floating over a menu being driven by a stick is the clearest sign a game only
 			// half supports a pad — the pad moves the selection and the arrow sits there answering nobody.
-			var visible = !locked && !InputSchemeController.IsGamepad;
+			var visible = !locked && !InputSchemeController.IsGamepad && !IsArrowHidden;
 
 			// Visibility is compared as well as the lock, or picking up a pad while a panel is open would
 			// change nothing: the lock state has not moved, and only the arrow was supposed to.

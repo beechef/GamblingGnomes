@@ -19,6 +19,16 @@ namespace Game.Runtime.UI.Button
 		// Previous and current, so a visual can animate the transition rather than only the destination.
 		public event Action<UIButtonState, UIButtonState> OnStateChanged;
 
+		// Raised by any button whenever the pointer starts or stops being over one that answers — for what
+		// the whole screen reacts to (the cursor's look) rather than what one button draws. A disabled button
+		// under the pointer counts as not over, so the pointer only promises what a click would do.
+		public static event Action<UIButton, bool> OnPointerOverChanged;
+
+		public bool IsPointerOver { get; private set; }
+
+		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+		private static void ResetStatics() => OnPointerOverChanged = null;
+
 		private UnityEngine.UI.Button _button;
 		private bool _initialized;
 		private bool _hovering;
@@ -252,6 +262,15 @@ namespace Game.Runtime.UI.Button
 			// a group selecting its first entry as it is built — answers with its real state instead of
 			// claiming to be disabled.
 			if (!_initialized) Initialize();
+
+			// Before the state guard: hovering a selected button changes whether the pointer is over it without
+			// changing what it resolves to.
+			var over = _hovering && _button.interactable && isActiveAndEnabled;
+			if (IsPointerOver != over)
+			{
+				IsPointerOver = over;
+				OnPointerOverChanged?.Invoke(this, over);
+			}
 
 			var previous = State;
 			var current = Resolve();

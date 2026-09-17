@@ -37,6 +37,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 		[Tooltip("Who draws this player. Marking somebody out for the whole table is a change of how they are drawn, so it is asked of the thing already holding every renderer.")]
 		[SerializeField] private PlayerVisual _visual;
 
+		[Tooltip("The name over this player's head, lit up with the outline when somebody points at them.")]
+		[SerializeField] private PlayerNameTagVisual _nameTag;
+
 		private static readonly List<PokerPlayer> Registry = new();
 
 		public static IReadOnlyList<PokerPlayer> All => Registry;
@@ -76,6 +79,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		public PlayerActionAnimator ActionAnimator => _actionAnimator;
 		public PlayerHandIkController HandIk => _handIk;
 		public PlayerVisual Visual => _visual;
+		public PlayerNameTagVisual NameTag => _nameTag;
 		public ulong ClientId => OwnerClientId;
 
 		// Folding is putting the cards down, and that is three things that must not come apart: the status
@@ -133,6 +137,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			if (!_actionAnimator) _actionAnimator = GetComponentInChildren<PlayerActionAnimator>();
 			if (!_handIk) _handIk = GetComponentInChildren<PlayerHandIkController>(true);
 			if (!_visual) _visual = GetComponentInChildren<PlayerVisual>();
+			if (!_nameTag) _nameTag = GetComponentInChildren<PlayerNameTagVisual>(true);
 
 			if (!Registry.Contains(this))
 			{

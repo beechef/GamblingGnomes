@@ -1510,6 +1510,10 @@ PrefabInstance:
       propertyPath: GlobalObjectIdHash
       value: 3585866065
       objectReference: {fileID: 0}
+    - target: {fileID: 4294206107310369768, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+      propertyPath: m_Enabled
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 4342641369339303799, guid: 8a531d709826a264e9027ff908ced981, type: 3}
       propertyPath: m_IsActive
       value: 1
@@ -1850,6 +1854,17 @@ Animator:
   m_CorrespondingSourceObject: {fileID: 1780258250985252200, guid: 8a531d709826a264e9027ff908ced981, type: 3}
   m_PrefabInstance: {fileID: 2812995479481287383}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &5996781837061670186 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8372505286817105917, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+  m_PrefabInstance: {fileID: 2812995479481287383}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 72b217ab1056f6f4d9f1f518278c8b35, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.PlayerNameTagVisual
 --- !u!114 &7776873476951557616 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 5540770343152109351, guid: 8a531d709826a264e9027ff908ced981, type: 3}
@@ -1954,6 +1969,7 @@ MonoBehaviour:
   _actionAnimator: {fileID: 7776873476951557616}
   _handIk: {fileID: 8832795126120928936}
   _visual: {fileID: 2386824806186768469}
+  _nameTag: {fileID: 5996781837061670186}
 --- !u!114 &8453734359539351025
 MonoBehaviour:
   m_ObjectHideFlags: 0

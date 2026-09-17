@@ -23,10 +23,27 @@ namespace Game.Runtime.Player
 
 		[SerializeField] private bool _enableBillboard = false;
 
+		[Header("Highlight")]
+		[Tooltip("What the name is painted while this client is pointing at the player — lit alongside the body's outline, so the name and the body being chosen read as one thing.")]
+		[SerializeField] private Color _highlightColor = Color.white;
+
+		private Color _normalColor;
+		private bool _highlighted;
+
 		private void Awake()
 		{
 			if (!_data) _data = GetComponentInParent<PlayerData>();
 			if (_canvas) _canvas.enabled = false;
+			if (_label) _normalColor = _label.color;
+		}
+
+		// Local, like the hover outline it goes with: pointing at somebody is not a move the table sees.
+		public void SetLocalHighlighted(bool highlighted)
+		{
+			if (_highlighted == highlighted) return;
+
+			_highlighted = highlighted;
+			if (_label) _label.color = highlighted ? _highlightColor : _normalColor;
 		}
 
 		private void OnEnable()

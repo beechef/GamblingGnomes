@@ -1,6 +1,9 @@
+using System;
+using System.Threading;
 using Game.Runtime.GameMode.Poker.Player;
 using Game.Runtime.Player;
 using Game.Runtime.Player.Camera;
+using Game.Runtime.Utility;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -18,8 +21,18 @@ namespace Game.Runtime.GameMode.Poker.Camera
 		[Tooltip("Knows who is going under. Normally the one on this same object.")]
 		[SerializeField] private PokerDeathCameraBinder _binder;
 
+		[Header("Own Body")]
+		[Tooltip("How long after the cut the owner's full body is switched on. The cut is a blend (the brain's default), and a body switched on at once fills the view from inside the head the camera has not left yet.")]
+		[MinValue(0f)]
+		[SerializeField] private float _showBodyDelay = 0.5f;
+
+		[Tooltip("How long after the shot ends the owner goes back to their hands. The view blends back towards the head, and hands alone switched on at once float in mid air in front of a camera still outside the body.")]
+		[MinValue(0f)]
+		[SerializeField] private float _hideBodyDelay = 0.5f;
+
 		private PlayerSpectatorCamera _watching;
 		private PlayerVisual _revealed;
+		private CancellationTokenSource _bodySwitch;
 
 		protected override void OnInitialize()
 		{
@@ -34,10 +47,14 @@ namespace Game.Runtime.GameMode.Poker.Camera
 			base.OnExit();
 		}
 
+		// Put straight back rather than waited on: nothing will be left to finish the wait.
 		private void OnDestroy()
 		{
 			Watch(null);
-			Reveal(null);
+			CancelBodySwitch();
+
+			if (_revealed) _revealed.SetRenderAllBody(false);
+			_revealed = null;
 		}
 
 		// A different player went under while this shot was already up.
@@ -66,16 +83,54 @@ namespace Game.Runtime.GameMode.Poker.Camera
 		}
 
 		// Put back to the hands on the way out rather than to a remembered value: this only ever reveals
-		// the owner's own body, and the owner's resting answer is always the hands.
+		// the owner's own body, and the owner's resting answer is always the hands. Only one body is ever
+		// revealed, so one pending switch is enough — a newer one replaces it.
 		private void Reveal(PlayerVisual visual)
 		{
 			if (_revealed == visual) return;
 
-			if (_revealed) _revealed.SetRenderAllBody(false);
+			if (_revealed) SwitchBodyLater(_revealed, false, _hideBodyDelay);
 
 			_revealed = visual;
 
-			if (_revealed) _revealed.SetRenderAllBody(true);
+			if (_revealed) SwitchBodyLater(_revealed, true, _showBodyDelay);
+		}
+
+		private void SwitchBodyLater(PlayerVisual visual, bool renderAllBody, float delay)
+		{
+			CancelBodySwitch();
+
+			if (delay <= 0f)
+			{
+				visual.SetRenderAllBody(renderAllBody);
+				return;
+			}
+
+			_bodySwitch = CancellationTokenSource.CreateLinkedTokenSource(destroyCancellationToken);
+			_ = SwitchBodyAfter(visual, renderAllBody, delay, _bodySwitch.Token);
+		}
+
+		private static async Awaitable SwitchBodyAfter(PlayerVisual visual, bool renderAllBody, float delay, CancellationToken ct)
+		{
+			try
+			{
+				await AwaitableUtility.WaitUnscaledAsync(delay, ct);
+			}
+			catch (OperationCanceledException)
+			{
+				return;
+			}
+
+			if (visual) visual.SetRenderAllBody(renderAllBody);
+		}
+
+		private void CancelBodySwitch()
+		{
+			if (_bodySwitch == null) return;
+
+			_bodySwitch.Cancel();
+			_bodySwitch.Dispose();
+			_bodySwitch = null;
 		}
 	}
 }

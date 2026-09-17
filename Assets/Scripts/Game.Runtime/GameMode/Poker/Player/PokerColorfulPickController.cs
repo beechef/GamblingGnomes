@@ -1,5 +1,6 @@
 using Game.Runtime.Controller;
 using Game.Runtime.GameMode.Poker.Stages;
+using Game.Runtime.UI.CursorVisuals;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
@@ -33,6 +34,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		private PokerColorfulPickStage _stage;
 		private PokerPlayer _hovered;
 		private int _lastPickFrame = -1;
+		private int _cursorHandle;
 
 		private FixedString32Bytes _lastStageId;
 		private ulong _lastTurn = ulong.MaxValue;
@@ -53,6 +55,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			if (_pickAction && _pickAction.action != null) _pickAction.action.performed -= HandlePick;
 
 			SetHovered(null);
+			SetPickingCursor(false);
 		}
 
 		// Genuinely continuous: who is under the cursor changes as the cursor moves and as the bodies
@@ -73,6 +76,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 				_lastStageId = stageId;
 				_lastTurn = turn;
 				_stage = ResolvePickStage(mode);
+				SetPickingCursor(_stage);
 			}
 
 			SetHovered(CanPick() ? Raycast() : null);
@@ -111,7 +115,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 				var player = _hits[i].collider.GetComponentInParent<PokerPlayer>();
 
 				// Our own body is skipped outright: it sits just under the eye, so a ray to somebody across the
-				// table passes through it, and naming yourself is UIPokerColorfulPickBar's button instead.
+				// table passes through it, and naming yourself is the name on your own hallucination bar instead (UIPokerColorfulSelfPick).
 				// Everyone else is asked of the stage the server answers with, so nothing can be outlined that
 				// a click would then have refused.
 				if (!player || player.ClientId == OwnerClientId || !_stage.CanBeFed(player)) continue;
@@ -130,11 +134,34 @@ namespace Game.Runtime.GameMode.Poker.Player
 		{
 			if (_hovered == player) return;
 
-			if (_hovered && _hovered.Visual) _hovered.Visual.SetLocalOutlined(false);
+			SetHighlighted(_hovered, false);
 
 			_hovered = player;
 
-			if (_hovered && _hovered.Visual) _hovered.Visual.SetLocalOutlined(true);
+			SetHighlighted(_hovered, true);
+		}
+
+		// The body and the name over it light together, so what is being chosen reads as one thing.
+		private static void SetHighlighted(PokerPlayer player, bool highlighted)
+		{
+			if (!player) return;
+
+			if (player.Visual) player.Visual.SetLocalOutlined(highlighted);
+			if (player.NameTag) player.NameTag.SetLocalHighlighted(highlighted);
+		}
+
+		// The pointer turns into a skull for as long as this client is the one choosing who eats the cap —
+		// it is the look of pointing at somebody to poison them, and it goes back the moment the choice does.
+		private void SetPickingCursor(bool picking)
+		{
+			var cursor = CursorVisualController.Instance;
+
+			if (picking && _cursorHandle == 0 && cursor) _cursorHandle = cursor.Request(CursorVisualState.Skull);
+			else if (!picking && _cursorHandle != 0)
+			{
+				if (cursor) cursor.Release(_cursorHandle);
+				_cursorHandle = 0;
+			}
 		}
 
 		// UI/Click is PassThrough and performs on release as well as press, so the callback asks what the

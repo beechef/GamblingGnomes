@@ -25,6 +25,9 @@ namespace Game.Runtime.UI.Poker
 		[Tooltip("Cards are sized here rather than by the layout group. A card has a fixed shape, and a group that stretches one axis without the other flattens it.")]
 		[SerializeField] private Vector2 _cardSize = new(44f, 66f);
 
+		[Tooltip("On, the first card is the last sibling, so a row laid out right to left with negative spacing puts it leftmost and on top — the overlapping row of the helper. Off, cards keep deal order and a later card overlaps the one before it, which a fan wants.")]
+		[SerializeField] private bool _firstCardOnTop;
+
 		private readonly List<UIPokerCard> _cards = new();
 		private readonly List<CardData> _snapshot = new();
 
@@ -100,6 +103,7 @@ namespace Game.Runtime.UI.Poker
 			{
 				var card = Instantiate(_cardPrefab, _cardContainer);
 				((RectTransform)card.transform).sizeDelta = _cardSize;
+				if (_firstCardOnTop) card.transform.SetAsFirstSibling();
 
 				_cards.Add(card);
 			}
