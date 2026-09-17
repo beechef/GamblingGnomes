@@ -21,6 +21,9 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 		[SerializeField] private PokerCardDatabase _database;
 
+		[Tooltip("White rim switched on while the card is hovered for picking. Drawn at render queue 2999, before the face at 3000, so the card covers all of it but the edge.")]
+		[SerializeField] private GameObject _hoverOutline;
+
 		[Header("Flip")]
 		[Tooltip("What actually turns over. Kept separate from the root so the fan and layout rotations are not fighting the flip.")]
 		[SerializeField] private Transform _flipRoot;
@@ -274,6 +277,14 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		// hit box along with the picture is a feedback loop: a card hovered near its own edge rises out
 		// from under the cursor, stops being hovered, drops back under it, and is hovered again — which
 		// reads as a card flickering rather than as a hit region that moved.
+		// The white rim around a card that a click would pick. A child authored in the prefab under the art, so
+		// it lifts and flips with the card, and marked PropPaintIgnore so a hallucination painting the card
+		// leaves it alone.
+		public void SetHighlighted(bool highlighted)
+		{
+			if (_hoverOutline && _hoverOutline.activeSelf != highlighted) _hoverOutline.SetActive(highlighted);
+		}
+
 		public void SetLift(float lift)
 		{
 			if (Mathf.Approximately(_lift, lift)) return;
