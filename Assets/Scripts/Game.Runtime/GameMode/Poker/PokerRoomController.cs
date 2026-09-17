@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker
@@ -14,6 +13,9 @@ namespace Game.Runtime.GameMode.Poker
 	// cannot be laid out against the table it is replacing, and every further room is another prefab to
 	// keep in step with the first. Here the artist builds each one where it belongs and the switch is a
 	// switch.
+	//
+	// The swap is immediate, because the caller is what hides it: a hallucination asks for a room at the
+	// moment its blink is shut, and a delay of the room's own lands the swap after the eye has opened.
 	//
 	// Requests are counted, like the bone scale's modifiers and the material overrides: two effects can
 	// want a room at once, the newest wins, and dropping one puts back what the caller before it asked
@@ -36,11 +38,6 @@ namespace Game.Runtime.GameMode.Poker
 		[Tooltip("Every room the scene carries, the default one included. A room nobody authored is a room an effect asking for it leaves alone.")]
 		[SerializeField] private List<Room> _rooms = new();
 
-		[Header("Transition")]
-		[Tooltip("Seconds the swap takes. The rooms change at the halfway point, so a blink already covering the change hides it — the same shape PokerHallucinationController's own transition takes. Zero swaps outright.")]
-		[MinValue(0f)]
-		[SerializeField] private float _transitionDuration;
-
 		public static PokerRoomController Instance { get; private set; }
 
 		public static event Action OnInstanceChanged;
@@ -51,14 +48,8 @@ namespace Game.Runtime.GameMode.Poker
 
 		public PokerRoomVariant Current { get; private set; } = PokerRoomVariant.Default;
 
-		public float TransitionDuration => Mathf.Max(0f, _transitionDuration);
-
 		private readonly List<object> _handles = new();
 		private readonly List<PokerRoomVariant> _wanted = new();
-
-		private float _timer;
-		private bool _switching;
-		private PokerRoomVariant _pending;
 
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
 		private static void ResetStatics()
@@ -102,14 +93,14 @@ namespace Game.Runtime.GameMode.Poker
 			_handles.Add(handle);
 			_wanted.Add(variant);
 
-			Request(variant);
+			Apply(variant);
 		}
 
 		public void Clear(object handle)
 		{
 			if (handle == null || !Remove(handle)) return;
 
-			Request(_wanted.Count > 0 ? _wanted[^1] : PokerRoomVariant.Default);
+			Apply(_wanted.Count > 0 ? _wanted[^1] : PokerRoomVariant.Default);
 		}
 
 		private bool Remove(object handle)
@@ -124,37 +115,6 @@ namespace Game.Runtime.GameMode.Poker
 			}
 
 			return false;
-		}
-
-		// The wanted room, either at once or halfway through the transition. A second request arriving
-		// mid-swap replaces what is pending rather than queueing behind it: the later answer is the one
-		// that lands anyway, and a queue would spend a whole transition on a room nobody ends up in.
-		private void Request(PokerRoomVariant variant)
-		{
-			if (TransitionDuration <= 0f)
-			{
-				Apply(variant);
-				return;
-			}
-
-			_pending = variant;
-
-			if (_switching) return;
-
-			_switching = true;
-			_timer = TransitionDuration * 0.5f;
-		}
-
-		private void Update()
-		{
-			if (!_switching) return;
-
-			// Unscaled, because a swap is exactly the beat a paused game would otherwise hold open forever.
-			_timer -= Time.unscaledDeltaTime;
-			if (_timer > 0f) return;
-
-			_switching = false;
-			Apply(_pending);
 		}
 
 		private void Apply(PokerRoomVariant variant)

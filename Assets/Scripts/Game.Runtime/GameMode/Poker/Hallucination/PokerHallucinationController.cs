@@ -27,6 +27,10 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 		[Tooltip("Seconds the screen takes to blink when a rung is climbed or lost. Zero applies the change outright, which is what a table testing the ladder wants.")]
 		[SerializeField] private float _transitionDuration = 0.5f;
 
+		[Tooltip("How far through the blink the effects switch, as a fraction of it. The eye is shut exactly then: it closes over the part before and opens over the part after, so 0.5 is an even blink.")]
+		[Range(0f, 1f)]
+		[SerializeField] private float _applyPoint = 0.5f;
+
 		[Tooltip("Where the running effects are hung. Empty hangs them on this object, which is what a player prefab wants.")]
 		[SerializeField] private Transform _effectRoot;
 
@@ -68,9 +72,11 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 		}
 #endif
 
-		// The whole blink, start to finish. The rungs land halfway through it, and the view that draws
-		// the eyelids reads this same number rather than carrying one of its own to keep in step.
+		// The whole blink, start to finish. The rungs land ApplyDelay into it, and the view that draws the
+		// eyelids reads these same numbers rather than carrying its own to keep in step.
 		public float TransitionDuration => Mathf.Max(0f, _transitionDuration);
+
+		public float ApplyDelay => TransitionDuration * Mathf.Clamp01(_applyPoint);
 
 		// The ladder itself, for anything drawing where its rungs sit. Read as authored, so every screen shows the
 		// same marks whether or not it is the one running the effects.
@@ -154,7 +160,7 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 
 				// Unscaled: a blink is exactly the sort of beat a paused game would otherwise hold open
 				// forever.
-				await AwaitableUtility.WaitUnscaledAsync(TransitionDuration * 0.5f, ct);
+				await AwaitableUtility.WaitUnscaledAsync(ApplyDelay, ct);
 
 				ApplyRungs();
 			}

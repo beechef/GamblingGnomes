@@ -63,8 +63,13 @@ namespace Game.Runtime.UI.Poker
 		{
 			if (!_screen || !_controller) return;
 
-			var half = _controller.TransitionDuration * 0.5f;
-			if (half <= 0f) return;
+			var duration = _controller.TransitionDuration;
+			if (duration <= 0f) return;
+
+			// Fully shut on the very moment the controller switches the effects, however far through the
+			// blink that is authored to be.
+			var close = _controller.ApplyDelay;
+			var open = duration - close;
 
 			_screen.blocksRaycasts = false;
 			_screen.interactable = false;
@@ -73,8 +78,8 @@ namespace Game.Runtime.UI.Poker
 			_blink = DOTween.Sequence()
 				// Driven by value rather than DOFade: DOTween's UI module is not in this project, which is
 				// the same reason UIPokerBlackoutScreen drives its own group this way.
-				.Append(DOTween.To(() => _screen.alpha, alpha => _screen.alpha = alpha, 1f, half).SetEase(_closeEase))
-				.Append(DOTween.To(() => _screen.alpha, alpha => _screen.alpha = alpha, 0f, half).SetEase(_openEase))
+				.Append(DOTween.To(() => _screen.alpha, alpha => _screen.alpha = alpha, 1f, close).SetEase(_closeEase))
+				.Append(DOTween.To(() => _screen.alpha, alpha => _screen.alpha = alpha, 0f, open).SetEase(_openEase))
 				.SetUpdate(true)
 				.SetTarget(_screen);
 		}
