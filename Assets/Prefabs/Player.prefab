@@ -475,6 +475,7 @@ MonoBehaviour:
   _maxDistance: 30
   _hideForOwner: 1
   _enableBillboard: 0
+  _highlightColor: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1 &2875323534029960455
 GameObject:
   m_ObjectHideFlags: 0
@@ -927,6 +928,7 @@ GameObject:
   - component: {fileID: 2470038986640358079}
   - component: {fileID: 8951550889444866437}
   - component: {fileID: 6487605897618072822}
+  - component: {fileID: 1663564697237736208}
   m_Layer: 0
   m_Name: Player
   m_TagString: Untagged
@@ -1312,6 +1314,22 @@ MonoBehaviour:
     Preset: {fileID: 11400000, guid: e4f509db75971d94eb51c16be7e013a8, type: 2}
   - Cue: SmileShake
     Preset: {fileID: 11400000, guid: c645c69bbd8c531468ad1a8b14925034, type: 2}
+--- !u!114 &1663564697237736208
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6105733973742945484}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0d3163ee1520a9384fc2c41571c7d11f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.PlayerSpectatorBodyController
+  ShowTopMostFoldoutHeaderGroup: 1
+  _visual: {fileID: 438662258472082050}
+  _showBodyDelay: 0.5
+  _hideBodyDelay: 0.5
 --- !u!1 &6178121286250935598
 GameObject:
   m_ObjectHideFlags: 0

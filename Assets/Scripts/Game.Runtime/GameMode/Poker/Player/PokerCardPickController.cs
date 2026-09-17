@@ -258,14 +258,15 @@ namespace Game.Runtime.GameMode.Poker.Player
 			ApplyLift(previous);
 			ApplyLift(card);
 
+			if (previous) previous.SetHighlighted(false);
+			if (card) card.SetHighlighted(true);
+
 			SetInteractCursor(card);
 		}
 
 		// A card that would answer a click shows the same pointer a button does.
 		private void SetInteractCursor(bool interact)
 		{
-			return;
-			
 			var cursor = CursorVisualController.Instance;
 
 			if (interact && _cursorHandle == 0 && cursor) _cursorHandle = cursor.Request(CursorVisualState.Interact);

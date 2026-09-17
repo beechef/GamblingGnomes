@@ -80,6 +80,8 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 		{
 			foreach (var renderer in root.GetComponentsInChildren<Renderer>(true))
 			{
+				if (renderer.GetComponent<PropPaintIgnore>()) continue;
+
 				var controller = PropMaterialOverrideController.Claim(renderer);
 				if (!controller || _props.Contains(controller)) continue;
 
