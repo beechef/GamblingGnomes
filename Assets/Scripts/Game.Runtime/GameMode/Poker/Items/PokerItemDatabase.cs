@@ -26,11 +26,8 @@ namespace Game.Runtime.GameMode.Poker.Items
 
 			[SerializeField] private Color _color = Color.white;
 
-			[Tooltip("What this kind looks like on the table. Its own model per kind rather than one shape recoloured: a cap is a thing, and telling two of them apart by tint is a placeholder, not a design.")]
+			[Tooltip("What this kind looks like on the table. The bet picker draws this very prefab too, so a hallucination painting the caps reaches the picker as well. Its own model per kind rather than one shape recoloured: a cap is a thing, and telling two of them apart by tint is a placeholder, not a design.")]
 			[SerializeField] private GameObject _worldPrefab;
-
-			[Tooltip("The same kind drawn on the HUD — the bet picker. Its own prefab (a variant of the world one wearing unlit materials) so a cap on the UI reads the same whatever light the room it is shown over has, while the cap on the table keeps its lighting. Empty falls back to the world prefab.")]
-			[SerializeField] private GameObject _uiPrefab;
 
 			[Tooltip("Rarity, against the other entries' weights. Zero never comes up without the entry losing its place in the list.")]
 			[MinValue(0)]
@@ -47,7 +44,6 @@ namespace Game.Runtime.GameMode.Poker.Items
 			public Sprite Icon => _icon;
 			public Color Color => _color;
 			public GameObject WorldPrefab => _worldPrefab;
-			public GameObject UIPrefab => _uiPrefab ? _uiPrefab : _worldPrefab;
 			public int Weight => Mathf.Max(0, _weight);
 			public PokerItemEffect Effect => _effect;
 			public bool Wagerable => _wagerable;

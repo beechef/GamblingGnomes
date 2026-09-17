@@ -1,3 +1,4 @@
+using System;
 using Game.Runtime.UI.Button;
 using UnityEngine;
 
@@ -12,11 +13,15 @@ namespace Game.Runtime.UI.Poker
 		[SerializeField] private UIButton _button;
 		[SerializeField] private GameObject _panel;
 
-		[Tooltip("Optional. Pops the board in on open and fades it out on close; without it the board simply switches.")]
+		[Tooltip("Optional. Pops the board in on open and back out on close; without it the board simply switches.")]
 		[SerializeField] private UIPopInVisual _transition;
 
 		// A board fading out is already closed: pressing the button again opens it rather than closing it twice.
 		public bool IsOpen => _panel && _panel.activeSelf && !(_transition && _transition.IsHiding);
+
+		// Raised when the board is asked to open or to go, not when its fade ends, so whatever makes room for it
+		// comes back while the board is still leaving.
+		public event Action<bool> OnOpenChanged;
 
 		private void Awake()
 		{
@@ -32,8 +37,12 @@ namespace Game.Runtime.UI.Poker
 		{
 			if (_button) _button.OnClick -= Toggle;
 
+			var wasOpen = IsOpen;
+
 			UIEscapeStack.Remove(Close);
 			if (_panel) _panel.SetActive(false);
+
+			if (wasOpen) OnOpenChanged?.Invoke(false);
 		}
 
 		public void Toggle()
@@ -51,6 +60,7 @@ namespace Game.Runtime.UI.Poker
 
 			_panel.SetActive(true);
 			UIEscapeStack.Push(Close);
+			OnOpenChanged?.Invoke(true);
 		}
 
 		public void Close()
@@ -61,6 +71,8 @@ namespace Game.Runtime.UI.Poker
 
 			if (_transition) _transition.Hide(HidePanel);
 			else HidePanel();
+
+			OnOpenChanged?.Invoke(false);
 		}
 
 		private void HidePanel()

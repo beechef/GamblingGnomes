@@ -23,8 +23,8 @@ namespace Game.Runtime.UI.Poker
 	public class UIPokerBetPicker : MonoBehaviour
 	{
 		[Header("Kinds")]
-		[Tooltip("Inactive template for one kind, kept under the row.")]
-		[SerializeField] private UIPokerBetKindButton _kindTemplate;
+		[Tooltip("One kind, instantiated per wagerable entry under the row (UI_PokerBetKind).")]
+		[SerializeField] private UIPokerBetKindButton _kindPrefab;
 
 		[Tooltip("Auto-layout row the kinds are laid out in.")]
 		[SerializeField] private RectTransform _kindRow;
@@ -51,7 +51,6 @@ namespace Game.Runtime.UI.Poker
 
 		private void Awake()
 		{
-			if (_kindTemplate) _kindTemplate.gameObject.SetActive(false);
 			SetCostVisible(false);
 		}
 
@@ -110,7 +109,7 @@ namespace Game.Runtime.UI.Poker
 		private void BuildKinds()
 		{
 			var database = _gameMode ? _gameMode.ItemDatabase : null;
-			if (!database || !_kindTemplate || !_kindRow) return;
+			if (!database || !_kindPrefab || !_kindRow) return;
 
 			var used = 0;
 			_selectionItems.Clear();
@@ -120,7 +119,7 @@ namespace Game.Runtime.UI.Poker
 				// A kind the rules never let anybody wager is not drawn at all.
 				if (entry == null || !entry.Wagerable) continue;
 
-				if (used == _kinds.Count) _kinds.Add(Instantiate(_kindTemplate, _kindRow));
+				if (used == _kinds.Count) _kinds.Add(Instantiate(_kindPrefab, _kindRow));
 
 				var kind = _kinds[used++];
 				kind.gameObject.SetActive(true);

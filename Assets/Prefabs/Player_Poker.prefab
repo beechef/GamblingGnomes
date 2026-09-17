@@ -590,6 +590,7 @@ Transform:
   - {fileID: 6943904450054317861}
   - {fileID: 6596022643985744369}
   - {fileID: 4985311146887374898}
+  - {fileID: 1436942122852505741}
   m_Father: {fileID: 7915523810459036602}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &2388567287394699200
@@ -770,6 +771,70 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   _data: {fileID: 6935137486891752095}
   _fingers: {fileID: 1929870118816623789}
+--- !u!1 &5416542066659548578
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1436942122852505741}
+  - component: {fileID: 5418409498399216818}
+  - component: {fileID: 865620800125653941}
+  m_Layer: 0
+  m_Name: State_Death
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1436942122852505741
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5416542066659548578}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6961401803370160626}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &5418409498399216818
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5416542066659548578}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d294691d43fa8673fe425eccd0923a91, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Camera.PokerDeathCameraState
+  _allowManualLook: 0
+  _aimDelay: 0
+  _binder: {fileID: 865620800125653941}
+--- !u!114 &865620800125653941
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5416542066659548578}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e8d7b17147dda83ff0595cea86558922, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Camera.PokerDeathCameraBinder
+  ShowTopMostFoldoutHeaderGroup: 1
+  _state: {fileID: 5418409498399216818}
+  _camera: {fileID: 2388567287394699200}
+  _duration: 4
 --- !u!1 &5501318086319530288
 GameObject:
   m_ObjectHideFlags: 0

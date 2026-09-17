@@ -26,6 +26,10 @@ namespace Game.Runtime.UI.Poker
 		[Tooltip("Shown only on the wager that allows it. What the rules forbid is hidden, not greyed.")]
 		[SerializeField] private UIButton _foldButton;
 
+		[Header("Overlays")]
+		[Tooltip("Optional. While the hand board is open the bar steps aside, and the turn comes back to the menu when it closes.")]
+		[SerializeField] private UIPokerHandHelper _handHelper;
+
 		private PokerItemWagerStage _stage;
 
 		private void Awake()
@@ -37,6 +41,7 @@ namespace Game.Runtime.UI.Poker
 		{
 			if (_betButton) _betButton.OnClick += HandleBet;
 			if (_foldButton) _foldButton.OnClick += HandleFold;
+			if (_handHelper) _handHelper.OnOpenChanged += HandleHandHelperOpenChanged;
 
 			Data.CurrentTurnClientId.OnValueChanged += HandleTurnChanged;
 			Data.StageId.OnValueChanged += HandleStageChanged;
@@ -46,6 +51,7 @@ namespace Game.Runtime.UI.Poker
 
 		protected override void OnUnbind()
 		{
+			if (_handHelper) _handHelper.OnOpenChanged -= HandleHandHelperOpenChanged;
 			Data.StageId.OnValueChanged -= HandleStageChanged;
 			Data.CurrentTurnClientId.OnValueChanged -= HandleTurnChanged;
 
@@ -57,6 +63,9 @@ namespace Game.Runtime.UI.Poker
 
 		private void HandleTurnChanged(ulong previous, ulong current) => Refresh();
 		private void HandleStageChanged(FixedString32Bytes previous, FixedString32Bytes current) => Refresh();
+		private void HandleHandHelperOpenChanged(bool open) => Refresh();
+
+		private bool IsHandHelperOpen => _handHelper && _handHelper.IsOpen;
 
 		private void Refresh()
 		{
@@ -64,7 +73,9 @@ namespace Game.Runtime.UI.Poker
 			// the server's own stage machine, so on a client it is null forever.
 			_stage = GameMode ? GameMode.FindStage(Data.StageId.Value.ToString()) as PokerItemWagerStage : null;
 
-			if (_stage == null || !IsLocalTurn)
+			// The hand board covers the same moment, so the bar steps aside while it is up; closing it lands back
+			// on the menu, since the picker was put away with everything else.
+			if (_stage == null || !IsLocalTurn || IsHandHelperOpen)
 			{
 				CloseAll();
 				return;
@@ -84,7 +95,7 @@ namespace Game.Runtime.UI.Poker
 
 		private void HandleBet()
 		{
-			if (_stage == null || !IsLocalTurn) return;
+			if (_stage == null || !IsLocalTurn || IsHandHelperOpen) return;
 
 			if (_panels) _panels.Show(_pickerPanel);
 			if (_picker) _picker.Open(GameMode, LocalPlayer, _stage, ShowMenu);

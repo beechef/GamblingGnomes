@@ -35,8 +35,8 @@ namespace Game.Runtime.UI.Poker
 		[Tooltip("Stretched over the fill. Each mark is anchored at its rung's threshold along it.")]
 		[SerializeField] private RectTransform _rungContainer;
 
-		[Tooltip("Inactive template for one mark, kept under the container.")]
-		[SerializeField] private RectTransform _rungTemplate;
+		[Tooltip("One mark, instantiated per rung under the container (UI_HallucinationRung).")]
+		[SerializeField] private RectTransform _rungPrefab;
 
 		[Header("Skull")]
 		[Tooltip("Anchored along the fill's width; its horizontal anchor is the value it points at.")]
@@ -59,8 +59,8 @@ namespace Game.Runtime.UI.Poker
 		[Tooltip("Auto-layout row the icons are laid out in.")]
 		[SerializeField] private RectTransform _eatenRow;
 
-		[Tooltip("Inactive template for one icon, kept under the row.")]
-		[SerializeField] private Image _eatenTemplate;
+		[Tooltip("One icon, instantiated per kind eaten under the row (UI_ConsumedItemIcon).")]
+		[SerializeField] private Image _eatenPrefab;
 
 		[Tooltip("Where each kind's icon comes from.")]
 		[SerializeField] private PokerItemDatabase _database;
@@ -89,12 +89,6 @@ namespace Game.Runtime.UI.Poker
 
 		// The skull has stopped on a roll: the number, and whether it means going under.
 		public event Action<int, bool> OnRollSettled;
-
-		private void Awake()
-		{
-			if (_rungTemplate) _rungTemplate.gameObject.SetActive(false);
-			if (_eatenTemplate) _eatenTemplate.gameObject.SetActive(false);
-		}
 
 		private void OnDestroy() => Unbind();
 
@@ -201,7 +195,7 @@ namespace Game.Runtime.UI.Poker
 
 		private void BuildRungs(PokerHallucinationController hallucination)
 		{
-			if (!_rungContainer || !_rungTemplate) return;
+			if (!_rungContainer || !_rungPrefab) return;
 
 			var tiers = hallucination ? hallucination.Tiers : null;
 			_tiers = tiers;
@@ -210,7 +204,7 @@ namespace Game.Runtime.UI.Poker
 			// Marks already made are re-placed rather than rebuilt, so a rebind costs nothing new.
 			while (_rungs.Count < count)
 			{
-				_rungs.Add(Instantiate(_rungTemplate, _rungContainer));
+				_rungs.Add(Instantiate(_rungPrefab, _rungContainer));
 			}
 
 			for (var i = 0; i < _rungs.Count; i++)
@@ -233,13 +227,13 @@ namespace Game.Runtime.UI.Poker
 		// draws the old set under the new one for a frame.
 		private void RefreshEaten(bool popLast)
 		{
-			if (!_eatenRow || !_eatenTemplate) return;
+			if (!_eatenRow || !_eatenPrefab) return;
 
 			var count = _consume ? _consume.Consumed.Count : 0;
 
 			while (_eaten.Count < count)
 			{
-				_eaten.Add(Instantiate(_eatenTemplate, _eatenRow));
+				_eaten.Add(Instantiate(_eatenPrefab, _eatenRow));
 			}
 
 			for (var i = 0; i < _eaten.Count; i++)

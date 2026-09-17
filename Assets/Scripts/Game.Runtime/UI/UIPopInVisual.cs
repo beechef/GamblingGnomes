@@ -40,6 +40,14 @@ namespace Game.Runtime.UI
 
 		[SerializeField] private Ease _fadeOutEase = Ease.OutQuad;
 
+		[Tooltip("On, going away plays the pop-in backwards: the target shrinks back to the from-scale toward its pivot while it fades. Off, it only fades.")]
+		[SerializeField] private bool _popOut;
+
+		[MinValue(0f)]
+		[SerializeField] private float _popOutDuration = 0.2f;
+
+		[SerializeField] private Ease _popOutEase = Ease.InBack;
+
 		private Vector3 _restScale = Vector3.one;
 		private Sequence _sequence;
 
@@ -78,13 +86,16 @@ namespace Game.Runtime.UI
 		}
 
 		// The way out is asked for rather than drawn on OnDisable, because a switched-off object draws nothing:
-		// the caller switches the panel off in onHidden, once the fade has finished. Switching it off earlier
+		// the caller switches the panel off in onHidden, once the fade (and the pop-out, if on) has finished. Switching it off earlier
 		// cancels the fade, which is also how a panel reopened mid-fade gets its pop-in back.
 		public void Hide(Action onHidden)
 		{
 			Kill();
 
-			if (!_canvasGroup || _fadeOutDuration <= 0f || !isActiveAndEnabled)
+			var fades = _canvasGroup && _fadeOutDuration > 0f;
+			var shrinks = _popOut && _target && _popOutDuration > 0f;
+
+			if (!isActiveAndEnabled || (!fades && !shrinks))
 			{
 				onHidden?.Invoke();
 				return;
@@ -92,8 +103,20 @@ namespace Game.Runtime.UI
 
 			IsHiding = true;
 
-			_sequence = DOTween.Sequence()
-				.Append(DOTween.To(() => _canvasGroup.alpha, value => _canvasGroup.alpha = value, 0f, _fadeOutDuration).SetEase(_fadeOutEase))
+			// A panel on its way out is already gone as far as the player is concerned: a click landing on it
+			// mid-fade would act on a screen that has been dismissed. Given back in OnDisable.
+			if (_canvasGroup)
+			{
+				_canvasGroup.blocksRaycasts = false;
+				_canvasGroup.interactable = false;
+			}
+
+			_sequence = DOTween.Sequence();
+
+			if (shrinks) _sequence.Insert(0f, _target.DOScale(_restScale * _fromScale, _popOutDuration).SetEase(_popOutEase));
+			if (fades) _sequence.Insert(0f, DOTween.To(() => _canvasGroup.alpha, value => _canvasGroup.alpha = value, 0f, _fadeOutDuration).SetEase(_fadeOutEase));
+
+			_sequence
 				.OnComplete(() =>
 				{
 					IsHiding = false;
@@ -109,7 +132,11 @@ namespace Game.Runtime.UI
 			IsHiding = false;
 
 			if (_target) _target.localScale = _restScale;
-			if (_canvasGroup) _canvasGroup.alpha = 1f;
+			if (!_canvasGroup) return;
+
+			_canvasGroup.alpha = 1f;
+			_canvasGroup.blocksRaycasts = true;
+			_canvasGroup.interactable = true;
 		}
 
 		private void Kill()

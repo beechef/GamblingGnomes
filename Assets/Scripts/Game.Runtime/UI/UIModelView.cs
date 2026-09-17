@@ -1,4 +1,5 @@
 using System;
+using Game.Runtime.Props;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -48,6 +49,7 @@ namespace Game.Runtime.UI
 			Model.name = prefab.name;
 
 			SetLayer(Model.transform, gameObject.layer);
+			MarkAsUI(Model);
 			Fit();
 
 			OnModelChanged?.Invoke(Model);
@@ -62,6 +64,12 @@ namespace Game.Runtime.UI
 			Model = null;
 
 			OnModelChanged?.Invoke(null);
+		}
+
+		// For a model that changed what it draws after it was shown — a piece switched on, a mesh swapped.
+		public void Refit()
+		{
+			if (Model) Fit();
 		}
 
 		// Measured in the pivot's own space with the model at unit scale, so the answer depends neither on how the
@@ -173,6 +181,13 @@ namespace Game.Runtime.UI
 
 			var filter = renderer.GetComponent<MeshFilter>();
 			return filter && filter.sharedMesh ? filter.sharedMesh.bounds : renderer.localBounds;
+		}
+
+		// A model put on the UI is told so as it arrives, before anything can claim one of its renderers; what the
+		// UI paint is belongs to the prop itself (PropUIMaterials), since every kind of item will want its own.
+		private static void MarkAsUI(GameObject model)
+		{
+			foreach (var materials in model.GetComponentsInChildren<PropUIMaterials>(true)) materials.SetIsUI(true);
 		}
 
 		private static void SetLayer(Transform root, int layer)
