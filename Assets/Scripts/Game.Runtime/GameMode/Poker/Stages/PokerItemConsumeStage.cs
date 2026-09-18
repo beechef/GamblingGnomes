@@ -238,13 +238,13 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 			var after = eater && eater.Data ? eater.Data.HallucinationRate.Value : before;
 
-			_timer = Mathf.Max(TransitionWait(eater, before, after), RollWait(eater)) + _pacing.GapBetweenBites;
+			_timer = Mathf.Max(TransitionWait(eater, before, after), RollWait(eater, after)) + _pacing.GapBetweenBites;
 		}
 
 		// A Colorful roll is still being shown when the effect returns: the skull sweeps every bar and a
 		// fatal one only puts its eater under once it stops. The next mouthful waits out the whole of that,
-		// and the blink the death itself sets off after it — asked of the roller rather than typed here.
-		private static float RollWait(PokerPlayer eater)
+		// and then the whole death the roll sets off, asked of the eater's own death pose.
+		private static float RollWait(PokerPlayer eater, int rate)
 		{
 			var roll = eater ? eater.HallucinationRoll : null;
 			if (!roll) return 0f;
@@ -254,21 +254,32 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 			if (!roll.ServerRollFatal) return remaining;
 
-			var hallucination = eater.GetComponentInChildren<PokerHallucinationController>(true);
-
-			return remaining + (hallucination ? hallucination.TransitionDuration : 0f);
+			return remaining + DeathWait(eater, rate, PokerPlayerData.MaxHallucination);
 		}
 
-		// How long the room spends changing. Their controller owns both the ladder and how long the blink
-		// takes, so it is asked rather than a second copy of either being kept here — and it is waited out
-		// in either direction, since a bite landing inside the blink is a bite nobody saw.
+		// How long the room spends changing. Their controllers own the ladder, the blink and the death, so
+		// they are asked rather than a second copy of any being kept here. A mouthful that puts its eater under
+		// is waited out to the end of the death, whatever the blink setting: whatever follows it (the next
+		// eater, the match ending) must not land on top of the fall.
 		private float TransitionWait(PokerPlayer eater, int before, int after)
 		{
-			if (!eater || before == after || !_pacing.WaitForHallucinationTransition) return 0f;
+			if (!eater || before == after) return 0f;
+
+			if (before < PokerPlayerData.MaxHallucination && after >= PokerPlayerData.MaxHallucination)
+				return DeathWait(eater, before, after);
+
+			if (!_pacing.WaitForHallucinationTransition) return 0f;
 
 			var hallucination = eater.GetComponentInChildren<PokerHallucinationController>(true);
 
-			return hallucination && hallucination.CrossesRung(before, after) ? hallucination.TransitionDuration : 0f;
+			return hallucination ? hallucination.BlinkWait(before, after) : 0f;
+		}
+
+		private static float DeathWait(PokerPlayer eater, int before, int after)
+		{
+			var pose = eater.GetComponentInChildren<PokerDeathPoseController>(true);
+
+			return pose ? pose.DeathWait(before, after) : 0f;
 		}
 
 		private PokerPlayer FindSeatedPlayerAtSeat(int seatIndex)

@@ -16,6 +16,14 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 
 		public PokerPlayer Viewer { get; private set; }
 
+		// Whose timing this runs on. Handed down by whatever ran it, so an effect run inside a group eases
+		// on the same clock as the blink covering it.
+		public PokerHallucinationPacing Pacing { get; private set; }
+
+		// Seconds an effect takes to ease in or out. One number for every effect, because the blink has to
+		// outlast all of them.
+		protected float EaseDuration => Pacing ? Pacing.EffectEase : 0f;
+
 		// What this is, in the words the asset was named with. Taken at Begin rather than read off the config
 		// later, so a readout can still say what came off after the clone is gone.
 		public string DisplayName { get; private set; }
@@ -27,12 +35,13 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 		// Read by whatever runs this inside itself (a group), which has to outlive it by the same amount.
 		public float Linger => LingerSeconds;
 
-		public void Begin(PokerHallucinationEffect config, PokerPlayer viewer)
+		public void Begin(PokerHallucinationEffect config, PokerPlayer viewer, PokerHallucinationPacing pacing)
 		{
 			if (_running) return;
 
 			_running = true;
 			Viewer = viewer;
+			Pacing = pacing;
 			DisplayName = config ? config.name : string.Empty;
 
 			OnBegin(config);

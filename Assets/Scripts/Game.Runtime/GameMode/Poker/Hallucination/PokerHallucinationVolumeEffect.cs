@@ -18,15 +18,11 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 		[PropertyRange(0f, 1f)]
 		[SerializeField] private float _weight = 0.6f;
 
-		[Tooltip("Seconds it takes to arrive. A hallucination that snaps on reads as a bug rather than as a symptom.")]
-		[SerializeField] private float _fadeDuration = 0.7f;
-
 		[Tooltip("Where this rung sits against the others. Higher rungs should sit above lower ones.")]
 		[SerializeField] private int _priority = 10;
 
 		public VolumeProfile Profile => _profile;
 		public float Weight => _weight;
-		public float FadeDuration => Mathf.Max(0f, _fadeDuration);
 		public int Priority => _priority;
 
 		protected override PokerHallucinationEffectBehaviour Attach(GameObject host) => host.AddComponent<PokerHallucinationVolumeBehaviour>();

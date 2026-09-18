@@ -17,7 +17,7 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 		private float _progress;
 
 		// The shrink back is the whole reason a rung coming off is watchable, so the host waits it out.
-		protected override float LingerSeconds => Config ? Config.Duration : 0f;
+		protected override float LingerSeconds => EaseDuration;
 
 		protected override void OnBegin()
 		{
@@ -26,7 +26,7 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 			Reapply();
 
 			_tween?.Kill();
-			_tween = DOVirtual.Float(0f, 1f, Config.Duration, value =>
+			_tween = DOVirtual.Float(0f, 1f, EaseDuration, value =>
 				{
 					_progress = value;
 					Push();
@@ -40,7 +40,7 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 			Config.Target?.Unsubscribe(Viewer, Reapply);
 
 			_tween?.Kill();
-			_tween = DOVirtual.Float(_progress, 0f, Config.Duration, value =>
+			_tween = DOVirtual.Float(_progress, 0f, EaseDuration, value =>
 				{
 					_progress = value;
 					Push();

@@ -29,9 +29,15 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		[Tooltip("Cue on the snap clip that puts the cap down. The chosen player is named by the snap, so the cap arriving before the fingers have closed reads as the choice having already happened.")]
 		[SerializeField] private string _serveCue = "SnapServe";
 
-		[Tooltip("Seconds to wait for that cue before the cap is put down anyway. The cue rides the chooser's own rig, so a table that is not drawing them hears nothing — and a winner's choice must never be the thing that hangs the round.")]
+		[Tooltip("The snap clip carrying that cue. The cap is put down anyway once the clip has run out plus the margin below. The cue rides the chooser's own rig, so a table that is not drawing them hears nothing — and a winner's choice must never be the thing that hangs the round.")]
+		[Required]
+		[SerializeField] private AnimationClip _serveClip;
+
+		[Tooltip("Seconds past the end of the snap clip before the cue is given up on. The backstop has to outlast the clip, or it fires every time and the cue never decides anything.")]
 		[MinValue(0f)]
-		[SerializeField] private float _serveCueTimeout = 1.5f;
+		[SerializeField] private float _serveCueMargin = 0.3f;
+
+		private float ServeCueTimeout => _serveClip ? _serveClip.length + _serveCueMargin : 0f;
 
 		[Header("References")]
 		[Tooltip("Where the next hand begins. Named rather than left to the sequence, which wraps to its first entry — and that is the waiting room, so a table would need the host to press start after every hand.")]
@@ -76,7 +82,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			if (_awaitingServeCue)
 			{
 				_serveElapsed += deltaTime;
-				if (_serveElapsed >= _serveCueTimeout) DeliverCap();
+				if (_serveElapsed >= ServeCueTimeout) DeliverCap();
 				return;
 			}
 
@@ -160,7 +166,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 		private bool BindServeCue(PokerPlayer chooser)
 		{
-			if (string.IsNullOrEmpty(_serveCue) || _serveCueTimeout <= 0f || !chooser.Rig) return false;
+			if (string.IsNullOrEmpty(_serveCue) || ServeCueTimeout <= 0f || !chooser.Rig) return false;
 
 			chooser.Rig.GetComponentsInChildren(true, _serveRelays);
 			if (_serveRelays.Count == 0) return false;

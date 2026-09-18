@@ -10,7 +10,7 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 		private int _property;
 
 		// The fade out is the effect leaving, so the pass has to keep drawing until it is over.
-		protected override float LingerSeconds => Config ? Config.FadeDuration : 0f;
+		protected override float LingerSeconds => EaseDuration;
 
 		protected override void OnBegin()
 		{
@@ -57,7 +57,7 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 			if (!_instance) return;
 
 			DOTween.Kill(_instance);
-			DOTween.To(() => _instance.GetFloat(_property), value => _instance.SetFloat(_property, value), target, Config.FadeDuration)
+			DOTween.To(() => _instance.GetFloat(_property), value => _instance.SetFloat(_property, value), target, EaseDuration)
 				.SetTarget(_instance)
 				.SetUpdate(true);
 		}

@@ -16,8 +16,9 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		[SerializeField] private int _viewableHoleCards;
 
 		[Header("Timing")]
-		[Tooltip("Seconds the deal is left on screen. Zero or less moves on the same frame.")]
-		[SerializeField] private float _dealDuration = 1.5f;
+		[Tooltip("How long the deal takes to land. The deck's animation reads the same asset, so the stage waits exactly as long as the cards are in the air, plus a rest.")]
+		[Required]
+		[SerializeField] private PokerDealPacing _pacing;
 
 		private readonly List<CardData> _dealtCards = new();
 
@@ -29,7 +30,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			GameMode.ClearTurn();
 			Data.Showdown.Clear();
 
-			DealHoleCards();
+			var dealtPlayers = DealHoleCards();
 
 			// A fresh hand straightens everyone back up — whoever spent last hand slumped over a fold
 			// comes off that pose here, because nothing else ever tells the gesture layer the hand ended.
@@ -38,13 +39,14 @@ namespace Game.Runtime.GameMode.Poker.Stages
 				player.ActionAnimator?.ServerPlay(PlayerActionIds.Idle);
 			}
 
-			if (_dealDuration <= 0f)
+			var duration = _pacing ? _pacing.DealDuration(dealtPlayers, HoleCardsPerPlayer) : 0f;
+			if (duration <= 0f)
 			{
 				FinishStage();
 				return;
 			}
 
-			GameMode.BeginStageTimer(_dealDuration);
+			GameMode.BeginStageTimer(duration);
 		}
 
 		protected override void OnTickStage(float deltaTime)
@@ -54,8 +56,11 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			FinishStage();
 		}
 
-		private void DealHoleCards()
+		// Returns how many players were dealt in, which is how long the deal takes to land.
+		private int DealHoleCards()
 		{
+			var dealt = 0;
+
 			GameMode.Deck.Rebuild();
 			GameMode.Deck.Shuffle();
 
@@ -87,7 +92,10 @@ namespace Game.Runtime.GameMode.Poker.Stages
 				data.ServerSetViewableHoleCards(_viewableHoleCards);
 				data.ServerSetHoleCards(_dealtCards);
 				data.Status.Value = PokerPlayerStatus.Active;
+				dealt++;
 			}
+
+			return dealt;
 		}
 	}
 }

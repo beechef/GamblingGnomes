@@ -26,14 +26,10 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 
 		[SerializeField] private float _strength = 0.015f;
 
-		[Tooltip("Seconds it takes to arrive. A hallucination that snaps on reads as a bug rather than as a symptom.")]
-		[SerializeField] private float _fadeDuration = 0.7f;
-
 		public ScriptableRendererFeature Feature => _feature;
 		public Material Material => _material;
 		public string StrengthProperty => _strengthProperty;
 		public float Strength => _strength;
-		public float FadeDuration => Mathf.Max(0f, _fadeDuration);
 
 		protected override PokerHallucinationEffectBehaviour Attach(GameObject host) => host.AddComponent<PokerHallucinationFullscreenBehaviour>();
 	}

@@ -27,10 +27,6 @@ namespace Game.Runtime.GameMode.Poker.Camera
 		[Tooltip("Where the view goes back to. Empty finds it up the hierarchy.")]
 		[SerializeField] private PlayerCameraController _camera;
 
-		[Tooltip("How long the room watches, counted from the moment the shot goes up (after the dying player's blink). Long enough to see the fall and the head go.")]
-		[MinValue(0f)]
-		[SerializeField] private float _duration = 4f;
-
 		private readonly Dictionary<PokerPlayerData, Action<int, int>> _watched = new();
 
 		private int _handle;
@@ -105,7 +101,7 @@ namespace Game.Runtime.GameMode.Poker.Camera
 
 			if (wentUnder)
 			{
-				ScheduleShot(player, pose ? pose.BlinkWait(previous, current) : 0f);
+				ScheduleShot(player, pose, pose ? pose.BlinkWait(previous, current) : 0f);
 				return;
 			}
 
@@ -117,22 +113,22 @@ namespace Game.Runtime.GameMode.Poker.Camera
 
 		// The shot waits out the dying player's blink, so the cut and the fall land on an open eye rather
 		// than behind the black.
-		private void ScheduleShot(PokerPlayer player, float delay)
+		private void ScheduleShot(PokerPlayer player, PokerDeathPoseController pose, float delay)
 		{
 			CancelPendingShot();
 
 			if (delay <= 0f)
 			{
-				BeginShot(player);
+				BeginShot(player, pose);
 				return;
 			}
 
 			_pendingDying = player;
 			_pendingShot = CancellationTokenSource.CreateLinkedTokenSource(destroyCancellationToken);
-			_ = BeginShotAfter(player, delay, _pendingShot.Token);
+			_ = BeginShotAfter(player, pose, delay, _pendingShot.Token);
 		}
 
-		private async Awaitable BeginShotAfter(PokerPlayer player, float seconds, CancellationToken ct)
+		private async Awaitable BeginShotAfter(PokerPlayer player, PokerDeathPoseController pose, float seconds, CancellationToken ct)
 		{
 			try
 			{
@@ -144,7 +140,7 @@ namespace Game.Runtime.GameMode.Poker.Camera
 			}
 
 			CancelPendingShot();
-			if (player) BeginShot(player);
+			if (player) BeginShot(player, pose);
 		}
 
 		private void CancelPendingShot()
@@ -158,7 +154,8 @@ namespace Game.Runtime.GameMode.Poker.Camera
 			_pendingShot = null;
 		}
 
-		private void BeginShot(PokerPlayer player)
+		// Held for as long as the dying player's own pacing says the room watches them.
+		private void BeginShot(PokerPlayer player, PokerDeathPoseController pose)
 		{
 			CancelHold();
 
@@ -170,7 +167,7 @@ namespace Game.Runtime.GameMode.Poker.Camera
 			else if (_state) _state.Refocus();
 
 			_hold = CancellationTokenSource.CreateLinkedTokenSource(destroyCancellationToken);
-			_ = EndAfter(_duration, _hold.Token);
+			_ = EndAfter(pose ? pose.ShotDuration : 0f, _hold.Token);
 		}
 
 		private async Awaitable EndAfter(float seconds, CancellationToken ct)

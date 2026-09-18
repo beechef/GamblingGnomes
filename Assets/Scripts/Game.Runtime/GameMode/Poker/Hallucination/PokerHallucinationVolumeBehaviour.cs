@@ -11,7 +11,7 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 		private Volume _volume;
 
 		// The fade out is the effect leaving; killing the object at the top of it would snap the room back.
-		protected override float LingerSeconds => Config ? Config.FadeDuration : 0f;
+		protected override float LingerSeconds => EaseDuration;
 
 		protected override void OnBegin()
 		{
@@ -38,7 +38,7 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 			if (!_volume) return;
 
 			DOTween.Kill(_volume);
-			DOTween.To(() => _volume.weight, w => _volume.weight = w, target, Config.FadeDuration)
+			DOTween.To(() => _volume.weight, w => _volume.weight = w, target, EaseDuration)
 				.SetTarget(_volume)
 				.SetUpdate(true);
 		}

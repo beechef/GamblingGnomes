@@ -47,7 +47,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Player.PokerDeathPoseController
   ShowTopMostFoldoutHeaderGroup: 1
   _deadParameter: IsDead
-  _poseDelay: 0.4
+  _pacing: {fileID: 11400000, guid: 15cd47e52de1cf942a77a9343c5dc5bd, type: 2}
   _data: {fileID: 6935137486891752095}
   _animatorStates: {fileID: 5503049138563897167}
   _playerController: {fileID: 0}
@@ -65,7 +65,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Visual.PokerDeathVisual
   ShowTopMostFoldoutHeaderGroup: 1
-  _headVanishDelay: 1.8
   _hiddenSlots: 0100000003000000
   _vanishEffect: {fileID: 0}
   _vanishEffectLifetime: 3
@@ -841,7 +840,6 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   _state: {fileID: 5418409498399216818}
   _camera: {fileID: 2388567287394699200}
-  _duration: 4
 --- !u!1 &5501318086319530288
 GameObject:
   m_ObjectHideFlags: 0
@@ -969,9 +967,7 @@ MonoBehaviour:
   _player: {fileID: 5117715483773410859}
   _data: {fileID: 6935137486891752095}
   _tiers: {fileID: 11400000, guid: 06ed31c2c8dc1494d86b2b14f75d0da3, type: 2}
-  _transitionDuration: 1
-  _applyPoint: 0.5
-  _holdDuration: 0.8
+  _pacing: {fileID: 11400000, guid: a2fa7480262db4841a490fc9d9ff4868, type: 2}
   _effectRoot: {fileID: 0}
 --- !u!114 &8171426156567892191
 MonoBehaviour:
@@ -1718,16 +1714,32 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3441691571832123034, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3441691571832123034, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 3441691571832123034, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 3441691571832123034, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3441691571832123034, guid: 8a531d709826a264e9027ff908ced981, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
-      value: 10.201
+      value: 180
       objectReference: {fileID: 0}
     - target: {fileID: 3441691571832123034, guid: 8a531d709826a264e9027ff908ced981, type: 3}
       propertyPath: m_LocalEulerAnglesHint.y
-      value: 58.886
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3441691571832123034, guid: 8a531d709826a264e9027ff908ced981, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
-      value: 20.741
+      value: -90
       objectReference: {fileID: 0}
     - target: {fileID: 3473195568649657332, guid: 8a531d709826a264e9027ff908ced981, type: 3}
       propertyPath: m_Enabled
@@ -1815,6 +1827,30 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4384528394672060480, guid: 8a531d709826a264e9027ff908ced981, type: 3}
       propertyPath: m_hasFontAssetChanged
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4808521147248479474, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4808521147248479474, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 4808521147248479474, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.7071068
+      objectReference: {fileID: 0}
+    - target: {fileID: 4808521147248479474, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4808521147248479474, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 180
+      objectReference: {fileID: 0}
+    - target: {fileID: 4808521147248479474, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5054937090941827586, guid: 8a531d709826a264e9027ff908ced981, type: 3}

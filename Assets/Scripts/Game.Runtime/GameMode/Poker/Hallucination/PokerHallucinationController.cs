@@ -24,16 +24,8 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 		[Tooltip("Which rungs exist and what each can draw. Empty plays the round with no hallucinations at all, which is what a table testing the card rules wants.")]
 		[SerializeField] private PokerHallucinationTiers _tiers;
 
-		[Tooltip("Seconds the screen takes to blink when a rung is climbed or lost. Zero applies the change outright, which is what a table testing the ladder wants.")]
-		[SerializeField] private float _transitionDuration = 0.5f;
-
-		[Tooltip("How far through the blink the effects switch, as a fraction of it. The eye is shut exactly then: it closes over the part before and opens over the part after, so 0.5 is an even blink.")]
-		[Range(0f, 1f)]
-		[SerializeField] private float _applyPoint = 0.5f;
-
-		[Tooltip("Seconds the eye stays shut after the effects switch, before it opens. The effects ease in and out as they change — a head growing, a room fading — so this has to outlast the longest of those, or the eye opens on them still moving.")]
-		[MinValue(0f)]
-		[SerializeField] private float _holdDuration = 0.8f;
+		[Tooltip("How long the blink takes and how long the effects ease behind it. Empty applies a rung change outright, which is what a table testing the ladder wants.")]
+		[SerializeField] private PokerHallucinationPacing _pacing;
 
 		[Tooltip("Where the running effects are hung. Empty hangs them on this object, which is what a player prefab wants.")]
 		[SerializeField] private Transform _effectRoot;
@@ -79,15 +71,18 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 		// The whole blink, start to finish: closing, held shut, opening. The rungs land ApplyDelay into it and
 		// the eye stays shut for HoldDuration after, and the view that draws the eyelids reads these same
 		// numbers rather than carrying its own to keep in step.
-		public float TransitionDuration => BlinkDuration + HoldDuration;
+		public float TransitionDuration => _pacing ? _pacing.TransitionDuration : 0f;
 
-		public float ApplyDelay => BlinkDuration * Mathf.Clamp01(_applyPoint);
+		public float ApplyDelay => _pacing ? _pacing.CloseDuration : 0f;
 
-		public float HoldDuration => BlinkDuration > 0f ? Mathf.Max(0f, _holdDuration) : 0f;
+		public float HoldDuration => _pacing ? _pacing.HoldDuration : 0f;
 
-		public float OpenDuration => BlinkDuration - ApplyDelay;
+		public float OpenDuration => _pacing ? _pacing.OpenDuration : 0f;
 
-		private float BlinkDuration => Mathf.Max(0f, _transitionDuration);
+		// How long a beat about this player waits for the blink a change between these rates sets off, which
+		// is none at all when no rung is crossed.
+		public float BlinkWait(int previousRate, int currentRate) =>
+			CrossesRung(previousRate, currentRate) ? TransitionDuration : 0f;
 
 		// The ladder itself, for anything drawing where its rungs sit. Read as authored, so every screen shows the
 		// same marks whether or not it is the one running the effects.
@@ -284,7 +279,7 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 				// one of the two would silently do nothing. An object per draw makes stacking work by
 				// construction, and it names what this player is seeing in the hierarchy, where it can be
 				// watched and retuned while it is on screen.
-				var behaviour = asset.Run(_effectRoot ? _effectRoot : transform, _player);
+				var behaviour = asset.Run(_effectRoot ? _effectRoot : transform, _player, _pacing);
 				if (!behaviour) continue;
 
 				behaviour.name = $"Rung {index} ({rung.Threshold}%) - {asset.name}";

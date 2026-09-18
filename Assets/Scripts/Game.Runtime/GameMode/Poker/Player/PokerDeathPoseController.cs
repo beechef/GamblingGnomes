@@ -24,9 +24,10 @@ namespace Game.Runtime.GameMode.Poker.Player
 		[Tooltip("Bool parameter set while this player is out of the game. A controller without it is skipped, so the pose can be driven before the art lands.")]
 		[SerializeField] private string _deadParameter = "IsDead";
 
-		[Tooltip("Seconds between going under and the death pose starting — the beat the death shot uses to arrive. Everything timed against the clip (the head vanishing) counts from after this.")]
-		[MinValue(0f)]
-		[SerializeField] private float _poseDelay = 0.4f;
+		[Header("Timing")]
+		[Tooltip("How the shot, the fall and the head going are spaced. Shared with the death camera and the head, which ask this controller rather than keeping their own numbers.")]
+		[Required]
+		[SerializeField] private PokerDeathPacing _pacing;
 
 		[Header("References")]
 		[SerializeField] private PokerPlayerData _data;
@@ -45,20 +46,29 @@ namespace Game.Runtime.GameMode.Poker.Player
 		// When the death beat starts after going under: once the blink the crossing sets off has opened again.
 		// Every machine answers the same from the replicated rates, so the shot and the pose agree on screens
 		// that never blink.
-		public float BlinkWait(int previous, int current) =>
-			_hallucination && _hallucination.CrossesRung(previous, current) ? _hallucination.TransitionDuration : 0f;
+		public float BlinkWait(int previous, int current) => _hallucination ? _hallucination.BlinkWait(previous, current) : 0f;
 
-		public float PoseStartDelay(int previous, int current) => BlinkWait(previous, current) + _poseDelay;
+		public float PoseStartDelay(int previous, int current) => BlinkWait(previous, current) + (_pacing ? _pacing.PoseDelay : 0f);
+
+		public float HeadVanishDelay(int previous, int current) => PoseStartDelay(previous, current) + (_pacing ? _pacing.HeadVanishDelay : 0f);
+
+		public float ShotDuration => _pacing ? _pacing.ShotDuration : 0f;
+
+		// From the crossing to the last thing about this death being over: what the table waits before moving on.
+		public float DeathWait(int previous, int current) => BlinkWait(previous, current) + (_pacing ? _pacing.BeatDuration : 0f);
+
+		private void Awake()
+		{
+			if (_hallucination) return;
+
+			var player = GetComponentInParent<PokerPlayer>();
+			if (player) _hallucination = player.GetComponentInChildren<PokerHallucinationController>(true);
+		}
 
 		public override void OnNetworkSpawn()
 		{
 			if (!_data) _data = GetComponentInParent<PokerPlayerData>();
 			if (!_playerController) _playerController = GetComponentInParent<PlayerController>();
-			if (!_hallucination)
-			{
-				var player = GetComponentInParent<PokerPlayer>();
-				if (player) _hallucination = player.GetComponentInChildren<PokerHallucinationController>(true);
-			}
 			if (!_data) return;
 
 			_data.OnHallucinationChanged += HandleHallucinationChanged;
