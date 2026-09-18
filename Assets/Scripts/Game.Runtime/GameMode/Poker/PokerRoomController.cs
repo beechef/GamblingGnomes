@@ -68,6 +68,17 @@ namespace Game.Runtime.GameMode.Poker
 
 			Instance = this;
 
+			// A room entry that lost its object switches nothing, which reads as a room that never changes.
+			foreach (var room in _rooms)
+			{
+				if (room == null) continue;
+
+				foreach (var member in room.Objects)
+				{
+					if (!member) Debug.LogWarning($"{nameof(PokerRoomController)}: room {room.Variant} lists a missing object; it will not be switched.", this);
+				}
+			}
+
 			Apply(PokerRoomVariant.Default);
 
 			OnInstanceChanged?.Invoke();
@@ -123,15 +134,25 @@ namespace Game.Runtime.GameMode.Poker
 			// pointing at a room this table does not have should do nothing, not empty the world.
 			if (!Has(variant)) return;
 
+			// Everything off first, then the chosen room on, so a piece listed in two rooms is left on rather than
+			// switched off by whichever room happens to come later in the list.
 			foreach (var room in _rooms)
 			{
-				if (room == null) continue;
-
-				var on = room.Variant == variant;
+				if (room == null || room.Variant == variant) continue;
 
 				foreach (var member in room.Objects)
 				{
-					if (member) member.SetActive(on);
+					if (member) member.SetActive(false);
+				}
+			}
+
+			foreach (var room in _rooms)
+			{
+				if (room == null || room.Variant != variant) continue;
+
+				foreach (var member in room.Objects)
+				{
+					if (member) member.SetActive(true);
 				}
 			}
 

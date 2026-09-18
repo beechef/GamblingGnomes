@@ -141,6 +141,8 @@ namespace Game.Runtime.Player
 		private bool _lookInputDisabled;
 		private Transform _lookTarget;
 		private float _lastManualLookTime = float.NegativeInfinity;
+		private int _manualLookHolds;
+		private bool _headLookSuspended;
 
 		public bool MovementEnabled => _movementEnabled;
 
@@ -239,6 +241,25 @@ namespace Game.Runtime.Player
 		}
 
 		public bool HasLookTarget => _lookTarget;
+
+		// Someone is holding the view by hand — the hold-to-look button at a table. Counted so two holders
+		// cannot release each other, and no aim steers while any is held: the input between mouse moves
+		// is silent, and reading that silence as the player letting go snatched the view back mid-look.
+		// The release delay starts counting only when the last hold lets go.
+		public void BeginManualLook() => _manualLookHolds++;
+
+		// The view goes on turning, but the head stops following it: the look is no longer written onto the
+		// bone, so whatever the clip is doing to the head is what shows. Set on every machine, since every
+		// machine writes the replicated look onto its copy of this head.
+		public void SetHeadLookSuspended(bool suspended) => _headLookSuspended = suspended;
+
+		public void EndManualLook()
+		{
+			if (_manualLookHolds == 0) return;
+
+			_manualLookHolds--;
+			_lastManualLookTime = Time.time;
+		}
 
 		// An aim is allowed more than a hand, because reading a face across the table is past what anybody
 		// turns in a chair. The wider pair is only in force while something is actually aiming, and never
@@ -546,6 +567,7 @@ namespace Game.Runtime.Player
 
 			// The player turning the view themselves wins while they are doing it, and for a moment after,
 			// so a stick being let go to centre is not read as them stopping.
+			if (_manualLookHolds > 0) return;
 			if (Time.time - _lastManualLookTime < _manualLookReleaseDelay) return;
 
 			// The eye is the camera. It stands still and only turns, so where it is is simply where it is —
@@ -674,7 +696,12 @@ namespace Game.Runtime.Player
 		//
 		// Yaw first, then pitch: pitching inside the turned frame is what makes a body look up along the
 		// way it is facing rather than along the way it was placed.
-		private void ApplyLook(float yaw, float pitch) => ApplyLookTo(ActiveLookTransform, transform, yaw, pitch);
+		private void ApplyLook(float yaw, float pitch)
+		{
+			if (_headLookSuspended) return;
+
+			ApplyLookTo(ActiveLookTransform, transform, yaw, pitch);
+		}
 
 		private void ApplyLookTo(Transform lookTransform, Transform frame, float yaw, float pitch)
 		{

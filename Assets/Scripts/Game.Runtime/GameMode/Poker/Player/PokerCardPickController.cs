@@ -152,6 +152,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		private void Commit()
 		{
 			var slots = 0;
+			var spendsAll = _selected.Count >= Remaining;
 
 			foreach (var card in _selected)
 			{
@@ -168,6 +169,10 @@ namespace Game.Runtime.GameMode.Poker.Player
 			}
 
 			if (slots != 0) _data.LookAtHoleCardsRPC(slots);
+
+			// Nothing left to look at, so nothing on the table is offered any more — at once, rather than once the
+			// server's answer comes back and Remaining reads zero.
+			if (spendsAll && _handVisual) _handVisual.SetPickupable(false);
 
 			ClearSelection();
 			SetHovered(null);
@@ -213,7 +218,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		// Only while the cursor is free, and only while the round is asking. With the view being turned the
 		// pointer is not on screen and a pick would be aimed by the crosshair, which is a different control
 		// nobody asked for.
-		private bool CanPick() => _picking && _data && _data.HasLookLimit && !CursorController.IsLocked;
+		private bool CanPick() => _picking && _data && _data.HasLookLimit && Remaining > 0 && !CursorController.IsLocked;
 
 		private PokerCardVisual Raycast()
 		{

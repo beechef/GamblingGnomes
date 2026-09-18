@@ -89,7 +89,9 @@ namespace Game.Runtime.UI.Poker
 		private void Refresh()
 		{
 			var isHost = NetworkManager.Singleton && NetworkManager.Singleton.IsHost;
-			var visible = isHost && LocalData.IsSeated && Data.Phase.Value == PokerPhase.Waiting;
+			// Between two rounds of a match still in progress the idle table deals the next one itself, so the
+			// button is only offered once a match is over and everything has been put back.
+			var visible = isHost && LocalData.IsSeated && Data.Phase.Value == PokerPhase.Waiting && !GameMode.CanDealAnotherHand;
 
 			if (_panel && _panel.activeSelf != visible) _panel.SetActive(visible);
 			if (!visible) return;
