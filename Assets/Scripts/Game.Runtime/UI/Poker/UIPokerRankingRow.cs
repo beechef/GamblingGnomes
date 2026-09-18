@@ -50,6 +50,10 @@ namespace Game.Runtime.UI.Poker
 			if (_placeLabel) _placeLabel.text = Ordinal(entry.Rank);
 			if (_handLabel) _handLabel.text = entry.HandName.ToString();
 
+			// A hand nobody had to beat — everyone else folded, so it was never evaluated — has no name. The
+			// cards are still shown; only the label saying what they make is left off.
+			if (_handLabel) _handLabel.gameObject.SetActive(!entry.HandName.IsEmpty);
+
 			if (_nameLabel) _nameLabel.text = player ? player.DisplayName : $"Player {entry.ClientId}";
 
 			RebuildCards();

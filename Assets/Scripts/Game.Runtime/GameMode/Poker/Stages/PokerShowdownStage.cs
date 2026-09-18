@@ -130,15 +130,17 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			{
 				if (!player.Data.IsInHand) continue;
 
-				// Everyone folding out leaves one player who never has to show what they held — or say
-				// what it was worth, so the hand is not even evaluated on their behalf.
+				player.Data.ServerRevealHand();
+
+				// Everyone folding out leaves one player whose cards are turned over for the table but whose
+				// hand is not worth naming — nothing was beaten — so it is not even evaluated, and the board
+				// shows the cards without a hand type.
 				if (inHand <= 1)
 				{
 					_ranking.Add(new Contender(player, PokerHandResult.None));
 					continue;
 				}
 
-				player.Data.ServerRevealHand();
 				_ranking.Add(new Contender(player, Evaluate(player)));
 			}
 

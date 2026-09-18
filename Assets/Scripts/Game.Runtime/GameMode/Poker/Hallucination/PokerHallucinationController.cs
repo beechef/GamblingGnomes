@@ -31,6 +31,10 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 		[Range(0f, 1f)]
 		[SerializeField] private float _applyPoint = 0.5f;
 
+		[Tooltip("Seconds the eye stays shut after the effects switch, before it opens. The effects ease in and out as they change — a head growing, a room fading — so this has to outlast the longest of those, or the eye opens on them still moving.")]
+		[MinValue(0f)]
+		[SerializeField] private float _holdDuration = 1.5f;
+
 		[Tooltip("Where the running effects are hung. Empty hangs them on this object, which is what a player prefab wants.")]
 		[SerializeField] private Transform _effectRoot;
 
@@ -72,11 +76,18 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 		}
 #endif
 
-		// The whole blink, start to finish. The rungs land ApplyDelay into it, and the view that draws the
-		// eyelids reads these same numbers rather than carrying its own to keep in step.
-		public float TransitionDuration => Mathf.Max(0f, _transitionDuration);
+		// The whole blink, start to finish: closing, held shut, opening. The rungs land ApplyDelay into it and
+		// the eye stays shut for HoldDuration after, and the view that draws the eyelids reads these same
+		// numbers rather than carrying its own to keep in step.
+		public float TransitionDuration => BlinkDuration + HoldDuration;
 
-		public float ApplyDelay => TransitionDuration * Mathf.Clamp01(_applyPoint);
+		public float ApplyDelay => BlinkDuration * Mathf.Clamp01(_applyPoint);
+
+		public float HoldDuration => BlinkDuration > 0f ? Mathf.Max(0f, _holdDuration) : 0f;
+
+		public float OpenDuration => BlinkDuration - ApplyDelay;
+
+		private float BlinkDuration => Mathf.Max(0f, _transitionDuration);
 
 		// The ladder itself, for anything drawing where its rungs sit. Read as authored, so every screen shows the
 		// same marks whether or not it is the one running the effects.
@@ -163,6 +174,15 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 				await AwaitableUtility.WaitUnscaledAsync(ApplyDelay, ct);
 
 				ApplyRungs();
+
+				// Held shut while the effects ease into place. A change landing in the hold is still behind a
+				// closed eye, so it is applied before the eye opens rather than left to a blink of its own.
+				if (HoldDuration > 0f)
+				{
+					await AwaitableUtility.WaitUnscaledAsync(HoldDuration, ct);
+
+					ApplyRungs();
+				}
 			}
 			finally
 			{

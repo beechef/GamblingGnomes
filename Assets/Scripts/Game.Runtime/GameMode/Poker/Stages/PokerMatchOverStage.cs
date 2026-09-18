@@ -1,3 +1,6 @@
+using System;
+using System.Threading;
+using Game.Runtime.Utility;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -18,7 +21,6 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		{
 			Announcing,
 			Closing,
-			Shut,
 			Done
 		}
 
@@ -31,7 +33,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		[MinValue(0f)]
 		[SerializeField] private float _blinkCloseDuration = 0.4f;
 
-		[Tooltip("Seconds the eye stays shut after the reset is written. Long enough for the reset to reach every client and for the hallucination blink it sets off to finish behind it.")]
+		[Tooltip("Seconds the eye stays shut after the reset is written and the idle stage has opened. Long enough for the reset to reach every client, for the hallucination blink it sets off to close and hold (PokerHallucinationController close + hold), and for the idle shot to turn the view ahead — all behind the black.")]
 		[MinValue(0f)]
 		[SerializeField] private float _blinkHoldDuration = 0.8f;
 
@@ -76,24 +78,36 @@ namespace Game.Runtime.GameMode.Poker.Stages
 					_timer = _blinkCloseDuration;
 					break;
 
+				// The table is put back and the idle stage opens while every screen is still shut, so whatever the
+				// reset sets moving — the idle shot turning the view ahead, a pose settling, an effect easing out —
+				// does it behind the black. The eye opens a hold later, from a wait that outlives this stage.
 				case Step.Closing:
 					ResetTable();
-					_step = Step.Shut;
-					_timer = _blinkHoldDuration;
-					break;
-
-				case Step.Shut:
 					_step = Step.Done;
-					Data.MatchResetting.Value = false;
+					_ = OpenAfterHold(Data, GameMode.destroyCancellationToken);
 					FinishStage(_idleStage);
 					break;
 			}
 		}
 
-		// Cut short by anything, the screens must not stay shut.
+		// Cut short before the reset, the screens must not stay shut. After it, the hold below opens them.
 		protected override void OnEndStage()
 		{
-			Data.MatchResetting.Value = false;
+			if (_step != Step.Done) Data.MatchResetting.Value = false;
+		}
+
+		private async Awaitable OpenAfterHold(PokerGameData data, CancellationToken ct)
+		{
+			try
+			{
+				await AwaitableUtility.WaitUnscaledAsync(_blinkHoldDuration, ct);
+			}
+			catch (OperationCanceledException)
+			{
+				return;
+			}
+
+			if (data) data.MatchResetting.Value = false;
 		}
 
 		private void ResetTable()
