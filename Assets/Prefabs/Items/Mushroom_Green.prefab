@@ -76,6 +76,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 3380898938716653663, guid: b525af282e2f8f64ca9e0b8f3bd4eccb, type: 3}
       insertIndex: -1
       addedObject: {fileID: 6362821900474735076}
+    - targetCorrespondingSourceObject: {fileID: 3380898938716653663, guid: b525af282e2f8f64ca9e0b8f3bd4eccb, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 195736312428889342}
   m_SourcePrefab: {fileID: 100100000, guid: b525af282e2f8f64ca9e0b8f3bd4eccb, type: 3}
 --- !u!1 &3248707066665009280 stripped
 GameObject:
@@ -114,6 +117,21 @@ MonoBehaviour:
   _animator: {fileID: 8303943056641516811}
   _variant: 1
   _parameter: IsTransformed
+--- !u!114 &195736312428889342
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3248707066665009280}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e101452de2b151ee2add3a98e59bc6ee, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Props.PropAnimatorRandomIndex
+  _animator: {fileID: 8303943056641516811}
+  _parameter: DanceIndex
+  _count: 4
 --- !u!4 &6904365626142943993 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 6642773740298428966, guid: b525af282e2f8f64ca9e0b8f3bd4eccb, type: 3}

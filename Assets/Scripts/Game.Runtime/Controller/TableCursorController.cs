@@ -1,3 +1,4 @@
+using Game.Runtime.Player;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -25,6 +26,10 @@ namespace Game.Runtime.Controller
 		[Tooltip("Held to turn the view on a mouse. A pad ignores it: the stick turns the view whatever this is doing.")]
 		[SerializeField] private InputActionReference _holdLookAction;
 
+		[Header("References")]
+		[Tooltip("Told while the hold is down, so an aim holding the view waits for the player to let go. Empty resolves from the parents.")]
+		[SerializeField] private PlayerController _player;
+
 		private bool _bound;
 		private bool _unlockHeld;
 		private bool _lookHeld;
@@ -50,6 +55,8 @@ namespace Game.Runtime.Controller
 			if (_bound) return;
 
 			_bound = true;
+
+			if (!_player) _player = GetComponentInParent<PlayerController>();
 
 			if (_holdLookAction && _holdLookAction.action != null)
 			{
@@ -77,7 +84,7 @@ namespace Game.Runtime.Controller
 
 			// Given back in the reverse order they were taken: leaving with the button still down would
 			// strand an unlock nobody can release, and the cursor would never lock again.
-			_lookHeld = false;
+			SetLookHeld(false);
 			ReleaseUnlock();
 
 			CursorController.ReleasePointer();
@@ -85,14 +92,26 @@ namespace Game.Runtime.Controller
 
 		private void HandleHoldStarted(InputAction.CallbackContext context)
 		{
-			_lookHeld = true;
+			SetLookHeld(true);
 			ReleaseUnlock();
 		}
 
 		private void HandleHoldCanceled(InputAction.CallbackContext context)
 		{
-			_lookHeld = false;
+			SetLookHeld(false);
 			AcquireUnlock();
+		}
+
+		private void SetLookHeld(bool held)
+		{
+			if (_lookHeld == held) return;
+
+			_lookHeld = held;
+
+			if (!_player) return;
+
+			if (held) _player.BeginManualLook();
+			else _player.EndManualLook();
 		}
 
 		private void AcquireUnlock()

@@ -14,7 +14,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 	public class PokerDeathVisual : NetworkBehaviour
 	{
 		[Header("Head")]
-		[Tooltip("Seconds after going under before the head is gone — the frame the death animation's shaking ends. Counted from the change that starts the pose.")]
+		[Tooltip("Seconds after the death pose starts before the head is gone — the frame the death animation's shaking ends. The pose's own delay is added on top.")]
 		[Min(0f)]
 		[SerializeField] private float _headVanishDelay = 2.5f;
 
@@ -32,6 +32,9 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		[SerializeField] private PlayerRigController _rig;
 		[SerializeField] private PlayerVisual _visual;
 
+		[Tooltip("The pose this waits on: the head goes Head Vanish Delay after the pose starts, and the pose starts its own beat after going under. Empty resolves from this object.")]
+		[SerializeField] private PokerDeathPoseController _pose;
+
 		private bool _hidden;
 		private Tween _pending;
 
@@ -40,6 +43,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			if (!_data) _data = GetComponentInParent<PokerPlayerData>();
 			if (!_rig) _rig = GetComponentInParent<PlayerRigController>();
 			if (!_visual) _visual = GetComponentInParent<PlayerVisual>();
+			if (!_pose) _pose = GetComponent<PokerDeathPoseController>();
 			if (!_data) return;
 
 			_data.OnHallucinationChanged += HandleHallucinationChanged;
@@ -63,7 +67,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			if (wasAlive && !isAlive)
 			{
 				_pending?.Kill();
-				_pending = DOVirtual.DelayedCall(_headVanishDelay, () => HideHead(true)).SetLink(gameObject);
+				_pending = DOVirtual.DelayedCall((_pose ? _pose.PoseDelay : 0f) + _headVanishDelay, () => HideHead(true)).SetLink(gameObject);
 			}
 			else if (!wasAlive && isAlive)
 			{

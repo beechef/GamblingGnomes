@@ -79,9 +79,10 @@ namespace Game.Runtime.GameMode.Poker
 			{
 				if (!player || !player.Data) continue;
 				if (winner && player == winner) continue;
-				if (!player.Data.IsSeated) continue;
-
-				var folded = player.Data.Status.Value == PokerPlayerStatus.Folded;
+				// Only a player dealt into this hand owes anything: still in it or folded out of it. A chair taken
+				// after the deal is Waiting, and one who went under is Dead — neither played the hand being settled.
+				var folded = player.Data.IsFolded;
+				if (!player.Data.IsInHand && !folded) continue;
 
 				for (var i = 0; i < data.PotItems.Count; i++)
 				{
