@@ -50,10 +50,6 @@ namespace Game.Runtime.UI.Poker
 			if (_placeLabel) _placeLabel.text = Ordinal(entry.Rank);
 			if (_handLabel) _handLabel.text = entry.HandName.ToString();
 
-			// A hand nobody had to beat — everyone else folded, so it was never evaluated — has no name. The
-			// cards are still shown; only the label saying what they make is left off.
-			if (_handLabel) _handLabel.gameObject.SetActive(!entry.HandName.IsEmpty);
-
 			if (_nameLabel) _nameLabel.text = player ? player.DisplayName : $"Player {entry.ClientId}";
 
 			RebuildCards();
@@ -117,8 +113,8 @@ namespace Game.Runtime.UI.Poker
 				var visible = i < _snapshot.Count;
 				_cards[i].gameObject.SetActive(visible);
 
-				// A hand that never had to show — a win by folds — keeps its back on the board too;
-				// drawing it face up here would undo the reveal rule the server just applied.
+				// Face up only as far as the server revealed it; drawing a hidden hand face up here would undo
+				// the reveal rule it applied.
 				if (visible) _cards[i].SetCard(_snapshot[i], _snapshotRevealed);
 			}
 		}

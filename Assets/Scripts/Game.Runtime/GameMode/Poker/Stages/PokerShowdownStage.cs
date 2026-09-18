@@ -124,23 +124,13 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			_ranking.Clear();
 			_contenders.Clear();
 
-			var inHand = PokerTableUtility.CountInHand(GameMode.SeatedPlayers);
-
+			// Every hand still in is turned over and named, the last one standing after everyone else folded
+			// included: the board shows what they held and what it made, even with nothing left to beat.
 			foreach (var player in GameMode.SeatedPlayers)
 			{
 				if (!player.Data.IsInHand) continue;
 
 				player.Data.ServerRevealHand();
-
-				// Everyone folding out leaves one player whose cards are turned over for the table but whose
-				// hand is not worth naming — nothing was beaten — so it is not even evaluated, and the board
-				// shows the cards without a hand type.
-				if (inHand <= 1)
-				{
-					_ranking.Add(new Contender(player, PokerHandResult.None));
-					continue;
-				}
-
 				_ranking.Add(new Contender(player, Evaluate(player)));
 			}
 
