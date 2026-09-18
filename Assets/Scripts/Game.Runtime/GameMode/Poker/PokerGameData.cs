@@ -49,6 +49,15 @@ namespace Game.Runtime.GameMode.Poker
 		[HideInInspector] public NetworkVariable<ulong> LastWinnerClientId = new(NoTurn,
 			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
 
+		// Who outlasted the match, announced while the phase is MatchOver. NoTurn when nobody did.
+		[HideInInspector] public NetworkVariable<ulong> SurvivorClientId = new(NoTurn,
+			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
+
+		// The table-wide blink that hides the match being put back. On while every screen should be shut;
+		// the server resets the table only after raising it, so the reset lands behind a closed eye.
+		[HideInInspector] public NetworkVariable<bool> MatchResetting = new(false,
+			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
+
 		// Change-only on purpose, like the gesture events: a late joiner receives the last announcement as
 		// spawned state, and an action from half a hand ago is not worth flashing at them.
 		[HideInInspector] public NetworkVariable<PokerActionNotice> ActionNotice = new(default,

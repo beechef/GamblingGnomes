@@ -24,6 +24,9 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 		// killed with the object carrying it and the world snaps back.
 		protected virtual float LingerSeconds => 0f;
 
+		// Read by whatever runs this inside itself (a group), which has to outlive it by the same amount.
+		public float Linger => LingerSeconds;
+
 		public void Begin(PokerHallucinationEffect config, PokerPlayer viewer)
 		{
 			if (_running) return;

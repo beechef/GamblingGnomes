@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Game.Runtime.Player
 {
-	// One replicated gesture at a time: the fold thrown, the table slammed, the glasses put on. The event
+	// One replicated gesture at a time: the fold thrown, the table slammed, a cap staked. The event
 	// itself rides a sequence number so the same gesture twice in a row still plays twice.
 	public struct PlayerActionAnimationEvent : INetworkSerializable, IEquatable<PlayerActionAnimationEvent>
 	{

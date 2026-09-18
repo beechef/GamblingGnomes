@@ -70,6 +70,11 @@ namespace Game.Runtime.Player
 		// Which slots the current model fills, so visibility can be asked again without resolving again.
 		private readonly HashSet<PlayerSlot> _filled = new();
 
+		// Slots switched off on top of everything else — a head gone when its owner goes under. Held here
+		// because this is the one writer of renderer.enabled; switched off anywhere else, the next rig or
+		// model change would switch it straight back on.
+		private readonly HashSet<PlayerSlot> _hidden = new();
+
 		private readonly List<Material> _resolvedMaterials = new();
 
 		// Which rig this client draws for this body: the full body, or the hands alone. Local, because it
@@ -226,6 +231,12 @@ namespace Game.Runtime.Player
 			OnRenderAllBodyChanged?.Invoke(_renderAllBody);
 		}
 
+		public void SetSlotHidden(PlayerSlot slot, bool hidden)
+		{
+			var changed = hidden ? _hidden.Add(slot) : _hidden.Remove(slot);
+			if (changed) RefreshVisibility();
+		}
+
 		// A renderer is drawn when its model fills it and it is on the rig this client renders: the full
 		// body while RenderAllBody is on, the hand-only rig otherwise. Before spawn nobody owns anything yet,
 		// so the prefab stays as authored.
@@ -236,7 +247,7 @@ namespace Game.Runtime.Player
 				if (!slot.Renderer) continue;
 
 				var onRenderedRig = !IsSpawned || IsHandOnly(slot.Slot) != _renderAllBody;
-				slot.Renderer.enabled = onRenderedRig && _filled.Contains(slot.Slot);
+				slot.Renderer.enabled = onRenderedRig && _filled.Contains(slot.Slot) && !_hidden.Contains(slot.Slot);
 			}
 		}
 
