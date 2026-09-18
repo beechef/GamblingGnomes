@@ -33,7 +33,7 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 
 		[Tooltip("Seconds the eye stays shut after the effects switch, before it opens. The effects ease in and out as they change — a head growing, a room fading — so this has to outlast the longest of those, or the eye opens on them still moving.")]
 		[MinValue(0f)]
-		[SerializeField] private float _holdDuration = 1.5f;
+		[SerializeField] private float _holdDuration = 0.8f;
 
 		[Tooltip("Where the running effects are hung. Empty hangs them on this object, which is what a player prefab wants.")]
 		[SerializeField] private Transform _effectRoot;

@@ -24,7 +24,7 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 		[SerializeField] private PlayerBoneScaleMode _mode = PlayerBoneScaleMode.Multiply;
 
 		[Tooltip("Seconds it takes to grow. Snapping reads as a bug rather than as a symptom.")]
-		[SerializeField] private float _duration = 1.2f;
+		[SerializeField] private float _duration = 0.7f;
 
 		[SerializeField] private Ease _ease = Ease.OutBack;
 

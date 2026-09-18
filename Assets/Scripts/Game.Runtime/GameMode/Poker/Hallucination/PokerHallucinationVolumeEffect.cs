@@ -19,7 +19,7 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 		[SerializeField] private float _weight = 0.6f;
 
 		[Tooltip("Seconds it takes to arrive. A hallucination that snaps on reads as a bug rather than as a symptom.")]
-		[SerializeField] private float _fadeDuration = 1.5f;
+		[SerializeField] private float _fadeDuration = 0.7f;
 
 		[Tooltip("Where this rung sits against the others. Higher rungs should sit above lower ones.")]
 		[SerializeField] private int _priority = 10;
