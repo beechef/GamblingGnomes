@@ -153,7 +153,7 @@ namespace Game.Runtime.Player
 				var mesh = renderer.sharedMesh;
 				if (!mesh) continue;
 
-				var index = mesh.GetBlendShapeIndex(shape);
+				var index = FindShapeIndex(mesh, shape);
 				if (index < 0) continue;
 
 				// The authored weight, read at the one moment it is still there to read: after this the
@@ -165,6 +165,31 @@ namespace Game.Runtime.Player
 					Base = renderer.GetBlendShapeWeight(index)
 				});
 			}
+		}
+
+		// The FBX importer names a shape "<blendShape node>.<channel>", and the node name is whatever Maya
+		// numbered it on that export (blendShape → blendShape1), so a re-export renames every shape without
+		// the art changing. The channel is what the artist actually named; matched on that when the full
+		// name misses.
+		private static int FindShapeIndex(Mesh mesh, string shape)
+		{
+			var index = mesh.GetBlendShapeIndex(shape);
+			if (index >= 0) return index;
+
+			var channel = ChannelOf(shape);
+
+			for (var i = 0; i < mesh.blendShapeCount; i++)
+			{
+				if (ChannelOf(mesh.GetBlendShapeName(i)) == channel) return i;
+			}
+
+			return -1;
+		}
+
+		private static string ChannelOf(string shape)
+		{
+			var dot = shape.LastIndexOf('.');
+			return dot < 0 ? shape : shape.Substring(dot + 1);
 		}
 
 		private static float Sum(ShapeStack stack)

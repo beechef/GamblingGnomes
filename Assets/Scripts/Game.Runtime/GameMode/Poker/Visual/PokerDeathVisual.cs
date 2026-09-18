@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using DG.Tweening;
 using Game.Runtime.GameMode.Poker.Player;
 using Game.Runtime.Player;
@@ -6,18 +7,19 @@ using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker.Visual
 {
-	// The head goes when the death animation's shaking ends, in a puff. Collapsed at its bone through
-	// PlayerBoneScaleController — the same way a lost finger goes — so the hat, the glasses and anything
-	// else hung on the head go with it, and it comes back by dropping one modifier when the rate does.
-	//
-	// The full body rig only: that is what the rest of the table sees, and the owner's own view hangs off
-	// the hand-only rig's head, which a zero scale would take with it.
+	// The head goes when the death animation's shaking ends, in a puff: its mesh is switched off through
+	// PlayerVisual, the one writer of what a body draws, and switched back on when the rate comes down.
+	// Only the mesh — the bones stay as they are, so the owner's camera and everything else hung on the
+	// head keep their place.
 	public class PokerDeathVisual : NetworkBehaviour
 	{
 		[Header("Head")]
 		[Tooltip("Seconds after going under before the head is gone — the frame the death animation's shaking ends. Counted from the change that starts the pose.")]
 		[Min(0f)]
 		[SerializeField] private float _headVanishDelay = 2.5f;
+
+		[Tooltip("Meshes switched off when the head goes — the head and the hat on it.")]
+		[SerializeField] private List<PlayerSlot> _hiddenSlots = new() { PlayerSlot.Head, PlayerSlot.Hat };
 
 		[Tooltip("Spawned where the head was as it goes. Empty until the art lands.")]
 		[SerializeField] private GameObject _vanishEffect;
@@ -28,22 +30,22 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		[Header("References")]
 		[SerializeField] private PokerPlayerData _data;
 		[SerializeField] private PlayerRigController _rig;
-		[SerializeField] private PlayerBoneScaleController _boneScale;
+		[SerializeField] private PlayerVisual _visual;
 
-		private PlayerBoneScaleModifier _collapsed;
+		private bool _hidden;
 		private Tween _pending;
 
 		public override void OnNetworkSpawn()
 		{
 			if (!_data) _data = GetComponentInParent<PokerPlayerData>();
 			if (!_rig) _rig = GetComponentInParent<PlayerRigController>();
-			if (!_boneScale && _rig) _boneScale = _rig.GetComponentInChildren<PlayerBoneScaleController>(true);
+			if (!_visual) _visual = GetComponentInParent<PlayerVisual>();
 			if (!_data) return;
 
 			_data.OnHallucinationChanged += HandleHallucinationChanged;
 
 			// Late join: somebody already under is already headless, with no death to replay.
-			if (!_data.IsAlive) Collapse(false);
+			if (!_data.IsAlive) HideHead(false);
 		}
 
 		public override void OnNetworkDespawn()
@@ -61,7 +63,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			if (wasAlive && !isAlive)
 			{
 				_pending?.Kill();
-				_pending = DOVirtual.DelayedCall(_headVanishDelay, () => Collapse(true)).SetLink(gameObject);
+				_pending = DOVirtual.DelayedCall(_headVanishDelay, () => HideHead(true)).SetLink(gameObject);
 			}
 			else if (!wasAlive && isAlive)
 			{
@@ -69,21 +71,22 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			}
 		}
 
-		private void Collapse(bool withEffect)
+		private void HideHead(bool withEffect)
 		{
 			_pending = null;
-			if (_collapsed != null || !_boneScale || !_rig || !_rig.FullBodyRig) return;
+			if (_hidden || !_visual) return;
 
-			var head = _rig.FullBodyRig.Get(PlayerBone.Head);
-			if (!head) return;
+			_hidden = true;
 
-			if (withEffect && _vanishEffect)
+			var head = _rig && _rig.FullBodyRig ? _rig.FullBodyRig.Get(PlayerBone.Head) : null;
+
+			if (withEffect && _vanishEffect && head)
 			{
 				var effect = Instantiate(_vanishEffect, head.position, Quaternion.identity);
 				Destroy(effect, _vanishEffectLifetime);
 			}
 
-			_collapsed = _boneScale.Add(head, Vector3.zero);
+			foreach (var slot in _hiddenSlots) _visual.SetSlotHidden(slot, true);
 		}
 
 		private void Restore()
@@ -91,8 +94,13 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			_pending?.Kill();
 			_pending = null;
 
-			_collapsed?.Remove();
-			_collapsed = null;
+			if (!_hidden) return;
+
+			_hidden = false;
+
+			if (!_visual) return;
+
+			foreach (var slot in _hiddenSlots) _visual.SetSlotHidden(slot, false);
 		}
 	}
 }

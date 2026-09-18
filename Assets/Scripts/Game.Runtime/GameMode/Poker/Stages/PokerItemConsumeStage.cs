@@ -34,6 +34,9 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		[Required]
 		[SerializeField] private PokerStage _nextStage;
 
+		[Tooltip("Where the table goes when the eating leaves fewer players in the running than a hand needs. Empty carries on to the next stage as before.")]
+		[SerializeField] private PokerStage _matchOverStage;
+
 		private float _timer;
 		private int _seatIndex;
 		private bool _waitingToHandOver;
@@ -115,7 +118,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		private void FinishEating()
 		{
 			PokerTableUtility.ResetPot(Data);
-			FinishStage(_nextStage);
+			FinishStage(_matchOverStage && !GameMode.CanDealAnotherHand ? _matchOverStage : _nextStage);
 		}
 
 		// Seat order, so the eating goes round the table the way everything else does rather than in

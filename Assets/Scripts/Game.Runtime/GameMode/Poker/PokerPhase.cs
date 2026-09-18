@@ -22,6 +22,9 @@ namespace Game.Runtime.GameMode.Poker
 		Eating = 11,
 
 		Showdown = 6,
-		Finished = 7
+		Finished = 7,
+
+		// One player is left in the running: the table announces them, blinks, and puts everything back.
+		MatchOver = 12
 	}
 }

@@ -28,6 +28,9 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		[Tooltip("Where the table goes once the match is over. Empty simply follows the sequence, which wraps to the idle stage when showdown is last.")]
 		[SerializeField] private PokerStage _idleStage;
 
+		[Tooltip("Where the table goes when the match is over, to announce who is left and put everything back. Empty ends the match here and goes straight to the idle stage.")]
+		[SerializeField] private PokerStage _matchOverStage;
+
 		private readonly List<CardData> _evaluationBuffer = new();
 		private readonly List<Contender> _ranking = new();
 		private readonly List<(PokerPlayer Player, int RankGroup)> _contenders = new();
@@ -103,6 +106,12 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			{
 				GameMode.EndHand();
 				FinishStage(_nextHandStage);
+				return;
+			}
+
+			if (_matchOverStage)
+			{
+				FinishStage(_matchOverStage);
 				return;
 			}
 

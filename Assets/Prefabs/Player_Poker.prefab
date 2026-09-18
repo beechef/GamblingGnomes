@@ -63,11 +63,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Visual.PokerDeathVisual
   ShowTopMostFoldoutHeaderGroup: 1
   _headVanishDelay: 1.8
+  _hiddenSlots: 0100000003000000
   _vanishEffect: {fileID: 0}
   _vanishEffectLifetime: 3
   _data: {fileID: 6935137486891752095}
   _rig: {fileID: 382404797062674536}
-  _boneScale: {fileID: 338084876826924209}
+  _visual: {fileID: 2386824806186768469}
 --- !u!1 &717192683199291505
 GameObject:
   m_ObjectHideFlags: 0
@@ -819,8 +820,6 @@ MonoBehaviour:
   _allowManualLook: 0
   _aimDelay: 0
   _binder: {fileID: 865620800125653941}
-  _showBodyDelay: 0.5
-  _hideBodyDelay: 0.5
 --- !u!114 &865620800125653941
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -963,7 +962,7 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   _player: {fileID: 5117715483773410859}
   _data: {fileID: 6935137486891752095}
-  _tiers: {fileID: 11400000, guid: 7450659d0fbc93549a12c473e2a784e5, type: 2}
+  _tiers: {fileID: 11400000, guid: 06ed31c2c8dc1494d86b2b14f75d0da3, type: 2}
   _transitionDuration: 2
   _applyPoint: 0.5
   _effectRoot: {fileID: 0}
