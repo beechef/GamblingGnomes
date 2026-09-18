@@ -32,7 +32,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		[SerializeField] private PlayerRigController _rig;
 		[SerializeField] private PlayerVisual _visual;
 
-		[Tooltip("The pose this waits on: the head goes Head Vanish Delay after the pose starts, and the pose starts its own beat after going under. Empty resolves from this object.")]
+		[Tooltip("The pose this waits on: the head goes Head Vanish Delay after the pose starts, and the pose starts once the blink going under sets off has opened, plus its own beat. Empty resolves from this object.")]
 		[SerializeField] private PokerDeathPoseController _pose;
 
 		private bool _hidden;
@@ -67,7 +67,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			if (wasAlive && !isAlive)
 			{
 				_pending?.Kill();
-				_pending = DOVirtual.DelayedCall((_pose ? _pose.PoseDelay : 0f) + _headVanishDelay, () => HideHead(true)).SetLink(gameObject);
+				_pending = DOVirtual.DelayedCall((_pose ? _pose.PoseStartDelay(previous, current) : 0f) + _headVanishDelay, () => HideHead(true)).SetLink(gameObject);
 			}
 			else if (!wasAlive && isAlive)
 			{

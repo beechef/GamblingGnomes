@@ -166,9 +166,9 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			return true;
 		}
 
-		// Who this street has a question for. Deliberately not IsInHand: the first wager runs **before**
-		// the deal, so nobody is Active yet and a hand-based count reads as "everybody has folded" — which
-		// sent the round straight to the reveal, every time, and looped there. Seated and conscious is what
+		// Who this street has a question for. Deliberately not IsInHand: a wager placed **before** the deal
+		// finds nobody Active yet, and a hand-based count reads as "everybody has folded" — which once sent
+		// the round straight to the reveal, every time, and looped there. Seated and conscious is what
 		// is actually being asked; folding is the only thing that takes somebody out of it afterwards.
 		// A body that took a free chair mid-match is neither dealt in nor scored, so it is not asked to stake
 		// either — the street would sit waiting on an answer from somebody who is only watching.
