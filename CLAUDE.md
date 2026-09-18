@@ -252,6 +252,7 @@ Two lifetimes: `Bootstrap.unity` is persistent, `Gameplay_*.unity` is loaded add
 - **When the order of a serialized list carries meaning, say so on the field** — `PokerStageSequence._stages` runs in list order.
 - Reference the objects themselves, never string ids kept in sync by hand.
 - **A shader's `[Enum(...)]` fails silently past seven pairs** (draws a bare float). Write a `MaterialPropertyDrawer` (`UIBlendModeDrawer`, `[UIBlendMode]`); the enum order is the shader's branch order — say so in both files.
+- **A member an attribute names with `nameof` must exist in a player build.** Wrapping a `[ValueDropdown(nameof(X))]` source in `#if UNITY_EDITOR` compiles in the editor and fails only the build (CS0103). Keep the method unconditional and put `#if UNITY_EDITOR` inside its body, returning an empty list otherwise. `PokerHallucinationBlendShapeEffect.ShapeNames`
 - Odin is inspector UX only: never let an attribute change runtime behaviour.
 
 ## Gameplay architecture

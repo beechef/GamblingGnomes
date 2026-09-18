@@ -1,8 +1,8 @@
+using System.Collections.Generic;
 using DG.Tweening;
 using Sirenix.OdinInspector;
 using UnityEngine;
 #if UNITY_EDITOR
-using System.Collections.Generic;
 using UnityEditor;
 #endif
 
@@ -45,11 +45,11 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 
 		protected override PokerHallucinationEffectBehaviour Attach(GameObject host) => host.AddComponent<PokerHallucinationBlendShapeBehaviour>();
 
-#if UNITY_EDITOR
 		// Every shape the character art carries, so the one name that has to match a mesh exactly is picked
 		// rather than typed. Editor only, and only while the dropdown is open.
 		private static IEnumerable<string> ShapeNames()
 		{
+#if UNITY_EDITOR
 			var names = new SortedSet<string>();
 
 			foreach (var guid in AssetDatabase.FindAssets("t:Mesh", new[] { "Assets/Art" }))
@@ -65,7 +65,9 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 			}
 
 			return names;
-		}
+#else
+			return System.Array.Empty<string>();
 #endif
+		}
 	}
 }
