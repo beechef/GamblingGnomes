@@ -4,9 +4,10 @@ using UnityEngine.Serialization;
 
 namespace Game.Runtime.GameMode.Poker.Visual
 {
-	// One thin box with a picture on each side, because a card is a physical object: `Card_Face` samples
-	// `_BaseMap` on the face that looks down the card's own -Z and `_BackMap` everywhere else, so a single
-	// renderer carries both sides and there is no second quad to z-fight or to sort against the first.
+	// One thin box with a picture on each side, because a card is a physical object: the face that looks
+	// down the card's own -Z shows the front and everywhere else shows the back, both cut out of the card
+	// atlas by the rects PokerCardMeshCache writes into the mesh, so a single renderer on a single shared
+	// material carries both sides and there is no second quad to z-fight or to sort against the first.
 	//
 	// How big it is, where it sits and what the hit box measures are all authored in the prefab — every
 	// card in the deck is the same size, so none of it is a runtime question, and a runtime that worked it
@@ -18,6 +19,9 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		[Tooltip("The card itself. A mesh rather than a sprite, because a SpriteRenderer draws one material and nothing else: an effect hanging a second pass on a card would be stored and never rendered.")]
 		[FormerlySerializedAs("_frontRenderer")]
 		[SerializeField] private MeshRenderer _renderer;
+
+		[Tooltip("The renderer's mesh filter. Its authored mesh is captured once and copied per picture pair by PokerCardMeshCache, which is how each card carries its atlas rects.")]
+		[SerializeField] private MeshFilter _meshFilter;
 
 		[SerializeField] private PokerCardDatabase _database;
 
@@ -69,12 +73,8 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		private float _lift;
 		private float _flipLift;
 
-		// One block, reused. Each card shows a different picture, so the texture is per-renderer state rather
-		// than per-material — a material each would be one more material per card in the deal.
-		private static MaterialPropertyBlock _block;
-
-		private static readonly int BaseMapId = Shader.PropertyToID("_BaseMap");
-		private static readonly int BackMapId = Shader.PropertyToID("_BackMap");
+		// The mesh as the prefab authored it, before any picture pair replaced it.
+		private Mesh _baseMesh;
 
 		public CardData Card { get; private set; }
 		public bool FaceUp { get; private set; } = true;
@@ -110,6 +110,12 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			=> Mathf.Approximately(lossy, 0f) ? world : world * local / lossy;
 
 		private Transform FlipRoot => _flipRoot ? _flipRoot : transform;
+
+		private void Awake()
+		{
+			if (!_meshFilter && _renderer) _meshFilter = _renderer.GetComponent<MeshFilter>();
+			if (_meshFilter) _baseMesh = _meshFilter.sharedMesh;
+		}
 
 		private void OnDestroy()
 		{
@@ -240,7 +246,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			Card = card;
 
 			// A hand this client may not see shows its back on both sides rather than a blank face.
-			if (_database) Draw(_renderer, faceUp ? _database.GetFace(card) : _database.CardBack, _database.CardBack);
+			if (_database) Draw(faceUp ? _database.GetFace(card) : _database.CardBack, _database.CardBack);
 
 			Flip(faceUp, animateFlip);
 		}
@@ -248,25 +254,19 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		// Both pictures onto the one renderer, and nothing else. How big the card is and what the hit box
 		// measures are the same on every card in the deck, so they are authored in the prefab where they
 		// can be seen and tuned.
-		private static void Draw(MeshRenderer renderer, Sprite front, Sprite back)
+		private void Draw(Sprite front, Sprite back)
 		{
-			if (!renderer) return;
+			if (!_renderer || !_meshFilter) return;
 
 			// Nothing to show is switched off rather than left holding the last card's face.
 			if (!front || !front.texture)
 			{
-				renderer.enabled = false;
+				_renderer.enabled = false;
 				return;
 			}
 
-			renderer.enabled = true;
-
-			_block ??= new MaterialPropertyBlock();
-
-			renderer.GetPropertyBlock(_block);
-			_block.SetTexture(BaseMapId, front.texture);
-			if (back && back.texture) _block.SetTexture(BackMapId, back.texture);
-			renderer.SetPropertyBlock(_block);
+			_renderer.enabled = true;
+			_meshFilter.sharedMesh = PokerCardMeshCache.Get(_baseMesh, front, back ? back : front);
 		}
 
 		// How far the card stands off the table: under the cursor, or chosen and waiting for the rest of the
