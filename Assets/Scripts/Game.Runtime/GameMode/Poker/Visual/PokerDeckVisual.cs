@@ -1,3 +1,4 @@
+using Game.Runtime.GameMode.Poker.Stages;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -44,20 +45,29 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		// Holds the card on the deck until its turn comes round. The turn is by seat, not by the order the
 		// cards arrived in: a host is told about one player's whole hand before the next player's, and a
 		// client may be told in any order at all.
-		public void Deal(PokerCardVisual card, int seatIndex, int slot)
+		//
+		// A card dealt straight into the hand goes out in reverse, rightmost first, the way a pick-up hands
+		// cards over: the fan draws each card over the one on its left, so the right card has to be in place
+		// before the left one arrives beneath it, or the later card flies in through the one already held.
+		public void Deal(PokerCardVisual card, int seatIndex, int slot, bool intoHand = false)
 		{
 			if (!card || !_controller) return;
 
-			card.DealFrom(_top ? _top : transform, _controller.DelayFor(TurnFor(seatIndex, slot)), _controller);
+			var dealt = DealtHoleCards(-1);
+			var round = intoHand && dealt > slot ? dealt - 1 - slot : slot;
+
+			card.DealFrom(_top ? _top : transform, _controller.DelayFor(TurnFor(seatIndex, round)), _controller);
 		}
 
 		// The board goes out once every hand is dealt, as one more round of the deal with a card per place on
 		// the board — the same sum PokerDealPacing.BoardDelayFor gives the deal stage.
 		// The hand size comes from the deal rather than from the hands on screen: a client may be told about
 		// the board before the hands, and counting cards that have not arrived would send the board out first.
-		public void DealBoard(PokerCardVisual card, int boardIndex, int holeCardsPerPlayer)
+		public void DealBoard(PokerCardVisual card, int boardIndex)
 		{
 			if (!card || !_controller) return;
+
+			var holeCardsPerPlayer = DealtHoleCards(0);
 
 			var players = 0;
 
@@ -71,6 +81,16 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 			var turn = new PokerDealTurn(holeCardsPerPlayer, boardIndex, players);
 			card.DealFrom(_top ? _top : transform, _controller.DelayFor(turn), _controller);
+		}
+
+		// Asked of the deal running now rather than counted off the cards on screen, which arrive one by one
+		// and in a different order on every machine.
+		private int DealtHoleCards(int fallback)
+		{
+			if (!IsBound) return fallback;
+
+			var stage = GameMode.FindStage(Data.StageId.Value.ToString()) as PokerDealStage;
+			return stage ? stage.HoleCardsPerPlayer : fallback;
 		}
 
 		// Counted among the players in the match only, so an empty chair or a spectator takes no turn.

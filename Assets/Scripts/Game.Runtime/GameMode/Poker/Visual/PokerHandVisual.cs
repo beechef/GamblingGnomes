@@ -410,7 +410,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			_cards.Add(visual);
 
 			var deck = PokerDeckVisual.Instance;
-			if (animate && deck) deck.Deal(visual, _data.SeatIndex.Value, index);
+			if (animate && deck) deck.Deal(visual, _data.SeatIndex.Value, index, group == _hand);
 
 			// The flip only for a face this client is about to see. A card dealt face down turned over on
 			// the way would show its back on both sides and read as a card spinning for no reason.

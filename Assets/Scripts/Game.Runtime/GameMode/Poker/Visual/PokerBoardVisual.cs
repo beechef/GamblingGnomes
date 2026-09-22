@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using DG.Tweening;
 using Game.Runtime.GameMode.Poker.Player;
-using Game.Runtime.GameMode.Poker.Stages;
 using Sirenix.OdinInspector;
 using Unity.Netcode;
 using UnityEngine;
@@ -263,7 +262,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			_cards.Add(visual);
 
 			var deck = PokerDeckVisual.Instance;
-			if (animate && deck) deck.DealBoard(visual, index, DealtHoleCards());
+			if (animate && deck) deck.DealBoard(visual, index);
 
 			var visible = Data.IsCommunityCardVisible(index);
 			visual.SetCard(visible ? CardAt(index) : CardData.None, visible, _database);
@@ -283,14 +282,6 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 		private CardData CardAt(int index) =>
 			index >= 0 && index < Data.CommunityCards.Count ? Data.CommunityCards[index] : CardData.None;
-
-		// Asked of the deal running now, since the board goes out after the hands and the hands may not have
-		// reached this client yet.
-		private int DealtHoleCards()
-		{
-			var stage = GameMode.FindStage(Data.StageId.Value.ToString()) as PokerDealStage;
-			return stage ? stage.HoleCardsPerPlayer : 0;
-		}
 
 		private void RebuildAll()
 		{
