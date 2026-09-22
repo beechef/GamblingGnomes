@@ -1,16 +1,15 @@
 using UnityEngine;
 
-namespace Game.Runtime.GameMode.Poker.Stages
+namespace Game.Runtime.GameMode.Poker.Items
 {
-	// How the eating beat is paced, in one place. Everything the table waits on between one cap going down
-	// and the next — the mouthful, the hit, a Colorful roll being swept and held — is a number here, and
-	// nothing else in the round carries a copy of it. What a cap *costs* is not here (that is the effect
-	// assets and the tiers ladder), and neither is what the bar looks like while it plays (that is the
-	// meter prefab): this is only *when*.
+	// How eating is paced, in one place. Everything an eater waits on between one cap going down and the
+	// next — the mouthful, the hit, a Colorful roll being swept and held — is a number here, and nothing else
+	// carries a copy of it. What a cap *costs* is not here (that is the effect assets and the tiers ladder),
+	// and neither is what the bar looks like while it plays (that is the meter prefab): this is only *when*.
 	//
-	// Owned by the stage that runs the beat, so two eating stages can be paced differently. The mouthful and
-	// the impact are read off their clips. What a rung change or a death costs is not here: the blink and the
-	// death each have their own pacing asset, and the stage asks the eater's controllers for them.
+	// Read by PokerItemConsumeController, which does the eating. The mouthful and the impact are read off
+	// their clips. What a rung change or a death costs is not here: the blink and the death each have their
+	// own pacing asset, and the controller asks the eater's other controllers for them.
 	[CreateAssetMenu(fileName = "PokerConsumePacing", menuName = "Game/Poker/Consume Pacing")]
 	public class PokerConsumePacing : ScriptableObject
 	{
@@ -24,11 +23,8 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		[Tooltip("On, the next mouthful waits out the eater's blink when the cap just eaten moved them across a hallucination rung. A bite landing inside the blink is a bite nobody saw.")]
 		[field: SerializeField] public bool WaitForHallucinationTransition { get; private set; } = true;
 
-		[Tooltip("Seconds between one player finishing their plate and the next starting theirs, so two players eating do not read as one.")]
-		[field: SerializeField, Min(0f)] public float HandoverDuration { get; private set; } = 0.4f;
-
 		[Header("Impact")]
-		[Tooltip("The impact reaction a mouthful that lifts its eater onto a new rung plays. The table waits it out before the world changes.")]
+		[Tooltip("The impact reaction a mouthful that lifts its eater onto a new rung plays. The eater waits it out before the world changes.")]
 		[SerializeField] private AnimationClip _impactClip;
 
 		[Header("Colorful roll")]
