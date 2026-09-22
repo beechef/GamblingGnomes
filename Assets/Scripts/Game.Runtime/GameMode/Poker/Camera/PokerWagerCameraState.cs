@@ -42,25 +42,30 @@ namespace Game.Runtime.GameMode.Poker.Camera
 			Unbind();
 
 			_bound = data;
-			_bound.CurrentTurnClientId.OnValueChanged += HandleTurnChanged;
+			_bound.CurrentTurnClientId.OnValueChanged += HandleWatchedChanged;
+			_bound.FocusClientId.OnValueChanged += HandleWatchedChanged;
 		}
 
 		private void Unbind()
 		{
 			if (!_bound) return;
 
-			_bound.CurrentTurnClientId.OnValueChanged -= HandleTurnChanged;
+			_bound.FocusClientId.OnValueChanged -= HandleWatchedChanged;
+			_bound.CurrentTurnClientId.OnValueChanged -= HandleWatchedChanged;
 			_bound = null;
 		}
 
-		private void HandleTurnChanged(ulong previous, ulong current) => Aim();
+		private void HandleWatchedChanged(ulong previous, ulong current) => Aim();
 
 		protected override Transform ResolveTarget()
 		{
 			var mode = PokerGameMode.Instance;
 			if (!mode || !mode.Data) return null;
 
+			// With nobody on the clock (everybody answering at once) the view follows whoever the table is
+			// looking at instead, which the stage moves round the players it is waiting on.
 			var turn = mode.Data.CurrentTurnClientId.Value;
+			if (turn == PokerGameData.NoTurn) turn = mode.Data.FocusClientId.Value;
 			if (turn == PokerGameData.NoTurn) return null;
 
 			if (Data && turn == Data.OwnerClientId) return OwnSeatAnchor();

@@ -29,6 +29,10 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		[MinValue(0f)]
 		[SerializeField] private float _resultHold = 1.5f;
 
+		[Tooltip("Seconds the table looks at each player it is waiting on before turning to the next, so the room is watched making up its mind. Zero keeps the view on the first.")]
+		[MinValue(0f)]
+		[SerializeField] private float _focusDwell = 2f;
+
 		[Header("References")]
 		[Tooltip("Where the hand goes when every player asked folded, leaving the all-in player alone in it.")]
 		[SerializeField] private PokerStage _handOverStage;
@@ -38,6 +42,8 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 		private bool _asking;
 		private bool _holding;
+		private float _focusElapsed;
+		private int _focusIndex;
 
 		public PokerItemType AllInItemType => _allInItemType;
 
@@ -73,6 +79,9 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 			_asking = true;
 			GameMode.BeginStageTimer(_duration);
+
+			_focusIndex = -1;
+			FocusNext();
 		}
 
 		// Still in the hand and not the one who went all in. Asked by the bar too, so the two agree on who is
@@ -88,7 +97,34 @@ namespace Game.Runtime.GameMode.Poker.Stages
 				return;
 			}
 
-			if (_asking && GameMode.IsStageTimerExpired()) Settle();
+			if (!_asking) return;
+
+			if (GameMode.IsStageTimerExpired())
+			{
+				Settle();
+				return;
+			}
+
+			_focusElapsed += deltaTime;
+			if (_focusDwell > 0f && _focusElapsed >= _focusDwell) FocusNext();
+		}
+
+		// Round the players still being asked, in seat order. The camera follows the focus, so the stage says
+		// who the room is looking at and nothing about how it looks.
+		private void FocusNext()
+		{
+			_focusElapsed = 0f;
+
+			for (var step = 0; step < _asked.Count; step++)
+			{
+				_focusIndex = (_focusIndex + 1) % _asked.Count;
+
+				var player = _asked[_focusIndex];
+				if (!player) continue;
+
+				GameMode.ServerSetFocus(player.ClientId);
+				return;
+			}
 		}
 
 		public override bool HandleAction(ulong clientId, PokerActionType action, int amount)
@@ -130,6 +166,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		{
 			_asking = false;
 			GameMode.ClearStageTimer();
+			GameMode.ServerSetFocus(PokerGameData.NoTurn);
 
 			var database = GameMode.ItemDatabase;
 			var hasCap = database && database.TryGetEntry(_allInItemType, out _);
