@@ -8,7 +8,8 @@ namespace Game.Runtime.UI.Poker
 	// Stands the shared board up on end so it can be read, and lays it back down. Only this screen's board
 	// moves. Shown only while there is a board, so a table that deals none never offers it.
 	//
-	// Hides its content child rather than itself, or it would stop hearing the next board arrive.
+	// Sits on the button column (UI_HandHelper/Buttons) and switches the button, not itself, off: it keeps
+	// hearing the next board arrive, and the column closes up around the missing button.
 	public class UIPokerBoardStandButton : MonoBehaviour
 	{
 		[SerializeField] private GameObject _content;
