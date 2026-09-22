@@ -38,6 +38,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		private readonly List<CardData> _dealtCards = new();
 
 		public int HoleCardsPerPlayer => Mathf.Max(1, _holeCardsPerPlayer);
+		public bool DealsIntoHand => _dealIntoHand;
 		public int CommunityCardCount => Mathf.Max(0, _communityCardCount);
 
 		protected override void OnStartStage()
@@ -60,7 +61,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 				player.ActionAnimator?.ServerPlay(PlayerActionIds.Idle);
 			}
 
-			var duration = _pacing ? _pacing.DealDuration(dealtPlayers, HoleCardsPerPlayer, CommunityCardCount) : 0f;
+			var duration = _pacing ? _pacing.DealDuration(dealtPlayers, HoleCardsPerPlayer, CommunityCardCount, _dealIntoHand) : 0f;
 			if (duration <= 0f)
 			{
 				FinishStage();

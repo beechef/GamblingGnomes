@@ -53,10 +53,11 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		{
 			if (!card || !_controller) return;
 
-			var dealt = DealtHoleCards(-1);
+			var deal = RunningDeal();
+			var dealt = deal ? deal.HoleCardsPerPlayer : -1;
 			var round = intoHand && dealt > slot ? dealt - 1 - slot : slot;
 
-			card.DealFrom(_top ? _top : transform, _controller.DelayFor(TurnFor(seatIndex, round)), _controller);
+			card.DealFrom(_top ? _top : transform, _controller.DelayFor(TurnFor(seatIndex, round, intoHand)), _controller);
 		}
 
 		// The board goes out once every hand is dealt, as one more round of the deal with a card per place on
@@ -67,7 +68,8 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		{
 			if (!card || !_controller) return;
 
-			var holeCardsPerPlayer = DealtHoleCards(0);
+			var deal = RunningDeal();
+			var holeCardsPerPlayer = deal ? deal.HoleCardsPerPlayer : 0;
 
 			var players = 0;
 
@@ -79,24 +81,19 @@ namespace Game.Runtime.GameMode.Poker.Visual
 				}
 			}
 
-			var turn = new PokerDealTurn(holeCardsPerPlayer, boardIndex, players);
+			var turn = new PokerDealTurn(holeCardsPerPlayer, boardIndex, players, deal && deal.DealsIntoHand);
 			card.DealFrom(_top ? _top : transform, _controller.DelayFor(turn), _controller);
 		}
 
 		// Asked of the deal running now rather than counted off the cards on screen, which arrive one by one
 		// and in a different order on every machine.
-		private int DealtHoleCards(int fallback)
-		{
-			if (!IsBound) return fallback;
-
-			var stage = GameMode.FindStage(Data.StageId.Value.ToString()) as PokerDealStage;
-			return stage ? stage.HoleCardsPerPlayer : fallback;
-		}
+		private PokerDealStage RunningDeal() =>
+			IsBound ? GameMode.FindStage(Data.StageId.Value.ToString()) as PokerDealStage : null;
 
 		// Counted among the players in the match only, so an empty chair or a spectator takes no turn.
-		private PokerDealTurn TurnFor(int seatIndex, int slot)
+		private PokerDealTurn TurnFor(int seatIndex, int slot, bool intoHand)
 		{
-			if (!IsBound) return new PokerDealTurn(slot, 0, 1);
+			if (!IsBound) return new PokerDealTurn(slot, 0, 1, intoHand);
 
 			var dealt = 0;
 			var before = 0;
@@ -109,7 +106,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 				if (player.Data.SeatIndex.Value < seatIndex) before++;
 			}
 
-			return new PokerDealTurn(slot, before, dealt);
+			return new PokerDealTurn(slot, before, dealt, intoHand);
 		}
 	}
 }

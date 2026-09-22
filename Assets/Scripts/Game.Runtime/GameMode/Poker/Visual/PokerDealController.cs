@@ -10,12 +10,14 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		public readonly int Slot;
 		public readonly int Order;
 		public readonly int Players;
+		public readonly bool IntoHand;
 
-		public PokerDealTurn(int slot, int order, int players)
+		public PokerDealTurn(int slot, int order, int players, bool intoHand = false)
 		{
 			Slot = slot;
 			Order = order;
 			Players = Mathf.Max(1, players);
+			IntoHand = intoHand;
 		}
 	}
 

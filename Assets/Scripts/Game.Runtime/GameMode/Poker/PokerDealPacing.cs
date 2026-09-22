@@ -14,23 +14,27 @@ namespace Game.Runtime.GameMode.Poker
 		[Tooltip("Seconds a card spends in the air.")]
 		[field: SerializeField, Min(0.01f)] public float CardFlight { get; private set; } = 0.4f;
 
+		[Tooltip("Extra seconds between one round of the deal and the next when the cards go straight into the hand. A player's cards then leave far enough apart that one never flies in through the other.")]
+		[field: SerializeField, Min(0f)] public float IntoHandRoundGap { get; private set; } = 0.2f;
+
 		[Tooltip("Seconds the dealt table is left to be seen after the last card lands, before the next beat.")]
 		[field: SerializeField, Min(0f)] public float Rest { get; private set; } = 0.5f;
 
 		// One card to each player in turn before anybody gets a second.
-		public float DelayFor(int slot, int order, int players) => (slot * Mathf.Max(1, players) + order) * CardInterval;
+		public float DelayFor(int slot, int order, int players, bool intoHand = false) =>
+			(slot * Mathf.Max(1, players) + order) * CardInterval + (intoHand ? slot * IntoHandRoundGap : 0f);
 
 		// The board goes out after every hand, one card at a time, as though it were one more round of the deal.
-		public float BoardDelayFor(int boardIndex, int cardsPerPlayer, int players) =>
-			DelayFor(cardsPerPlayer, 0, players) + boardIndex * CardInterval;
+		public float BoardDelayFor(int boardIndex, int cardsPerPlayer, int players, bool intoHand = false) =>
+			DelayFor(cardsPerPlayer, 0, players, intoHand) + boardIndex * CardInterval;
 
-		public float DealDuration(int players, int cardsPerPlayer, int boardCards = 0)
+		public float DealDuration(int players, int cardsPerPlayer, int boardCards = 0, bool intoHand = false)
 		{
-			if (boardCards > 0) return BoardDelayFor(boardCards - 1, Mathf.Max(0, cardsPerPlayer), Mathf.Max(0, players)) + CardFlight + Rest;
+			if (boardCards > 0) return BoardDelayFor(boardCards - 1, Mathf.Max(0, cardsPerPlayer), Mathf.Max(0, players), intoHand) + CardFlight + Rest;
 
 			if (players <= 0 || cardsPerPlayer <= 0) return Rest;
 
-			return DelayFor(cardsPerPlayer - 1, players - 1, players) + CardFlight + Rest;
+			return DelayFor(cardsPerPlayer - 1, players - 1, players, intoHand) + CardFlight + Rest;
 		}
 	}
 }
