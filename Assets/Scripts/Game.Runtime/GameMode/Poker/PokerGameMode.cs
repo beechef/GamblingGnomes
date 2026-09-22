@@ -565,6 +565,9 @@ namespace Game.Runtime.GameMode.Poker
 				if (module) module.OnMatchEnded();
 			}
 
+			// Who took the last hand of a finished match has no claim on the first hand of the next one.
+			_data.LastWinnerClientId.Value = PokerGameData.NoTurn;
+
 			_data.Phase.Value = PokerPhase.Finished;
 		}
 
@@ -594,6 +597,92 @@ namespace Game.Runtime.GameMode.Poker
 			{
 				if (player && player.Data && player.Data.CardCount > 0) player.Data.HoleCards.Clear();
 			}
+
+			if (_data.CommunityCards.Count > 0) _data.CommunityCards.Clear();
+			_data.RevealedCommunityCards.Value = 0;
+		}
+
+		// Laid face down in one go, so a street only ever turns over what is already lying there.
+		public void ServerDealCommunityCards(IReadOnlyList<CardData> cards)
+		{
+			if (!IsServer) return;
+
+			_data.RevealedCommunityCards.Value = 0;
+			if (_data.CommunityCards.Count > 0) _data.CommunityCards.Clear();
+
+			foreach (var card in cards) _data.CommunityCards.Add(card);
+		}
+
+		public void ServerRevealCommunityCards(int count)
+		{
+			if (!IsServer || count <= 0) return;
+
+			_data.RevealedCommunityCards.Value = Mathf.Min(_data.RevealedCommunityCards.Value + count, _data.CommunityCards.Count);
+		}
+
+		public void ServerRevealAllCommunityCards()
+		{
+			if (!IsServer) return;
+
+			_data.RevealedCommunityCards.Value = _data.CommunityCards.Count;
+		}
+
+		// Who opens this hand: every street starts from them and a tie at the showdown is broken toward them.
+		// Last hand's winner if they were dealt in, else the next player dealt in after their chair, else — the
+		// first hand of a match — anybody dealt in, at random. Server-only: nothing on a client asks it.
+		public ulong HandOpenerClientId { get; private set; } = PokerGameData.NoTurn;
+
+		public void ServerChooseHandOpener()
+		{
+			if (!IsServer) return;
+
+			HandOpenerClientId = PokerGameData.NoTurn;
+
+			var winner = FindSeatedPlayer(_data.LastWinnerClientId.Value);
+			if (winner && winner.Data.IsInHand)
+			{
+				HandOpenerClientId = winner.ClientId;
+				return;
+			}
+
+			if (winner)
+			{
+				var next = PokerTableUtility.NextPlayer(_seatedPlayers, winner.Data.SeatIndex.Value, player => player.Data.IsInHand);
+				if (next) HandOpenerClientId = next.ClientId;
+				return;
+			}
+
+			var dealt = 0;
+			foreach (var player in _seatedPlayers)
+			{
+				if (player && player.Data.IsInHand) dealt++;
+			}
+
+			if (dealt == 0) return;
+
+			var pick = UnityEngine.Random.Range(0, dealt);
+			foreach (var player in _seatedPlayers)
+			{
+				if (!player || !player.Data.IsInHand) continue;
+				if (pick-- > 0) continue;
+
+				HandOpenerClientId = player.ClientId;
+				return;
+			}
+		}
+
+		// The seat a walk starts *after*, so NextPlayer lands on the opener first. NoSeat with no opener,
+		// which walks from the first chair.
+		public int SeatBeforeHandOpener()
+		{
+			var opener = FindSeatedPlayer(HandOpenerClientId);
+			if (!opener) return PokerPlayerData.NoSeat;
+
+			var seat = opener.Data.SeatIndex.Value;
+			if (seat < 0) return PokerPlayerData.NoSeat;
+
+			var seatCount = Mathf.Max(1, _data.ActiveSeatCount.Value);
+			return (seat - 1 + seatCount) % seatCount;
 		}
 
 		// Transitions are the server's alone; how they play out is the machine's business.
@@ -852,12 +941,16 @@ namespace Game.Runtime.GameMode.Poker
 
 			if (!CurrentStage || !CurrentStage.HandleAction(senderClientId, action, amount)) return;
 
-			_data.ActionNotice.Value = new PokerActionNotice
+			// A stage whose answers are sealed tells nobody who answered what.
+			if (CurrentStage.AnnouncesActions)
 			{
-				ClientId = senderClientId,
-				Action = action,
-				Sequence = _data.ActionNotice.Value.Sequence + 1
-			};
+				_data.ActionNotice.Value = new PokerActionNotice
+				{
+					ClientId = senderClientId,
+					Action = action,
+					Sequence = _data.ActionNotice.Value.Sequence + 1
+				};
+			}
 
 			foreach (var module in _modules)
 			{

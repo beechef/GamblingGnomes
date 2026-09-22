@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using DG.Tweening;
+using Game.Runtime.GameMode.Poker;
 using Game.Runtime.GameMode.Poker.Hallucination;
 using Game.Runtime.GameMode.Poker.Items;
 using Game.Runtime.GameMode.Poker.Player;
@@ -61,9 +62,6 @@ namespace Game.Runtime.UI.Poker
 
 		[Tooltip("One icon, instantiated per kind eaten under the row (UI_ConsumedItemIcon).")]
 		[SerializeField] private Image _eatenPrefab;
-
-		[Tooltip("Where each kind's icon comes from.")]
-		[SerializeField] private PokerItemDatabase _database;
 
 		[Min(0f)]
 		[SerializeField] private float _popDuration = 0.3f;
@@ -256,8 +254,14 @@ namespace Game.Runtime.UI.Poker
 			popped.DOScale(Vector3.one, _popDuration).SetEase(_popEase).SetLink(popped.gameObject);
 		}
 
-		private Sprite IconFor(PokerItemType itemType) =>
-			_database && _database.TryGetEntry(itemType, out var entry) ? entry.Icon : null;
+		// Asked of the running mode, since each mode brings its own database.
+		private static Sprite IconFor(PokerItemType itemType)
+		{
+			var mode = PokerGameMode.Instance;
+			var database = mode ? mode.ItemDatabase : null;
+
+			return database && database.TryGetEntry(itemType, out var entry) ? entry.Icon : null;
+		}
 
 		// Back and forth, then onto the number, then home. Every duration arrives with the roll, paced by the beat
 		// that started it, so the skull stops and leaves exactly when the server pays the result and moves on —

@@ -23,9 +23,6 @@ namespace Game.Runtime.UI.Poker
 		[Tooltip("Optional: an itemised line under the total — how many of each kind the pot holds. Empty draws nothing.")]
 		[SerializeField] private TextMeshProUGUI _breakdownLabel;
 
-		[Tooltip("Names and colours the breakdown by kind. Only read when the breakdown label is set.")]
-		[SerializeField] private PokerItemDatabase _itemDatabase;
-
 		private readonly Dictionary<PokerItemType, int> _typeCounts = new();
 		private readonly StringBuilder _breakdown = new();
 
@@ -65,7 +62,8 @@ namespace Game.Runtime.UI.Poker
 		// One line, database order, plain chips left unsaid: "3× Đỏ  1× Xanh" is what is on the table.
 		private string BuildBreakdown()
 		{
-			if (!_itemDatabase) return string.Empty;
+			var database = GameMode.ItemDatabase;
+			if (!database) return string.Empty;
 
 			_typeCounts.Clear();
 
@@ -83,7 +81,7 @@ namespace Game.Runtime.UI.Poker
 
 			// Walked in the database order rather than by counting up through the values: the order rows sit
 			// in is the reading order somebody authored, and a kind is named on its own row now.
-			foreach (var entry in _itemDatabase.Entries)
+			foreach (var entry in database.Entries)
 			{
 				if (entry == null) continue;
 				if (!_typeCounts.TryGetValue(entry.Type, out var count)) continue;

@@ -25,8 +25,6 @@ namespace Game.Runtime.GameMode.Poker.Visual
 	public class PokerItemPotVisual : PokerVisual
 	{
 		[Header("Cap")]
-		[SerializeField] private PokerItemDatabase _database;
-
 		[Tooltip("Stands in for a kind whose own model has not landed yet. Each kind names its prefab on the database; this is only the last resort.")]
 		[SerializeField] private GameObject _fallbackPrefab;
 
@@ -148,7 +146,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			cap.transform.DOLocalMove(resting, _dropDuration).SetEase(_dropEase);
 		}
 
-		private static bool IsStakedOnWager(PokerBetItem item) => item.Phase is PokerPhase.FirstWager or PokerPhase.SecondWager;
+		private static bool IsStakedOnWager(PokerBetItem item) => item.Phase is PokerPhase.FirstWager or PokerPhase.SecondWager or PokerPhase.AllIn;
 
 		// The staker's own carry controller, which knows which rig this client draws for them and hears that
 		// rig's animation cues.
@@ -293,7 +291,8 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		// differ only in tint are a placeholder, and the database is where the difference belongs.
 		private GameObject PrefabFor(PokerItemType itemType)
 		{
-			if (_database && _database.TryGetEntry(itemType, out var entry) && entry.WorldPrefab) return entry.WorldPrefab;
+			var database = GameMode ? GameMode.ItemDatabase : null;
+			if (database && database.TryGetEntry(itemType, out var entry) && entry.WorldPrefab) return entry.WorldPrefab;
 
 			// A kind whose model has not landed yet still has to be *there*: a pot that quietly draws
 			// nothing reads as a broken pot rather than as missing art.

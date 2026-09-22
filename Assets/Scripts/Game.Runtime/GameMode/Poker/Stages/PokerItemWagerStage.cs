@@ -6,6 +6,21 @@ using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker.Stages
 {
+	// Which kind a wager puts up: the player's pick, or one the table draws for them. A table that draws
+	// asks only "stay or go", so the bar skips the picker.
+	public enum PokerWagerKindSelection : byte
+	{
+		Chosen = 0,
+		Random = 1
+	}
+
+	// What a turn that runs out of time answers with.
+	public enum PokerWagerTimeout : byte
+	{
+		WagerRandomKind = 0,
+		Fold = 1
+	}
+
 	// One cap each, in turn. A wager here has no size — there is nothing to raise, nothing to call and
 	// nothing to be short of — so the only question the street asks is which kind, and the answer rides
 	// in the action's amount as an index into the table's mushroom database.
@@ -23,15 +38,42 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		[MinValue(1)]
 		[SerializeField] private int _itemsPerWager = 1;
 
+		[Tooltip("Whether the player picks the kind they put up or the table draws one for them.")]
+		[SerializeField] private PokerWagerKindSelection _kindSelection = PokerWagerKindSelection.Chosen;
+
 		[Tooltip("On, a player may put the cards down instead of wagering. The design gives this to the second wager only.")]
 		[SerializeField] private bool _allowFold;
 
-		[Tooltip("On, whoever took the last hand wagers first. Off, the walk starts from the first seat.")]
+		[Tooltip("On, whoever opens the hand — last hand's winner, or the next player after them — wagers first. Off, the walk starts from the first seat.")]
 		[SerializeField] private bool _winnerActsFirst = true;
+
+		[Header("Board")]
+		[Tooltip("Board cards turned over as the street opens, before anybody is asked. Zero turns none.")]
+		[MinValue(0)]
+		[SerializeField] private int _communityCardsToReveal;
+
+		[Tooltip("Seconds the table looks at the cards just turned before the first player is asked.")]
+		[MinValue(0f)]
+		[SerializeField] private float _revealHold = 1f;
+
+		[Header("All In")]
+		[Tooltip("On, a player may go all in instead of wagering: they stake the cap below, the betting closes, and everyone else answers at once in the all-in stage.")]
+		[SerializeField] private bool _allowAllIn;
+
+		[Tooltip("What going all in puts up.")]
+		[ShowIf(nameof(_allowAllIn))]
+		[SerializeField] private PokerItemType _allInItemType = PokerItemType.Colorful;
+
+		[Tooltip("Where the betting goes once somebody is all in. Must be in the sequence, since the table jumps to it.")]
+		[ShowIf(nameof(_allowAllIn))]
+		[SerializeField] private PokerStage _allInStage;
 
 		[Header("Timing")]
 		[Tooltip("Seconds a player has to choose. Zero or less runs no clock at all: no bar, no timeout, and the table waits for an answer.")]
 		[SerializeField] private float _turnDuration = -1f;
+
+		[Tooltip("What a turn that runs out answers with. Fold falls back to a wager on a street that does not allow folding, because a turn on a clock must always end.")]
+		[SerializeField] private PokerWagerTimeout _timeoutAction = PokerWagerTimeout.WagerRandomKind;
 
 		[Tooltip("Seconds the table holds after somebody wagers before the next player is asked, so the bet gesture and the cap landing in front of them are seen rather than cut off by the next turn opening. Zero passes the turn on immediately.")]
 		[MinValue(0f)]
@@ -49,13 +91,23 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		private int _resolvingFromSeat;
 		private float _resolveElapsed;
 
+		// The board just turned is being looked at; the first turn waits for it.
+		private bool _holdingReveal;
+		private float _revealElapsed;
+
+		private bool _allInCalled;
+
 		public bool AllowFold => _allowFold;
+		public bool AllowAllIn => _allowAllIn && _allInStage;
+		public bool PicksKind => _kindSelection == PokerWagerKindSelection.Chosen;
 		public int ItemsPerWager => Mathf.Max(1, _itemsPerWager);
 
 		protected override void OnStartStage()
 		{
 			_resolving = false;
 			_resolveElapsed = 0f;
+			_holdingReveal = false;
+			_allInCalled = false;
 
 			Data.Phase.Value = _phase;
 
@@ -69,30 +121,37 @@ namespace Game.Runtime.GameMode.Poker.Stages
 				return;
 			}
 
+			if (_communityCardsToReveal > 0)
+			{
+				GameMode.ServerRevealCommunityCards(_communityCardsToReveal);
+
+				if (_revealHold > 0f)
+				{
+					_holdingReveal = true;
+					_revealElapsed = 0f;
+					return;
+				}
+			}
+
 			BeginNextTurn(FirstActorFromSeat());
 		}
 
 		// NextPlayer walks forward from the seat it is given, so the seat handed back here is the one
-		// *before* whoever should wager first. With no winner yet — the first hand of a match — the walk
-		// starts from the first seat.
-		private int FirstActorFromSeat()
-		{
-			if (!_winnerActsFirst) return PokerPlayerData.NoSeat;
-
-			// The table already remembers who took the last hand; the seat is looked up from it rather than
-			// mirrored into a second value that could disagree with the first.
-			var winner = GameMode.FindSeatedPlayer(Data.LastWinnerClientId.Value);
-			if (!winner) return PokerPlayerData.NoSeat;
-
-			var winnerSeat = winner.Data.SeatIndex.Value;
-			if (winnerSeat < 0) return PokerPlayerData.NoSeat;
-
-			var seatCount = Mathf.Max(1, Data.ActiveSeatCount.Value);
-			return (winnerSeat - 1 + seatCount) % seatCount;
-		}
+		// *before* whoever should wager first.
+		private int FirstActorFromSeat() => _winnerActsFirst ? GameMode.SeatBeforeHandOpener() : PokerPlayerData.NoSeat;
 
 		protected override void OnTickStage(float deltaTime)
 		{
+			if (_holdingReveal)
+			{
+				_revealElapsed += deltaTime;
+				if (_revealElapsed < _revealHold) return;
+
+				_holdingReveal = false;
+				BeginNextTurn(FirstActorFromSeat());
+				return;
+			}
+
 			// Ahead of the turn clock, and not behind its guard: the hold runs while nobody holds a turn, and
 			// a street with no clock at all still has wagers to watch.
 			if (_resolving)
@@ -117,9 +176,12 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			_turnElapsed += deltaTime;
 			if (_turnElapsed < _turnDuration) return;
 
+			var clientId = Data.CurrentTurnClientId.Value;
+
+			if (_timeoutAction == PokerWagerTimeout.Fold && _allowFold && HandleAction(clientId, PokerActionType.Fold, 0)) return;
+
 			// A turn on a clock must always end, and there is no polite answer to "which kind" — so the
 			// table wagers for them rather than folding somebody who merely went quiet.
-			var clientId = Data.CurrentTurnClientId.Value;
 			var database = GameMode.ItemDatabase;
 			var fallback = database ? database.DrawItemType() : PokerItemDatabase.PlainChip;
 
@@ -136,19 +198,37 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			switch (action)
 			{
 				case PokerActionType.Wager:
-					if (!IsWagerable(amount)) return false;
+					var itemType = ResolveWagerKind(amount);
+					if (!IsWagerable((int)itemType)) return false;
 
 					// The pot ledger is the only record of who put up what: PokerBetItem already stamps the
 					// owner and the kind, and a second copy on the player would be one the deal's own
 					// ServerResetForHand wipes halfway through the round.
 					for (var i = 0; i < ItemsPerWager; i++)
 					{
-						PokerTableUtility.WagerItem(Data, player, (PokerItemType)amount);
+						PokerTableUtility.WagerItem(Data, player, itemType);
 					}
 
 					// The reach for the cap. PokerItemPotVisual puts the staked cap in this hand on the
 					// gesture's own frames, so the two start off the same change.
 					player.ActionAnimator?.ServerPlay(PlayerActionIds.Bet);
+					break;
+
+				case PokerActionType.AllIn:
+					if (!AllowAllIn) return false;
+
+					var database = GameMode.ItemDatabase;
+					if (!database || !database.TryGetEntry(_allInItemType, out _))
+					{
+						Debug.LogWarning($"[{StageId}] All in refused: no entry for {_allInItemType} in the table's mushroom database.");
+						return false;
+					}
+
+					// Staked outright rather than through IsWagerable: the cap is one nobody may choose to wager,
+					// and going all in is the only way it goes up.
+					PokerTableUtility.WagerItem(Data, player, _allInItemType);
+					player.ActionAnimator?.ServerPlay(PlayerActionIds.Bet);
+					_allInCalled = true;
 					break;
 
 				case PokerActionType.Fold:
@@ -166,13 +246,21 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			return true;
 		}
 
+		private PokerItemType ResolveWagerKind(int requested)
+		{
+			if (PicksKind) return (PokerItemType)requested;
+
+			var database = GameMode.ItemDatabase;
+			return database ? database.DrawItemType() : PokerItemDatabase.PlainChip;
+		}
+
 		// Who this street has a question for. Deliberately not IsInHand: a wager placed **before** the deal
 		// finds nobody Active yet, and a hand-based count reads as "everybody has folded" — which once sent
 		// the round straight to the reveal, every time, and looped there. Seated and conscious is what
 		// is actually being asked; folding is the only thing that takes somebody out of it afterwards.
 		// A body that took a free chair mid-match is neither dealt in nor scored, so it is not asked to stake
 		// either — the street would sit waiting on an answer from somebody who is only watching.
-		private static bool CanWager(PokerPlayerData data) =>
+		public static bool CanWager(PokerPlayerData data) =>
 			data && data.IsSeated && data.InMatch.Value && data.IsAlive && data.Status.Value != PokerPlayerStatus.Folded;
 
 		private int CountWagerers()
@@ -228,6 +316,14 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 		private void ResolveAdvance(int fromSeatIndex)
 		{
+			// Going all in closes the betting for everybody, so nobody else is asked on this street.
+			if (_allInCalled)
+			{
+				GameMode.ClearTurn();
+				FinishStage(_allInStage);
+				return;
+			}
+
 			if (CountWagerers() <= 1)
 			{
 				FinishStreet();

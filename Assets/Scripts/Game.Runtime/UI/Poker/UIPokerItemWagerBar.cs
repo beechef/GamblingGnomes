@@ -6,9 +6,10 @@ using UnityEngine;
 
 namespace Game.Runtime.UI.Poker
 {
-	// What the player can do on their own wager turn: bet, use an item, or fold. Betting does not put a cap
-	// up by itself — it opens the picker, because which kind is the actual decision — and the two are panels
-	// of one group, so the menu and the picker are never up at once and neither is up off the turn.
+	// What the player can do on their own wager turn: bet, fold, or go all in. Where the player picks the
+	// kind, betting does not put a cap up by itself — it opens the picker, because the kind is the actual
+	// decision — and the two are panels of one group, so the menu and the picker are never up at once and
+	// neither is up off the turn. Where the table draws the kind, the press is the whole answer.
 	//
 	// This component stays on an object that is always active and only switches the panels, or it would
 	// switch itself off with the menu and never hear the turn come round again.
@@ -26,6 +27,9 @@ namespace Game.Runtime.UI.Poker
 		[Tooltip("Shown only on the wager that allows it. What the rules forbid is hidden, not greyed.")]
 		[SerializeField] private UIButton _foldButton;
 
+		[Tooltip("Shown only on a street that allows going all in.")]
+		[SerializeField] private UIButton _allInButton;
+
 		[Header("Overlays")]
 		[Tooltip("Optional. While the hand board is open the bar steps aside, and the turn comes back to the menu when it closes.")]
 		[SerializeField] private UIPokerHandHelper _handHelper;
@@ -41,6 +45,7 @@ namespace Game.Runtime.UI.Poker
 		{
 			if (_betButton) _betButton.OnClick += HandleBet;
 			if (_foldButton) _foldButton.OnClick += HandleFold;
+			if (_allInButton) _allInButton.OnClick += HandleAllIn;
 			if (_handHelper) _handHelper.OnOpenChanged += HandleHandHelperOpenChanged;
 
 			Data.CurrentTurnClientId.OnValueChanged += HandleTurnChanged;
@@ -55,6 +60,7 @@ namespace Game.Runtime.UI.Poker
 			Data.StageId.OnValueChanged -= HandleStageChanged;
 			Data.CurrentTurnClientId.OnValueChanged -= HandleTurnChanged;
 
+			if (_allInButton) _allInButton.OnClick -= HandleAllIn;
 			if (_foldButton) _foldButton.OnClick -= HandleFold;
 			if (_betButton) _betButton.OnClick -= HandleBet;
 
@@ -91,11 +97,18 @@ namespace Game.Runtime.UI.Poker
 			if (_panels) _panels.Show(_menuPanel);
 
 			if (_foldButton && _stage != null) _foldButton.gameObject.SetActive(_stage.AllowFold);
+			if (_allInButton && _stage != null) _allInButton.gameObject.SetActive(_stage.AllowAllIn);
 		}
 
 		private void HandleBet()
 		{
 			if (_stage == null || !IsLocalTurn || IsHandHelperOpen) return;
+
+			if (!_stage.PicksKind)
+			{
+				GameMode.SubmitActionRPC(PokerActionType.Wager, 0);
+				return;
+			}
 
 			if (_panels) _panels.Show(_pickerPanel);
 			if (_picker) _picker.Open(GameMode, LocalPlayer, _stage, ShowMenu);
@@ -104,6 +117,13 @@ namespace Game.Runtime.UI.Poker
 		private void HandleFold()
 		{
 			if (GameMode) GameMode.SubmitActionRPC(PokerActionType.Fold, 0);
+		}
+
+		private void HandleAllIn()
+		{
+			if (_stage == null || !_stage.AllowAllIn || !IsLocalTurn || IsHandHelperOpen) return;
+
+			GameMode.SubmitActionRPC(PokerActionType.AllIn, 0);
 		}
 
 		private void CloseAll()

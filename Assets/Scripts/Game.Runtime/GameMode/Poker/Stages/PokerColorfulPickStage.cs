@@ -7,16 +7,30 @@ using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker.Stages
 {
+	// Who is fed when the winner lets the clock run out.
+	public enum PokerColorfulTimeoutTarget : byte
+	{
+		Self = 0,
+		RandomOther = 1
+	}
+
 	// The hand's winner names one player to eat the Colorful cap. Public and compulsory: the whole value
 	// of the moment is the table watching a choice being made, and letting the winner decline would mean
-	// declining whenever they are ahead, which is always. They may name themselves — being fed a cap is
-	// not only a punishment, and a reward for taking one is a card this leaves room for.
+	// declining whenever they are ahead, which is always. Whether they may name themselves is the table's
+	// call (_allowSelfTarget): where winning costs nothing, naming yourself is a choice nobody makes.
 	[CreateAssetMenu(fileName = "PokerStage_ColorfulPick", menuName = "Game/Poker/Stages/Colorful Pick")]
 	public class PokerColorfulPickStage : PokerStage
 	{
 		[Header("Cap")]
 		[Tooltip("Which kind the table feeds here. Picked rather than typed: it used to be a one-based index into the database, which is a number nobody could check and every reorder could break.")]
 		[SerializeField] private PokerItemType _colorfulItemType = PokerItemType.Colorful;
+
+		[Header("Choice")]
+		[Tooltip("On, the winner may name themselves. Off where winning costs nothing, since naming yourself would then be a choice that is never made.")]
+		[SerializeField] private bool _allowSelfTarget = true;
+
+		[Tooltip("Who is fed when the winner's clock runs out. Self falls back to a random player when the winner cannot be named.")]
+		[SerializeField] private PokerColorfulTimeoutTarget _timeoutTarget = PokerColorfulTimeoutTarget.Self;
 
 		[Header("Timing")]
 		[Tooltip("Seconds the winner has to choose. Zero or less waits for them.")]
@@ -64,9 +78,9 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 			var winner = GameMode.FindSeatedPlayer(Data.LastWinnerClientId.Value);
 
-			// Nobody won it — everyone folded out, or the hand never happened. There is no choice to put
-			// to anybody, so the stage is over rather than waiting on a turn nobody holds.
-			if (!winner || !CanBeFed(winner))
+			// Nobody won it, the winner is out of the running, or there is nobody left they may name. There
+			// is no choice to put to anybody, so the stage is over rather than waiting on a turn nobody holds.
+			if (!winner || !IsInTheRunning(winner) || !HasAnyTarget())
 			{
 				FinishStage(_nextStage);
 				return;
@@ -97,11 +111,43 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			_turnElapsed += deltaTime;
 			if (_turnElapsed < _turnDuration) return;
 
-			// A turn on a clock must always end, and this one has no polite answer to fall back on — so
-			// the winner who says nothing feeds it to themselves. Silence should not let them aim it.
+			// A turn on a clock must always end, and this one has no polite answer to fall back on — so the
+			// clock picks, and never aims: silence feeds the winner themselves or somebody at random.
 			var winner = GameMode.FindSeatedPlayer(Data.CurrentTurnClientId.Value);
-			if (winner) Serve(winner);
+			var target = _timeoutTarget == PokerColorfulTimeoutTarget.Self && winner && CanBeFed(winner) ? winner : RandomTarget();
+
+			if (target) Serve(target);
 			else FinishStage(_nextStage);
+		}
+
+		private bool HasAnyTarget()
+		{
+			foreach (var player in GameMode.SeatedPlayers)
+			{
+				if (CanBeFed(player)) return true;
+			}
+
+			return false;
+		}
+
+		private PokerPlayer RandomTarget()
+		{
+			var count = 0;
+			foreach (var player in GameMode.SeatedPlayers)
+			{
+				if (CanBeFed(player)) count++;
+			}
+
+			if (count == 0) return null;
+
+			var pick = Random.Range(0, count);
+			foreach (var player in GameMode.SeatedPlayers)
+			{
+				if (!CanBeFed(player)) continue;
+				if (pick-- == 0) return player;
+			}
+
+			return null;
 		}
 
 		public override bool HandleAction(ulong clientId, PokerActionType action, int amount)
@@ -120,7 +166,12 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		// In this match and still conscious, the winner included. Somebody already under has nothing left to
 		// lose and feeding them would be a move with no consequence at all. An empty purse is no protection
 		// from a mushroom, so this asks InMatch and IsAlive rather than IsPlayingThisMatch.
+		// The winner is excluded where they may not name themselves — they hold the turn, so every screen
+		// can ask the same question.
 		public bool CanBeFed(PokerPlayer player) =>
+			IsInTheRunning(player) && (_allowSelfTarget || player.ClientId != Data.LastWinnerClientId.Value);
+
+		private static bool IsInTheRunning(PokerPlayer player) =>
 			player && player.Data && player.Data.IsSeated && player.Data.InMatch.Value && player.Data.IsAlive;
 
 		private PokerPlayer FindSeatedPlayerAtSeat(int seatIndex)

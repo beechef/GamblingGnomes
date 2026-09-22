@@ -14,11 +14,9 @@ namespace Game.Runtime.GameMode.Poker.Visual
 	// The chairs are held here as serialized references rather than read from PokerSeat.All: a seat
 	// switched off before its OnNetworkSpawn never joins that registry, so a ring built from it would
 	// lose the chairs it had just hidden and could never lay them again.
-	public class PokerSeatRingVisual : MonoBehaviour
+	public class PokerSeatRingVisual : PokerVisual
 	{
 		[Header("References")]
-		[SerializeField] private PokerGameData _data;
-
 		[Tooltip("Every chair at this table, laid out from the first. Order does not matter — each chair is placed at its own SeatIndex.")]
 		[SerializeField] private List<PokerSeat> _seats = new();
 
@@ -44,16 +42,16 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			_measuredRadius = _radius > 0f ? _radius : MeasureRadius();
 		}
 
-		private void OnEnable()
+		protected override void OnBind()
 		{
-			if (_data) _data.ActiveSeatCount.OnValueChanged += HandleCountChanged;
+			Data.ActiveSeatCount.OnValueChanged += HandleCountChanged;
 
 			Place();
 		}
 
-		private void OnDisable()
+		protected override void OnUnbind()
 		{
-			if (_data) _data.ActiveSeatCount.OnValueChanged -= HandleCountChanged;
+			Data.ActiveSeatCount.OnValueChanged -= HandleCountChanged;
 		}
 
 		private void HandleCountChanged(int previous, int current) => Place();
@@ -62,9 +60,9 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		// coming to tell it so.
 		private void Place()
 		{
-			if (!_data) return;
+			if (!Data) return;
 
-			var count = Mathf.Clamp(_data.ActiveSeatCount.Value, 0, _seats.Count);
+			var count = Mathf.Clamp(Data.ActiveSeatCount.Value, 0, _seats.Count);
 			if (count <= 0) return;
 
 			// A chair the scene laid out by hand is left exactly where it stands; which chairs are

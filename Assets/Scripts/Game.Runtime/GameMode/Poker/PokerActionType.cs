@@ -12,6 +12,10 @@ namespace Game.Runtime.GameMode.Poker
 
 		// The amount carries a seat index rather than a size: naming somebody is the move, and who was
 		// named is what the table is told.
-		Target = 8
+		Target = 8,
+
+		// Stakes a Colorful cap instead of an ordinary one and closes the betting: everyone still in answers
+		// at once, in or out, and the rest of the board is turned over.
+		AllIn = 9
 	}
 }

@@ -109,6 +109,66 @@ namespace Game.Runtime.GameMode.Poker
 			ServeBuffer.Clear();
 		}
 
+		// The other settlement: every stake stays in front of whoever put it up and is theirs to eat, folded or
+		// beaten alike, and only the winners' own caps come off the table. Nothing changes hands.
+		//
+		// Cleared and put back rather than removed one by one: a cap leaving the ledger on its own is a cap
+		// being eaten, and the pot visual plays it going into its owner's mouth — the winner would be seen
+		// swallowing exactly what they were spared.
+		public static void DiscardStakesOf(PokerGameData data, IReadOnlyList<PokerPlayer> winners)
+		{
+			if (!data || winners == null || winners.Count == 0) return;
+
+			ServeBuffer.Clear();
+
+			for (var i = 0; i < data.PotItems.Count; i++)
+			{
+				var item = data.PotItems[i];
+				if (!IsOwnedByAny(winners, item.OwnerClientId)) ServeBuffer.Add((item.OwnerClientId, item.ItemType));
+			}
+
+			ResetPot(data);
+
+			foreach (var (ownerClientId, itemType) in ServeBuffer) AddPotItem(data, ownerClientId, itemType);
+
+			ServeBuffer.Clear();
+		}
+
+		private static bool IsOwnedByAny(IReadOnlyList<PokerPlayer> players, ulong clientId)
+		{
+			foreach (var player in players)
+			{
+				if (player && player.ClientId == clientId) return true;
+			}
+
+			return false;
+		}
+
+		public static bool HasStakedKind(PokerGameData data, ulong ownerClientId, PokerItemType itemType)
+		{
+			if (!data) return false;
+
+			for (var i = 0; i < data.PotItems.Count; i++)
+			{
+				var item = data.PotItems[i];
+				if (item.OwnerClientId == ownerClientId && item.ItemType == itemType) return true;
+			}
+
+			return false;
+		}
+
+		public static bool HasAnyStakedKind(PokerGameData data, PokerItemType itemType)
+		{
+			if (!data) return false;
+
+			for (var i = 0; i < data.PotItems.Count; i++)
+			{
+				if (data.PotItems[i].ItemType == itemType) return true;
+			}
+
+			return false;
+		}
+
 		// How much of the pot is standing in front of one player. What is left to eat, once the settlement
 		// has handed the caps round.
 		public static int CountPotItems(PokerGameData data, ulong ownerClientId)

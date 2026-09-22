@@ -109,7 +109,9 @@ namespace Game.Runtime.UI.Poker
 		{
 			BindTurnIdentity(null);
 
-			if (_titleLabel) _titleLabel.text = Data.Phase.Value.ToString().ToUpperInvariant();
+			if (!_titleLabel) return;
+
+			_titleLabel.text = Data.Phase.Value == PokerPhase.AllIn ? "ALL IN" : Data.Phase.Value.ToString().ToUpperInvariant();
 		}
 
 		protected override void OnTick()

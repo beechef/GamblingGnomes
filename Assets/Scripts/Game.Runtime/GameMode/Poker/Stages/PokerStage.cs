@@ -86,6 +86,10 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 		public virtual bool HandleAction(ulong clientId, PokerActionType action, int amount) => false;
 
+		// Whether an accepted action is told to the table as it happens. Off for a beat everybody answers
+		// in secret, which announces the answers itself once they are all in.
+		public virtual bool AnnouncesActions => true;
+
 		// A player left the table mid stage. The seat index comes along because the player object may
 		// already be gone by the time this runs, and a stage that was waiting on them needs to know
 		// where in the order the hole is.

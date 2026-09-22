@@ -20,8 +20,14 @@ namespace Game.Runtime.GameMode.Poker
 		// One card to each player in turn before anybody gets a second.
 		public float DelayFor(int slot, int order, int players) => (slot * Mathf.Max(1, players) + order) * CardInterval;
 
-		public float DealDuration(int players, int cardsPerPlayer)
+		// The board goes out after every hand, one card at a time, as though it were one more round of the deal.
+		public float BoardDelayFor(int boardIndex, int cardsPerPlayer, int players) =>
+			DelayFor(cardsPerPlayer, 0, players) + boardIndex * CardInterval;
+
+		public float DealDuration(int players, int cardsPerPlayer, int boardCards = 0)
 		{
+			if (boardCards > 0) return BoardDelayFor(boardCards - 1, Mathf.Max(0, cardsPerPlayer), Mathf.Max(0, players)) + CardFlight + Rest;
+
 			if (players <= 0 || cardsPerPlayer <= 0) return Rest;
 
 			return DelayFor(cardsPerPlayer - 1, players - 1, players) + CardFlight + Rest;

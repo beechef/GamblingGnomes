@@ -743,6 +743,7 @@ MonoBehaviour:
   _picker: {fileID: 6883715457306754736}
   _betButton: {fileID: 6940300453463829182}
   _foldButton: {fileID: 4634110423696912974}
+  _allInButton: {fileID: 3471559043088675755}
   _handHelper: {fileID: 0}
 --- !u!114 &322208936621078498
 MonoBehaviour:
@@ -1028,13 +1029,17 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 7663743362514728319, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: 21300000, guid: 58395fcad3da774409e4384c4aef3921, type: 3}
     - target: {fileID: 7842552576817173887, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
       propertyPath: m_text
-      value: ITEMS
+      value: '[ALL IN]'
       objectReference: {fileID: 0}
     - target: {fileID: 8775369202157300117, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
       propertyPath: m_Name
-      value: Button_Items
+      value: Button_AllIn
       objectReference: {fileID: 0}
     - target: {fileID: 8775369202157300117, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
       propertyPath: m_IsActive
@@ -1048,6 +1053,17 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 4773575014143557068}
   m_SourcePrefab: {fileID: 100100000, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
+--- !u!114 &3471559043088675755 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 342601452257255324, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
+  m_PrefabInstance: {fileID: 3813527141078527031}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5558569426975376802}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 84f47ffb0cc60f8409595baa4eeeef58, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Button.UIButton
 --- !u!1 &5558569426975376802 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 8775369202157300117, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}

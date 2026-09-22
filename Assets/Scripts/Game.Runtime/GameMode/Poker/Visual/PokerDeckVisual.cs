@@ -51,6 +51,28 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			card.DealFrom(_top ? _top : transform, _controller.DelayFor(TurnFor(seatIndex, slot)), _controller);
 		}
 
+		// The board goes out once every hand is dealt, as one more round of the deal with a card per place on
+		// the board — the same sum PokerDealPacing.BoardDelayFor gives the deal stage.
+		// The hand size comes from the deal rather than from the hands on screen: a client may be told about
+		// the board before the hands, and counting cards that have not arrived would send the board out first.
+		public void DealBoard(PokerCardVisual card, int boardIndex, int holeCardsPerPlayer)
+		{
+			if (!card || !_controller) return;
+
+			var players = 0;
+
+			if (IsBound)
+			{
+				foreach (var player in GameMode.SeatedPlayers)
+				{
+					if (player && player.Data && player.Data.InMatch.Value) players++;
+				}
+			}
+
+			var turn = new PokerDealTurn(holeCardsPerPlayer, boardIndex, players);
+			card.DealFrom(_top ? _top : transform, _controller.DelayFor(turn), _controller);
+		}
+
 		// Counted among the players in the match only, so an empty chair or a spectator takes no turn.
 		private PokerDealTurn TurnFor(int seatIndex, int slot)
 		{

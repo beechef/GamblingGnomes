@@ -1,7 +1,9 @@
 using System.Collections.Generic;
+using Game.Runtime.GameMode.Poker.Items;
 using Game.Runtime.Player;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Game.Runtime.GameMode.Poker.Stages
 {
@@ -15,6 +17,19 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		[MinValue(0)]
 		[SerializeField] private int _viewableHoleCards;
 
+		[Tooltip("On, the cards fly from the deck straight into each hand instead of landing on the table first, for a round where nobody chooses which of their cards to look at. Only meaningful with no look limit.")]
+		[FormerlySerializedAs("_pickUpWhenDealt")]
+		[SerializeField] private bool _dealIntoHand;
+
+		[Tooltip("Cards laid face down in the middle of the table for everyone to share. The streets turn them over; zero plays without a board.")]
+		[MinValue(0)]
+		[SerializeField] private int _communityCardCount;
+
+		[Header("Stake")]
+		[Tooltip("Caps every player dealt in puts up before anybody acts, each of a kind drawn at random. Zero plays without an ante.")]
+		[MinValue(0)]
+		[SerializeField] private int _anteItems;
+
 		[Header("Timing")]
 		[Tooltip("How long the deal takes to land. The deck's animation reads the same asset, so the stage waits exactly as long as the cards are in the air, plus a rest.")]
 		[Required]
@@ -23,6 +38,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		private readonly List<CardData> _dealtCards = new();
 
 		public int HoleCardsPerPlayer => Mathf.Max(1, _holeCardsPerPlayer);
+		public int CommunityCardCount => Mathf.Max(0, _communityCardCount);
 
 		protected override void OnStartStage()
 		{
@@ -31,6 +47,11 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			Data.Showdown.Clear();
 
 			var dealtPlayers = DealHoleCards();
+			DealCommunityCards();
+			PostAnte();
+
+			// After the deal, because who opens is asked among the players who were dealt in.
+			GameMode.ServerChooseHandOpener();
 
 			// A fresh hand straightens everyone back up — whoever spent last hand slumped over a fold
 			// comes off that pose here, because nothing else ever tells the gesture layer the hand ended.
@@ -39,7 +60,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 				player.ActionAnimator?.ServerPlay(PlayerActionIds.Idle);
 			}
 
-			var duration = _pacing ? _pacing.DealDuration(dealtPlayers, HoleCardsPerPlayer) : 0f;
+			var duration = _pacing ? _pacing.DealDuration(dealtPlayers, HoleCardsPerPlayer, CommunityCardCount) : 0f;
 			if (duration <= 0f)
 			{
 				FinishStage();
@@ -90,12 +111,44 @@ namespace Game.Runtime.GameMode.Poker.Stages
 				// Before the cards, so a hand arrives already knowing how much of itself its holder may see:
 				// the view redraws on the list changing, and a limit written after would arrive too late.
 				data.ServerSetViewableHoleCards(_viewableHoleCards);
+
+				// Held before they exist, for the same reason: a card arriving already in the hand is built in
+				// the fan and flies there from the deck, where one lifted afterwards lands on the table first.
+				if (_dealIntoHand) data.ServerPickUpHoleCards(HoleCardsPerPlayer);
+
 				data.ServerSetHoleCards(_dealtCards);
 				data.Status.Value = PokerPlayerStatus.Active;
 				dealt++;
 			}
 
 			return dealt;
+		}
+
+		// Off the same shuffle as the hands, after them, and always written — an empty board included — so a
+		// table without one never keeps the last hand's.
+		private void DealCommunityCards()
+		{
+			_dealtCards.Clear();
+			for (var i = 0; i < CommunityCardCount; i++) _dealtCards.Add(GameMode.Deck.Draw());
+
+			GameMode.ServerDealCommunityCards(_dealtCards);
+		}
+
+		private void PostAnte()
+		{
+			if (_anteItems <= 0) return;
+
+			var database = GameMode.ItemDatabase;
+
+			foreach (var player in GameMode.SeatedPlayers)
+			{
+				if (!player || !player.Data.IsInHand) continue;
+
+				for (var i = 0; i < _anteItems; i++)
+				{
+					PokerTableUtility.WagerItem(Data, player, database ? database.DrawItemType() : PokerItemDatabase.PlainChip);
+				}
+			}
 		}
 	}
 }

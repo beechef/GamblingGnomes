@@ -159,6 +159,9 @@ namespace Game.Runtime.Controller
 			LobbySettings = settings;
 		}
 
+		public bool TryGetSelectedGameMode(out GameModeDatabase.GameModeEntry entry) =>
+			_gameModeDatabase.TryGetEntry(LobbySettings.SelectedGameMode, out entry);
+
 		public async Awaitable StartHost(CancellationToken ct = default)
 		{
 			ct.ThrowIfCancellationRequested();
@@ -180,7 +183,7 @@ namespace Game.Runtime.Controller
 				return;
 			}
 
-			if (!_gameModeDatabase.TryGetEntry(LobbySettings.SelectedGameMode, out var entry))
+			if (!TryGetSelectedGameMode(out var entry))
 			{
 				OnConnectFailed?.Invoke($"No GameModeDatabase entry for mode {LobbySettings.SelectedGameMode}.");
 				return;

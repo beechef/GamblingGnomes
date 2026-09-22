@@ -76,6 +76,19 @@ namespace Game.Runtime.GameMode.Poker
 		public readonly NetworkList<PokerShowdownEntry> Showdown = new(null,
 			NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
+		// The board, dealt face down with the hand and turned over street by street. Everyone sees the same
+		// cards, so it is one list on the table; how many of them are face up is the only other fact.
+		public readonly NetworkList<CardData> CommunityCards = new(null,
+			NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
+
+		[HideInInspector] public NetworkVariable<int> RevealedCommunityCards = new(0,
+			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
+
+		public event Action<NetworkListEvent<CardData>> OnCommunityCardsChanged;
+		public event Action OnCommunityRevealChanged;
+
+		public bool IsCommunityCardVisible(int index) => index >= 0 && index < RevealedCommunityCards.Value;
+
 		public event Action OnShowdownChanged;
 
 		// The change travels with the event, so a view can animate the one cap that arrived rather than
@@ -120,14 +133,20 @@ namespace Game.Runtime.GameMode.Poker
 		{
 			Showdown.OnListChanged += HandleShowdownChanged;
 			PotItems.OnListChanged += HandlePotItemsChanged;
+			CommunityCards.OnListChanged += HandleCommunityCardsChanged;
+			RevealedCommunityCards.OnValueChanged += HandleCommunityRevealChanged;
 		}
 
 		public override void OnNetworkDespawn()
 		{
+			RevealedCommunityCards.OnValueChanged -= HandleCommunityRevealChanged;
+			CommunityCards.OnListChanged -= HandleCommunityCardsChanged;
 			PotItems.OnListChanged -= HandlePotItemsChanged;
 			Showdown.OnListChanged -= HandleShowdownChanged;
 		}
 
+		private void HandleCommunityCardsChanged(NetworkListEvent<CardData> changeEvent) => OnCommunityCardsChanged?.Invoke(changeEvent);
+		private void HandleCommunityRevealChanged(int previous, int current) => OnCommunityRevealChanged?.Invoke();
 		private void HandlePotItemsChanged(NetworkListEvent<PokerBetItem> changeEvent) => OnPotItemsChanged?.Invoke(changeEvent);
 		private void HandleShowdownChanged(NetworkListEvent<PokerShowdownEntry> changeEvent) => OnShowdownChanged?.Invoke();
 	}

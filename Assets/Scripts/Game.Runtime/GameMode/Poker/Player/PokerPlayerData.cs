@@ -412,6 +412,16 @@ namespace Game.Runtime.GameMode.Poker.Player
 			return LookedAtCount + count > ViewableHoleCards.Value ? "more cards than the round allows" : null;
 		}
 
+		// The whole hand held at once, for a round where every card dealt is the holder's to see and nobody
+		// chooses which. Written by the deal before the cards, so they are built in the hand rather than on the
+		// table. One write, so every screen holds the same set.
+		public void ServerPickUpHoleCards(int count)
+		{
+			if (!IsServer || count <= 0) return;
+
+			LookedAtHoleCards.Value = (1 << Mathf.Min(count, 31)) - 1;
+		}
+
 		// The mode stamps this beside the starting stats: how many of the five its round lets a player see.
 		public void ServerSetViewableHoleCards(int count)
 		{

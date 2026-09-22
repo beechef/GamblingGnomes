@@ -25,6 +25,9 @@ namespace Game.Runtime.GameMode.Poker
 		Finished = 7,
 
 		// One player is left in the running: the table announces them, blinks, and puts everything back.
-		MatchOver = 12
+		MatchOver = 12,
+
+		// Somebody went all in: everyone else still in the hand is answering at once, against one clock.
+		AllIn = 13
 	}
 }
