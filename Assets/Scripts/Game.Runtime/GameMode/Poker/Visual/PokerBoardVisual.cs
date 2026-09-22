@@ -59,11 +59,16 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		public static PokerBoardVisual Instance { get; private set; }
 		public static event Action<PokerBoardVisual> OnInstanceChanged;
 
+		// The board's cards are made and destroyed every hand, like a player's, so anything drawing on them is
+		// told rather than resolving once. Static for the same reason as PokerHandVisual.OnAnyHandChanged.
+		public static event Action OnAnyBoardChanged;
+
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
 		private static void ResetStatics()
 		{
 			Instance = null;
 			OnInstanceChanged = null;
+			OnAnyBoardChanged = null;
 		}
 
 		private readonly List<PokerCardVisual> _cards = new();
@@ -78,6 +83,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 		public bool IsStanding { get; private set; }
 		public bool HasCards => _cards.Count > 0;
+		public IReadOnlyList<PokerCardVisual> Cards => _cards;
 
 		public event Action OnStandingChanged;
 		public event Action OnCardsChanged;
@@ -122,6 +128,13 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			Data.OnCommunityCardsChanged -= HandleCommunityCardsChanged;
 
 			ClearCards();
+			NotifyCardsChanged();
+		}
+
+		private void NotifyCardsChanged()
+		{
+			OnCardsChanged?.Invoke();
+			OnAnyBoardChanged?.Invoke();
 		}
 
 		// Stood up to be read, or laid back down. Asked by the local player, and only ever of this screen.
@@ -215,7 +228,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 					break;
 			}
 
-			OnCardsChanged?.Invoke();
+			NotifyCardsChanged();
 		}
 
 		// Only the cards the count has newly passed are turned, one after another; a count going back down
@@ -287,7 +300,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			for (var i = 0; i < Data.CommunityCards.Count; i++) AddCard(false);
 
 			_shownRevealed = Mathf.Min(Data.RevealedCommunityCards.Value, _cards.Count);
-			OnCardsChanged?.Invoke();
+			NotifyCardsChanged();
 		}
 
 		// A board that is gone is laid back down, so the next one is dealt onto the table rather than into the
