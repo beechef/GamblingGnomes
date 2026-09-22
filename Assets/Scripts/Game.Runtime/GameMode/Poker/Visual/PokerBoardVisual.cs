@@ -45,9 +45,9 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		[Range(0f, 90f)]
 		[SerializeField] private float _standingTilt = 15f;
 
-		[Tooltip("How far the board rises off the table while stood up, so the bottom edge clears the wood.")]
+		[Tooltip("How far the board rises off the table while stood up. High enough to clear the cards held in the hand, below eye level so it is still looked down at.")]
 		[Min(0f)]
-		[SerializeField] private float _standingLift = 0.1f;
+		[SerializeField] private float _standingLift = 0.25f;
 
 		[Min(0f)]
 		[SerializeField] private float _standDuration = 0.35f;

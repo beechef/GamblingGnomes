@@ -11,20 +11,17 @@ namespace Game.Runtime.UI.Poker
 	// in secret, so the bar goes away the moment this player answers and says nothing about anybody else.
 	// The clock is the table's stage clock, drawn by the turn panel like any other.
 	//
-	// Stays on an object that is always active and switches only its panel.
+	// Stays on an object that is always active and switches only its panel, through the same panel group the
+	// wager bar uses, so it pops in and fades out the same way.
 	public class UIPokerAllInBar : UIPokerView
 	{
+		[SerializeField] private UIPanelStateGroup _panels;
 		[SerializeField] private GameObject _panel;
 		[SerializeField] private UIButton _allInButton;
 		[SerializeField] private UIButton _foldButton;
 
 		private PokerAllInStage _stage;
 		private bool _answered;
-
-		private void Awake()
-		{
-			if (_panel) _panel.SetActive(false);
-		}
 
 		protected override void OnBind()
 		{
@@ -50,7 +47,7 @@ namespace Game.Runtime.UI.Poker
 			if (_foldButton) _foldButton.OnClick -= HandleFold;
 			if (_allInButton) _allInButton.OnClick -= HandleAllIn;
 
-			if (_panel) _panel.SetActive(false);
+			if (_panels) _panels.HideAll();
 		}
 
 		// A new stage is a new question, so an answer given to the last one no longer hides the bar.
@@ -69,7 +66,10 @@ namespace Game.Runtime.UI.Poker
 			_stage = GameMode.FindStage(Data.StageId.Value.ToString()) as PokerAllInStage;
 
 			var show = _stage && Data.Phase.Value == PokerPhase.AllIn && !_answered && _stage.IsAsked(LocalPlayer);
-			if (_panel && _panel.activeSelf != show) _panel.SetActive(show);
+			if (!_panels || _panels.IsShowing(_panel) == show) return;
+
+			if (show) _panels.Show(_panel);
+			else _panels.HideAll();
 		}
 
 		private void HandleAllIn() => Answer(PokerActionType.AllIn);

@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 5920328255301645740}
   - component: {fileID: 3091859447365601605}
   - component: {fileID: 3189169579020025828}
+  - component: {fileID: 7954763468822659470}
   m_Layer: 5
   m_Name: Panel
   m_TagString: Untagged
@@ -92,6 +93,29 @@ CanvasGroup:
   m_Interactable: 1
   m_BlocksRaycasts: 1
   m_IgnoreParentGroups: 0
+--- !u!114 &7954763468822659470
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8018449186368617308}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 57a51f9977b37f6a97ee534aeabdae03, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.UIPopInVisual
+  _target: {fileID: 8646943028775443948}
+  _canvasGroup: {fileID: 3189169579020025828}
+  _fromScale: 0.85
+  _duration: 0.25
+  _scaleEase: 27
+  _fadeDuration: 0.15
+  _fadeOutDuration: 0.2
+  _fadeOutEase: 6
+  _popOut: 0
+  _popOutDuration: 0.2
+  _popOutEase: 26
 --- !u!1 &8625093724009061877
 GameObject:
   m_ObjectHideFlags: 0
@@ -102,6 +126,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1079279583427719560}
   - component: {fileID: 8337302378828634785}
+  - component: {fileID: 8013219777400295086}
   m_Layer: 5
   m_Name: UI_PokerAllInBar
   m_TagString: Untagged
@@ -141,9 +166,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d6ace4ec5fb952b429c4692bc921e257, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Poker.UIPokerAllInBar
+  _panels: {fileID: 8013219777400295086}
   _panel: {fileID: 8018449186368617308}
   _allInButton: {fileID: 3290489901279826260}
   _foldButton: {fileID: 6628961854374075058}
+--- !u!114 &8013219777400295086
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8625093724009061877}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 433aaa35cf85b81046042163a80a426c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.UIPanelStateGroup
+  _panels:
+  - {fileID: 8018449186368617308}
 --- !u!1001 &2984480367829372616
 PrefabInstance:
   m_ObjectHideFlags: 0
