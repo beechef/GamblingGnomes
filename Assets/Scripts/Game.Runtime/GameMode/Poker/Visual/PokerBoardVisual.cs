@@ -13,9 +13,10 @@ namespace Game.Runtime.GameMode.Poker.Visual
 	// the table reveals them; where they lie is the row's business, as it is for the cards in front of a
 	// chair. A table that deals no board simply never gets a card here.
 	//
-	// How the board is turned is this screen's alone: it faces the local player's chair so the row reads
-	// the right way up from where they sit, and it can be stood up on end to be read. Neither replicates —
-	// everybody at the table sees the same cards, each from their own side.
+	// Where the board lies and how it is turned are this screen's alone: pivoting on the table's centre, it
+	// slides toward the local player's chair and faces it, so the row reads the right way up and the deck is
+	// behind it rather than in front, and it can be stood up on end to be read. None of it replicates —
+	// everybody at the table sees the same cards, each on their own side.
 	//
 	// Registered rather than serialized, because the button that stands it up is on the HUD, which is
 	// spawned by the mode and cannot hold a reference to the table.
@@ -33,6 +34,11 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		[Tooltip("Seconds between cards turned over by one reveal, left to right, so a flop is three cards being turned rather than one picture changing.")]
 		[Min(0f)]
 		[SerializeField] private float _flipStagger = 0.15f;
+
+		[Header("Placement")]
+		[Tooltip("How far from the table's centre, toward the local player, the board lies. The object itself sits at the centre and is the pivot; this keeps the deck from standing between the player and the board.")]
+		[Min(0f)]
+		[SerializeField] private float _viewerOffset = 0.3f;
 
 		[Header("Standing")]
 		[Tooltip("Degrees back from upright the board leans while stood up. Zero is dead upright; 90 is lying flat.")]
@@ -64,7 +70,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		private readonly List<Tween> _flips = new();
 		private int _shownRevealed;
 
-		private Vector3 _restPosition;
+		private Vector3 _centre;
 		private float _yaw;
 		private float _standing;
 		private Tween _standTween;
@@ -78,7 +84,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 		private void Awake()
 		{
-			_restPosition = transform.localPosition;
+			_centre = transform.localPosition;
 			_yaw = transform.localEulerAngles.y;
 
 			Instance = this;
@@ -182,9 +188,11 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		private void ApplyPose()
 		{
 			var tilt = Mathf.LerpUnclamped(LyingTilt, _standingTilt, _standing);
+			var facing = Quaternion.Euler(0f, _yaw, 0f);
 
-			transform.localPosition = _restPosition + Vector3.up * (_standingLift * _standing);
-			transform.localRotation = Quaternion.Euler(0f, _yaw, 0f) * Quaternion.Euler(tilt, 0f, 0f);
+			// The chair's forward points at the centre, so its back is the way to the player.
+			transform.localPosition = _centre + facing * Vector3.back * _viewerOffset + Vector3.up * (_standingLift * _standing);
+			transform.localRotation = facing * Quaternion.Euler(tilt, 0f, 0f);
 		}
 
 		private void HandleCommunityCardsChanged(NetworkListEvent<CardData> change)
