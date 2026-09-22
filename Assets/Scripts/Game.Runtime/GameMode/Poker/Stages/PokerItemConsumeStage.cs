@@ -24,6 +24,13 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		[MinValue(1)]
 		[SerializeField] private int _itemsPerBite = 1;
 
+		[Tooltip("On, a player's whole plate goes down in one mouthful, except the kinds eaten on their own, which follow one per mouthful. Items Per Bite is not used then.")]
+		[SerializeField] private bool _eatWholePlate;
+
+		[Tooltip("Kinds never swallowed with anything else while the whole plate is eaten at once: each is its own mouthful, after the rest. Colorful, whose roll is its own beat.")]
+		[ShowIf(nameof(_eatWholePlate))]
+		[SerializeField] private List<PokerItemType> _eatenOnTheirOwn = new() { PokerItemType.Colorful };
+
 		[Header("Pacing")]
 		[Tooltip("Every wait this beat makes — the mouthful, the hit, the handover, a Colorful roll's sweep and hold. One asset, so the beat is retuned in one place.")]
 		[Required]
@@ -160,12 +167,8 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			// mouthful, and that has to happen while the gesture is running rather than after it.
 			_pendingItems.Clear();
 
-			for (var i = 0; i < Mathf.Max(1, _itemsPerBite); i++)
-			{
-				if (!PokerTableUtility.ServerTakePotItem(Data, eater.ClientId, out var itemType)) break;
-
-				_pendingItems.Add(itemType);
-			}
+			if (_eatWholePlate) TakeWholePlate(eater);
+			else TakeItems(eater, Mathf.Max(1, _itemsPerBite));
 
 			if (_pendingItems.Count == 0) return false;
 
@@ -174,6 +177,35 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 			return true;
 		}
+
+		private void TakeItems(PokerPlayer eater, int count)
+		{
+			for (var i = 0; i < count; i++)
+			{
+				if (!PokerTableUtility.ServerTakePotItem(Data, eater.ClientId, out var itemType)) break;
+
+				_pendingItems.Add(itemType);
+			}
+		}
+
+		// Everything shared goes down together; once only the kinds eaten on their own are left, one of them.
+		private void TakeWholePlate(PokerPlayer eater)
+		{
+			while (PokerTableUtility.ServerTakePotItem(Data, eater.ClientId, IsEatenWithOthers, out var itemType))
+			{
+				_pendingItems.Add(itemType);
+			}
+
+			if (_pendingItems.Count > 0) return;
+
+			if (PokerTableUtility.ServerTakePotItem(Data, eater.ClientId, IsEatenOnItsOwn, out var alone))
+			{
+				_pendingItems.Add(alone);
+			}
+		}
+
+		private bool IsEatenOnItsOwn(PokerItemType itemType) => _eatenOnTheirOwn.Contains(itemType);
+		private bool IsEatenWithOthers(PokerItemType itemType) => !_eatenOnTheirOwn.Contains(itemType);
 
 		// Asked of the effects before the bite is paid for, so the hit can be played in front of the change
 		// rather than on top of it. Exact rather than predicted: the only thing a price turns on is a record

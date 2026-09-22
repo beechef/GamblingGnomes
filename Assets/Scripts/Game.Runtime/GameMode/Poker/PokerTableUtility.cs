@@ -204,6 +204,25 @@ namespace Game.Runtime.GameMode.Poker
 			return false;
 		}
 
+		// The first of this player's caps whose kind the predicate accepts.
+		public static bool ServerTakePotItem(PokerGameData data, ulong ownerClientId, Func<PokerItemType, bool> accept, out PokerItemType itemType)
+		{
+			itemType = PokerItemDatabase.PlainChip;
+			if (!data || accept == null) return false;
+
+			for (var i = 0; i < data.PotItems.Count; i++)
+			{
+				var item = data.PotItems[i];
+				if (item.OwnerClientId != ownerClientId || !accept(item.ItemType)) continue;
+
+				itemType = item.ItemType;
+				data.PotItems.RemoveAt(i);
+				return true;
+			}
+
+			return false;
+		}
+
 		// One entry per cap, stamped with who it stands in front of, on which wager and what it is.
 		private static void AddPotItem(PokerGameData data, ulong ownerClientId, PokerItemType itemType)
 		{
