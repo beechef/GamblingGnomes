@@ -190,10 +190,18 @@ namespace Game.Runtime.GameMode.Poker
 			SetCurrentStage(stage);
 		}
 
+		// Only a stage in the sequence can be jumped to. Said out loud otherwise: a jump that goes nowhere leaves
+		// the table sitting on the stage that asked for it, with nothing to say why.
 		public void GoTo(PokerStage stage)
 		{
 			var index = _runtimeStages.IndexOf(Resolve(stage));
-			if (index >= 0) GoTo(index);
+			if (index >= 0)
+			{
+				GoTo(index);
+				return;
+			}
+
+			Debug.LogError($"[{nameof(PokerStageMachine)}] Cannot go to '{(stage ? stage.StageId : "null")}' from '{(CurrentStage ? CurrentStage.StageId : "none")}': it is not in the sequence. Point that exit at a stage the sequence holds.");
 		}
 
 		// Queued to run as the next stage, after whatever is running now finishes on its own terms.
