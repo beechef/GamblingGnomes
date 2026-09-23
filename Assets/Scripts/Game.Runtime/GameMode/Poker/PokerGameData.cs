@@ -82,6 +82,11 @@ namespace Game.Runtime.GameMode.Poker
 		[HideInInspector] public NetworkVariable<int> RevealedCommunityMask = new(0,
 			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
 
+		// How many cards are still in the undealt deck. The deck itself lives on the server only; the count is
+		// public, and anything a client offers on it (Extra Draw) reads it here.
+		[HideInInspector] public NetworkVariable<int> DeckRemaining = new(0,
+			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
+
 		public event Action<NetworkListEvent<CardData>> OnCommunityCardsChanged;
 		public event Action OnCommunityRevealChanged;
 

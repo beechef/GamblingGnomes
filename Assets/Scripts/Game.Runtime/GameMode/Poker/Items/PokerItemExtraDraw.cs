@@ -11,7 +11,9 @@ namespace Game.Runtime.GameMode.Poker.Items
 		{
 			if (!context.User || !context.User.Data.IsInHand) return PokerItemAvailability.Dimmed("You are not in this hand.");
 			if (context.User.Data.CardCount >= 31) return PokerItemAvailability.Dimmed("Your hand is full.");
-			if (context.GameMode.Deck.Remaining <= 0) return PokerItemAvailability.Dimmed("The deck is empty.");
+			// The replicated count, not the deck: the deck is on the server only, and a client asking it
+			// would always find it empty.
+			if (context.Data.DeckRemaining.Value <= 0) return PokerItemAvailability.Dimmed("The deck is empty.");
 
 			return PokerItemAvailability.Usable;
 		}

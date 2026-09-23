@@ -193,9 +193,14 @@ namespace Game.Runtime.GameMode.Poker
 
 			if (!IsServer) return;
 
+			Deck.OnRemainingChanged += HandleDeckRemainingChanged;
+			HandleDeckRemainingChanged();
+
 			NetworkManager.Singleton.OnClientDisconnectCallback += HandleClientDisconnected;
 			GoToStage(0);
 		}
+
+		private void HandleDeckRemainingChanged() => _data.DeckRemaining.Value = Deck.Remaining;
 
 		public override void OnNetworkDespawn()
 		{
@@ -209,6 +214,8 @@ namespace Game.Runtime.GameMode.Poker
 			{
 				NetworkManager.Singleton.OnClientDisconnectCallback -= HandleClientDisconnected;
 			}
+
+			if (IsServer) Deck.OnRemainingChanged -= HandleDeckRemainingChanged;
 
 			_stageMachine.Shutdown();
 
