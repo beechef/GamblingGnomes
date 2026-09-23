@@ -162,7 +162,7 @@ namespace Game.Runtime.UI.Poker
 
 			var hasItems = _itemModule && LocalPlayer.ItemInventory && _itemPicker;
 			_itemsButton.gameObject.SetActive(hasItems);
-			if (hasItems) _itemsButton.IsInteractable = AnyItemUsable();
+			if (hasItems) _itemsButton.IsInteractable = AnyItemShown();
 		}
 
 		private void WatchSeatedPlayers()
@@ -188,11 +188,12 @@ namespace Game.Runtime.UI.Poker
 			_watched.Clear();
 		}
 
-		private bool AnyItemUsable()
+		// An item that cannot be played yet still opens the picker, where its entry says why; a dimmed button would hide the reason.
+		private bool AnyItemShown()
 		{
 			foreach (var unit in LocalPlayer.ItemInventory.Items)
 			{
-				if (_itemModule.GetAvailability(LocalPlayer, unit.Type).IsUsable) return true;
+				if (_itemModule.GetAvailability(LocalPlayer, unit.Type).IsShown) return true;
 			}
 
 			return false;
