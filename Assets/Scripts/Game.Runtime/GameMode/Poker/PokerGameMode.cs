@@ -687,7 +687,8 @@ namespace Game.Runtime.GameMode.Poker
 			}
 
 			if (_data.CommunityCards.Count > 0) _data.CommunityCards.Clear();
-			_data.RevealedCommunityCards.Value = 0;
+			_data.RevealedCommunityMask.Value = 0;
+			_streetTurnedCount = 0;
 		}
 
 		// Laid face down in one go, so a street only ever turns over what is already lying there.
@@ -695,24 +696,65 @@ namespace Game.Runtime.GameMode.Poker
 		{
 			if (!IsServer) return;
 
-			_data.RevealedCommunityCards.Value = 0;
+			_data.RevealedCommunityMask.Value = 0;
+			_streetTurnedCount = 0;
 			if (_data.CommunityCards.Count > 0) _data.CommunityCards.Clear();
 
 			foreach (var card in cards) _data.CommunityCards.Add(card);
 		}
 
+		// Server only: how far along the board the streets have turned. An item turning a card does not move
+		// it, because the flop is always the first three places, the turn the fourth and the river the fifth.
+		private int _streetTurnedCount;
+
+		// A street turns its own places, whatever an item turned before it; a place already face up stays so.
 		public void ServerRevealCommunityCards(int count)
 		{
 			if (!IsServer || count <= 0) return;
 
-			_data.RevealedCommunityCards.Value = Mathf.Min(_data.RevealedCommunityCards.Value + count, _data.CommunityCards.Count);
+			var mask = _data.RevealedCommunityMask.Value;
+			var end = Mathf.Min(_streetTurnedCount + count, Mathf.Min(_data.CommunityCards.Count, 31));
+
+			for (var i = _streetTurnedCount; i < end; i++) mask |= 1 << i;
+
+			_streetTurnedCount = end;
+			_data.RevealedCommunityMask.Value = mask;
+		}
+
+		public void ServerRevealCommunityCard(int slot)
+		{
+			if (!IsServer || slot < 0 || slot >= _data.CommunityCards.Count || slot >= 31) return;
+
+			_data.RevealedCommunityMask.Value |= 1 << slot;
 		}
 
 		public void ServerRevealAllCommunityCards()
 		{
 			if (!IsServer) return;
 
-			_data.RevealedCommunityCards.Value = _data.CommunityCards.Count;
+			_streetTurnedCount = Mathf.Min(_data.CommunityCards.Count, 31);
+			_data.RevealedCommunityMask.Value = (1 << _streetTurnedCount) - 1;
+		}
+
+		// One slot written in place, never a clear and refill, which every screen would play as a new deal.
+		public void ServerReplaceCommunityCard(int slot, CardData card)
+		{
+			if (!IsServer || slot < 0 || slot >= _data.CommunityCards.Count) return;
+
+			_data.CommunityCards[slot] = card;
+		}
+
+		// Somebody who went under mid-hand is out of it: their cards go face down as a fold's do and their
+		// stake settles as a folder's, whatever the rules say about folding. The turn is handed on if it was
+		// theirs, by the same path as a player leaving the table.
+		public void ServerFoldOutOfHand(PokerPlayer player)
+		{
+			if (!IsServer || !player || !player.Data || !player.Data.IsInHand) return;
+
+			player.ServerFold();
+
+			if (_data.CurrentTurnClientId.Value == player.ClientId && CurrentStage)
+				CurrentStage.HandlePlayerLeft(player.ClientId, player.Data.SeatIndex.Value);
 		}
 
 		// Who opens this hand: every street starts from them and a tie at the showdown is broken toward them.

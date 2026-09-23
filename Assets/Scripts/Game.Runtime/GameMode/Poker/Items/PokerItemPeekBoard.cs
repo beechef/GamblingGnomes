@@ -33,7 +33,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 		public override bool AcceptsBoardCard(in PokerItemContext context, int slot)
 		{
 			var data = context.Data;
-			if (!data || slot < 0 || slot >= data.CommunityCards.Count || slot < data.RevealedCommunityCards.Value) return false;
+			if (!data || slot < 0 || slot >= data.CommunityCards.Count || data.IsCommunityCardRevealed(slot)) return false;
 
 			var knowledge = context.User ? context.User.ItemKnowledge : null;
 			return knowledge && !knowledge.Knows(PokerGameData.NoTurn, slot);

@@ -218,11 +218,11 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 			foreach (var card in player.Data.HoleCards) _evaluationBuffer.Add(card);
 
-			// The board counts only as far as it has been turned over: a card nobody has seen is not one
-			// anybody's hand was made with.
-			for (var i = 0; i < Data.CommunityCards.Count && Data.IsCommunityCardVisible(i); i++)
+			// The board counts only where the whole table has turned it: a card nobody has seen is not one
+			// anybody's hand was made with, and one the host alone was shown is not either.
+			for (var i = 0; i < Data.CommunityCards.Count; i++)
 			{
-				_evaluationBuffer.Add(Data.CommunityCards[i]);
+				if (Data.IsCommunityCardRevealed(i)) _evaluationBuffer.Add(Data.CommunityCards[i]);
 			}
 
 			return GameMode.HandEvaluator.Evaluate(_handDatabase, _evaluationBuffer);

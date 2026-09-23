@@ -50,12 +50,19 @@ MonoBehaviour:
   _itemsPerHand: 2
   _loserBonus: 1
   _capacity: 5
+  _startingItems: 
   _usesPerStreet: 1
+  _responseDuration: 5
+  _exchangePacing: {fileID: 11400000, guid: 60b3410d70a8e6f47a124d033d1e6db6, type: 2}
   StreetSerial:
     UpdateTraits:
       MinSecondsBetweenUpdates: 0
       MaxSecondsBetweenUpdates: 0
     m_InternalValue: 0
+  PendingResponse:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
 --- !u!1 &7894337194493779765
 GameObject:
   m_ObjectHideFlags: 0
@@ -105,7 +112,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d5a57f767e5e46a458fc5d3c628d0cbb, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Netcode.Runtime::Unity.Netcode.NetworkObject
-  GlobalObjectIdHash: 1159883017
+  GlobalObjectIdHash: 3416696202
   InScenePlacedSourceGlobalObjectIdHash: 1159883017
   DeferredDespawnTick: 0
   Ownership: 1
@@ -225,7 +232,7 @@ MonoBehaviour:
       MinSecondsBetweenUpdates: 0
       MaxSecondsBetweenUpdates: 0
     m_InternalValue: 0
-  RevealedCommunityCards:
+  RevealedCommunityMask:
     UpdateTraits:
       MinSecondsBetweenUpdates: 0
       MaxSecondsBetweenUpdates: 0

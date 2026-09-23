@@ -73,20 +73,26 @@ namespace Game.Runtime.GameMode.Poker
 			NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
 		// The board, dealt face down with the hand and turned over street by street. Everyone sees the same
-		// cards, so it is one list on the table; how many of them are face up is the only other fact.
+		// cards, so it is one list on the table; which of them are face up is the only other fact.
 		public readonly NetworkList<CardData> CommunityCards = new(null,
 			NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
-		[HideInInspector] public NetworkVariable<int> RevealedCommunityCards = new(0,
+		// One bit per board slot turned face up for the whole table. A mask rather than a count, because an
+		// item can turn a card out of street order.
+		[HideInInspector] public NetworkVariable<int> RevealedCommunityMask = new(0,
 			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
 
 		public event Action<NetworkListEvent<CardData>> OnCommunityCardsChanged;
 		public event Action OnCommunityRevealChanged;
 
+		// Face up for the whole table. What a hand is scored with, whatever any one screen was shown besides.
+		public bool IsCommunityCardRevealed(int index) =>
+			index >= 0 && index < CommunityCards.Count && index < 31 && (RevealedCommunityMask.Value & (1 << index)) != 0;
+
 		public bool IsCommunityCardVisible(int index)
 		{
 			if (index < 0 || index >= CommunityCards.Count) return false;
-			if (index < RevealedCommunityCards.Value) return true;
+			if (IsCommunityCardRevealed(index)) return true;
 
 			foreach (var provider in CommunityVisibilityProviders)
 			{
@@ -97,7 +103,7 @@ namespace Game.Runtime.GameMode.Poker
 		}
 
 		// Installed by whatever shows this client a board card before the street turns it — an item that
-		// peeked at one. Local sight only; the table's own reveal is RevealedCommunityCards.
+		// peeked at one. Local sight only; the table's own reveal is RevealedCommunityMask.
 		private static readonly List<Func<int, bool>> CommunityVisibilityProviders = new();
 
 		public static void AddCommunityVisibilityProvider(Func<int, bool> provider)
@@ -164,12 +170,12 @@ namespace Game.Runtime.GameMode.Poker
 			Showdown.OnListChanged += HandleShowdownChanged;
 			PotEntries.OnListChanged += HandlePotEntriesChanged;
 			CommunityCards.OnListChanged += HandleCommunityCardsChanged;
-			RevealedCommunityCards.OnValueChanged += HandleCommunityRevealChanged;
+			RevealedCommunityMask.OnValueChanged += HandleCommunityRevealChanged;
 		}
 
 		public override void OnNetworkDespawn()
 		{
-			RevealedCommunityCards.OnValueChanged -= HandleCommunityRevealChanged;
+			RevealedCommunityMask.OnValueChanged -= HandleCommunityRevealChanged;
 			CommunityCards.OnListChanged -= HandleCommunityCardsChanged;
 			PotEntries.OnListChanged -= HandlePotEntriesChanged;
 			Showdown.OnListChanged -= HandleShowdownChanged;

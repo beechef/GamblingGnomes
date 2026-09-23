@@ -280,6 +280,14 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		// The white rim around a card that a click would pick. A child authored in the prefab under the art, so
 		// it lifts and flips with the card, and marked PropPaintIgnore so a hallucination painting the card
 		// leaves it alone.
+		// The art switched off where the card lies, while a stand-in flies in its place. The root, its collider
+		// and its slot in the group are left alone, so nothing re-lays around the gap.
+		public void SetConcealed(bool concealed)
+		{
+			var art = _flipRoot ? _flipRoot.gameObject : _renderer ? _renderer.gameObject : null;
+			if (art && art.activeSelf == concealed) art.SetActive(!concealed);
+		}
+
 		public void SetHighlighted(bool highlighted)
 		{
 			if (_hoverOutline && _hoverOutline.activeSelf != highlighted) _hoverOutline.SetActive(highlighted);

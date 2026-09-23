@@ -12,7 +12,11 @@ namespace Game.Runtime.GameMode.Poker.Items
 		NoFoldSelf = 2,
 
 		// Nobody may fold in the all-in round that follows the rule's street.
-		NoFoldAllIn = 3
+		NoFoldAllIn = 3,
+
+		// Only the rule's source may not fold, on any street or all-in round, until the hand ends. Its street
+		// serial is only when it was laid.
+		NoFoldSelfForHand = 4
 	}
 
 	// A rule an item put on the table for one street: nobody folds there, or every bet there stakes more.

@@ -14,11 +14,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1786376449912092753, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
       propertyPath: m_SizeDelta.x
-      value: -66
+      value: -84
       objectReference: {fileID: 0}
     - target: {fileID: 1786376449912092753, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 23
+      value: 34
       objectReference: {fileID: 0}
     - target: {fileID: 4863384955165601446, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
       propertyPath: m_SizeDelta.x
@@ -30,7 +30,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4863384955165601446, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 24
+      value: 40
       objectReference: {fileID: 0}
     - target: {fileID: 5525976618167798955, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
       propertyPath: m_Pivot.x
@@ -58,7 +58,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5525976618167798955, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 230
+      value: 220
       objectReference: {fileID: 0}
     - target: {fileID: 5525976618167798955, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
       propertyPath: m_SizeDelta.y
@@ -153,6 +153,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 8775369202157300117, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
       insertIndex: -1
       addedObject: {fileID: 64561836940566396}
+    - targetCorrespondingSourceObject: {fileID: 1758300580226534798, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8865653859264667324}
   m_SourcePrefab: {fileID: 100100000, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
 --- !u!1 &444838166384744484 stripped
 GameObject:
@@ -174,7 +177,7 @@ MonoBehaviour:
   m_IgnoreLayout: 0
   m_MinWidth: -1
   m_MinHeight: -1
-  m_PreferredWidth: 230
+  m_PreferredWidth: 220
   m_PreferredHeight: 44
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
@@ -204,10 +207,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6f05c26bcd7a41e98a8cad4a68d779be, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Poker.UIPokerItemEntry
-  _button: {fileID: 8873520680961355309}
   _selectionItem: {fileID: 5033159350456859759}
   _label: {fileID: 1383280440807793870}
   _icon: {fileID: 1567019319901652174}
+  _usableGroup: {fileID: 8865653859264667324}
+  _unusableAlpha: 0.45
 --- !u!114 &1383280440807793870 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 7842552576817173887, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
@@ -230,14 +234,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
---- !u!114 &8873520680961355309 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 342601452257255324, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
+--- !u!1 &7458668179059850303 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1758300580226534798, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
   m_PrefabInstance: {fileID: 9215559178793988529}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 444838166384744484}
+--- !u!225 &8865653859264667324
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7458668179059850303}
   m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 84f47ffb0cc60f8409595baa4eeeef58, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Button.UIButton
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0

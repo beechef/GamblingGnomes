@@ -1,7 +1,7 @@
 # Items — design
 
 Date: 2026-09-23
-Status: agreed, not yet built. Phases below track progress.
+Status: built (all five phases). Phases below track progress.
 
 Items are one-use cards a player holds and plays during their own betting turn. They are a
 `PokerModule`, so a mode has them by listing the module and loses them by removing it. Both current
@@ -57,7 +57,7 @@ afford it).
 | Asset | Name | Effect | Modes |
 |---|---|---|---|
 | `PokerItem_PeekHand` | Peek | See one card of a chosen player. That player is told which card. Choice: target's card = Chosen. | both |
-| `PokerItem_PeekBoard` | Scry | See one unrevealed community card; you cannot Fold for the rest of this Street. Choice: slot = Chosen. | Liar |
+| `PokerItem_PeekBoard` | Scry | See one unrevealed community card; you cannot Fold for the rest of this Street. Choice: slot = Random. | Liar |
 | `PokerItem_MutualReveal` | Show Together | You and a chosen player each turn one held card face up for the whole table until the Hand ends. Unlooked cards (Normal) may be chosen. Choices: own = Chosen, target's = Chosen by the target. | both |
 | `PokerItem_DeckCount` | Suit Count | See how many cards of each suit remain in the undealt deck (snapshot, shown until the Hand ends). | both |
 | `PokerItem_SwapHand` | Swap | Exchange one card with a chosen player. Choices: own = Random, target's = Chosen by the target. Both cards land face up to their new owner and count as looked at. | both |
@@ -139,13 +139,13 @@ Each phase is one commit, verified in Play mode on host and client before the ne
    Suit Count and Raise to prove the loop.
 3. **Targeting and exposure** (done) — shared player/card pick, response panel, per-card visibility, tag row;
    Peek, Scry, Show Together, Lock.
-4. **Card exchange** — slot writes, crossing flight, reveal bitmask; Swap, Board Swap, Extra Draw.
-5. **Death Roll** — Half Dose, Shared Roll, death mid-Hand.
+4. **Card exchange** (done) — slot writes, crossing flight, reveal bitmask; Swap, Board Swap, Extra Draw.
+5. **Death Roll** (done) — Half Dose, Shared Roll, death mid-Hand.
 
-## As built (Phases 2–3)
+## As built (Phases 2–5)
 
-- **Requests.** A use is `PokerItemUseRequest` packed into the module command's int (item, target seat,
-  card slot, own slot). The item lists its target steps (`PokerItemTargetKind`); `PokerItemTargetingController`
+- **Requests.** A use is a `PokerItemUseRequest` (`INetworkSerializable`: item, target seat, card slot,
+  own slot) sent through the module's own `UseItemRPC`. The item lists its target steps (`PokerItemTargetKind`); `PokerItemTargetingController`
   walks them through `PokerTargetPointer`; the server re-checks with `PokerItem.IsValidRequest`, which asks
   the same `Accepts*`.
 - **Responses.** `PokerItemModule.ServerAskForCardAsync` sets the replicated `PendingResponse` (who, for
@@ -164,3 +164,15 @@ Each phase is one commit, verified in Play mode on host and client before the ne
   ahead of the random draw (editor and development builds only). In Play mode the module's *Testing*
   foldout has *Give Item*: pick an item and a target (everyone, or one seated player) and give it now,
   through `ServerGiveItem`, which respects capacity and the mode's database.
+- **Exchanges.** `PokerItemModule.ServerExchangeCardsAsync(PokerCardPlace, PokerCardPlace)` tells every
+  screen first (`OnCardsExchanging`), waits `PokerCardExchangePacing.FlightDuration`, then writes both
+  slots in place and forgets whatever anybody knew about them. `PokerCardExchangeVisual` (on
+  `PokerTableVisual/CardExchange`) hides the two cards where they lie and flies a stand-in wearing each
+  one's face to the other's place, showing the real card again once its slot has changed (or after
+  `LandingBackstop`). The board reveal is `RevealedCommunityMask`, one bit per slot.
+- **Extra Draw.** `PokerPlayerData.ServerDrawHoleCard` stamps the slot as looked at before adding it, so it
+  flies from the deck straight into the hand (`PokerDeckVisual.Deal` sends a card at once when no deal is
+  running). Rule `NoFoldSelfForHand` holds on every street and all-in round until the hand ends.
+- **Death Rolls.** `PokerItemDeathRoll` queues and starts the ordinary `PokerHallucinationRollController`
+  roll, waits it out and the death it causes, then `PokerGameMode.ServerFoldOutOfHand` folds whoever went
+  under, whatever the fold rules, and hands on the turn if it was theirs.

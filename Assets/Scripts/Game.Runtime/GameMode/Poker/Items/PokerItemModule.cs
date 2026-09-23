@@ -6,7 +6,6 @@ using Game.Runtime.GameMode.Poker.Modules;
 using Game.Runtime.GameMode.Poker.Player;
 using Game.Runtime.GameMode.Poker.Stages;
 using Sirenix.OdinInspector;
-using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -17,8 +16,6 @@ namespace Game.Runtime.GameMode.Poker.Items
 	// listing this module and loses them by removing it; nothing in the stages knows it exists.
 	public class PokerItemModule : PokerModule
 	{
-		public const string UseCommand = "Item.Use";
-
 		[Header("Items")]
 		[Tooltip("What this mode deals and how often. Each mode brings its own.")]
 		[Required]
@@ -56,6 +53,10 @@ namespace Game.Runtime.GameMode.Poker.Items
 		[MinValue(1f)]
 		[SerializeField] private float _responseDuration = 10f;
 
+		[Tooltip("How long two cards changing places are in the air, read here and by every screen flying them.")]
+		[Required]
+		[SerializeField] private PokerCardExchangePacing _exchangePacing;
+
 		// Counts every street opened this session. A rule aimed at "the next street" is aimed at this plus
 		// one, and never has to be cleared off a street that has already passed.
 		[HideInInspector] public NetworkVariable<int> StreetSerial = new(0,
@@ -73,6 +74,11 @@ namespace Game.Runtime.GameMode.Poker.Items
 
 		// Raised on every peer when the table starts or stops waiting on somebody.
 		public event Action OnPendingResponseChanged;
+
+		// Raised on every peer as two cards set off to change places. The swap itself is written once they land.
+		public event Action<PokerCardPlace, PokerCardPlace> OnCardsExchanging;
+
+		public PokerCardExchangePacing ExchangePacing => _exchangePacing;
 
 		// Server only: who did not win the hand just settled, owed a bonus at the next deal.
 		private readonly HashSet<ulong> _previousLosers = new();
@@ -183,6 +189,17 @@ namespace Game.Runtime.GameMode.Poker.Items
 			return false;
 		}
 
+		// Rules are cleared when the hand ends, so any one still on the table is this hand's.
+		private bool HasRuleForHand(PokerItemTableRuleKind kind, ulong sourceClientId)
+		{
+			foreach (var rule in TableRules)
+			{
+				if (rule.Kind == kind && rule.SourceClientId == sourceClientId) return true;
+			}
+
+			return false;
+		}
+
 		private int SumRule(PokerItemTableRuleKind kind, int streetSerial)
 		{
 			var sum = 0;
@@ -199,6 +216,8 @@ namespace Game.Runtime.GameMode.Poker.Items
 			if (action != PokerActionType.Fold) return true;
 
 			var serial = StreetSerial.Value;
+
+			if (player && HasRuleForHand(PokerItemTableRuleKind.NoFoldSelfForHand, player.OwnerClientId)) return false;
 
 			if (IsStreetCurrent)
 			{
@@ -261,13 +280,11 @@ namespace Game.Runtime.GameMode.Poker.Items
 			}
 		}
 
-		public override bool HandleCommandServer(ulong clientId, FixedString32Bytes commandId, int payload)
+		[Rpc(SendTo.Server)]
+		public void UseItemRPC(PokerItemUseRequest request, RpcParams rpcParams = default)
 		{
-			if (commandId != UseCommand) return false;
-
 			// Left unawaited on purpose: it carries the module's own lifetime and finishes on its own.
-			_ = ServerUseAsync(clientId, PokerItemUseRequest.Unpack(payload), destroyCancellationToken);
-			return true;
+			_ = ServerUseAsync(rpcParams.Receive.SenderClientId, request, destroyCancellationToken);
 		}
 
 		private void ServerDealItems()
@@ -459,6 +476,73 @@ namespace Game.Runtime.GameMode.Poker.Items
 			}
 
 			_responseSlot = slot;
+		}
+
+		// Two cards change places. Every screen is told first and flies them; the lists are written once the
+		// flight is over, so no face changes in plain sight. Whatever anybody knew about either card is
+		// forgotten, because the slot now holds something else. False when either card was gone by then.
+		public async Awaitable<bool> ServerExchangeCardsAsync(PokerCardPlace first, PokerCardPlace second, CancellationToken ct)
+		{
+			if (!IsServer || !TryReadCard(first, out _) || !TryReadCard(second, out _)) return false;
+
+			PlayCardExchangeRPC(first, second);
+
+			if (_exchangePacing) await Awaitable.WaitForSecondsAsync(_exchangePacing.FlightDuration, ct);
+
+			if (!TryReadCard(first, out var firstCard) || !TryReadCard(second, out var secondCard)) return false;
+
+			WriteCard(first, secondCard);
+			WriteCard(second, firstCard);
+
+			ServerForget(first);
+			ServerForget(second);
+
+			return true;
+		}
+
+		[Rpc(SendTo.Everyone)]
+		private void PlayCardExchangeRPC(PokerCardPlace first, PokerCardPlace second) => OnCardsExchanging?.Invoke(first, second);
+
+		public bool TryReadCard(PokerCardPlace place, out CardData card)
+		{
+			card = CardData.None;
+
+			if (place.IsBoard)
+			{
+				if (!Data || place.Slot < 0 || place.Slot >= Data.CommunityCards.Count) return false;
+
+				card = Data.CommunityCards[place.Slot];
+				return true;
+			}
+
+			var holder = GameMode ? GameMode.FindSeatedPlayer(place.HolderClientId) : null;
+			if (!holder || !holder.Data || !holder.Data.IsInHand || place.Slot < 0 || place.Slot >= holder.Data.CardCount) return false;
+
+			card = holder.Data.HoleCards[place.Slot];
+			return true;
+		}
+
+		private void WriteCard(PokerCardPlace place, CardData card)
+		{
+			if (place.IsBoard)
+			{
+				GameMode.ServerReplaceCommunityCard(place.Slot, card);
+				return;
+			}
+
+			var holder = GameMode.FindSeatedPlayer(place.HolderClientId);
+			if (holder) holder.Data.ServerReplaceHoleCard(place.Slot, card);
+		}
+
+		private static void ServerForget(PokerCardPlace place)
+		{
+			foreach (var player in PokerPlayer.All)
+			{
+				if (!player || !player.ItemKnowledge) continue;
+
+				player.ItemKnowledge.ServerForgetCard(place.HolderClientId, place.Slot);
+				if (player.ClientId == place.HolderClientId) player.ItemKnowledge.ServerForgetExposure(place.Slot);
+			}
 		}
 
 		public static int PickRandomSlot(int count, Func<int, bool> accept)

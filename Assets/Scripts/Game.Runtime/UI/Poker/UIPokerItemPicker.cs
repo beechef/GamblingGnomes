@@ -141,7 +141,7 @@ namespace Game.Runtime.UI.Poker
 				var entry = _entries[used++];
 				entry.gameObject.SetActive(true);
 				entry.Bind(item);
-				entry.IsInteractable = availability.IsUsable;
+				entry.SetUsable(availability.IsUsable);
 
 				if (entry.SelectionItem) _selectionItems.Add(entry.SelectionItem);
 			}

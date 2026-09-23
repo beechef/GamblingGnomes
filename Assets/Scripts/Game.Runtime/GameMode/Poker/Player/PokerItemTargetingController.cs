@@ -157,7 +157,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 		private void Send()
 		{
-			_gameMode.SubmitModuleCommandRPC(PokerItemModule.UseCommand, _request.Pack());
+			_module.UseItemRPC(_request);
 			Cancel();
 		}
 

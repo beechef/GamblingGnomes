@@ -459,6 +459,32 @@ namespace Game.Runtime.GameMode.Poker.Player
 			HandRevealed.Value = true;
 		}
 
+		// One slot written in place: a clear and refill would play on every screen as a new deal.
+		public void ServerReplaceHoleCard(int slot, CardData card)
+		{
+			if (!IsServer || slot < 0 || slot >= HoleCards.Count) return;
+
+			HoleCards[slot] = card;
+		}
+
+		// A card handed over is one its new holder has looked at, whatever the round's own limit on looking.
+		public void ServerMarkLookedAt(int slot)
+		{
+			if (!IsServer || slot < 0 || slot >= 31) return;
+
+			LookedAtHoleCards.Value |= 1 << slot;
+		}
+
+		// One more card, straight into the hand. Stamped as looked at before it is added, so it is built in
+		// the hand and flies there rather than landing on the table first.
+		public void ServerDrawHoleCard(CardData card)
+		{
+			if (!IsServer || !card.IsValid) return;
+
+			ServerMarkLookedAt(HoleCards.Count);
+			HoleCards.Add(card);
+		}
+
 		public void ServerShowHoleCard(int slot)
 		{
 			if (!IsServer || slot < 0 || slot >= 31 || slot >= HoleCards.Count) return;

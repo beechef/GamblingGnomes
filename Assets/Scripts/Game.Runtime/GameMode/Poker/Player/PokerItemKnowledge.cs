@@ -131,6 +131,27 @@ namespace Game.Runtime.GameMode.Poker.Player
 			ExposedCards.Add(new PokerKnownCard { OtherClientId = viewerClientId, Slot = slot, Card = card });
 		}
 
+		// The slot holds another card now, so what was seen there is no longer true.
+		public void ServerForgetCard(ulong otherClientId, int slot)
+		{
+			if (!IsServer) return;
+
+			for (var i = KnownCards.Count - 1; i >= 0; i--)
+			{
+				if (KnownCards[i].OtherClientId == otherClientId && KnownCards[i].Slot == slot) KnownCards.RemoveAt(i);
+			}
+		}
+
+		public void ServerForgetExposure(int slot)
+		{
+			if (!IsServer) return;
+
+			for (var i = ExposedCards.Count - 1; i >= 0; i--)
+			{
+				if (ExposedCards[i].Slot == slot) ExposedCards.RemoveAt(i);
+			}
+		}
+
 		public void ServerResetForHand()
 		{
 			if (!IsServer) return;

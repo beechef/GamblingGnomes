@@ -1,41 +1,45 @@
+using Unity.Netcode;
+
 namespace Game.Runtime.GameMode.Poker.Items
 {
-	// What the user pointed at, packed into the module command's one int: a byte each for the item, the
-	// target's seat, the target's card (a hole slot, or a board slot for board items) and one of the user's
-	// own cards. Absent fields are -1.
-	public readonly struct PokerItemUseRequest
+	// What the user pointed at, sent to the server as it is: the item, the target's seat, the target's card
+	// (a hole slot, or a board slot for board items) and one of the user's own cards. Absent fields are -1.
+	public struct PokerItemUseRequest : INetworkSerializable
 	{
-		public PokerItemType Item { get; }
-		public int TargetSeat { get; }
-		public int CardSlot { get; }
-		public int OwnSlot { get; }
+		private PokerItemType _item;
+		private sbyte _targetSeat;
+		private sbyte _cardSlot;
+		private sbyte _ownSlot;
 
-		public bool HasTarget => TargetSeat >= 0;
-		public bool HasCard => CardSlot >= 0;
-		public bool HasOwnCard => OwnSlot >= 0;
+		public PokerItemType Item => _item;
+		public int TargetSeat => _targetSeat;
+		public int CardSlot => _cardSlot;
+		public int OwnSlot => _ownSlot;
+
+		public bool HasTarget => _targetSeat >= 0;
+		public bool HasCard => _cardSlot >= 0;
+		public bool HasOwnCard => _ownSlot >= 0;
 
 		public PokerItemUseRequest(PokerItemType item, int targetSeat = -1, int cardSlot = -1, int ownSlot = -1)
 		{
-			Item = item;
-			TargetSeat = targetSeat;
-			CardSlot = cardSlot;
-			OwnSlot = ownSlot;
+			_item = item;
+			_targetSeat = Clamp(targetSeat);
+			_cardSlot = Clamp(cardSlot);
+			_ownSlot = Clamp(ownSlot);
 		}
 
 		public PokerItemUseRequest WithTarget(int seat) => new(Item, seat, CardSlot, OwnSlot);
 		public PokerItemUseRequest WithCard(int slot) => new(Item, TargetSeat, slot, OwnSlot);
 		public PokerItemUseRequest WithOwnCard(int slot) => new(Item, TargetSeat, CardSlot, slot);
 
-		public int Pack() => (int)Item | Field(TargetSeat) << 8 | Field(CardSlot) << 16 | Field(OwnSlot) << 24;
+		public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
+		{
+			serializer.SerializeValue(ref _item);
+			serializer.SerializeValue(ref _targetSeat);
+			serializer.SerializeValue(ref _cardSlot);
+			serializer.SerializeValue(ref _ownSlot);
+		}
 
-		public static PokerItemUseRequest Unpack(int payload) => new(
-			(PokerItemType)(payload & 0xFF),
-			Unfield(payload >> 8),
-			Unfield(payload >> 16),
-			Unfield(payload >> 24));
-
-		private static int Field(int value) => value < 0 ? 0 : (value + 1) & 0xFF;
-
-		private static int Unfield(int packed) => (packed & 0xFF) - 1;
+		private static sbyte Clamp(int value) => value < 0 || value > sbyte.MaxValue ? (sbyte)-1 : (sbyte)value;
 	}
 }

@@ -224,6 +224,12 @@ namespace Game.Runtime.GameMode.Poker.Visual
 					ClearCards();
 					break;
 
+				// One slot written in place, by an item exchanging it: the card lying there changes face, and
+				// nothing else on the board moves.
+				case NetworkListEvent<CardData>.EventType.Value:
+					DrawCard(change.Index, false);
+					break;
+
 				default:
 					RebuildAll();
 					break;
