@@ -259,12 +259,12 @@ namespace Game.Runtime.GameMode.Poker.Player
 			// A Colorful cap queued its roll rather than playing it, so the sweep runs on this pacing.
 			if (_player.HallucinationRoll)
 			{
-				_player.HallucinationRoll.ServerStartQueuedRoll(_pacing.RollLeadIn, _pacing.RollSweepDuration, _pacing.RollResultHold);
+				_player.HallucinationRoll.ServerStartQueuedRoll();
 			}
 
 			var after = _player.Data.HallucinationRate.Value;
 
-			return Mathf.Max(TransitionWait(before, after), RollWait(after)) + _pacing.GapBetweenBites;
+			return Mathf.Max(TransitionWait(before, after), RollWait()) + _pacing.GapBetweenBites;
 		}
 
 		private void ApplyPendingEffects()
@@ -286,18 +286,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		// A Colorful roll is still being shown when the effect returns: the skull sweeps every bar and a
 		// fatal one only puts its eater under once it stops. The next mouthful waits out the whole of that,
 		// and then the whole death the roll sets off.
-		private float RollWait(int rate)
-		{
-			var roll = _player.HallucinationRoll;
-			if (!roll) return 0f;
-
-			var remaining = roll.ServerRollRemaining;
-			if (remaining <= 0f) return 0f;
-
-			if (!roll.ServerRollFatal) return remaining;
-
-			return remaining + DeathWait(rate, PokerPlayerData.MaxHallucination);
-		}
+		private float RollWait() => _player.HallucinationRoll ? _player.HallucinationRoll.ServerOutcomeRemaining : 0f;
 
 		// How long the room spends changing, asked of the controllers that own the ladder, the blink and the
 		// death. A mouthful that puts its eater under is waited out to the end of the death, whatever the

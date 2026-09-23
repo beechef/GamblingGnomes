@@ -47,7 +47,7 @@ namespace Game.Runtime.UI.Poker
 		[Min(0)]
 		[SerializeField] private int _sweepLoops = 3;
 
-		[Tooltip("Ease over the whole distance — every pass and the run onto the number are one tween, so OutExpo spins fast and slows onto the result. The duration itself is PokerConsumePacing.RollSweepDuration, because the server pays the roll on that same clock.")]
+		[Tooltip("Ease over the whole distance — every pass and the run onto the number are one tween, so OutExpo spins fast and slows onto the result. The duration itself is PokerRollPacing.SweepDuration, because the server pays the roll on that same clock.")]
 		[SerializeField] private Ease _sweepEase = Ease.OutExpo;
 
 		[Tooltip("Seconds the skull takes to go back to the end once the result has been held. How long it holds arrives with the roll, from the beat's pacing, so the skull leaves exactly when the table moves on.")]

@@ -173,6 +173,7 @@ Each phase is one commit, verified in Play mode on host and client before the ne
 - **Extra Draw.** `PokerPlayerData.ServerDrawHoleCard` stamps the slot as looked at before adding it, so it
   flies from the deck straight into the hand (`PokerDeckVisual.Deal` sends a card at once when no deal is
   running). Rule `NoFoldSelfForHand` holds on every street and all-in round until the hand ends.
-- **Death Rolls.** `PokerItemDeathRoll` queues and starts the ordinary `PokerHallucinationRollController`
-  roll, waits it out and the death it causes, then `PokerGameMode.ServerFoldOutOfHand` folds whoever went
-  under, whatever the fold rules, and hands on the turn if it was theirs.
+- **Death Rolls.** `PokerItemDeathRoll` calls `PokerHallucinationRollController.ServerRoll`, the same
+  roll a Colorful cap sets off, waits `ServerOutcomeRemaining` (the roll and any death), then
+  `PokerGameMode.ServerFoldOutOfHand` folds whoever went under, whatever the fold rules, and hands on the
+  turn if it was theirs.
