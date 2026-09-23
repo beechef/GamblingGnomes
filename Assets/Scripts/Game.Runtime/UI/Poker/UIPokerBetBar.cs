@@ -1,6 +1,8 @@
+using System.Collections.Generic;
 using Unity.Collections;
 using Game.Runtime.GameMode.Poker;
 using Game.Runtime.GameMode.Poker.Items;
+using Game.Runtime.GameMode.Poker.Player;
 using Game.Runtime.GameMode.Poker.Stages;
 using Game.Runtime.UI.Button;
 using TMPro;
@@ -34,6 +36,12 @@ namespace Game.Runtime.UI.Poker
 		[Header("Menu")]
 		[SerializeField] private UIButton _betButton;
 
+		[Tooltip("The Bet button's label. Reads the bet text for whoever opens the street and the call text once somebody still in the hand has bet on it.")]
+		[SerializeField] private TMP_Text _betLabel;
+
+		[SerializeField] private string _betText = "BET";
+		[SerializeField] private string _callText = "CALL";
+
 		[Tooltip("Shown only where folding is allowed — by the street and by whatever items are in play. What the rules forbid is hidden, not greyed.")]
 		[SerializeField] private UIButton _foldButton;
 
@@ -49,6 +57,10 @@ namespace Game.Runtime.UI.Poker
 
 		private PokerStreetStage _stage;
 		private PokerItemModule _itemModule;
+
+		// Everybody seated, because whether the button reads Bet or Call hangs on what they did, and their
+		// bet can reach this client after the turn that follows it.
+		private readonly List<PokerPlayerData> _watched = new();
 
 		private void Awake()
 		{
@@ -68,6 +80,8 @@ namespace Game.Runtime.UI.Poker
 			Data.CurrentTurnClientId.OnValueChanged += HandleTurnChanged;
 			Data.StageId.OnValueChanged += HandleStageChanged;
 			GameMode.OnActionRulesChanged += RefreshMenuButtons;
+			GameMode.OnSeatedPlayersChanged += WatchSeatedPlayers;
+			WatchSeatedPlayers();
 
 			if (LocalPlayer.ItemInventory)
 			{
@@ -86,6 +100,8 @@ namespace Game.Runtime.UI.Poker
 				LocalPlayer.ItemInventory.OnItemsChanged -= RefreshMenuButtons;
 			}
 
+			UnwatchSeatedPlayers();
+			GameMode.OnSeatedPlayersChanged -= WatchSeatedPlayers;
 			GameMode.OnActionRulesChanged -= RefreshMenuButtons;
 			if (_handHelper) _handHelper.OnOpenChanged -= HandleHandHelperOpenChanged;
 			Data.StageId.OnValueChanged -= HandleStageChanged;
@@ -140,12 +156,36 @@ namespace Game.Runtime.UI.Poker
 
 			if (_foldButton) _foldButton.gameObject.SetActive(_stage.CanFold(LocalData));
 			if (_allInButton) _allInButton.gameObject.SetActive(_stage.AllowAllIn);
+			if (_betLabel) _betLabel.text = _stage.IsCall(LocalData) ? _callText : _betText;
 
 			if (!_itemsButton) return;
 
 			var hasItems = _itemModule && LocalPlayer.ItemInventory && _itemPicker;
 			_itemsButton.gameObject.SetActive(hasItems);
 			if (hasItems) _itemsButton.IsInteractable = AnyItemUsable();
+		}
+
+		private void WatchSeatedPlayers()
+		{
+			UnwatchSeatedPlayers();
+
+			foreach (var player in GameMode.SeatedPlayers)
+			{
+				if (!player || !player.Data) continue;
+
+				player.Data.OnStateChanged += RefreshMenuButtons;
+				_watched.Add(player.Data);
+			}
+		}
+
+		private void UnwatchSeatedPlayers()
+		{
+			foreach (var data in _watched)
+			{
+				if (data) data.OnStateChanged -= RefreshMenuButtons;
+			}
+
+			_watched.Clear();
 		}
 
 		private bool AnyItemUsable()

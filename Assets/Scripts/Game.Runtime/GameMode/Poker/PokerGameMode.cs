@@ -766,7 +766,8 @@ namespace Game.Runtime.GameMode.Poker
 
 		// Who opens this hand: every street starts from them and a tie at the showdown is broken toward them.
 		// Last hand's winner if they were dealt in, else the next player dealt in after their chair, else — the
-		// first hand of a match — anybody dealt in, at random. Server-only: nothing on a client asks it.
+		// first hand of a match — the host, or the next player dealt in after the host. Server-only: nothing on a
+		// client asks it.
 		public ulong HandOpenerClientId { get; private set; } = PokerGameData.NoTurn;
 
 		public void ServerChooseHandOpener()
@@ -789,23 +790,18 @@ namespace Game.Runtime.GameMode.Poker
 				return;
 			}
 
-			var dealt = 0;
-			foreach (var player in _seatedPlayers)
+			// The first hand of a match: the host opens it, or the next player dealt in after their chair when
+			// the host is not in the hand.
+			var host = FindSeatedPlayer(NetworkManager.ServerClientId);
+			if (host && host.Data.IsInHand)
 			{
-				if (player && player.Data.IsInHand) dealt++;
-			}
-
-			if (dealt == 0) return;
-
-			var pick = UnityEngine.Random.Range(0, dealt);
-			foreach (var player in _seatedPlayers)
-			{
-				if (!player || !player.Data.IsInHand) continue;
-				if (pick-- > 0) continue;
-
-				HandOpenerClientId = player.ClientId;
+				HandOpenerClientId = host.ClientId;
 				return;
 			}
+
+			var fromSeat = host ? host.Data.SeatIndex.Value : PokerPlayerData.NoSeat;
+			var first = PokerTableUtility.NextPlayer(_seatedPlayers, fromSeat, player => player.Data.IsInHand);
+			if (first) HandOpenerClientId = first.ClientId;
 		}
 
 		// The seat a walk starts *after*, so NextPlayer lands on the opener first. NoSeat with no opener,

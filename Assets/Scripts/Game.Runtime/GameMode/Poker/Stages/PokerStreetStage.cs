@@ -57,10 +57,10 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		[SerializeField] private float _revealHold = 1f;
 
 		[Header("All In")]
-		[Tooltip("On, a player may go all in instead of betting: they stake the cap below, the betting closes, and everyone else answers at once in the all-in stage.")]
+		[Tooltip("On, a player may go all in instead of betting: they stake this street's bet and the cap below, the betting closes, and everyone else answers at once in the all-in stage.")]
 		[SerializeField] private bool _allowAllIn;
 
-		[Tooltip("What going all in puts up.")]
+		[Tooltip("What going all in puts up, on top of this street's bet.")]
 		[ShowIf(nameof(_allowAllIn))]
 		[SerializeField] private PokerBetItemType _allInBetItemType = PokerBetItemType.Colorful;
 
@@ -72,7 +72,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		[Tooltip("Seconds a player has to choose. Zero or less runs no clock at all: no bar, no timeout, and the table waits for an answer.")]
 		[SerializeField] private float _turnDuration = -1f;
 
-		[Tooltip("What a turn that runs out answers with. Fold falls back to a bet on a street that does not allow folding, because a turn on a clock must always end.")]
+		[Tooltip("What a turn that runs out answers with. Wherever folding is refused (this street, an item, a lock) it falls back to a bet of a drawn kind, then to going all in, because a turn on a clock must always end.")]
 		[SerializeField] private PokerBetTimeout _timeoutAction = PokerBetTimeout.BetRandomKind;
 
 		[Tooltip("Seconds the table holds after somebody bets before the next player is asked, so the bet gesture and the cap landing in front of them are seen rather than cut off by the next turn opening. Zero passes the turn on immediately.")]
@@ -106,6 +106,22 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		// The street's own rule, narrowed by whatever the modules forbid. The bar and the server both ask here.
 		public bool CanFold(PokerPlayerData player) =>
 			_allowFold && GameMode && GameMode.IsActionAllowed(player, PokerActionType.Fold);
+
+		// Whether somebody still in the hand has already put a bet up on this street, so what this player puts
+		// up matches it: a call rather than an opening bet. Read off replicated state, for the bar to name the
+		// button; the act on the wire is the same Bet either way.
+		public bool IsCall(PokerPlayerData player)
+		{
+			if (!GameMode) return false;
+
+			foreach (var other in GameMode.SeatedPlayers)
+			{
+				if (!other || other.Data == player) continue;
+				if (CanBet(other.Data) && other.Data.HasActed.Value) return true;
+			}
+
+			return false;
+		}
 
 		protected override void OnStartStage()
 		{
@@ -181,16 +197,28 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			_turnElapsed += deltaTime;
 			if (_turnElapsed < _turnDuration) return;
 
-			var clientId = Data.CurrentTurnClientId.Value;
+			if (AnswerTimedOutTurn(Data.CurrentTurnClientId.Value)) return;
 
-			if (_timeoutAction == PokerBetTimeout.Fold && HandleAction(clientId, PokerActionType.Fold, 0)) return;
+			// Nothing could be answered for them, which is a table set up wrong rather than a rule: say so and
+			// give the turn another clock rather than trying again every frame.
+			Debug.LogWarning($"[{StageId}] Turn timed out and fold, bet and all in were all refused; check the bettable kinds and the all-in cap in the table's mushroom database.");
+			_turnElapsed = 0f;
+		}
 
-			// A turn on a clock must always end, and there is no polite answer to "which kind" — so the
-			// table bets for them rather than folding somebody who merely went quiet.
+		// A turn on a clock must always end, whatever the rules have taken away: each answer is tried only when
+		// the one before is refused. Folding comes first only where the timeout is set to fold and folding is
+		// still allowed (a street, an item or the all-in lock can forbid it); otherwise the table bets a drawn
+		// kind for them, and where even that is refused, goes all in.
+		private bool AnswerTimedOutTurn(ulong clientId)
+		{
+			if (_timeoutAction == PokerBetTimeout.Fold && HandleAction(clientId, PokerActionType.Fold, 0)) return true;
+
 			var database = GameMode.BetItemDatabase;
 			var fallback = database ? database.DrawBetItemType() : PokerBetItemDatabase.PlainChip;
 
-			HandleAction(clientId, PokerActionType.Bet, (int)fallback);
+			if (HandleAction(clientId, PokerActionType.Bet, (int)fallback)) return true;
+
+			return HandleAction(clientId, PokerActionType.AllIn, 0);
 		}
 
 		public override bool HandleAction(ulong clientId, PokerActionType action, int amount)
@@ -230,8 +258,16 @@ namespace Game.Runtime.GameMode.Poker.Stages
 						return false;
 					}
 
-					// Staked outright rather than through IsBettable: the cap is one nobody may choose to bet,
-					// and going all in is the only way it goes up.
+					// Going all in still pays this street's bet, so nobody's pile ends shorter than the others';
+					// the button asks no kind, so the table draws one, as a bet run out of time does.
+					var allInStake = StakeSize;
+					for (var i = 0; i < allInStake; i++)
+					{
+						PokerTableUtility.PlaceBet(Data, player, database.DrawBetItemType());
+					}
+
+					// Then the cap itself, staked outright rather than through IsBettable: nobody may choose to
+					// bet it, and going all in is the only way it goes up.
 					PokerTableUtility.PlaceBet(Data, player, _allInBetItemType);
 					player.ActionAnimator?.ServerPlay(PlayerActionIds.Bet);
 					_allInCalled = true;

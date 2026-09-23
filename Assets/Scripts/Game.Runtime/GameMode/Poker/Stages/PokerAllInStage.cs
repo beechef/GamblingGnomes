@@ -8,7 +8,7 @@ using UnityEngine;
 namespace Game.Runtime.GameMode.Poker.Stages
 {
 	// Somebody went all in, and everyone else still in the hand answers at once against one clock: match it
-	// with a cap of the same kind, or fold. Nobody holds a turn, and the answers are sealed until the last one
+	// (as many caps as the all-in player, their all-in cap among them), or fold. Nobody holds a turn, and the answers are sealed until the last one
 	// is in, so nobody can wait to see what the others did. Then the rest of the board is turned over.
 	//
 	// Sits in the sequence after the last street and passes straight through when nobody went all in, which
@@ -164,6 +164,27 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			return true;
 		}
 
+		// Matching is having as many caps in the pot as whoever went all in, their all-in cap as the last of
+		// them: whatever this street's bet was never paid is made up with drawn kinds first, so no pile ends
+		// taller or shorter than another however the hand got here.
+		private void MatchAllIn(PokerPlayer player, PokerBetItemDatabase database)
+		{
+			var target = 0;
+			foreach (var other in GameMode.SeatedPlayers)
+			{
+				if (other && PokerTableUtility.HasStakedKind(Data, other.ClientId, _allInBetItemType))
+					target = Mathf.Max(target, PokerTableUtility.CountPotEntries(Data, other.ClientId));
+			}
+
+			var owed = target - PokerTableUtility.CountPotEntries(Data, player.ClientId) - 1;
+			for (var i = 0; i < owed; i++)
+			{
+				PokerTableUtility.PlaceBet(Data, player, database.DrawBetItemType());
+			}
+
+			PokerTableUtility.PlaceBet(Data, player, _allInBetItemType);
+		}
+
 		// Every answer lands at once: the caps go up and the folds go down, and they are sealed, so none is
 		// announced. Somebody who never answered folds, unless folding was taken away, in which case they go in.
 		private void Settle()
@@ -179,12 +200,17 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			{
 				if (!player || !player.Data) continue;
 
+				// Silence folds where folding is allowed and goes all in where it is not.
 				var answered = _answers.TryGetValue(player.ClientId, out var answer);
-				var allIn = (answered ? answer : !CanFold(player.Data)) && hasCap;
+				var wantsAllIn = answered ? answer : !CanFold(player.Data);
+				var allIn = wantsAllIn && hasCap;
+
+				if (wantsAllIn && !hasCap)
+					Debug.LogWarning($"[{StageId}] {player.name} had to fold: no {_allInBetItemType} entry in the table's mushroom database to go all in with.");
 
 				if (allIn)
 				{
-					PokerTableUtility.PlaceBet(Data, player, _allInBetItemType);
+					MatchAllIn(player, database);
 					player.ActionAnimator?.ServerPlay(PlayerActionIds.Bet);
 				}
 				else

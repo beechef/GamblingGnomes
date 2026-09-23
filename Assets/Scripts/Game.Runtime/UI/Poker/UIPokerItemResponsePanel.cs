@@ -22,7 +22,7 @@ namespace Game.Runtime.UI.Poker
 
 		private PokerItemModule _module;
 
-		protected override bool WantsTick => _module && _module.PendingResponse.Value.IsPending;
+		protected override bool WantsTick => _module && _module.PendingResponse.Value.IsPending && _module.PendingResponse.Value.IsTimed;
 
 		private void Awake()
 		{
@@ -51,6 +51,9 @@ namespace Game.Runtime.UI.Poker
 
 			if (_content) _content.SetActive(pending.IsPending);
 			if (!pending.IsPending || !_label) return;
+
+			// An answer with no clock shows no bar: a bar that never moves reads as a hung timer.
+			if (_timerBar) _timerBar.gameObject.SetActive(pending.IsTimed);
 
 			if (pending.ResponderClientId == LocalClientId && _module.TryGetItem(pending.Item, out var item))
 				_label.text = $"{PokerPlayer.NameOf(pending.RequesterClientId)} {item.GetResponsePrompt()}";

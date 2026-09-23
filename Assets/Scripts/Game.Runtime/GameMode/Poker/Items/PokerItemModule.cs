@@ -49,8 +49,8 @@ namespace Game.Runtime.GameMode.Poker.Items
 		[MinValue(1)]
 		[SerializeField] private int _usesPerStreet = 1;
 
-		[Tooltip("Seconds a player an item asks to choose has to answer before the table chooses for them. Never longer than the user's turn has left.")]
-		[MinValue(1f)]
+		[Tooltip("Seconds a player an item asks to choose has to answer before the table chooses for them. 0 waits for their answer however long it takes. Either way never longer than the user's turn has left, when the turn is on a clock.")]
+		[MinValue(0f)]
 		[SerializeField] private float _responseDuration = 10f;
 
 		[Tooltip("How long two cards changing places are in the air, read here and by every screen flying them.")]
@@ -93,7 +93,8 @@ namespace Game.Runtime.GameMode.Poker.Items
 
 		public PokerItemDatabase Database => _database;
 		public int Capacity => Mathf.Max(1, _capacity);
-		public float ResponseDuration => Mathf.Max(1f, _responseDuration);
+		public float ResponseDuration => Mathf.Max(0f, _responseDuration);
+		public bool IsResponseTimed => _responseDuration > 0f;
 
 		public override void OnNetworkSpawn()
 		{
@@ -131,6 +132,10 @@ namespace Game.Runtime.GameMode.Poker.Items
 
 		public PokerItemContext ContextFor(PokerPlayer user) => new(GameMode, this, user);
 
+		public int UsesPerStreet => Mathf.Max(1, _usesPerStreet);
+
+		public bool HasSpentStreetUses(PokerPlayer user) => user && user.ItemInventory && user.ItemInventory.UsesThisStreet >= UsesPerStreet;
+
 		// The one answer to "may this player play this item now", for the picker and the server alike.
 		public PokerItemAvailability GetAvailability(PokerPlayer user, PokerItemType type)
 		{
@@ -139,10 +144,10 @@ namespace Game.Runtime.GameMode.Poker.Items
 			if (!GameMode || !GameMode.IsPlayingThisMatch(user.Data)) return PokerItemAvailability.Dimmed("You are out of this match.");
 			if (!IsStreetCurrent) return PokerItemAvailability.Dimmed("Only on a betting street.");
 			if (Data.CurrentTurnClientId.Value != user.ClientId) return PokerItemAvailability.Dimmed("Only on your turn.");
-			if (user.ItemInventory.UsesOn(StreetSerial.Value) >= Mathf.Max(1, _usesPerStreet)) return PokerItemAvailability.Dimmed("Already played an item this street.");
+			if (HasSpentStreetUses(user)) return PokerItemAvailability.Dimmed(UsesPerStreet == 1 ? "Already played an item this street." : $"Already played {UsesPerStreet} items this street.");
 			if (PendingResponse.Value.IsPending) return PokerItemAvailability.Dimmed("Waiting on another item.");
 
-			if (item.NeedsResponse && Data.HasTurnClock && Data.TurnRemaining < ResponseDuration)
+			if (item.NeedsResponse && IsResponseTimed && Data.HasTurnClock && Data.TurnRemaining < ResponseDuration)
 				return PokerItemAvailability.Dimmed("Not enough time left for them to answer.");
 
 			return item.GetAvailability(ContextFor(user));
@@ -160,7 +165,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 			return street && GameMode.HasStreetAfter(street);
 		}
 
-		public void ServerAddRule(PokerItemTableRuleKind kind, int streetSerial, int amount, ulong sourceClientId)
+		public void ServerAddRule(PokerItemTableRuleKind kind, int streetSerial, int amount, ulong sourceClientId, int streets = 1)
 		{
 			if (!IsServer) return;
 
@@ -168,6 +173,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 			{
 				Kind = kind,
 				StreetSerial = streetSerial,
+				Streets = Mathf.Max(1, streets),
 				Amount = amount,
 				SourceClientId = sourceClientId
 			});
@@ -182,7 +188,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 		{
 			foreach (var rule in TableRules)
 			{
-				if (rule.Kind != kind || rule.StreetSerial != streetSerial) continue;
+				if (rule.Kind != kind || !rule.Covers(streetSerial)) continue;
 				if (sourceClientId == PokerGameData.NoTurn || rule.SourceClientId == sourceClientId) return true;
 			}
 
@@ -205,7 +211,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 			var sum = 0;
 			foreach (var rule in TableRules)
 			{
-				if (rule.Kind == kind && rule.StreetSerial == streetSerial) sum += rule.Amount;
+				if (rule.Kind == kind && rule.Covers(streetSerial)) sum += rule.Amount;
 			}
 
 			return sum;
@@ -233,9 +239,17 @@ namespace Game.Runtime.GameMode.Poker.Items
 		public override int ModifyStakeSize(PokerStreetStage street, int stakeSize) =>
 			stakeSize + SumRule(PokerItemTableRuleKind.ExtraStake, StreetSerial.Value);
 
+		// A street opening is a new street for the rules aimed at it and a fresh allowance for everybody.
 		public override void OnStageStarting(PokerStage stage)
 		{
-			if (IsServer && stage is PokerStreetStage) StreetSerial.Value++;
+			if (!IsServer || stage is not PokerStreetStage) return;
+
+			StreetSerial.Value++;
+
+			foreach (var player in PokerPlayer.All)
+			{
+				if (player && player.ItemInventory) player.ItemInventory.ServerResetStreetUses();
+			}
 		}
 
 		// After the cards, before the first street: the hand is dealt, and so are the items to play it with.
@@ -393,7 +407,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 			try
 			{
 				user.ItemInventory.ServerTake(request.Item);
-				user.ItemInventory.ServerRecordUse(StreetSerial.Value);
+				user.ItemInventory.ServerRecordUse();
 
 				if (item.HallucinationCost > 0) user.Data.ServerChangeHallucination(item.HallucinationCost);
 
@@ -417,15 +431,17 @@ namespace Game.Runtime.GameMode.Poker.Items
 		}
 
 		// Asks a player to put one of their own cards forward, for an item somebody else played. Answers with the
-		// slot they chose, or one drawn from what they could have chosen once the time runs out — which is never
-		// later than the user's turn has left.
+		// slot they chose, or one drawn from what they could have chosen once the time runs out (never later than
+		// the user's turn has left) or once they are out of the hand.
 		public async Awaitable<int> ServerAskForCardAsync(PokerItemContext context, PokerItem item, PokerPlayer responder, CancellationToken ct)
 		{
 			if (!IsServer || !responder) return -1;
 
 			var now = NetworkManager.ServerTime.Time;
+
+			// A turn on a clock must always end, so an untimed answer still stops where the user's turn does.
 			var duration = ResponseDuration;
-			if (Data.HasTurnClock) duration = Mathf.Min(duration, Data.TurnRemaining);
+			if (Data.HasTurnClock) duration = IsResponseTimed ? Mathf.Min(duration, Data.TurnRemaining) : Data.TurnRemaining;
 
 			_responseSlot = -1;
 			PendingResponse.Value = new PokerItemResponse
@@ -439,7 +455,10 @@ namespace Game.Runtime.GameMode.Poker.Items
 
 			try
 			{
-				while (_responseSlot < 0 && NetworkManager.ServerTime.Time < PendingResponse.Value.EndTime)
+				// Waiting is over when they answer, when the clock runs out, or when they are no longer in the hand
+				// to answer at all, which matters most with no clock, where nothing else would end it.
+				while (_responseSlot < 0 && responder && responder.Data && responder.Data.IsInHand
+				       && (!PendingResponse.Value.IsTimed || NetworkManager.ServerTime.Time < PendingResponse.Value.EndTime))
 				{
 					await Awaitable.NextFrameAsync(ct);
 				}

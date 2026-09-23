@@ -41,8 +41,13 @@ Death Rate means `HallucinationRate`. Death Roll means the existing roll
 - **Responses.** An Item that makes another player choose gives them a response clock of their own; if
   it runs out, or the user's Turn ends first, the choice is made at random and the Item still
   resolves. Such an Item is dimmed while the Turn has less time left than the response clock.
+  `_responseDuration` 0 (the current setting) is no clock: the table waits for the answer, and only the
+  responder leaving the hand, or the user's own turn clock if it has one, ends the wait early.
+- **Turn clocks.** Betting Streets currently run with no clock (`_turnDuration` -1); only the All-in round
+  is timed.
 - **Forbidden fold at timeout.** Where an Item forbids Fold and the Street's timeout action is Fold,
-  the timeout bets instead — a turn on a clock always ends.
+  the timeout bets instead, and goes all in if even the bet is refused — a turn on a clock always ends.
+  A silent answer in the All-in round goes all in wherever folding is forbidden.
 - **Death mid-Hand.** A player killed by an Item's roll is treated as folded (`Dead`, cards face down).
   Their stake stays in the pot and settles as a folder's. If they held the Turn, it advances.
 - **Cost.** Every Item has `_hallucinationCost` (paid on use), default 0.
@@ -57,7 +62,7 @@ afford it).
 | Asset | Name | Effect | Modes |
 |---|---|---|---|
 | `PokerItem_PeekHand` | Peek | See one card of a chosen player. That player is told which card. Choice: target's card = Chosen. | both |
-| `PokerItem_PeekBoard` | Scry | See one unrevealed community card; you cannot Fold for the rest of this Street. Choice: slot = Random. | Liar |
+| `PokerItem_PeekBoard` | Scry | See one unrevealed community card; you cannot Fold on the next Street (`_noFoldStreets` streets from there, default 1); hidden on the last Street. Choice: slot = Random. | Liar |
 | `PokerItem_MutualReveal` | Show Together | You and a chosen player each turn one held card face up for the whole table until the Hand ends. Unlooked cards (Normal) may be chosen. Choices: own = Chosen, target's = Chosen by the target. | both |
 | `PokerItem_DeckCount` | Suit Count | See how many cards of each suit remain in the undealt deck (snapshot, shown until the Hand ends). | both |
 | `PokerItem_SwapHand` | Swap | Exchange one card with a chosen player. Choices: own = Random, target's = Chosen by the target. Both cards land face up to their new owner and count as looked at. | both |
@@ -65,8 +70,8 @@ afford it).
 | `PokerItem_ExtraDraw` | Extra Draw | Draw one card from the undealt deck; you cannot Fold until the Hand ends. Showdown still scores the best five. | both |
 | `PokerItem_HalfDose` | Half Dose | Halve your Death Rate (round down), then Death Roll against the new rate. | both |
 | `PokerItem_SharedRoll` | Shared Roll | You and a chosen player each Death Roll against your own rate, at the same time. | both |
-| `PokerItem_LockFold` | Lock | Nobody may Fold on the next Street. `_affectsAllIn` toggles whether the All-in stage is locked too. | both |
-| `PokerItem_RaiseStakes` | Raise | Every Bet on the next Street stakes +1 cap. Stacks. Never applies to All-in. | both |
+| `PokerItem_LockFold` | Lock | Nobody may Fold on the next Street (`_streets` streets from there, default 1). `_affectsAllIn` toggles whether the All-in stage is locked too. | both |
+| `PokerItem_RaiseStakes` | Raise | Every Bet on the next Street stakes +1 cap (`_streets` streets from there, default 1). Stacks. Never applies to All-in. | both |
 
 Default targets: card Items target players still `IsInHand`, not yourself; Shared Roll targets
 `InMatch && IsAlive`, not yourself. No valid target dims the Item. All weights start equal.
@@ -157,7 +162,7 @@ Each phase is one commit, verified in Play mode on host and client before the ne
   them above the name on the world tag (others' cards) and in `UI_ItemsPanel` (your own, with who saw them).
 - **Private notices.** `PokerNoticeKind.ItemDetail` carries the card; wording is the item's
   `PrivateNoticeVerb` (`"SAW YOUR {0}"`).
-- **Fold locks.** Rule kinds `NoFoldSelf` (Scry, the user only, this street) and `NoFoldAllIn` (Lock with
+- **Fold locks.** Rule kinds `NoFoldSelf` (Scry, the user only, from the next street) and `NoFoldAllIn` (Lock with
   `_affectsAllIn`); the all-in stage asks `CanFold`, and an unanswered player there goes all in when folding
   is forbidden.
 - **Testing.** `PokerItemModule._startingItems` is given to every player in the match at its first deal,

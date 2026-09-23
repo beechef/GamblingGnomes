@@ -18,12 +18,8 @@ namespace Game.Runtime.GameMode.Poker.Player
 			readPerm: NetworkVariableReadPermission.Everyone,
 			writePerm: NetworkVariableWritePermission.Server);
 
-		// The street serial the player last used an item on, and how many they used there. A serial rather
-		// than a flag, so nothing has to go round clearing it when the next street opens.
-		[HideInInspector] public NetworkVariable<int> UsedStreetSerial = new(-1,
-			readPerm: NetworkVariableReadPermission.Everyone,
-			writePerm: NetworkVariableWritePermission.Server);
-
+		// How many items the player has played on the street running now. Put back to zero by the module as
+		// each street opens, rather than inferred from which street a use was on: one fact, one writer.
 		[HideInInspector] public NetworkVariable<int> UsesOnStreet = new(0,
 			readPerm: NetworkVariableReadPermission.Everyone,
 			writePerm: NetworkVariableWritePermission.Server);
@@ -37,14 +33,12 @@ namespace Game.Runtime.GameMode.Poker.Player
 		{
 			Items.OnListChanged += HandleItemsChanged;
 			Count.OnValueChanged += HandleCountChanged;
-			UsedStreetSerial.OnValueChanged += HandleUsesChanged;
 			UsesOnStreet.OnValueChanged += HandleUsesChanged;
 		}
 
 		public override void OnNetworkDespawn()
 		{
 			UsesOnStreet.OnValueChanged -= HandleUsesChanged;
-			UsedStreetSerial.OnValueChanged -= HandleUsesChanged;
 			Count.OnValueChanged -= HandleCountChanged;
 			Items.OnListChanged -= HandleItemsChanged;
 		}
@@ -63,7 +57,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			return false;
 		}
 
-		public int UsesOn(int streetSerial) => UsedStreetSerial.Value == streetSerial ? UsesOnStreet.Value : 0;
+		public int UsesThisStreet => UsesOnStreet.Value;
 
 		public bool ServerGive(PokerItemType type, int capacity)
 		{
@@ -90,12 +84,18 @@ namespace Game.Runtime.GameMode.Poker.Player
 			return false;
 		}
 
-		public void ServerRecordUse(int streetSerial)
+		public void ServerRecordUse()
 		{
 			if (!IsServer) return;
 
-			UsesOnStreet.Value = UsesOn(streetSerial) + 1;
-			UsedStreetSerial.Value = streetSerial;
+			UsesOnStreet.Value++;
+		}
+
+		public void ServerResetStreetUses()
+		{
+			if (!IsServer) return;
+
+			UsesOnStreet.Value = 0;
 		}
 
 		public void ServerResetForMatch()
@@ -104,7 +104,6 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 			if (Items.Count > 0) Items.Clear();
 			Count.Value = 0;
-			UsedStreetSerial.Value = -1;
 			UsesOnStreet.Value = 0;
 		}
 	}

@@ -22,7 +22,11 @@ namespace Game.Runtime.UI.Poker
 		[SerializeField] private UITimerBar _timerBar;
 
 		// Only the clock moves on its own, and only while there is a clock to show.
-		protected override bool WantsTick => _panel && _panel.activeSelf;
+		protected override bool WantsTick => _panel && _panel.activeSelf && IsTimed;
+
+		// A turn with no clock still names whose turn it is, but shows no bar: one that never moves reads as a
+		// timer hung at zero.
+		private bool IsTimed => Data.HasTurn ? Data.HasTurnClock : Data.HasStageTimer;
 
 		private PlayerData _boundWallet;
 
@@ -34,6 +38,7 @@ namespace Game.Runtime.UI.Poker
 		protected override void OnBind()
 		{
 			Data.CurrentTurnClientId.OnValueChanged += HandleTurnChanged;
+			Data.TurnDuration.OnValueChanged += HandleDurationChanged;
 			Data.StageDuration.OnValueChanged += HandleDurationChanged;
 			Data.Phase.OnValueChanged += HandlePhaseChanged;
 			Data.StageId.OnValueChanged += HandleStageChanged;
@@ -46,6 +51,7 @@ namespace Game.Runtime.UI.Poker
 			Data.StageId.OnValueChanged -= HandleStageChanged;
 			Data.Phase.OnValueChanged -= HandlePhaseChanged;
 			Data.StageDuration.OnValueChanged -= HandleDurationChanged;
+			Data.TurnDuration.OnValueChanged -= HandleDurationChanged;
 			Data.CurrentTurnClientId.OnValueChanged -= HandleTurnChanged;
 
 			BindTurnIdentity(null);
@@ -88,7 +94,10 @@ namespace Game.Runtime.UI.Poker
 			if (Data.HasTurn) RefreshTurn();
 			else RefreshStage();
 
-			OnTick();
+			var timed = IsTimed;
+			if (_timerBar && _timerBar.gameObject.activeSelf != timed) _timerBar.gameObject.SetActive(timed);
+
+			if (timed) OnTick();
 		}
 
 		private void RefreshTurn()

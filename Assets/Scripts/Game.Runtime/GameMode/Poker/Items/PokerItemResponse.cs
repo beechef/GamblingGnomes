@@ -17,6 +17,9 @@ namespace Game.Runtime.GameMode.Poker.Items
 
 		public bool IsPending => ResponderClientId != PokerGameData.NoTurn;
 
+		// No duration is no clock: the table waits for the answer however long it takes.
+		public bool IsTimed => Duration > 0f;
+
 		public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
 		{
 			serializer.SerializeValue(ref ResponderClientId);

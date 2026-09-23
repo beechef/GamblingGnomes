@@ -3,14 +3,19 @@ using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker.Items
 {
-	// Every bet on the next street puts up more caps, the user's own included. Two played on one street add up.
+	// Every bet on the streets that follow puts up more caps, the user's own included. Two played on one
+	// street add up.
 	[CreateAssetMenu(fileName = "PokerItem_RaiseStakes", menuName = "Game/Poker/Items/Raise Stakes")]
 	public class PokerItemRaiseStakes : PokerItem
 	{
 		[Header("Raise")]
-		[Tooltip("Caps added to every bet on the next street.")]
+		[Tooltip("Caps added to every bet on the raised streets.")]
 		[MinValue(1)]
 		[SerializeField] private int _extraStake = 1;
+
+		[Tooltip("How many streets are raised, starting with the next one. The hand ending lifts it whatever is left.")]
+		[MinValue(1)]
+		[SerializeField] private int _streets = 1;
 
 		protected override PokerItemAvailability OnGetAvailability(in PokerItemContext context) =>
 			context.Module.HasNextStreet()
@@ -20,7 +25,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 		protected override void OnUseServer(in PokerItemContext context, in PokerItemUseRequest request)
 		{
 			var module = context.Module;
-			module.ServerAddRule(PokerItemTableRuleKind.ExtraStake, module.StreetSerial.Value + 1, Mathf.Max(1, _extraStake), context.User.ClientId);
+			module.ServerAddRule(PokerItemTableRuleKind.ExtraStake, module.StreetSerial.Value + 1, Mathf.Max(1, _extraStake), context.User.ClientId, _streets);
 		}
 	}
 }
