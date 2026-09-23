@@ -735,6 +735,14 @@ namespace Game.Runtime.GameMode.Poker
 			_data.RevealedCommunityMask.Value |= 1 << slot;
 		}
 
+		// Turns a card an item showed back down; the street that owns the slot still turns it in its turn.
+		public void ServerConcealCommunityCard(int slot)
+		{
+			if (!IsServer || slot < 0 || slot < _streetTurnedCount || slot >= 31) return;
+
+			_data.RevealedCommunityMask.Value &= ~(1 << slot);
+		}
+
 		public void ServerRevealAllCommunityCards()
 		{
 			if (!IsServer) return;

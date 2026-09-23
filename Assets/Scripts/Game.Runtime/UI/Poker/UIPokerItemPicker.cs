@@ -7,6 +7,7 @@ using Game.Runtime.UI.Button;
 using Game.Runtime.UI.Selection;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Game.Runtime.UI.Poker
 {
@@ -62,6 +63,8 @@ namespace Game.Runtime.UI.Poker
 			}
 
 			if (_chooseButton) _chooseButton.OnClick += HandleChoose;
+
+			RebuildDetailsLayout();
 		}
 
 		private void OnDisable()
@@ -174,6 +177,7 @@ namespace Game.Runtime.UI.Poker
 			if (_reasonLabel) _reasonLabel.text = availability.IsUsable ? string.Empty : availability.BlockReason;
 
 			SetDetailsVisible(true);
+			RebuildDetailsLayout();
 		}
 
 		private void HandleChoose()
@@ -211,6 +215,14 @@ namespace Game.Runtime.UI.Poker
 			var back = _back;
 			Close();
 			back?.Invoke();
+		}
+
+		// The description wraps, so its height is only right once laid out at the column's width; the first
+		// open sets the text before that pass and the reason overlaps it until something else rebuilds.
+		private void RebuildDetailsLayout()
+		{
+			if (_detailsGroup && _detailsGroup.gameObject.activeInHierarchy)
+				LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)_detailsGroup.transform);
 		}
 
 		private void SetDetailsVisible(bool visible)

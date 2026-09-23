@@ -75,8 +75,9 @@ namespace Game.Runtime.GameMode.Poker.Items
 		// Raised on every peer when the table starts or stops waiting on somebody.
 		public event Action OnPendingResponseChanged;
 
-		// Raised on every peer as two cards set off to change places. The swap itself is written once they land.
-		public event Action<PokerCardPlace, PokerCardPlace> OnCardsExchanging;
+		// Raised on every peer as two cards set off to change places, with whether they fly face down whatever this screen
+		// saw. The swap itself is written once they land.
+		public event Action<PokerCardPlace, PokerCardPlace, bool> OnCardsExchanging;
 
 		public PokerCardExchangePacing ExchangePacing => _exchangePacing;
 
@@ -500,11 +501,11 @@ namespace Game.Runtime.GameMode.Poker.Items
 		// Two cards change places. Every screen is told first and flies them; the lists are written once the
 		// flight is over, so no face changes in plain sight. Whatever anybody knew about either card is
 		// forgotten, because the slot now holds something else. False when either card was gone by then.
-		public async Awaitable<bool> ServerExchangeCardsAsync(PokerCardPlace first, PokerCardPlace second, CancellationToken ct)
+		public async Awaitable<bool> ServerExchangeCardsAsync(PokerCardPlace first, PokerCardPlace second, CancellationToken ct, bool flyFaceDown = false)
 		{
 			if (!IsServer || !TryReadCard(first, out _) || !TryReadCard(second, out _)) return false;
 
-			PlayCardExchangeRPC(first, second);
+			PlayCardExchangeRPC(first, second, flyFaceDown);
 
 			if (_exchangePacing) await Awaitable.WaitForSecondsAsync(_exchangePacing.FlightDuration, ct);
 
@@ -520,7 +521,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 		}
 
 		[Rpc(SendTo.Everyone)]
-		private void PlayCardExchangeRPC(PokerCardPlace first, PokerCardPlace second) => OnCardsExchanging?.Invoke(first, second);
+		private void PlayCardExchangeRPC(PokerCardPlace first, PokerCardPlace second, bool flyFaceDown) => OnCardsExchanging?.Invoke(first, second, flyFaceDown);
 
 		public bool TryReadCard(PokerCardPlace place, out CardData card)
 		{

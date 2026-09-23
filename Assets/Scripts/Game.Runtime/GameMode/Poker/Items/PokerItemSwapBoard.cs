@@ -5,9 +5,9 @@ using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker.Items
 {
-	// A face-down board card is turned up for everyone, held there long enough to be read, then traded with
-	// one of the user's cards. The user's old card now lies face up on the board, and the whole table saw
-	// which card went into their hand.
+	// A face-down board card is turned up for everyone, held there long enough to be read, turned back down,
+	// then traded with one of the user's cards. The user's old card flies there face down on every screen and
+	// stays down; the whole table knows only the card that went into their hand (the row over their head).
 	[CreateAssetMenu(fileName = "PokerItem_SwapBoard", menuName = "Game/Poker/Items/Swap Board")]
 	public class PokerItemSwapBoard : PokerItem
 	{
@@ -21,6 +21,10 @@ namespace Game.Runtime.GameMode.Poker.Items
 		[Tooltip("Seconds the board card lies face up before the two cards trade places.")]
 		[Min(0f)]
 		[SerializeField] private float _revealHold = 1.2f;
+
+		[Tooltip("Seconds between the board card turning back down and the two cards trading places; at least the card's flip, or the stand-in leaves mid-turn.")]
+		[Min(0f)]
+		[SerializeField] private float _concealHold = 0.4f;
 
 		protected override void OnCollectTargetSteps(List<PokerItemTargetKind> steps)
 		{
@@ -80,14 +84,24 @@ namespace Game.Runtime.GameMode.Poker.Items
 
 			context.GameMode.ServerRevealCommunityCard(boardSlot);
 
-			if (_revealHold > 0f) await Awaitable.WaitForSecondsAsync(_revealHold, ct);
+			try
+			{
+				if (_revealHold > 0f) await Awaitable.WaitForSecondsAsync(_revealHold, ct);
+			}
+			finally
+			{
+				context.GameMode.ServerConcealCommunityCard(boardSlot);
+			}
+
+			// Turned down before it leaves, so the card the user gives never lies face up on the board.
+			if (_concealHold > 0f) await Awaitable.WaitForSecondsAsync(_concealHold, ct);
 
 			if (!AcceptsOwnCard(context, ownSlot)) return;
 
 			var taken = data.CommunityCards[boardSlot];
 
 			if (!await context.Module.ServerExchangeCardsAsync(
-				    PokerCardPlace.InHand(user.ClientId, ownSlot), PokerCardPlace.OnBoard(boardSlot), ct)) return;
+				    PokerCardPlace.InHand(user.ClientId, ownSlot), PokerCardPlace.OnBoard(boardSlot), ct, flyFaceDown: true)) return;
 
 			user.Data.ServerMarkLookedAt(ownSlot);
 

@@ -53,21 +53,21 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			for (var i = _landings.Count - 1; i >= 0; i--) Reveal(_landings[i]);
 		}
 
-		private void HandleCardsExchanging(PokerCardPlace first, PokerCardPlace second)
+		private void HandleCardsExchanging(PokerCardPlace first, PokerCardPlace second, bool flyFaceDown)
 		{
 			var pacing = _module ? _module.ExchangePacing : null;
 			var firstCard = VisualAt(first);
 			var secondCard = VisualAt(second);
 			if (!pacing || !firstCard || !secondCard || !_cardPrefab) return;
 
-			Launch(firstCard, secondCard, second, pacing, pacing.Arc);
-			Launch(secondCard, firstCard, first, pacing, pacing.Arc * _lowerArcShare);
+			Launch(firstCard, secondCard, second, pacing, pacing.Arc, flyFaceDown);
+			Launch(secondCard, firstCard, first, pacing, pacing.Arc * _lowerArcShare, flyFaceDown);
 
 			firstCard.SetConcealed(true);
 			secondCard.SetConcealed(true);
 		}
 
-		private void Launch(PokerCardVisual from, PokerCardVisual to, PokerCardPlace toPlace, PokerCardExchangePacing pacing, float arc)
+		private void Launch(PokerCardVisual from, PokerCardVisual to, PokerCardPlace toPlace, PokerCardExchangePacing pacing, float arc, bool flyFaceDown)
 		{
 			var stand = Instantiate(_cardPrefab, from.transform.position, from.transform.rotation);
 			stand.transform.localScale = from.transform.lossyScale;
@@ -76,6 +76,10 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			foreach (var hit in stand.GetComponentsInChildren<Collider>(true)) hit.enabled = false;
 
 			stand.SetCard(from.Card, from.FaceUp, _database);
+
+			// Only a face this screen could see turns down; an animated flip always starts face up, so flipping
+			// one already down would show it.
+			if (flyFaceDown && from.FaceUp) stand.Flip(false, true);
 
 			var landing = new Landing
 			{

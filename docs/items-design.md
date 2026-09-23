@@ -66,7 +66,7 @@ afford it).
 | `PokerItem_MutualReveal` | Show Together | You and a chosen player each turn one held card face up for the whole table until the Hand ends. Unlooked cards (Normal) may be chosen. Choices: own = Chosen, target's = Chosen by the target. | both |
 | `PokerItem_DeckCount` | Suit Count | See how many cards of each suit remain in the undealt deck (snapshot, shown until the Hand ends). | both |
 | `PokerItem_SwapHand` | Swap | Exchange one card with a chosen player. Choices: own = Random, target's = Chosen by the target. Both cards land face up to their new owner and count as looked at. | both |
-| `PokerItem_SwapBoard` | Board Swap | A random unrevealed community card is turned face up for everyone, then exchanged with one of your cards (so your old card lies face up on the board). Hidden once all five are revealed. Choices: own = Chosen, slot = Random. | Liar |
+| `PokerItem_SwapBoard` | Board Swap | A random unrevealed community card is turned face up for everyone, turned back down, then exchanged with one of your cards. Your old card flies face down on every screen, yours included, and stays face down on the board; the table knows the card you took from the row over your head. Hidden once all five are revealed. Choices: own = Chosen, slot = Random. | Liar |
 | `PokerItem_ExtraDraw` | Extra Draw | Draw one card from the undealt deck; you cannot Fold until the Hand ends. Showdown still scores the best five. | both |
 | `PokerItem_HalfDose` | Half Dose | Halve your Death Rate (round down), then Death Roll against the new rate. | both |
 | `PokerItem_SharedRoll` | Shared Roll | You and a chosen player each Death Roll against your own rate, at the same time. | both |
