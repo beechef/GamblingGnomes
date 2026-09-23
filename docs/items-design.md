@@ -83,8 +83,9 @@ likewise.
   one frame reach clients as the last one only.
 - **Private** — `[Rpc(SendTo.SpecifiedInParams)]` to the players an Item affects.
 
-A notice is structured (actor, item or action, target, card, count). Wording is a template on the
-Item asset (`"{actor} swapped cards with {target}"` public, `"{actor} took your {card}"` private).
+A notice is structured (actor, item or action, target, card, count); the feed picks the wording and
+the row shape. An Item carries the verb read after the actor's name (`NoticeVerb`, e.g. "COUNTED THE
+DECK"); an Item aimed at somebody shows their name after it.
 Public notices name the Item. Existing Bet/Fold notices move onto the same channel so there is one
 feed. Late joiners do not replay notices; a notice is an event, not state.
 
@@ -108,8 +109,8 @@ Items affecting others notify the affected player in detail and the table in gen
 - **World tag row.** The hallucination tag over each head gains a bottom row of that player's cards
   this screen knows (peeked or publicly shown). The local meter shows your own exposed cards and who
   saw them.
-- **Counts.** Outside your Turn you see only how many Items you hold (Vitals panel); over other heads,
-  their count.
+- **Counts.** `UI_ItemsPanel` (bottom left, above the Helper column) shows how many Items you hold and,
+  while you know it, the Suit Count. Over other heads, their count (Phase 3).
 - **Deal.** Items fly into the inventory at handout; a public notice names the loser bonus.
 
 ## Architecture
@@ -134,7 +135,7 @@ Each phase is one commit, verified in Play mode on host and client before the ne
 
 1. **Rename** (done) — Wager → Street/Bet, mushroom `PokerItem*` → `PokerBetItem*`, `PokerBetItem` →
    `PokerPotEntry`; CLAUDE.md and CONTEXT.md in the same change.
-2. **Foundation** — module, inventory, deal, loser record, notice channel, ItemPicker, action hooks;
+2. **Foundation** (done) — module, inventory, deal, loser record, notice channel, ItemPicker, action hooks;
    Suit Count and Raise to prove the loop.
 3. **Targeting and exposure** — shared player/card pick, response panel, per-card visibility, tag row;
    Peek, Scry, Show Together, Lock.

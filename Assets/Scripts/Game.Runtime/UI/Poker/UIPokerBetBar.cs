@@ -1,15 +1,16 @@
 using Unity.Collections;
 using Game.Runtime.GameMode.Poker;
+using Game.Runtime.GameMode.Poker.Items;
 using Game.Runtime.GameMode.Poker.Stages;
 using Game.Runtime.UI.Button;
 using UnityEngine;
 
 namespace Game.Runtime.UI.Poker
 {
-	// What the player can do on their own betting turn: bet, fold, or go all in. Where the player picks the
-	// kind, betting does not put a cap up by itself — it opens the picker, because the kind is the actual
-	// decision — and the two are panels of one group, so the menu and the picker are never up at once and
-	// neither is up off the turn. Where the table draws the kind, the press is the whole answer.
+	// What the player can do on their own betting turn: bet, fold, go all in, or play an item. Where the
+	// player picks the kind, betting does not put a cap up by itself — it opens the picker, because the kind
+	// is the actual decision — and the menu and the pickers are panels of one group, so only one is ever up
+	// and none is up off the turn. Where the table draws the kind, the press is the whole answer.
 	//
 	// This component stays on an object that is always active and only switches the panels, or it would
 	// switch itself off with the menu and never hear the turn come round again.
@@ -21,20 +22,28 @@ namespace Game.Runtime.UI.Poker
 		[SerializeField] private GameObject _pickerPanel;
 		[SerializeField] private UIPokerBetPicker _picker;
 
+		[Tooltip("Optional. Opened by the Items button; a table without PokerItemModule never shows it.")]
+		[SerializeField] private GameObject _itemPickerPanel;
+		[SerializeField] private UIPokerItemPicker _itemPicker;
+
 		[Header("Menu")]
 		[SerializeField] private UIButton _betButton;
 
-		[Tooltip("Shown only on the street that allows it. What the rules forbid is hidden, not greyed.")]
+		[Tooltip("Shown only where folding is allowed — by the street and by whatever items are in play. What the rules forbid is hidden, not greyed.")]
 		[SerializeField] private UIButton _foldButton;
 
 		[Tooltip("Shown only on a street that allows going all in.")]
 		[SerializeField] private UIButton _allInButton;
+
+		[Tooltip("Shown only at a table that deals items; greyed while nothing held can be played.")]
+		[SerializeField] private UIButton _itemsButton;
 
 		[Header("Overlays")]
 		[Tooltip("Optional. While the hand board is open the bar steps aside, and the turn comes back to the menu when it closes.")]
 		[SerializeField] private UIPokerHandHelper _handHelper;
 
 		private PokerStreetStage _stage;
+		private PokerItemModule _itemModule;
 
 		private void Awake()
 		{
@@ -43,28 +52,48 @@ namespace Game.Runtime.UI.Poker
 
 		protected override void OnBind()
 		{
+			_itemModule = GameMode.FindModule<PokerItemModule>();
+
 			if (_betButton) _betButton.OnClick += HandleBet;
 			if (_foldButton) _foldButton.OnClick += HandleFold;
 			if (_allInButton) _allInButton.OnClick += HandleAllIn;
+			if (_itemsButton) _itemsButton.OnClick += HandleItems;
 			if (_handHelper) _handHelper.OnOpenChanged += HandleHandHelperOpenChanged;
 
 			Data.CurrentTurnClientId.OnValueChanged += HandleTurnChanged;
 			Data.StageId.OnValueChanged += HandleStageChanged;
+			GameMode.OnActionRulesChanged += RefreshMenuButtons;
+
+			if (LocalPlayer.ItemInventory)
+			{
+				LocalPlayer.ItemInventory.OnItemsChanged += RefreshMenuButtons;
+				LocalPlayer.ItemInventory.OnUsesChanged += RefreshMenuButtons;
+			}
 
 			Refresh();
 		}
 
 		protected override void OnUnbind()
 		{
+			if (LocalPlayer.ItemInventory)
+			{
+				LocalPlayer.ItemInventory.OnUsesChanged -= RefreshMenuButtons;
+				LocalPlayer.ItemInventory.OnItemsChanged -= RefreshMenuButtons;
+			}
+
+			GameMode.OnActionRulesChanged -= RefreshMenuButtons;
 			if (_handHelper) _handHelper.OnOpenChanged -= HandleHandHelperOpenChanged;
 			Data.StageId.OnValueChanged -= HandleStageChanged;
 			Data.CurrentTurnClientId.OnValueChanged -= HandleTurnChanged;
 
+			if (_itemsButton) _itemsButton.OnClick -= HandleItems;
 			if (_allInButton) _allInButton.OnClick -= HandleAllIn;
 			if (_foldButton) _foldButton.OnClick -= HandleFold;
 			if (_betButton) _betButton.OnClick -= HandleBet;
 
 			CloseAll();
+
+			_itemModule = null;
 		}
 
 		private void HandleTurnChanged(ulong previous, ulong current) => Refresh();
@@ -80,7 +109,7 @@ namespace Game.Runtime.UI.Poker
 			_stage = GameMode ? GameMode.FindStage(Data.StageId.Value.ToString()) as PokerStreetStage : null;
 
 			// The hand board covers the same moment, so the bar steps aside while it is up; closing it lands back
-			// on the menu, since the picker was put away with everything else.
+			// on the menu, since the pickers were put away with everything else.
 			if (_stage == null || !IsLocalTurn || IsHandHelperOpen)
 			{
 				CloseAll();
@@ -88,16 +117,40 @@ namespace Game.Runtime.UI.Poker
 			}
 
 			// A turn that is still ours keeps whichever panel the player is on; only a fresh turn opens the menu.
-			if (_panels && !_panels.IsShowing(_pickerPanel)) ShowMenu();
+			if (_panels && !_panels.IsShowing(_pickerPanel) && !_panels.IsShowing(_itemPickerPanel)) ShowMenu();
 		}
 
 		private void ShowMenu()
 		{
 			if (_picker) _picker.Close();
+			if (_itemPicker) _itemPicker.Close();
 			if (_panels) _panels.Show(_menuPanel);
 
-			if (_foldButton && _stage != null) _foldButton.gameObject.SetActive(_stage.AllowFold);
-			if (_allInButton && _stage != null) _allInButton.gameObject.SetActive(_stage.AllowAllIn);
+			RefreshMenuButtons();
+		}
+
+		private void RefreshMenuButtons()
+		{
+			if (_stage == null || !IsBound) return;
+
+			if (_foldButton) _foldButton.gameObject.SetActive(_stage.CanFold(LocalData));
+			if (_allInButton) _allInButton.gameObject.SetActive(_stage.AllowAllIn);
+
+			if (!_itemsButton) return;
+
+			var hasItems = _itemModule && LocalPlayer.ItemInventory && _itemPicker;
+			_itemsButton.gameObject.SetActive(hasItems);
+			if (hasItems) _itemsButton.IsInteractable = AnyItemUsable();
+		}
+
+		private bool AnyItemUsable()
+		{
+			foreach (var unit in LocalPlayer.ItemInventory.Items)
+			{
+				if (_itemModule.GetAvailability(LocalPlayer, unit.Type).IsUsable) return true;
+			}
+
+			return false;
 		}
 
 		private void HandleBet()
@@ -116,7 +169,9 @@ namespace Game.Runtime.UI.Poker
 
 		private void HandleFold()
 		{
-			if (GameMode) GameMode.SubmitActionRPC(PokerActionType.Fold, 0);
+			if (_stage == null || !_stage.CanFold(LocalData) || !IsLocalTurn) return;
+
+			GameMode.SubmitActionRPC(PokerActionType.Fold, 0);
 		}
 
 		private void HandleAllIn()
@@ -126,9 +181,18 @@ namespace Game.Runtime.UI.Poker
 			GameMode.SubmitActionRPC(PokerActionType.AllIn, 0);
 		}
 
+		private void HandleItems()
+		{
+			if (_stage == null || !_itemModule || !_itemPicker || !IsLocalTurn || IsHandHelperOpen) return;
+
+			if (_panels) _panels.Show(_itemPickerPanel);
+			_itemPicker.Open(GameMode, LocalPlayer, _itemModule, ShowMenu);
+		}
+
 		private void CloseAll()
 		{
 			if (_picker) _picker.Close();
+			if (_itemPicker) _itemPicker.Close();
 			if (_panels) _panels.HideAll();
 		}
 	}

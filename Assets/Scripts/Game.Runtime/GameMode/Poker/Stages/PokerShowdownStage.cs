@@ -100,6 +100,8 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			if (_settlement == PokerSettlement.OwnStake) PokerTableUtility.DiscardStakesOf(Data, _winners);
 			else PokerTableUtility.SwapPotToLosers(Data, winner, GameMode.SeatedPlayers, GameMode.BetItemDatabase, _foldPhase);
 
+			GameMode.NotifyHandSettled(_winners);
+
 			PublishRanking();
 
 			if (_showdownDuration <= 0f)

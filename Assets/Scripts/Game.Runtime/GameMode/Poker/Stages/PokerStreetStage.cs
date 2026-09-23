@@ -97,10 +97,15 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 		private bool _allInCalled;
 
-		public bool AllowFold => _allowFold;
 		public bool AllowAllIn => _allowAllIn && _allInStage;
 		public bool PicksKind => _kindSelection == PokerBetKindSelection.Chosen;
-		public int StakeSize => Mathf.Max(1, _stakeSize);
+
+		// What a bet here puts up right now: the street's own size, as the table's modules have changed it.
+		public int StakeSize => GameMode ? GameMode.ModifyStakeSize(this, Mathf.Max(1, _stakeSize)) : Mathf.Max(1, _stakeSize);
+
+		// The street's own rule, narrowed by whatever the modules forbid. The bar and the server both ask here.
+		public bool CanFold(PokerPlayerData player) =>
+			_allowFold && GameMode && GameMode.IsActionAllowed(player, PokerActionType.Fold);
 
 		protected override void OnStartStage()
 		{
@@ -178,7 +183,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 			var clientId = Data.CurrentTurnClientId.Value;
 
-			if (_timeoutAction == PokerBetTimeout.Fold && _allowFold && HandleAction(clientId, PokerActionType.Fold, 0)) return;
+			if (_timeoutAction == PokerBetTimeout.Fold && HandleAction(clientId, PokerActionType.Fold, 0)) return;
 
 			// A turn on a clock must always end, and there is no polite answer to "which kind" — so the
 			// table bets for them rather than folding somebody who merely went quiet.
@@ -204,7 +209,8 @@ namespace Game.Runtime.GameMode.Poker.Stages
 					// The pot ledger is the only record of who put up what: PokerPotEntry already stamps the
 					// owner and the kind, and a second copy on the player would be one the deal's own
 					// ServerResetForHand wipes halfway through the round.
-					for (var i = 0; i < StakeSize; i++)
+					var stakeSize = StakeSize;
+					for (var i = 0; i < stakeSize; i++)
 					{
 						PokerTableUtility.PlaceBet(Data, player, itemType);
 					}
@@ -232,7 +238,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 					break;
 
 				case PokerActionType.Fold:
-					if (!_allowFold) return false;
+					if (!CanFold(player.Data)) return false;
 
 					player.ServerFold();
 					break;

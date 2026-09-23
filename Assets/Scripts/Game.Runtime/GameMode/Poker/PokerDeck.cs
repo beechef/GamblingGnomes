@@ -33,6 +33,17 @@ namespace Game.Runtime.GameMode.Poker
 			}
 		}
 
+		public int CountRemaining(CardSuit suit)
+		{
+			var count = 0;
+			for (var i = _nextIndex; i < _cards.Count; i++)
+			{
+				if (_cards[i].SuitType == suit) count++;
+			}
+
+			return count;
+		}
+
 		public CardData Draw()
 		{
 			if (Remaining <= 0) return CardData.None;

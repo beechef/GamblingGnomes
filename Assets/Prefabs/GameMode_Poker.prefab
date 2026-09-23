@@ -1,5 +1,61 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1974206720422021016
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5113989488618878522}
+  - component: {fileID: 8300465974966724970}
+  m_Layer: 0
+  m_Name: Items
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5113989488618878522
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1974206720422021016}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2167044627753137391}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &8300465974966724970
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1974206720422021016}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cc865753993c42a29b7886d76f3346d9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Items.PokerItemModule
+  ShowTopMostFoldoutHeaderGroup: 1
+  _moduleId: 
+  _database: {fileID: 11400000, guid: 3daee3f5deeaf274a920593b1329fa6a, type: 2}
+  _itemsPerHand: 2
+  _loserBonus: 1
+  _capacity: 5
+  _usesPerStreet: 1
+  StreetSerial:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
 --- !u!1 &7894337194493779765
 GameObject:
   m_ObjectHideFlags: 0
@@ -13,6 +69,7 @@ GameObject:
   - component: {fileID: 370272023844681654}
   - component: {fileID: 7373537335293292376}
   - component: {fileID: -9007372877243146254}
+  - component: {fileID: 1010059874106853844}
   m_Layer: 0
   m_Name: GameMode_Poker
   m_TagString: Untagged
@@ -32,7 +89,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 5113989488618878522}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &2214475242416655445
@@ -117,69 +175,11 @@ MonoBehaviour:
         byte0027: 0
         byte0028: 0
         byte0029: 0
-  OverlayStageId:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue:
-      utf8LengthInBytes: 0
-      bytes:
-        offset0000:
-          byte0000: 0
-          byte0001: 0
-          byte0002: 0
-          byte0003: 0
-          byte0004: 0
-          byte0005: 0
-          byte0006: 0
-          byte0007: 0
-          byte0008: 0
-          byte0009: 0
-          byte0010: 0
-          byte0011: 0
-          byte0012: 0
-          byte0013: 0
-          byte0014: 0
-          byte0015: 0
-        byte0016: 0
-        byte0017: 0
-        byte0018: 0
-        byte0019: 0
-        byte0020: 0
-        byte0021: 0
-        byte0022: 0
-        byte0023: 0
-        byte0024: 0
-        byte0025: 0
-        byte0026: 0
-        byte0027: 0
-        byte0028: 0
-        byte0029: 0
-  Pot:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 0
-  CurrentBet:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 0
-  LastRaise:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: 0
   ActiveSeatCount:
     UpdateTraits:
       MinSecondsBetweenUpdates: 0
       MaxSecondsBetweenUpdates: 0
     m_InternalValue: 0
-  DealerSeatIndex:
-    UpdateTraits:
-      MinSecondsBetweenUpdates: 0
-      MaxSecondsBetweenUpdates: 0
-    m_InternalValue: -1
   CurrentTurnClientId:
     UpdateTraits:
       MinSecondsBetweenUpdates: 0
@@ -205,10 +205,16 @@ MonoBehaviour:
       MinSecondsBetweenUpdates: 0
       MaxSecondsBetweenUpdates: 0
     m_InternalValue: 18446744073709551615
-  ActionNotice:
+  SurvivorClientId:
     UpdateTraits:
       MinSecondsBetweenUpdates: 0
       MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 18446744073709551615
+  MatchResetting:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
   StageEndTime:
     UpdateTraits:
       MinSecondsBetweenUpdates: 0
@@ -238,14 +244,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.PokerGameMode
   ShowTopMostFoldoutHeaderGroup: 1
   _rules: {fileID: 11400000, guid: b1b95d1241dc51c489c9dc6b9916290c, type: 2}
-  _startingMoney: 10
   _startingHealth: 8
   _betItemDatabase: {fileID: 11400000, guid: 5178fb66ae0b30740a0e39488bef578b, type: 2}
   _sequence: {fileID: 11400000, guid: fef264d3b67498b4191fb3f76f2e9f4e, type: 2}
-  _modules: []
+  _modules:
+  - {fileID: 8300465974966724970}
   _hudPrefab: {fileID: 3807829601385342317, guid: ef9948bd034b1b74abea24c6ec82bd46, type: 3}
   _data: {fileID: 370272023844681654}
   _configData: {fileID: -9007372877243146254}
+  _notices: {fileID: 1010059874106853844}
   _seats: []
 --- !u!114 &-9007372877243146254
 MonoBehaviour:
@@ -259,4 +266,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8d8729764d0527b44a7066f44481fff6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Config.MatchConfigData
+  ShowTopMostFoldoutHeaderGroup: 1
+--- !u!114 &1010059874106853844
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7894337194493779765}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 53d7869d97054921abe3dd093a20a32b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.PokerNoticeChannel
   ShowTopMostFoldoutHeaderGroup: 1

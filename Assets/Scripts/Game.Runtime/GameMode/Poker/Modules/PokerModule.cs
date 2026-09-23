@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Game.Runtime.GameMode.Config;
+using Game.Runtime.GameMode.Poker.Player;
 using Game.Runtime.GameMode.Poker.Stages;
 using Unity.Collections;
 using Unity.Netcode;
@@ -76,9 +77,19 @@ namespace Game.Runtime.GameMode.Poker.Modules
 
 		public virtual void OnPlayerActed(ulong clientId, PokerActionType action, int amount) { }
 
+		// The pot has been handed round; winners are every hand that ranked first, ties included.
+		public virtual void OnHandSettled(IReadOnlyList<PokerPlayer> winners) { }
+
 		public virtual bool CanStartGame() => true;
 		public virtual bool CanLeaveSeat(ulong clientId) => true;
 		public virtual bool CanPlayerAct(ulong clientId, PokerActionType action, int amount) => true;
+
+		// Asked on every peer, so the bar hides what the server will refuse. A module that changes the answer
+		// calls PokerGameMode.NotifyActionRulesChanged on every peer when it does.
+		public virtual bool IsActionAllowed(PokerPlayerData player, PokerActionType action) => true;
+
+		// How many caps a bet on this street puts up, starting from what the street itself asks.
+		public virtual int ModifyStakeSize(PokerStreetStage street, int stakeSize) => stakeSize;
 
 		// Player facing entry point for whatever the module exposes — an ability activation, a vote,
 		// a cheat attempt. Returning true marks the command as consumed.

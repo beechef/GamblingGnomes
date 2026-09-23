@@ -58,11 +58,6 @@ namespace Game.Runtime.GameMode.Poker
 		[HideInInspector] public NetworkVariable<bool> MatchResetting = new(false,
 			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
 
-		// Change-only on purpose, like the gesture events: a late joiner receives the last announcement as
-		// spawned state, and an action from half a hand ago is not worth flashing at them.
-		[HideInInspector] public NetworkVariable<PokerActionNotice> ActionNotice = new(default,
-			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
-
 		// One clock any stage can run, separate from the turn clock: a deal that plays out, a showdown
 		// that lingers, a beat the whole table answers at once — none of them belong to a single seat.
 		[HideInInspector] public NetworkVariable<double> StageEndTime = new(0d,

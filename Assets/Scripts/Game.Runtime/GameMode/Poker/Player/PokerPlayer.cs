@@ -19,6 +19,8 @@ namespace Game.Runtime.GameMode.Poker.Player
 		[FormerlySerializedAs("_items")]
 		[SerializeField] private PokerBetItemConsumeController _betItemConsume;
 		[SerializeField] private PokerBetItemCarryController _betItemCarry;
+		[SerializeField] private PokerItemInventory _itemInventory;
+		[SerializeField] private PokerItemKnowledge _itemKnowledge;
 		[SerializeField] private PokerWinnerPoseController _winnerPose;
 		[SerializeField] private PokerHallucinationRollController _hallucinationRoll;
 
@@ -62,13 +64,17 @@ namespace Game.Runtime.GameMode.Poker.Player
 		public PokerPlayerData Data => _data;
 
 		// The record of what this player has swallowed. Its own controller rather than more verbs on the
-		// data, and named for eating rather than for items in general: a stockpile of things they can
-		// choose to use is a different question and will want a component of its own.
+		// data, and named for eating rather than for items in general: the cards they can choose to use are
+		// ItemInventory's.
 		public PokerBetItemConsumeController BetItemConsume => _betItemConsume;
 
 		// Carrying a staked cap through the bet gesture. On the player because which rig is drawn, where a
 		// fist closes and which frame the hand arrives on are all this body's own business.
 		public PokerBetItemCarryController BetItemCarry => _betItemCarry;
+
+		// The item cards held, and what they have told this player. Empty on a table that plays without items.
+		public PokerItemInventory ItemInventory => _itemInventory;
+		public PokerItemKnowledge ItemKnowledge => _itemKnowledge;
 
 		// The held celebration. Named as a pose rather than as a gesture, because it lasts as long as the
 		// round says and not as long as a clip.

@@ -8,6 +8,7 @@ using Game.Runtime.GameMode.Poker.Player;
 using Game.Runtime.GameMode.Poker.Stages;
 using Game.Runtime.Player;
 using Game.Runtime.UI;
+using Sirenix.OdinInspector;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
@@ -42,6 +43,10 @@ namespace Game.Runtime.GameMode.Poker
 		[Header("References")]
 		[SerializeField] private PokerGameData _data;
 		[SerializeField] private MatchConfigData _configData;
+
+		[Tooltip("Where everything the table is told goes out: accepted actions, items played, private news.")]
+		[Required]
+		[SerializeField] private PokerNoticeChannel _notices;
 		[SerializeField] private List<PokerSeat> _seats = new();
 
 		public static PokerGameMode Instance { get; private set; }
@@ -58,6 +63,7 @@ namespace Game.Runtime.GameMode.Poker
 
 		public PokerGameData Data => _data;
 		public MatchConfigData ConfigData => _configData;
+		public PokerNoticeChannel Notices => _notices;
 		public BetItems.PokerBetItemDatabase BetItemDatabase => _betItemDatabase;
 		public PokerRuleSettings Rules => _rules;
 		public PokerStageSequence Sequence => _sequence;
@@ -122,6 +128,9 @@ namespace Game.Runtime.GameMode.Poker
 
 		public event Action OnSeatedPlayersChanged;
 		public event Action<PokerStage> OnStageChanged;
+
+		// A module changed what somebody may do or what a bet costs. Raised on every peer.
+		public event Action OnActionRulesChanged;
 
 		private readonly List<PokerPlayer> _seatedPlayers = new();
 
@@ -257,6 +266,64 @@ namespace Game.Runtime.GameMode.Poker
 		}
 
 		public PokerStage FindStage(string stageId) => _stageMachine.Find(stageId);
+
+		// Whether another street follows this one before the hand is scored. Read off the sequence every peer
+		// builds, so the bar and the server agree without a word on the wire.
+		public bool HasStreetAfter(PokerStage stage)
+		{
+			var stages = Stages;
+			var index = -1;
+
+			for (var i = 0; i < stages.Count; i++)
+			{
+				if (stages[i] != stage) continue;
+
+				index = i;
+				break;
+			}
+
+			if (index < 0) return false;
+
+			for (var i = index + 1; i < stages.Count; i++)
+			{
+				if (stages[i] is PokerStreetStage) return true;
+				if (stages[i] is PokerShowdownStage) return false;
+			}
+
+			return false;
+		}
+
+		public bool IsActionAllowed(PokerPlayerData player, PokerActionType action)
+		{
+			foreach (var module in _modules)
+			{
+				if (module && !module.IsActionAllowed(player, action)) return false;
+			}
+
+			return true;
+		}
+
+		public int ModifyStakeSize(PokerStreetStage street, int stakeSize)
+		{
+			foreach (var module in _modules)
+			{
+				if (module) stakeSize = module.ModifyStakeSize(street, stakeSize);
+			}
+
+			return Mathf.Max(1, stakeSize);
+		}
+
+		public void NotifyActionRulesChanged() => OnActionRulesChanged?.Invoke();
+
+		public void NotifyHandSettled(IReadOnlyList<PokerPlayer> winners)
+		{
+			if (!IsServer) return;
+
+			foreach (var module in _modules)
+			{
+				if (module) module.OnHandSettled(winners);
+			}
+		}
 
 		// Only picks up seats that spawned before this table did; the ones that come later register
 		// themselves on the way in.
@@ -942,15 +1009,7 @@ namespace Game.Runtime.GameMode.Poker
 			if (!CurrentStage || !CurrentStage.HandleAction(senderClientId, action, amount)) return;
 
 			// A stage whose answers are sealed tells nobody who answered what.
-			if (CurrentStage.AnnouncesActions)
-			{
-				_data.ActionNotice.Value = new PokerActionNotice
-				{
-					ClientId = senderClientId,
-					Action = action,
-					Sequence = _data.ActionNotice.Value.Sequence + 1
-				};
-			}
+			if (CurrentStage.AnnouncesActions && _notices) _notices.ServerAnnounce(PokerNotice.ForAction(senderClientId, action));
 
 			foreach (var module in _modules)
 			{
