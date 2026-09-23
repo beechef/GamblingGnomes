@@ -46,6 +46,7 @@ namespace Game.Runtime.UI.Poker
 		private PokerPlayer _player;
 		private PokerItemModule _module;
 		private Action _back;
+		private Action<PokerItem> _chosen;
 
 		private void Awake()
 		{
@@ -76,7 +77,7 @@ namespace Game.Runtime.UI.Poker
 
 		private void OnDestroy() => Close();
 
-		public void Open(PokerGameMode gameMode, PokerPlayer player, PokerItemModule module, Action back)
+		public void Open(PokerGameMode gameMode, PokerPlayer player, PokerItemModule module, Action back, Action<PokerItem> chosen)
 		{
 			Close();
 
@@ -84,6 +85,7 @@ namespace Game.Runtime.UI.Poker
 			_player = player;
 			_module = module;
 			_back = back;
+			_chosen = chosen;
 
 			if (_player && _player.ItemInventory)
 			{
@@ -110,6 +112,7 @@ namespace Game.Runtime.UI.Poker
 			}
 
 			_back = null;
+			_chosen = null;
 			_module = null;
 			_player = null;
 			_gameMode = null;
@@ -184,10 +187,11 @@ namespace Game.Runtime.UI.Poker
 			if (!entry || !entry.Item || !_module || !_gameMode) return;
 			if (!_module.GetAvailability(_player, entry.Item.Type).IsUsable) return;
 
-			_gameMode.SubmitModuleCommandRPC(PokerItemModule.UseCommand, (int)entry.Item.Type);
-
-			// Played: back to the menu, where the turn is still waiting for a bet or a fold.
-			HandleEscape();
+			// Handed to the bar, which aims it if it needs aiming and sends it; the picker's part is over.
+			var chosen = _chosen;
+			var item = entry.Item;
+			Close();
+			chosen?.Invoke(item);
 		}
 
 		private UIPokerItemEntry EntryOf(UISelectionItem item)

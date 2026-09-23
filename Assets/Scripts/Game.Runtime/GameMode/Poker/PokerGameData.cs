@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
@@ -82,7 +83,41 @@ namespace Game.Runtime.GameMode.Poker
 		public event Action<NetworkListEvent<CardData>> OnCommunityCardsChanged;
 		public event Action OnCommunityRevealChanged;
 
-		public bool IsCommunityCardVisible(int index) => index >= 0 && index < RevealedCommunityCards.Value;
+		public bool IsCommunityCardVisible(int index)
+		{
+			if (index < 0 || index >= CommunityCards.Count) return false;
+			if (index < RevealedCommunityCards.Value) return true;
+
+			foreach (var provider in CommunityVisibilityProviders)
+			{
+				if (provider != null && provider.Invoke(index)) return true;
+			}
+
+			return false;
+		}
+
+		// Installed by whatever shows this client a board card before the street turns it — an item that
+		// peeked at one. Local sight only; the table's own reveal is RevealedCommunityCards.
+		private static readonly List<Func<int, bool>> CommunityVisibilityProviders = new();
+
+		public static void AddCommunityVisibilityProvider(Func<int, bool> provider)
+		{
+			if (provider != null && !CommunityVisibilityProviders.Contains(provider)) CommunityVisibilityProviders.Add(provider);
+		}
+
+		public static void RemoveCommunityVisibilityProvider(Func<int, bool> provider) => CommunityVisibilityProviders.Remove(provider);
+
+		// Raised by a provider whose answer has just changed; nothing about the board did.
+		public static event Action OnCommunityVisibilityRulesChanged;
+
+		public static void NotifyCommunityVisibilityRulesChanged() => OnCommunityVisibilityRulesChanged?.Invoke();
+
+		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+		private static void ResetStatics()
+		{
+			CommunityVisibilityProviders.Clear();
+			OnCommunityVisibilityRulesChanged = null;
+		}
 
 		public event Action OnShowdownChanged;
 

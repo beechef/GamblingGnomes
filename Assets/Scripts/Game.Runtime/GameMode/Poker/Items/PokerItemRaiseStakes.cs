@@ -17,7 +17,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 				? PokerItemAvailability.Usable
 				: PokerItemAvailability.Hidden("No street is left in this hand.");
 
-		protected override void OnUseServer(in PokerItemContext context)
+		protected override void OnUseServer(in PokerItemContext context, in PokerItemUseRequest request)
 		{
 			var module = context.Module;
 			module.ServerAddRule(PokerItemTableRuleKind.ExtraStake, module.StreetSerial.Value + 1, Mathf.Max(1, _extraStake), context.User.ClientId);

@@ -156,7 +156,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			if (action != PokerActionType.Target) return false;
 			if (clientId != Data.CurrentTurnClientId.Value) return false;
 
-			var target = FindSeatedPlayerAtSeat(amount);
+			var target = GameMode.FindSeatedPlayerAtSeat(amount);
 			if (!target || !CanBeFed(target)) return false;
 
 			Serve(target, GameMode.FindSeatedPlayer(clientId));
@@ -173,16 +173,6 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 		private static bool IsInTheRunning(PokerPlayer player) =>
 			player && player.Data && player.Data.IsSeated && player.Data.InMatch.Value && player.Data.IsAlive;
-
-		private PokerPlayer FindSeatedPlayerAtSeat(int seatIndex)
-		{
-			foreach (var player in GameMode.SeatedPlayers)
-			{
-				if (player && player.Data && player.Data.SeatIndex.Value == seatIndex) return player;
-			}
-
-			return null;
-		}
 
 		// The chooser is null when the clock chose: a silence is not a choice, so it gets no gesture.
 		private void Serve(PokerPlayer target, PokerPlayer chooser = null)

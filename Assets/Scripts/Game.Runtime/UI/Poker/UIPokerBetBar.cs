@@ -3,6 +3,7 @@ using Game.Runtime.GameMode.Poker;
 using Game.Runtime.GameMode.Poker.Items;
 using Game.Runtime.GameMode.Poker.Stages;
 using Game.Runtime.UI.Button;
+using TMPro;
 using UnityEngine;
 
 namespace Game.Runtime.UI.Poker
@@ -25,6 +26,10 @@ namespace Game.Runtime.UI.Poker
 		[Tooltip("Optional. Opened by the Items button; a table without PokerItemModule never shows it.")]
 		[SerializeField] private GameObject _itemPickerPanel;
 		[SerializeField] private UIPokerItemPicker _itemPicker;
+
+		[Tooltip("Up while an item is being aimed: says what to point at. Escape puts the item back and returns to the menu.")]
+		[SerializeField] private GameObject _targetingPanel;
+		[SerializeField] private TMP_Text _targetingPrompt;
 
 		[Header("Menu")]
 		[SerializeField] private UIButton _betButton;
@@ -117,7 +122,7 @@ namespace Game.Runtime.UI.Poker
 			}
 
 			// A turn that is still ours keeps whichever panel the player is on; only a fresh turn opens the menu.
-			if (_panels && !_panels.IsShowing(_pickerPanel) && !_panels.IsShowing(_itemPickerPanel)) ShowMenu();
+			if (_panels && !_panels.IsShowing(_pickerPanel) && !_panels.IsShowing(_itemPickerPanel) && !_panels.IsShowing(_targetingPanel)) ShowMenu();
 		}
 
 		private void ShowMenu()
@@ -186,13 +191,74 @@ namespace Game.Runtime.UI.Poker
 			if (_stage == null || !_itemModule || !_itemPicker || !IsLocalTurn || IsHandHelperOpen) return;
 
 			if (_panels) _panels.Show(_itemPickerPanel);
-			_itemPicker.Open(GameMode, LocalPlayer, _itemModule, ShowMenu);
+			_itemPicker.Open(GameMode, LocalPlayer, _itemModule, ShowMenu, HandleItemChosen);
+		}
+
+		// An item that points at nothing is sent at once; one that does is aimed first, with the menu put away
+		// so the pointer is free to reach the table.
+		private void HandleItemChosen(PokerItem item)
+		{
+			var targeting = LocalPlayer ? LocalPlayer.ItemTargeting : null;
+			if (!targeting)
+			{
+				ShowMenu();
+				return;
+			}
+
+			targeting.OnTargetingChanged -= HandleTargetingChanged;
+			targeting.OnTargetingChanged += HandleTargetingChanged;
+			targeting.BeginUse(item);
+
+			if (!targeting.IsTargeting)
+			{
+				targeting.OnTargetingChanged -= HandleTargetingChanged;
+				ShowMenu();
+				return;
+			}
+
+			if (_panels) _panels.Show(_targetingPanel);
+			UIEscapeStack.Push(HandleTargetingEscape);
+			HandleTargetingChanged();
+		}
+
+		private void HandleTargetingChanged()
+		{
+			var targeting = LocalPlayer ? LocalPlayer.ItemTargeting : null;
+
+			if (targeting && targeting.IsTargeting)
+			{
+				if (_targetingPrompt) _targetingPrompt.text = targeting.Prompt;
+				return;
+			}
+
+			// Sent, or cancelled from somewhere else: either way the aiming is over and the turn is still ours.
+			EndTargeting();
+			if (IsBound && IsLocalTurn && _stage != null && !IsHandHelperOpen) ShowMenu();
+		}
+
+		private void HandleTargetingEscape()
+		{
+			var targeting = LocalPlayer ? LocalPlayer.ItemTargeting : null;
+			if (targeting) targeting.Cancel();
+		}
+
+		private void EndTargeting()
+		{
+			UIEscapeStack.Remove(HandleTargetingEscape);
+
+			var targeting = LocalPlayer ? LocalPlayer.ItemTargeting : null;
+			if (targeting) targeting.OnTargetingChanged -= HandleTargetingChanged;
 		}
 
 		private void CloseAll()
 		{
 			if (_picker) _picker.Close();
 			if (_itemPicker) _itemPicker.Close();
+
+			var targeting = LocalPlayer ? LocalPlayer.ItemTargeting : null;
+			EndTargeting();
+			if (targeting) targeting.Cancel();
+
 			if (_panels) _panels.HideAll();
 		}
 	}

@@ -32,6 +32,7 @@ namespace Game.Runtime.UI.Poker
 			Data.Phase.OnValueChanged += HandlePhaseChanged;
 			Data.OnPotEntriesChanged += HandlePotEntriesChanged;
 			LocalData.OnStateChanged += Refresh;
+			GameMode.OnActionRulesChanged += Refresh;
 
 			_answered = false;
 			Refresh();
@@ -39,6 +40,7 @@ namespace Game.Runtime.UI.Poker
 
 		protected override void OnUnbind()
 		{
+			GameMode.OnActionRulesChanged -= Refresh;
 			LocalData.OnStateChanged -= Refresh;
 			Data.OnPotEntriesChanged -= HandlePotEntriesChanged;
 			Data.Phase.OnValueChanged -= HandlePhaseChanged;
@@ -66,6 +68,9 @@ namespace Game.Runtime.UI.Poker
 			_stage = GameMode.FindStage(Data.StageId.Value.ToString()) as PokerAllInStage;
 
 			var show = _stage && Data.Phase.Value == PokerPhase.AllIn && !_answered && _stage.IsAsked(LocalPlayer);
+
+			// What the rules forbid is hidden: an item can take folding away here.
+			if (_foldButton && _stage) _foldButton.gameObject.SetActive(_stage.CanFold(LocalData));
 			if (!_panels || _panels.IsShowing(_panel) == show) return;
 
 			if (show) _panels.Show(_panel);

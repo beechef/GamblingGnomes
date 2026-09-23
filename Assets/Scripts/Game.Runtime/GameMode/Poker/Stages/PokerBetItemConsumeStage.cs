@@ -83,7 +83,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 			for (var step = _seatIndex + 1; step < seatCount; step++)
 			{
-				var player = FindSeatedPlayerAtSeat(step);
+				var player = GameMode.FindSeatedPlayerAtSeat(step);
 				var consume = player ? player.BetItemConsume : null;
 				if (!consume || !consume.HasPlate) continue;
 
@@ -133,18 +133,6 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		{
 			PokerTableUtility.ResetPot(Data);
 			FinishStage(_matchOverStage && !GameMode.CanDealAnotherHand ? _matchOverStage : _nextStage);
-		}
-
-		private PokerPlayer FindSeatedPlayerAtSeat(int seatIndex)
-		{
-			if (seatIndex < 0) return null;
-
-			foreach (var player in GameMode.SeatedPlayers)
-			{
-				if (player && player.Data && player.Data.SeatIndex.Value == seatIndex) return player;
-			}
-
-			return null;
 		}
 	}
 }

@@ -89,6 +89,9 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		public bool IsAsked(PokerPlayer player) =>
 			player && PokerStreetStage.CanBet(player.Data) && !PokerTableUtility.HasStakedKind(Data, player.ClientId, _allInBetItemType);
 
+		// Whether folding is an answer here at all. A module can take it away, and then going all in is the only one.
+		public bool CanFold(PokerPlayerData player) => GameMode && GameMode.IsActionAllowed(player, PokerActionType.Fold);
+
 		protected override void OnTickStage(float deltaTime)
 		{
 			if (_holding)
@@ -135,6 +138,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 			var player = GameMode.FindSeatedPlayer(clientId);
 			if (!player || !_asked.Contains(player)) return false;
+			if (action == PokerActionType.Fold && !CanFold(player.Data)) return false;
 
 			_answers[clientId] = action == PokerActionType.AllIn;
 
@@ -160,8 +164,8 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			return true;
 		}
 
-		// Every answer lands at once: the caps go up and the folds go down. Not announced one by one — the
-		// notice is one replicated value, and several writes in a frame reach a client as the last of them.
+		// Every answer lands at once: the caps go up and the folds go down, and they are sealed, so none is
+		// announced. Somebody who never answered folds, unless folding was taken away, in which case they go in.
 		private void Settle()
 		{
 			_asking = false;
@@ -175,7 +179,8 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			{
 				if (!player || !player.Data) continue;
 
-				var allIn = _answers.TryGetValue(player.ClientId, out var answer) && answer && hasCap;
+				var answered = _answers.TryGetValue(player.ClientId, out var answer);
+				var allIn = (answered ? answer : !CanFold(player.Data)) && hasCap;
 
 				if (allIn)
 				{

@@ -106,8 +106,8 @@ Items affecting others notify the affected player in detail and the table in gen
   (`PokerCardPickController`, extended). Everyone else sees the focus move to them.
 - **Privately seen cards** flip face up on the viewer's screen only, until the Hand ends. Visibility
   becomes per card (today it is per whole hand) and gains per-viewer community cards.
-- **World tag row.** The hallucination tag over each head gains a bottom row of that player's cards
-  this screen knows (peeked or publicly shown). The local meter shows your own exposed cards and who
+- **World tag row.** The tag over each head gains a row of that player's cards this screen knows
+  (peeked or publicly shown), above the name. `UI_ItemsPanel` shows your own exposed cards and who
   saw them.
 - **Counts.** `UI_ItemsPanel` (bottom left, above the Helper column) shows how many Items you hold and,
   while you know it, the Suit Count. Over other heads, their count (Phase 3).
@@ -137,7 +137,30 @@ Each phase is one commit, verified in Play mode on host and client before the ne
    `PokerPotEntry`; CLAUDE.md and CONTEXT.md in the same change.
 2. **Foundation** (done) — module, inventory, deal, loser record, notice channel, ItemPicker, action hooks;
    Suit Count and Raise to prove the loop.
-3. **Targeting and exposure** — shared player/card pick, response panel, per-card visibility, tag row;
+3. **Targeting and exposure** (done) — shared player/card pick, response panel, per-card visibility, tag row;
    Peek, Scry, Show Together, Lock.
 4. **Card exchange** — slot writes, crossing flight, reveal bitmask; Swap, Board Swap, Extra Draw.
 5. **Death Roll** — Half Dose, Shared Roll, death mid-Hand.
+
+## As built (Phases 2–3)
+
+- **Requests.** A use is `PokerItemUseRequest` packed into the module command's int (item, target seat,
+  card slot, own slot). The item lists its target steps (`PokerItemTargetKind`); `PokerItemTargetingController`
+  walks them through `PokerTargetPointer`; the server re-checks with `PokerItem.IsValidRequest`, which asks
+  the same `Accepts*`.
+- **Responses.** `PokerItemModule.ServerAskForCardAsync` sets the replicated `PendingResponse` (who, for
+  whom, until when); the responder's targeting controller points at their own cards and answers through
+  `RespondWithCardRPC`; time running out (never later than the user's turn) draws at random.
+  `UI_ItemResponsePanel` shows it to everyone. Only one item resolves at a time.
+- **Exposure.** Private sight is `PokerItemKnowledge.KnownCards` (viewer) and `ExposedCards` (holder), both
+  owner-read and cleared at hand end; public is `PokerPlayerData.ShownHoleCards`. `UI_KnownCardsRow` draws
+  them above the name on the world tag (others' cards) and in `UI_ItemsPanel` (your own, with who saw them).
+- **Private notices.** `PokerNoticeKind.ItemDetail` carries the card; wording is the item's
+  `PrivateNoticeVerb` (`"SAW YOUR {0}"`).
+- **Fold locks.** Rule kinds `NoFoldSelf` (Scry, the user only, this street) and `NoFoldAllIn` (Lock with
+  `_affectsAllIn`); the all-in stage asks `CanFold`, and an unanswered player there goes all in when folding
+  is forbidden.
+- **Testing.** `PokerItemModule._startingItems` is given to every player in the match at its first deal,
+  ahead of the random draw (editor and development builds only). In Play mode the module's *Testing*
+  foldout has *Give Item*: pick an item and a target (everyone, or one seated player) and give it now,
+  through `ServerGiveItem`, which respects capacity and the mode's database.

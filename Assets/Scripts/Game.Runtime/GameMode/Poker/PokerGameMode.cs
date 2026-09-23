@@ -474,6 +474,18 @@ namespace Game.Runtime.GameMode.Poker
 			ServerApplyStartingValues(resetPlayers: false);
 		}
 
+		public PokerPlayer FindSeatedPlayerAtSeat(int seatIndex)
+		{
+			if (seatIndex < 0) return null;
+
+			foreach (var player in _seatedPlayers)
+			{
+				if (player && player.Data && player.Data.SeatIndex.Value == seatIndex) return player;
+			}
+
+			return null;
+		}
+
 		public PokerPlayer FindSeatedPlayer(ulong clientId)
 		{
 			foreach (var player in _seatedPlayers)
@@ -582,10 +594,19 @@ namespace Game.Runtime.GameMode.Poker
 			// Who the match is being played by, decided once here. Everybody in a chair right now and able to
 			// be dealt in is collected; anybody who sits down after this watches it out. The host who pressed
 			// start while unconscious is not collected either — they hold the button, not a hand.
+			// Between rounds of one match the stamps are still up; only the match reset takes them down.
+			var firstRound = true;
+			var playing = 0;
 			foreach (var player in _seatedPlayers)
 			{
-				if (player && player.Data) player.Data.InMatch.Value = CanBeDealtIn(player.Data);
+				if (!player || !player.Data) continue;
+
+				if (player.Data.InMatch.Value) firstRound = false;
+				player.Data.InMatch.Value = CanBeDealtIn(player.Data);
+				if (player.Data.InMatch.Value) playing++;
 			}
+
+			if (firstRound && _notices) _notices.ServerAnnounce(PokerNotice.ForMatchStarted(playing));
 
 			foreach (var module in _modules)
 			{

@@ -6,7 +6,13 @@ namespace Game.Runtime.GameMode.Poker.Items
 	public enum PokerItemTableRuleKind : byte
 	{
 		NoFold = 0,
-		ExtraStake = 1
+		ExtraStake = 1,
+
+		// Only the rule's source may not fold on its street.
+		NoFoldSelf = 2,
+
+		// Nobody may fold in the all-in round that follows the rule's street.
+		NoFoldAllIn = 3
 	}
 
 	// A rule an item put on the table for one street: nobody folds there, or every bet there stakes more.

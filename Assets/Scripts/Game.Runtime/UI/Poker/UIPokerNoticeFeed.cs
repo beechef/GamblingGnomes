@@ -45,10 +45,6 @@ namespace Game.Runtime.UI.Poker
 			return Instantiate(_noticePrefab, _container);
 		}
 
-		protected static string NameOf(ulong clientId)
-		{
-			var player = PokerPlayer.Find(clientId);
-			return player ? player.DisplayName : $"Player {clientId}";
-		}
+		protected static string NameOf(ulong clientId) => PokerPlayer.NameOf(clientId);
 	}
 }

@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Threading;
 using Game.Runtime.GameMode.Config;
 using Game.Runtime.GameMode.Poker.Modules;
 using Game.Runtime.GameMode.Poker.Player;
@@ -10,9 +12,9 @@ using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker.Items
 {
-	// Items at this table: dealing them at the start of each hand, deciding who may play one and when, and
-	// holding the rules they put on the table. A mode has items by listing this module and loses them by
-	// removing it; nothing in the stages knows it exists.
+	// Items at this table: dealing them at the start of each hand, deciding who may play one and when, holding
+	// the rules they put on the table, and waiting on a player an item asks to answer. A mode has items by
+	// listing this module and loses them by removing it; nothing in the stages knows it exists.
 	public class PokerItemModule : PokerModule
 	{
 		public const string UseCommand = "Item.Use";
@@ -35,10 +37,24 @@ namespace Game.Runtime.GameMode.Poker.Items
 		[MinValue(1)]
 		[SerializeField] private int _capacity = 5;
 
+		[Tooltip("Testing only: given to every player in the match at its first deal, ahead of the random draw. Ignored outside the editor and development builds.")]
+		[InfoBox("Some of these are not in the database and will not be given.", InfoMessageType.Warning, nameof(HasUndealtStartingItems))]
+		[SerializeField] private List<PokerItemType> _startingItems = new();
+
+		[FoldoutGroup("Testing"), ShowInInspector, DisableInEditorMode]
+		private PokerItemType _giveItem = PokerItemType.DeckCount;
+
+		[FoldoutGroup("Testing"), ShowInInspector, DisableInEditorMode, ValueDropdown(nameof(GiveTargets))]
+		private ulong _giveTarget = PokerGameData.NoTurn;
+
 		[Header("Use")]
 		[Tooltip("Items one player may play on a single street.")]
 		[MinValue(1)]
 		[SerializeField] private int _usesPerStreet = 1;
+
+		[Tooltip("Seconds a player an item asks to choose has to answer before the table chooses for them. Never longer than the user's turn has left.")]
+		[MinValue(1f)]
+		[SerializeField] private float _responseDuration = 10f;
 
 		// Counts every street opened this session. A rule aimed at "the next street" is aimed at this plus
 		// one, and never has to be cleared off a street that has already passed.
@@ -50,27 +66,51 @@ namespace Game.Runtime.GameMode.Poker.Items
 			NetworkVariableReadPermission.Everyone,
 			NetworkVariableWritePermission.Server);
 
+		// Who the table is waiting on to answer an item, if anybody.
+		[HideInInspector] public NetworkVariable<PokerItemResponse> PendingResponse = new(PokerItemResponse.None,
+			readPerm: NetworkVariableReadPermission.Everyone,
+			writePerm: NetworkVariableWritePermission.Server);
+
+		// Raised on every peer when the table starts or stops waiting on somebody.
+		public event Action OnPendingResponseChanged;
+
 		// Server only: who did not win the hand just settled, owed a bonus at the next deal.
 		private readonly HashSet<ulong> _previousLosers = new();
 		private readonly List<PokerItemType> _drawn = new();
 
+		// Server only: who has had the starting items this match.
+		private readonly HashSet<ulong> _startingItemsGiven = new();
+
+		// Server only: an item is being resolved, and the answer it is waiting on.
+		private bool _resolving;
+		private int _responseSlot = -1;
+
 		public PokerItemDatabase Database => _database;
 		public int Capacity => Mathf.Max(1, _capacity);
+		public float ResponseDuration => Mathf.Max(1f, _responseDuration);
 
 		public override void OnNetworkSpawn()
 		{
 			StreetSerial.OnValueChanged += HandleStreetSerialChanged;
 			TableRules.OnListChanged += HandleTableRulesChanged;
+			PendingResponse.OnValueChanged += HandlePendingResponseChanged;
 		}
 
 		public override void OnNetworkDespawn()
 		{
+			PendingResponse.OnValueChanged -= HandlePendingResponseChanged;
 			TableRules.OnListChanged -= HandleTableRulesChanged;
 			StreetSerial.OnValueChanged -= HandleStreetSerialChanged;
 		}
 
 		private void HandleStreetSerialChanged(int previous, int current) => NotifyRulesChanged();
 		private void HandleTableRulesChanged(NetworkListEvent<PokerItemTableRule> change) => NotifyRulesChanged();
+
+		private void HandlePendingResponseChanged(PokerItemResponse previous, PokerItemResponse current)
+		{
+			OnPendingResponseChanged?.Invoke();
+			NotifyRulesChanged();
+		}
 
 		private void NotifyRulesChanged()
 		{
@@ -91,16 +131,19 @@ namespace Game.Runtime.GameMode.Poker.Items
 			if (!TryGetItem(type, out var item)) return PokerItemAvailability.Hidden("This table does not deal it.");
 			if (!user || !user.ItemInventory || !user.ItemInventory.Holds(type)) return PokerItemAvailability.Hidden("Not in your hand.");
 			if (!GameMode || !GameMode.IsPlayingThisMatch(user.Data)) return PokerItemAvailability.Dimmed("You are out of this match.");
-
-			var street = GameMode.FindStage(Data.StageId.Value.ToString()) as PokerStreetStage;
-			if (!street) return PokerItemAvailability.Dimmed("Only on a betting street.");
+			if (!IsStreetCurrent) return PokerItemAvailability.Dimmed("Only on a betting street.");
 			if (Data.CurrentTurnClientId.Value != user.ClientId) return PokerItemAvailability.Dimmed("Only on your turn.");
 			if (user.ItemInventory.UsesOn(StreetSerial.Value) >= Mathf.Max(1, _usesPerStreet)) return PokerItemAvailability.Dimmed("Already played an item this street.");
+			if (PendingResponse.Value.IsPending) return PokerItemAvailability.Dimmed("Waiting on another item.");
+
+			if (item.NeedsResponse && Data.HasTurnClock && Data.TurnRemaining < ResponseDuration)
+				return PokerItemAvailability.Dimmed("Not enough time left for them to answer.");
 
 			return item.GetAvailability(ContextFor(user));
 		}
 
-		public bool IsStreetCurrent => GameMode && GameMode.FindStage(Data.StageId.Value.ToString()) is PokerStreetStage;
+		public bool IsStreetCurrent => GameMode && Data && GameMode.FindStage(Data.StageId.Value.ToString()) is PokerStreetStage;
+		private bool IsAllInCurrent => GameMode && Data && GameMode.FindStage(Data.StageId.Value.ToString()) is PokerAllInStage;
 
 		// Whether a street follows the one running now, for items aimed at the next one.
 		public bool HasNextStreet()
@@ -124,11 +167,17 @@ namespace Game.Runtime.GameMode.Poker.Items
 			});
 		}
 
-		private bool HasRule(PokerItemTableRuleKind kind, int streetSerial)
+		public void ServerTell(ulong clientId, PokerNotice notice)
+		{
+			if (GameMode && GameMode.Notices) GameMode.Notices.ServerTell(clientId, notice);
+		}
+
+		private bool HasRule(PokerItemTableRuleKind kind, int streetSerial, ulong sourceClientId = PokerGameData.NoTurn)
 		{
 			foreach (var rule in TableRules)
 			{
-				if (rule.Kind == kind && rule.StreetSerial == streetSerial) return true;
+				if (rule.Kind != kind || rule.StreetSerial != streetSerial) continue;
+				if (sourceClientId == PokerGameData.NoTurn || rule.SourceClientId == sourceClientId) return true;
 			}
 
 			return false;
@@ -147,9 +196,19 @@ namespace Game.Runtime.GameMode.Poker.Items
 
 		public override bool IsActionAllowed(PokerPlayerData player, PokerActionType action)
 		{
-			if (action != PokerActionType.Fold || !IsStreetCurrent) return true;
+			if (action != PokerActionType.Fold) return true;
 
-			return !HasRule(PokerItemTableRuleKind.NoFold, StreetSerial.Value);
+			var serial = StreetSerial.Value;
+
+			if (IsStreetCurrent)
+			{
+				if (HasRule(PokerItemTableRuleKind.NoFold, serial)) return false;
+				if (player && HasRule(PokerItemTableRuleKind.NoFoldSelf, serial, player.OwnerClientId)) return false;
+			}
+
+			if (IsAllInCurrent && HasRule(PokerItemTableRuleKind.NoFoldAllIn, serial)) return false;
+
+			return true;
 		}
 
 		public override int ModifyStakeSize(PokerStreetStage street, int stakeSize) =>
@@ -194,6 +253,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 			if (!IsServer) return;
 
 			_previousLosers.Clear();
+			_startingItemsGiven.Clear();
 
 			foreach (var player in PokerPlayer.All)
 			{
@@ -205,7 +265,8 @@ namespace Game.Runtime.GameMode.Poker.Items
 		{
 			if (commandId != UseCommand) return false;
 
-			ServerUse(clientId, (PokerItemType)payload);
+			// Left unawaited on purpose: it carries the module's own lifetime and finishes on its own.
+			_ = ServerUseAsync(clientId, PokerItemUseRequest.Unpack(payload), destroyCancellationToken);
 			return true;
 		}
 
@@ -216,6 +277,8 @@ namespace Game.Runtime.GameMode.Poker.Items
 			foreach (var player in GameMode.SeatedPlayers)
 			{
 				if (!player || !player.ItemInventory || !GameMode.IsPlayingThisMatch(player.Data)) continue;
+
+				ServerGiveStartingItems(player);
 
 				var bonus = _previousLosers.Contains(player.ClientId) ? _loserBonus : 0;
 
@@ -228,27 +291,194 @@ namespace Game.Runtime.GameMode.Poker.Items
 			_previousLosers.Clear();
 		}
 
-		private void ServerUse(ulong clientId, PokerItemType type)
+		private void ServerGiveStartingItems(PokerPlayer player)
 		{
-			var user = GameMode.FindSeatedPlayer(clientId);
-			var availability = GetAvailability(user, type);
+			if (!Debug.isDebugBuild || _startingItems.Count == 0 || !_startingItemsGiven.Add(player.ClientId)) return;
 
-			if (!availability.IsUsable)
+			foreach (var type in _startingItems) ServerGiveItem(player, type);
+		}
+
+		// Puts one item in a player's hand outside the deal. Refused past capacity or for an item this table
+		// does not deal.
+		public bool ServerGiveItem(PokerPlayer player, PokerItemType type)
+		{
+			if (!IsServer || !player || !player.ItemInventory || !TryGetItem(type, out _)) return false;
+
+			return player.ItemInventory.ServerGive(type, Capacity);
+		}
+
+		[FoldoutGroup("Testing"), Button("Give Item"), DisableInEditorMode]
+		private void GiveItemForTesting()
+		{
+			if (!IsServer)
 			{
-				Debug.LogWarning($"[{ModuleId}] {type} refused for client {clientId}: {availability.BlockReason}");
+				Debug.LogWarning($"[{ModuleId}] Give Item refused: only the server gives items.");
 				return;
 			}
 
-			TryGetItem(type, out var item);
+			foreach (var player in GameMode.SeatedPlayers)
+			{
+				if (!player || (_giveTarget != PokerGameData.NoTurn && player.ClientId != _giveTarget)) continue;
+				if (!ServerGiveItem(player, _giveItem)) Debug.LogWarning($"[{ModuleId}] Give Item: {_giveItem} refused for {player.DisplayName} (full, or not dealt here).");
+			}
+		}
 
-			user.ItemInventory.ServerTake(type);
-			user.ItemInventory.ServerRecordUse(StreetSerial.Value);
+		private IEnumerable<ValueDropdownItem<ulong>> GiveTargets()
+		{
+			yield return new ValueDropdownItem<ulong>("Everyone", PokerGameData.NoTurn);
 
-			if (item.HallucinationCost > 0) user.Data.ServerChangeHallucination(item.HallucinationCost);
+			if (!GameMode) yield break;
 
-			item.UseServer(ContextFor(user));
+			foreach (var player in GameMode.SeatedPlayers)
+			{
+				if (player) yield return new ValueDropdownItem<ulong>($"{player.DisplayName} ({player.ClientId})", player.ClientId);
+			}
+		}
 
-			if (GameMode.Notices) GameMode.Notices.ServerAnnounce(PokerNotice.ForItemUsed(clientId, type));
+		private bool HasUndealtStartingItems()
+		{
+			foreach (var type in _startingItems)
+			{
+				if (!TryGetItem(type, out _)) return true;
+			}
+
+			return false;
+		}
+
+		private async Awaitable ServerUseAsync(ulong clientId, PokerItemUseRequest request, CancellationToken ct)
+		{
+			var user = GameMode.FindSeatedPlayer(clientId);
+			var availability = GetAvailability(user, request.Item);
+
+			if (!availability.IsUsable)
+			{
+				Debug.LogWarning($"[{ModuleId}] {request.Item} refused for client {clientId}: {availability.BlockReason}");
+				return;
+			}
+
+			if (_resolving)
+			{
+				Debug.LogWarning($"[{ModuleId}] {request.Item} refused for client {clientId}: another item is still resolving.");
+				return;
+			}
+
+			TryGetItem(request.Item, out var item);
+			var context = ContextFor(user);
+
+			if (!item.IsValidRequest(context, request))
+			{
+				Debug.LogWarning($"[{ModuleId}] {request.Item} refused for client {clientId}: the target does not fit the item.");
+				return;
+			}
+
+			_resolving = true;
+
+			try
+			{
+				user.ItemInventory.ServerTake(request.Item);
+				user.ItemInventory.ServerRecordUse(StreetSerial.Value);
+
+				if (item.HallucinationCost > 0) user.Data.ServerChangeHallucination(item.HallucinationCost);
+
+				var target = GameMode.FindSeatedPlayerAtSeat(request.TargetSeat);
+				if (GameMode.Notices)
+					GameMode.Notices.ServerAnnounce(PokerNotice.ForItemUsed(clientId, request.Item, target ? target.ClientId : PokerGameData.NoTurn));
+
+				await item.UseServerAsync(context, request, ct);
+			}
+			catch (OperationCanceledException)
+			{
+			}
+			catch (Exception exception)
+			{
+				Debug.LogException(exception, this);
+			}
+			finally
+			{
+				_resolving = false;
+			}
+		}
+
+		// Asks a player to put one of their own cards forward, for an item somebody else played. Answers with the
+		// slot they chose, or one drawn from what they could have chosen once the time runs out — which is never
+		// later than the user's turn has left.
+		public async Awaitable<int> ServerAskForCardAsync(PokerItemContext context, PokerItem item, PokerPlayer responder, CancellationToken ct)
+		{
+			if (!IsServer || !responder) return -1;
+
+			var now = NetworkManager.ServerTime.Time;
+			var duration = ResponseDuration;
+			if (Data.HasTurnClock) duration = Mathf.Min(duration, Data.TurnRemaining);
+
+			_responseSlot = -1;
+			PendingResponse.Value = new PokerItemResponse
+			{
+				ResponderClientId = responder.ClientId,
+				RequesterClientId = context.User ? context.User.ClientId : PokerGameData.NoTurn,
+				Item = item.Type,
+				EndTime = now + duration,
+				Duration = duration
+			};
+
+			try
+			{
+				while (_responseSlot < 0 && NetworkManager.ServerTime.Time < PendingResponse.Value.EndTime)
+				{
+					await Awaitable.NextFrameAsync(ct);
+				}
+			}
+			finally
+			{
+				if (IsSpawned) PendingResponse.Value = PokerItemResponse.None;
+			}
+
+			if (_responseSlot >= 0) return _responseSlot;
+
+			return PickRandomSlot(responder.Data.CardCount, slot => item.AcceptsResponseCard(context, responder, slot));
+		}
+
+		[Rpc(SendTo.Server)]
+		public void RespondWithCardRPC(int slot, RpcParams rpcParams = default)
+		{
+			var sender = rpcParams.Receive.SenderClientId;
+			var pending = PendingResponse.Value;
+
+			if (!pending.IsPending || pending.ResponderClientId != sender)
+			{
+				Debug.LogWarning($"[{ModuleId}] Card answer from client {sender} refused: nobody asked them.");
+				return;
+			}
+
+			var responder = GameMode.FindSeatedPlayer(sender);
+			var requester = GameMode.FindSeatedPlayer(pending.RequesterClientId);
+
+			if (!TryGetItem(pending.Item, out var item) || !responder || !item.AcceptsResponseCard(ContextFor(requester), responder, slot))
+			{
+				Debug.LogWarning($"[{ModuleId}] Card answer from client {sender} refused: slot {slot} is not one they may put forward.");
+				return;
+			}
+
+			_responseSlot = slot;
+		}
+
+		public static int PickRandomSlot(int count, Func<int, bool> accept)
+		{
+			var valid = 0;
+			for (var slot = 0; slot < count; slot++)
+			{
+				if (accept(slot)) valid++;
+			}
+
+			if (valid == 0) return -1;
+
+			var pick = UnityEngine.Random.Range(0, valid);
+			for (var slot = 0; slot < count; slot++)
+			{
+				if (!accept(slot)) continue;
+				if (pick-- == 0) return slot;
+			}
+
+			return -1;
 		}
 
 		protected override void OnCollectConfigEntries(List<MatchConfigEntry> entries)

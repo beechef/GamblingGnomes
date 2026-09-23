@@ -17,7 +17,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 				: PokerItemAvailability.Usable;
 		}
 
-		protected override void OnUseServer(in PokerItemContext context)
+		protected override void OnUseServer(in PokerItemContext context, in PokerItemUseRequest request)
 		{
 			var deck = context.GameMode.Deck;
 
