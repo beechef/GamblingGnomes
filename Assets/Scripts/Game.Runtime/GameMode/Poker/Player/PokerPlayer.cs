@@ -17,8 +17,8 @@ namespace Game.Runtime.GameMode.Poker.Player
 		[Header("References")]
 		[SerializeField] private PokerPlayerData _data;
 		[FormerlySerializedAs("_items")]
-		[SerializeField] private PokerItemConsumeController _itemConsume;
-		[SerializeField] private PokerItemCarryController _itemCarry;
+		[SerializeField] private PokerBetItemConsumeController _betItemConsume;
+		[SerializeField] private PokerBetItemCarryController _betItemCarry;
 		[SerializeField] private PokerWinnerPoseController _winnerPose;
 		[SerializeField] private PokerHallucinationRollController _hallucinationRoll;
 
@@ -64,11 +64,11 @@ namespace Game.Runtime.GameMode.Poker.Player
 		// The record of what this player has swallowed. Its own controller rather than more verbs on the
 		// data, and named for eating rather than for items in general: a stockpile of things they can
 		// choose to use is a different question and will want a component of its own.
-		public PokerItemConsumeController ItemConsume => _itemConsume;
+		public PokerBetItemConsumeController BetItemConsume => _betItemConsume;
 
 		// Carrying a staked cap through the bet gesture. On the player because which rig is drawn, where a
 		// fist closes and which frame the hand arrives on are all this body's own business.
-		public PokerItemCarryController ItemCarry => _itemCarry;
+		public PokerBetItemCarryController BetItemCarry => _betItemCarry;
 
 		// The held celebration. Named as a pose rather than as a gesture, because it lasts as long as the
 		// round says and not as long as a clip.
@@ -126,8 +126,8 @@ namespace Game.Runtime.GameMode.Poker.Player
 		public override void OnNetworkSpawn()
 		{
 			if (!_data) _data = GetComponent<PokerPlayerData>();
-			if (!_itemConsume) _itemConsume = GetComponentInChildren<PokerItemConsumeController>(true);
-			if (!_itemCarry) _itemCarry = GetComponentInChildren<PokerItemCarryController>(true);
+			if (!_betItemConsume) _betItemConsume = GetComponentInChildren<PokerBetItemConsumeController>(true);
+			if (!_betItemCarry) _betItemCarry = GetComponentInChildren<PokerBetItemCarryController>(true);
 			if (!_winnerPose) _winnerPose = GetComponentInChildren<PokerWinnerPoseController>(true);
 			if (!_hallucinationRoll) _hallucinationRoll = GetComponentInChildren<PokerHallucinationRollController>(true);
 			if (!_identity) _identity = GetComponent<PlayerData>();

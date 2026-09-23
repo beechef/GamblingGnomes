@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Game.Runtime.GameMode.Poker.Items;
+using Game.Runtime.GameMode.Poker.BetItems;
 using Game.Runtime.GameMode.Poker.Player;
 using Game.Runtime.Player;
 using Sirenix.OdinInspector;
@@ -18,7 +18,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 	{
 		[Header("Stake")]
 		[Tooltip("What going all in puts up. Whoever has one in the pot went all in; everyone else is asked to match it with one.")]
-		[SerializeField] private PokerItemType _allInItemType = PokerItemType.Colorful;
+		[SerializeField] private PokerBetItemType _allInBetItemType = PokerBetItemType.Colorful;
 
 		[Header("Timing")]
 		[Tooltip("Seconds everybody has to answer. Anyone still silent when it runs out folds.")]
@@ -45,7 +45,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		private float _focusElapsed;
 		private int _focusIndex;
 
-		public PokerItemType AllInItemType => _allInItemType;
+		public PokerBetItemType AllInBetItemType => _allInBetItemType;
 
 		// Sealed: nobody is told who answered what until every answer lands together.
 		public override bool AnnouncesActions => false;
@@ -57,7 +57,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			_asking = false;
 			_holding = false;
 
-			if (!PokerTableUtility.HasAnyStakedKind(Data, _allInItemType))
+			if (!PokerTableUtility.HasAnyStakedKind(Data, _allInBetItemType))
 			{
 				FinishStage();
 				return;
@@ -87,7 +87,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		// Still in the hand and not the one who went all in. Asked by the bar too, so the two agree on who is
 		// being offered the choice.
 		public bool IsAsked(PokerPlayer player) =>
-			player && PokerItemWagerStage.CanWager(player.Data) && !PokerTableUtility.HasStakedKind(Data, player.ClientId, _allInItemType);
+			player && PokerStreetStage.CanBet(player.Data) && !PokerTableUtility.HasStakedKind(Data, player.ClientId, _allInBetItemType);
 
 		protected override void OnTickStage(float deltaTime)
 		{
@@ -168,8 +168,8 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			GameMode.ClearStageTimer();
 			GameMode.ServerSetFocus(PokerGameData.NoTurn);
 
-			var database = GameMode.ItemDatabase;
-			var hasCap = database && database.TryGetEntry(_allInItemType, out _);
+			var database = GameMode.BetItemDatabase;
+			var hasCap = database && database.TryGetEntry(_allInBetItemType, out _);
 
 			foreach (var player in _asked)
 			{
@@ -179,7 +179,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 				if (allIn)
 				{
-					PokerTableUtility.WagerItem(Data, player, _allInItemType);
+					PokerTableUtility.PlaceBet(Data, player, _allInBetItemType);
 					player.ActionAnimator?.ServerPlay(PlayerActionIds.Bet);
 				}
 				else

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Text;
 using Game.Runtime.GameMode.Poker;
-using Game.Runtime.GameMode.Poker.Items;
+using Game.Runtime.GameMode.Poker.BetItems;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
@@ -23,7 +23,7 @@ namespace Game.Runtime.UI.Poker
 		[Tooltip("Optional: an itemised line under the total — how many of each kind the pot holds. Empty draws nothing.")]
 		[SerializeField] private TextMeshProUGUI _breakdownLabel;
 
-		private readonly Dictionary<PokerItemType, int> _typeCounts = new();
+		private readonly Dictionary<PokerBetItemType, int> _typeCounts = new();
 		private readonly StringBuilder _breakdown = new();
 
 		private void Awake()
@@ -33,23 +33,23 @@ namespace Game.Runtime.UI.Poker
 
 		protected override void OnBind()
 		{
-			Data.OnPotItemsChanged += HandlePotItemsChanged;
+			Data.OnPotEntriesChanged += HandlePotEntriesChanged;
 
 			Refresh();
 		}
 
 		protected override void OnUnbind()
 		{
-			Data.OnPotItemsChanged -= HandlePotItemsChanged;
+			Data.OnPotEntriesChanged -= HandlePotEntriesChanged;
 
 			if (_panel) _panel.SetActive(false);
 		}
 
-		private void HandlePotItemsChanged(NetworkListEvent<PokerBetItem> changeEvent) => Refresh();
+		private void HandlePotEntriesChanged(NetworkListEvent<PokerPotEntry> changeEvent) => Refresh();
 
 		private void Refresh()
 		{
-			var pot = Data.PotItems.Count;
+			var pot = Data.PotEntries.Count;
 			var visible = pot > 0;
 
 			if (_panel && _panel.activeSelf != visible) _panel.SetActive(visible);
@@ -62,17 +62,17 @@ namespace Game.Runtime.UI.Poker
 		// One line, database order, plain chips left unsaid: "3× Đỏ  1× Xanh" is what is on the table.
 		private string BuildBreakdown()
 		{
-			var database = GameMode.ItemDatabase;
+			var database = GameMode.BetItemDatabase;
 			if (!database) return string.Empty;
 
 			_typeCounts.Clear();
 
-			foreach (var item in Data.PotItems)
+			foreach (var item in Data.PotEntries)
 			{
-				if (item.ItemType == PokerItemDatabase.PlainChip) continue;
+				if (item.BetItemType == PokerBetItemDatabase.PlainChip) continue;
 
-				_typeCounts.TryGetValue(item.ItemType, out var count);
-				_typeCounts[item.ItemType] = count + 1;
+				_typeCounts.TryGetValue(item.BetItemType, out var count);
+				_typeCounts[item.BetItemType] = count + 1;
 			}
 
 			if (_typeCounts.Count == 0) return string.Empty;

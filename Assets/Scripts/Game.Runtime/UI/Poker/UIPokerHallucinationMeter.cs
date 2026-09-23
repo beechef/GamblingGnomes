@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using DG.Tweening;
 using Game.Runtime.GameMode.Poker;
 using Game.Runtime.GameMode.Poker.Hallucination;
-using Game.Runtime.GameMode.Poker.Items;
+using Game.Runtime.GameMode.Poker.BetItems;
 using Game.Runtime.GameMode.Poker.Player;
 using Unity.Netcode;
 using UnityEngine;
@@ -73,7 +73,7 @@ namespace Game.Runtime.UI.Poker
 
 		private PokerPlayer _player;
 		private PokerPlayerData _data;
-		private PokerItemConsumeController _consume;
+		private PokerBetItemConsumeController _consume;
 		private PokerHallucinationRollController _roll;
 
 		private Tween _fillTween;
@@ -100,7 +100,7 @@ namespace Game.Runtime.UI.Poker
 			if (!_player) return;
 
 			_data = _player.Data;
-			_consume = _player.ItemConsume;
+			_consume = _player.BetItemConsume;
 			_roll = _player.HallucinationRoll;
 
 			if (_data) _data.OnHallucinationChanged += HandleHallucinationChanged;
@@ -218,8 +218,8 @@ namespace Game.Runtime.UI.Poker
 			}
 		}
 
-		private void HandleConsumedChanged(NetworkListEvent<PokerItemUnit> change) =>
-			RefreshEaten(change.Type == NetworkListEvent<PokerItemUnit>.EventType.Add);
+		private void HandleConsumedChanged(NetworkListEvent<PokerBetItemUnit> change) =>
+			RefreshEaten(change.Type == NetworkListEvent<PokerBetItemUnit>.EventType.Add);
 
 		// Views already made are re-bound in order rather than destroyed and made again, so the row never
 		// draws the old set under the new one for a frame.
@@ -255,10 +255,10 @@ namespace Game.Runtime.UI.Poker
 		}
 
 		// Asked of the running mode, since each mode brings its own database.
-		private static Sprite IconFor(PokerItemType itemType)
+		private static Sprite IconFor(PokerBetItemType itemType)
 		{
 			var mode = PokerGameMode.Instance;
-			var database = mode ? mode.ItemDatabase : null;
+			var database = mode ? mode.BetItemDatabase : null;
 
 			return database && database.TryGetEntry(itemType, out var entry) ? entry.Icon : null;
 		}

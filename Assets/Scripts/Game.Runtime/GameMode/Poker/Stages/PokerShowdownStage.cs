@@ -28,9 +28,9 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		[Tooltip("Who ends up holding which caps once the hand is decided.")]
 		[SerializeField] private PokerSettlement _settlement = PokerSettlement.SwapToLosers;
 
-		[Tooltip("Which wager a folder is made to eat their own copy of. The first, by the design — folding after seeing three cards still costs what was put up before them.")]
+		[Tooltip("Which street a folder is made to eat their own copy of. The first, by the design — folding after seeing three cards still costs what was put up before them.")]
 		[ShowIf(nameof(_settlement), PokerSettlement.SwapToLosers)]
-		[SerializeField] private PokerPhase _foldPhase = PokerPhase.FirstWager;
+		[SerializeField] private PokerPhase _foldPhase = PokerPhase.FirstStreet;
 
 		[Tooltip("Off, a hand won because everybody else folded stays face down: nobody paid to see it. On, it is turned over and named like any other.")]
 		[SerializeField] private bool _revealUncontested = true;
@@ -98,7 +98,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			if (winner) winner.ActionAnimator?.ServerPlay(PlayerActionIds.Laugh);
 
 			if (_settlement == PokerSettlement.OwnStake) PokerTableUtility.DiscardStakesOf(Data, _winners);
-			else PokerTableUtility.SwapPotToLosers(Data, winner, GameMode.SeatedPlayers, GameMode.ItemDatabase, _foldPhase);
+			else PokerTableUtility.SwapPotToLosers(Data, winner, GameMode.SeatedPlayers, GameMode.BetItemDatabase, _foldPhase);
 
 			PublishRanking();
 

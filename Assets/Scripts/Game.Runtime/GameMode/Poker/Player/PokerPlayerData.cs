@@ -42,7 +42,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 		// Whether this body was collected into the match that is running. Stamped when the match begins and
 		// false for anybody who sat down after — a chair arriving mid-match is a seat in the room, not a
-		// place in the game, so they wager nothing, are dealt nothing and cannot be fed. Replicated because
+		// place in the game, so they bet nothing, are dealt nothing and cannot be fed. Replicated because
 		// every view drawing them has to know which of the two they are.
 		//
 		// Its own value rather than read off Status: a mid-match arrival is Waiting, and so is everybody

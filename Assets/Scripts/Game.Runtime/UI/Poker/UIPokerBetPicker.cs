@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Game.Runtime.GameMode.Poker;
-using Game.Runtime.GameMode.Poker.Items;
+using Game.Runtime.GameMode.Poker.BetItems;
 using Game.Runtime.GameMode.Poker.Player;
 using Game.Runtime.GameMode.Poker.Stages;
 using Game.Runtime.UI.Button;
@@ -12,18 +12,18 @@ using UnityEngine;
 namespace Game.Runtime.UI.Poker
 {
 	// Which mushroom to put up, asked after the player has said they are betting. One button per kind that
-	// may be wagered, built from the table's database so a new kind is a row in an asset; the number above
+	// may be staked, built from the table's database so a new kind is a row in an asset; the number above
 	// is what the kind currently marked would cost *this* player, asked of the kind's own effect — the same
 	// call the eating beat prices it with, so the picker can never quote a different price from the one
 	// charged.
 	//
 	// Marking and choosing are the selection group's: a mouse marks what it hovers and clicks, a pad walks
-	// the row with the d-pad or stick and submits. Opened and closed by the wager bar, which owns the turn.
+	// the row with the d-pad or stick and submits. Opened and closed by the bet bar, which owns the turn.
 	// Escape (and the pad's pause) steps back to the menu through UIEscapeStack rather than a key of its own.
 	public class UIPokerBetPicker : MonoBehaviour
 	{
 		[Header("Kinds")]
-		[Tooltip("One kind, instantiated per wagerable entry under the row (UI_PokerBetKind).")]
+		[Tooltip("One kind, instantiated per bettable entry under the row (UI_PokerBetKind).")]
 		[SerializeField] private UIPokerBetKindButton _kindPrefab;
 
 		[Tooltip("Auto-layout row the kinds are laid out in.")]
@@ -46,7 +46,7 @@ namespace Game.Runtime.UI.Poker
 
 		private PokerGameMode _gameMode;
 		private PokerPlayer _player;
-		private PokerItemWagerStage _stage;
+		private PokerStreetStage _stage;
 		private Action _back;
 
 		private void Awake()
@@ -78,7 +78,7 @@ namespace Game.Runtime.UI.Poker
 
 		private void OnDestroy() => Close();
 
-		public void Open(PokerGameMode gameMode, PokerPlayer player, PokerItemWagerStage stage, Action back)
+		public void Open(PokerGameMode gameMode, PokerPlayer player, PokerStreetStage stage, Action back)
 		{
 			_gameMode = gameMode;
 			_player = player;
@@ -108,7 +108,7 @@ namespace Game.Runtime.UI.Poker
 		// fresh row under the pointer.
 		private void BuildKinds()
 		{
-			var database = _gameMode ? _gameMode.ItemDatabase : null;
+			var database = _gameMode ? _gameMode.BetItemDatabase : null;
 			if (!database || !_kindPrefab || !_kindRow) return;
 
 			var used = 0;
@@ -116,8 +116,8 @@ namespace Game.Runtime.UI.Poker
 
 			foreach (var entry in database.Entries)
 			{
-				// A kind the rules never let anybody wager is not drawn at all.
-				if (entry == null || !entry.Wagerable) continue;
+				// A kind the rules never let anybody bet is not drawn at all.
+				if (entry == null || !entry.Bettable) continue;
 
 				if (used == _kinds.Count) _kinds.Add(Instantiate(_kindPrefab, _kindRow));
 
@@ -139,7 +139,7 @@ namespace Game.Runtime.UI.Poker
 		{
 			foreach (var kind in _kinds)
 			{
-				if (kind.gameObject.activeSelf) kind.IsInteractable = _stage && _stage.IsWagerable((int)kind.ItemType);
+				if (kind.gameObject.activeSelf) kind.IsInteractable = _stage && _stage.IsBettable((int)kind.BetItemType);
 			}
 		}
 
@@ -148,18 +148,18 @@ namespace Game.Runtime.UI.Poker
 		private void RefreshCost(UISelectionItem item)
 		{
 			var kind = KindOf(item);
-			var database = _gameMode ? _gameMode.ItemDatabase : null;
+			var database = _gameMode ? _gameMode.BetItemDatabase : null;
 
 			if (_chooseButton) _chooseButton.IsInteractable = kind && kind.IsInteractable;
 
 			if (!kind || !_costLabel || !_player || !database
-				|| !database.TryGetEntry(kind.ItemType, out var entry) || !entry.Effect)
+				|| !database.TryGetEntry(kind.BetItemType, out var entry) || !entry.Effect)
 			{
 				SetCostVisible(false);
 				return;
 			}
 
-			_costLabel.text = entry.Effect.PreviewHallucinationGain(_gameMode, _player, kind.ItemType).ToString();
+			_costLabel.text = entry.Effect.PreviewHallucinationGain(_gameMode, _player, kind.BetItemType).ToString();
 			SetCostVisible(true);
 		}
 
@@ -171,9 +171,9 @@ namespace Game.Runtime.UI.Poker
 		private void HandleSubmitted(UISelectionItem item)
 		{
 			var kind = KindOf(item);
-			if (!kind || !_gameMode || !_stage || !_stage.IsWagerable((int)kind.ItemType)) return;
+			if (!kind || !_gameMode || !_stage || !_stage.IsBettable((int)kind.BetItemType)) return;
 
-			_gameMode.SubmitActionRPC(PokerActionType.Wager, (int)kind.ItemType);
+			_gameMode.SubmitActionRPC(PokerActionType.Bet, (int)kind.BetItemType);
 		}
 
 		private UIPokerBetKindButton KindOf(UISelectionItem item)

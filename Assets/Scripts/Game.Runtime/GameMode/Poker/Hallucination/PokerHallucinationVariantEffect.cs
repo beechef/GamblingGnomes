@@ -8,7 +8,7 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 	// one effect aimed at the staked caps makes every kind of mushroom smile in its own way — where a
 	// prefab swap would have to name one model and would be wrong for the next kind somebody authors.
 	//
-	// The target is also what says when the set moved: caps are spawned as they are wagered and destroyed
+	// The target is also what says when the set moved: caps are spawned as they are staked and destroyed
 	// when the pot clears, so this re-scans on that event rather than resolving once.
 	[CreateAssetMenu(fileName = "Hallucination_Variant", menuName = "Game/Poker/Hallucination/Variant")]
 	public class PokerHallucinationVariantEffect : PokerHallucinationEffect

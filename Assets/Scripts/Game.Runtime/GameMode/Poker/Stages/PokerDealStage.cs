@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Game.Runtime.GameMode.Poker.Items;
+using Game.Runtime.GameMode.Poker.BetItems;
 using Game.Runtime.Player;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -28,7 +28,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		[Header("Stake")]
 		[Tooltip("Caps every player dealt in puts up before anybody acts, each of a kind drawn at random. Zero plays without an ante.")]
 		[MinValue(0)]
-		[SerializeField] private int _anteItems;
+		[SerializeField] private int _anteSize;
 
 		[Header("Timing")]
 		[Tooltip("How long the deal takes to land. The deck's animation reads the same asset, so the stage waits exactly as long as the cards are in the air, plus a rest.")]
@@ -137,17 +137,17 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 		private void PostAnte()
 		{
-			if (_anteItems <= 0) return;
+			if (_anteSize <= 0) return;
 
-			var database = GameMode.ItemDatabase;
+			var database = GameMode.BetItemDatabase;
 
 			foreach (var player in GameMode.SeatedPlayers)
 			{
 				if (!player || !player.Data.IsInHand) continue;
 
-				for (var i = 0; i < _anteItems; i++)
+				for (var i = 0; i < _anteSize; i++)
 				{
-					PokerTableUtility.WagerItem(Data, player, database ? database.DrawItemType() : PokerItemDatabase.PlainChip);
+					PokerTableUtility.PlaceBet(Data, player, database ? database.DrawBetItemType() : PokerBetItemDatabase.PlainChip);
 				}
 			}
 		}

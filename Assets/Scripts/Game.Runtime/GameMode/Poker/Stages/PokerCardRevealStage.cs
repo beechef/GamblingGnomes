@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker.Stages
 {
-	// Cards down, faces up, everybody at once. The wagering is over and there is nothing left to hide, so
+	// Cards down, faces up, everybody at once. The betting is over and there is nothing left to hide, so
 	// every hand still in it goes onto the table for the whole room to read — this is the beat the round
 	// has been building to, and it is a stage rather than a line inside the showdown because the table
 	// needs a moment to look before anybody is told who won.

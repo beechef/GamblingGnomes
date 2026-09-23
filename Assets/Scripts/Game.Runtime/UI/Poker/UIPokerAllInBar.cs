@@ -12,7 +12,7 @@ namespace Game.Runtime.UI.Poker
 	// The clock is the table's stage clock, drawn by the turn panel like any other.
 	//
 	// Stays on an object that is always active and switches only its panel, through the same panel group the
-	// wager bar uses, so it pops in and fades out the same way.
+	// bet bar uses, so it pops in and fades out the same way.
 	public class UIPokerAllInBar : UIPokerView
 	{
 		[SerializeField] private UIPanelStateGroup _panels;
@@ -30,7 +30,7 @@ namespace Game.Runtime.UI.Poker
 
 			Data.StageId.OnValueChanged += HandleStageChanged;
 			Data.Phase.OnValueChanged += HandlePhaseChanged;
-			Data.OnPotItemsChanged += HandlePotItemsChanged;
+			Data.OnPotEntriesChanged += HandlePotEntriesChanged;
 			LocalData.OnStateChanged += Refresh;
 
 			_answered = false;
@@ -40,7 +40,7 @@ namespace Game.Runtime.UI.Poker
 		protected override void OnUnbind()
 		{
 			LocalData.OnStateChanged -= Refresh;
-			Data.OnPotItemsChanged -= HandlePotItemsChanged;
+			Data.OnPotEntriesChanged -= HandlePotEntriesChanged;
 			Data.Phase.OnValueChanged -= HandlePhaseChanged;
 			Data.StageId.OnValueChanged -= HandleStageChanged;
 
@@ -58,7 +58,7 @@ namespace Game.Runtime.UI.Poker
 		}
 
 		private void HandlePhaseChanged(PokerPhase previous, PokerPhase current) => Refresh();
-		private void HandlePotItemsChanged(NetworkListEvent<PokerBetItem> change) => Refresh();
+		private void HandlePotEntriesChanged(NetworkListEvent<PokerPotEntry> change) => Refresh();
 
 		private void Refresh()
 		{

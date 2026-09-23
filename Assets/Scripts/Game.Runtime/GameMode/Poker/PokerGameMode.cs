@@ -24,8 +24,8 @@ namespace Game.Runtime.GameMode.Poker
 		[Range(1, 8)]
 		[SerializeField] private int _startingHealth = 8;
 
-		[Tooltip("The kinds of cap this table is played with: what the wager bar offers, what a timeout wagers and what the settlement hands round.")]
-		[SerializeField] private Items.PokerItemDatabase _itemDatabase;
+		[Tooltip("The kinds of cap this table is played with: what the bet bar offers, what a timeout bets and what the settlement hands round.")]
+		[SerializeField] private BetItems.PokerBetItemDatabase _betItemDatabase;
 
 		[Header("Stages")]
 		[Tooltip("The round loop as a preset. Swap this asset to change the game — modules still add to it, and a stage can be queued ahead of the loop at runtime by InsertStage.")]
@@ -58,7 +58,7 @@ namespace Game.Runtime.GameMode.Poker
 
 		public PokerGameData Data => _data;
 		public MatchConfigData ConfigData => _configData;
-		public Items.PokerItemDatabase ItemDatabase => _itemDatabase;
+		public BetItems.PokerBetItemDatabase BetItemDatabase => _betItemDatabase;
 		public PokerRuleSettings Rules => _rules;
 		public PokerStageSequence Sequence => _sequence;
 		public PokerDeck Deck { get; } = new();
@@ -296,7 +296,7 @@ namespace Game.Runtime.GameMode.Poker
 		public bool CanBeDealtIn(PokerPlayerData data) => data && data.IsAlive;
 
 		// A place in the match, as opposed to a chair in the room. Everything the round *does* to a player
-		// asks this — dealing to them, letting them wager, feeding them a cap — so somebody who sat down
+		// asks this — dealing to them, letting them bet, feeding them a cap — so somebody who sat down
 		// halfway through watches the rest of it out rather than being collected into a game that was
 		// already scored around them.
 		//
@@ -496,7 +496,7 @@ namespace Game.Runtime.GameMode.Poker
 					// The record of what they have already swallowed belongs to the match too, and it lives on
 					// its own controller — reaching across from the data class to clear it would be a second
 					// place to keep in step.
-					if (player.ItemConsume) player.ItemConsume.ServerResetForMatch();
+					if (player.BetItemConsume) player.BetItemConsume.ServerResetForMatch();
 				}
 			}
 		}
@@ -583,7 +583,7 @@ namespace Game.Runtime.GameMode.Poker
 				if (!player) continue;
 
 				if (player.Data) player.Data.ServerResetForMatch();
-				if (player.ItemConsume) player.ItemConsume.ServerResetForMatch();
+				if (player.BetItemConsume) player.BetItemConsume.ServerResetForMatch();
 			}
 		}
 

@@ -17,9 +17,9 @@ namespace Game.Runtime.GameMode.Poker
 		[HideInInspector] public NetworkVariable<FixedString32Bytes> StageId = new(default,
 			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
 
-		// The pot: one entry per cap on the table, stamped with who it stands in front of, on which wager it
+		// The pot: one entry per cap on the table, stamped with who it stands in front of, on which street it
 		// went up and what kind it is. Only PokerTableUtility writes it.
-		public readonly NetworkList<PokerBetItem> PotItems = new(null,
+		public readonly NetworkList<PokerPotEntry> PotEntries = new(null,
 			NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
 		// How many chairs this table is laid with. Replicated rather than each client reading the lobby
@@ -93,7 +93,7 @@ namespace Game.Runtime.GameMode.Poker
 
 		// The change travels with the event, so a view can animate the one cap that arrived rather than
 		// rebuilding a pile that is mid flight.
-		public event Action<NetworkListEvent<PokerBetItem>> OnPotItemsChanged;
+		public event Action<NetworkListEvent<PokerPotEntry>> OnPotEntriesChanged;
 
 		public bool HasTurn => CurrentTurnClientId.Value != NoTurn;
 
@@ -132,7 +132,7 @@ namespace Game.Runtime.GameMode.Poker
 		public override void OnNetworkSpawn()
 		{
 			Showdown.OnListChanged += HandleShowdownChanged;
-			PotItems.OnListChanged += HandlePotItemsChanged;
+			PotEntries.OnListChanged += HandlePotEntriesChanged;
 			CommunityCards.OnListChanged += HandleCommunityCardsChanged;
 			RevealedCommunityCards.OnValueChanged += HandleCommunityRevealChanged;
 		}
@@ -141,13 +141,13 @@ namespace Game.Runtime.GameMode.Poker
 		{
 			RevealedCommunityCards.OnValueChanged -= HandleCommunityRevealChanged;
 			CommunityCards.OnListChanged -= HandleCommunityCardsChanged;
-			PotItems.OnListChanged -= HandlePotItemsChanged;
+			PotEntries.OnListChanged -= HandlePotEntriesChanged;
 			Showdown.OnListChanged -= HandleShowdownChanged;
 		}
 
 		private void HandleCommunityCardsChanged(NetworkListEvent<CardData> changeEvent) => OnCommunityCardsChanged?.Invoke(changeEvent);
 		private void HandleCommunityRevealChanged(int previous, int current) => OnCommunityRevealChanged?.Invoke();
-		private void HandlePotItemsChanged(NetworkListEvent<PokerBetItem> changeEvent) => OnPotItemsChanged?.Invoke(changeEvent);
+		private void HandlePotEntriesChanged(NetworkListEvent<PokerPotEntry> changeEvent) => OnPotEntriesChanged?.Invoke(changeEvent);
 		private void HandleShowdownChanged(NetworkListEvent<PokerShowdownEntry> changeEvent) => OnShowdownChanged?.Invoke();
 	}
 }
