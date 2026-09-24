@@ -21,8 +21,8 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		[SerializeField] private PokerBetItemType _allInBetItemType = PokerBetItemType.Colorful;
 
 		[Header("Timing")]
-		[Tooltip("Seconds everybody has to answer. Anyone still silent when it runs out folds.")]
-		[MinValue(1f)]
+		[Tooltip("Seconds everybody has to answer; anyone still silent when it runs out folds, or goes all in where folding is refused. 0 waits for every answer however long it takes.")]
+		[MinValue(0f)]
 		[SerializeField] private float _duration = 10f;
 
 		[Tooltip("Seconds the table looks at the answers and the board turned over before the hands are shown.")]
@@ -78,11 +78,14 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			}
 
 			_asking = true;
-			GameMode.BeginStageTimer(_duration);
+			if (IsTimed) GameMode.BeginStageTimer(_duration);
+			else GameMode.ClearStageTimer();
 
 			_focusIndex = -1;
 			FocusNext();
 		}
+
+		private bool IsTimed => _duration > 0f;
 
 		// Still in the hand and not the one who went all in. Asked by the bar too, so the two agree on who is
 		// being offered the choice.
@@ -102,7 +105,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 			if (!_asking) return;
 
-			if (GameMode.IsStageTimerExpired())
+			if (IsTimed && GameMode.IsStageTimerExpired())
 			{
 				Settle();
 				return;

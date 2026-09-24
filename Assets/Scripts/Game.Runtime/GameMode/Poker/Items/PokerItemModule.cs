@@ -250,7 +250,35 @@ namespace Game.Runtime.GameMode.Poker.Items
 			foreach (var player in PokerPlayer.All)
 			{
 				if (player && player.ItemInventory) player.ItemInventory.ServerResetStreetUses();
+				if (player && player.Data) ServerHideExpiredCards(player);
 			}
+		}
+
+		// Shown to the whole table for `streets` streets, starting with this one.
+		public void ServerShowCard(PokerPlayer player, int slot, int streets)
+		{
+			if (!IsServer || !player || !player.Data) return;
+
+			player.Data.ServerShowHoleCard(slot);
+			ServerAddRule(PokerItemTableRuleKind.ShowCard, StreetSerial.Value, slot, player.ClientId, streets);
+		}
+
+		private void ServerHideExpiredCards(PokerPlayer player)
+		{
+			for (var slot = 0; slot < player.Data.CardCount; slot++)
+			{
+				if (player.Data.IsHoleCardShown(slot) && !IsCardShownOn(player.ClientId, slot, StreetSerial.Value)) player.Data.ServerHideHoleCard(slot);
+			}
+		}
+
+		private bool IsCardShownOn(ulong clientId, int slot, int streetSerial)
+		{
+			foreach (var rule in TableRules)
+			{
+				if (rule.Kind == PokerItemTableRuleKind.ShowCard && rule.SourceClientId == clientId && rule.Amount == slot && rule.Covers(streetSerial)) return true;
+			}
+
+			return false;
 		}
 
 		// After the cards, before the first street: the hand is dealt, and so are the items to play it with.
