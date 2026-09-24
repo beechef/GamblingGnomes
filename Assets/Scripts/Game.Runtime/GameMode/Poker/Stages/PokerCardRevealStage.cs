@@ -19,9 +19,15 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		[MinValue(0f)]
 		[SerializeField] private float _duration = 3f;
 
+		[Header("Board")]
+		[Tooltip("On, every community card still face down turns over with the hands, for a round whose streets never turned them (Indian Poker).")]
+		[SerializeField] private bool _revealBoard;
+
 		protected override void OnStartStage()
 		{
 			GameMode.ClearTurn();
+
+			if (_revealBoard) GameMode.ServerRevealAllCommunityCards();
 
 			foreach (var player in GameMode.SeatedPlayers)
 			{

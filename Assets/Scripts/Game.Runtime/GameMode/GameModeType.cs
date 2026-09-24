@@ -4,6 +4,8 @@ namespace Game.Runtime.GameMode
 	public enum GameModeType
 	{
 		Poker = 1,
-		PokerLiar = 2
+		PokerLiar = 2,
+		PokerIndian = 3,
+		PokerIndianNoBoard = 4
 	}
 }

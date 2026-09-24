@@ -62,7 +62,7 @@ afford it).
 | Asset | Name | Effect | Modes |
 |---|---|---|---|
 | `PokerItem_PeekHand` | Peek | See one card of a chosen player. That player is told which card. Choice: target's card = Chosen. | both |
-| `PokerItem_PeekBoard` | Scry | See one unrevealed community card; you cannot Fold on the next Street (`_noFoldStreets` streets from there, default 1); hidden on the last Street. Choice: slot = Random. | Liar |
+| `PokerItem_PeekBoard` | Scry | See one unrevealed community card; you cannot Fold on the Street you play it on. Choice: slot = Random. | Liar |
 | `PokerItem_MutualReveal` | Show Together | You and a chosen player each turn one held card face up for the whole table until the Hand ends. Unlooked cards (Normal) may be chosen. Choices: own = Chosen, target's = Chosen by the target. | both |
 | `PokerItem_DeckCount` | Suit Count | See how many cards of each suit remain in the undealt deck (snapshot, shown until the Hand ends). | both |
 | `PokerItem_SwapHand` | Swap | Exchange one card with a chosen player. Choices: own = Random, target's = Chosen by the target. Both cards land face up to their new owner and count as looked at. | both |
@@ -162,7 +162,7 @@ Each phase is one commit, verified in Play mode on host and client before the ne
   them above the name on the world tag (others' cards) and in `UI_ItemsPanel` (your own, with who saw them).
 - **Private notices.** `PokerNoticeKind.ItemDetail` carries the card; wording is the item's
   `PrivateNoticeVerb` (`"SAW YOUR {0}"`).
-- **Fold locks.** Rule kinds `NoFoldSelf` (Scry, the user only, from the next street) and `NoFoldAllIn` (Lock with
+- **Fold locks.** Rule kinds `NoFoldSelf` (Scry, the user only, on the street it is played) and `NoFoldAllIn` (Lock with
   `_affectsAllIn`); the all-in stage asks `CanFold`, and an unanswered player there goes all in when folding
   is forbidden.
 - **Testing.** `PokerItemModule._startingItems` is given to every player in the match at its first deal,

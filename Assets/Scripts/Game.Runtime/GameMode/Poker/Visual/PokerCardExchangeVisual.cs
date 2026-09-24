@@ -91,8 +91,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			};
 
 			landing.Flight = DOTween.Sequence()
-				.Join(PokerCardVisual.ArcTween(stand.transform, to.transform, Vector3.zero, Quaternion.identity, pacing.FlightDuration, pacing.Ease, arc))
-				.Join(stand.transform.DOScale(to.transform.lossyScale, pacing.FlightDuration).SetEase(pacing.Ease))
+				.Join(PokerCardVisual.ArcTween(stand.transform, to.transform, Vector3.zero, Quaternion.identity, Vector3.one, pacing.FlightDuration, pacing.Ease, arc))
 				.OnComplete(() => Land(landing, pacing))
 				.SetLink(stand.gameObject);
 

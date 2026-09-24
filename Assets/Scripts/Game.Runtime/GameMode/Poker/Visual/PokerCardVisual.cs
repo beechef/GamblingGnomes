@@ -106,15 +106,21 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			}
 		}
 
+		private static float InCarrier(float world, float carrier) => Mathf.Approximately(carrier, 0f) ? world : world / carrier;
+
 		private static float InParentUnits(float world, float lossy, float local)
 			=> Mathf.Approximately(lossy, 0f) ? world : world * local / lossy;
 
 		private Transform FlipRoot => _flipRoot ? _flipRoot : transform;
 
+		// The scale the prefab authors the card at, relative to whichever group holds it.
+		public Vector3 RestScale { get; private set; } = Vector3.one;
+
 		private void Awake()
 		{
 			if (!_meshFilter && _renderer) _meshFilter = _renderer.GetComponent<MeshFilter>();
 			if (_meshFilter) _baseMesh = _meshFilter.sharedMesh;
+			RestScale = transform.localScale;
 		}
 
 		private void OnDestroy()
@@ -132,6 +138,12 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			if (!deck) return;
 
 			transform.SetPositionAndRotation(deck.position, deck.rotation);
+
+			// Its own size on the deck, whatever the group it was spawned under draws it at; the flight resizes it.
+			var size = RestScale;
+			var carrier = transform.parent ? transform.parent.lossyScale : Vector3.one;
+			transform.localScale = new Vector3(InCarrier(size.x, carrier.x), InCarrier(size.y, carrier.y), InCarrier(size.z, carrier.z));
+
 			_departAt = Time.time + Mathf.Max(0f, delay);
 			_deal = deal;
 		}
@@ -166,8 +178,8 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			// The deal's travel when there is one, the card's own arc otherwise. Wrapped in a sequence of the
 			// card's rather than given a callback of its own, so a deal is free to hang its own on it.
 			var travel = _deal
-				? _deal.Travel(transform, parent, localPosition, localRotation)
-				: ArcTween(transform, parent, localPosition, localRotation, _moveDuration, _moveEase, _moveArc);
+				? _deal.Travel(transform, parent, localPosition, localRotation, RestScale)
+				: ArcTween(transform, parent, localPosition, localRotation, RestScale, _moveDuration, _moveEase, _moveArc);
 
 			var sequence = DOTween.Sequence().AppendInterval(wait).Append(travel);
 
@@ -195,8 +207,10 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		{
 			if (transform.parent != parent) transform.SetParent(parent, true);
 
-			transform.localPosition = localPosition;
-			transform.localRotation = localRotation;
+			// The group's scale is the card's: a card kept at its old world size would ignore an anchor drawn
+			// larger, and would not follow a bone the anchor hangs off when that bone is scaled.
+			transform.SetLocalPositionAndRotation(localPosition, localRotation);
+			transform.localScale = RestScale;
 		}
 
 		// From wherever the card is when it sets off to the given pose in `parent`'s space, in world space and
@@ -205,12 +219,13 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		// on the first one, because a card waiting in a hand to be put down moves with it until it leaves.
 		// Nothing is reparented here; the card takes its parent when it lands. Public so a deal can throw a
 		// card the same way with numbers of its own.
-		public static Tween ArcTween(Transform card, Transform parent, Vector3 localPosition, Quaternion localRotation,
+		public static Tween ArcTween(Transform card, Transform parent, Vector3 localPosition, Quaternion localRotation, Vector3 localScale,
 			float duration, Ease ease, float arc)
 		{
 			var started = false;
 			var fromPosition = Vector3.zero;
 			var fromRotation = Quaternion.identity;
+			var fromScale = Vector3.one;
 
 			return DOVirtual.Float(0f, 1f, duration, t =>
 				{
@@ -221,14 +236,22 @@ namespace Game.Runtime.GameMode.Poker.Visual
 						started = true;
 						fromPosition = card.position;
 						fromRotation = card.rotation;
+						fromScale = card.lossyScale;
 					}
 
 					var toPosition = parent ? parent.TransformPoint(localPosition) : localPosition;
 					var toRotation = parent ? parent.rotation * localRotation : localRotation;
+					var toScale = parent ? Vector3.Scale(parent.lossyScale, localScale) : localScale;
 
 					card.SetPositionAndRotation(
 						Vector3.Lerp(fromPosition, toPosition, t) + Vector3.up * (arc * Mathf.Sin(t * Mathf.PI)),
 						Quaternion.Slerp(fromRotation, toRotation, t));
+
+					// Grows or shrinks on the way to the size its new group draws it at, written as a world size
+					// because the card is still under the parent it is leaving.
+					var carrier = card.parent ? card.parent.lossyScale : Vector3.one;
+					var scale = Vector3.Lerp(fromScale, toScale, t);
+					card.localScale = new Vector3(InCarrier(scale.x, carrier.x), InCarrier(scale.y, carrier.y), InCarrier(scale.z, carrier.z));
 				})
 				.SetEase(ease);
 		}

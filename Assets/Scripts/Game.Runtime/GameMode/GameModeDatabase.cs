@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Sirenix.OdinInspector;
+using Unity.Netcode;
 using UnityEngine;
 
 namespace Game.Runtime.GameMode
@@ -22,6 +23,9 @@ namespace Game.Runtime.GameMode
 
 			[Tooltip("Mode prefab the room screen reads match settings from before any scene is loaded. Left empty, the mode simply offers none.")]
 			public GameObject ModePrefab;
+
+			[Tooltip("Body every player is spawned as in this mode. Left empty, PlayerManager's own prefab.")]
+			public NetworkObject PlayerPrefab;
 
 			private bool IsSceneMissing => !string.IsNullOrEmpty(SceneName) && !BuildSettingsScenes.Contains(SceneName);
 

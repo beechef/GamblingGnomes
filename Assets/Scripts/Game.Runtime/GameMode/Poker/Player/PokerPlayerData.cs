@@ -86,6 +86,12 @@ namespace Game.Runtime.GameMode.Poker.Player
 			readPerm: NetworkVariableReadPermission.Everyone,
 			writePerm: NetworkVariableWritePermission.Server);
 
+		// A hand worn facing out (Indian Poker): everybody else reads it and its holder never does, until it is
+		// shown. Stamped by the deal before the cards, like the look limit.
+		[HideInInspector] public NetworkVariable<bool> HiddenFromHolder = new(false,
+			readPerm: NetworkVariableReadPermission.Everyone,
+			writePerm: NetworkVariableWritePermission.Server);
+
 		// Read by everyone the way the wireframe shows it over a head: how hurt somebody is, is table
 		// information. Nothing damages it yet — abilities will, through ServerChangeHealth, so every
 		// future source of harm goes through the same clamp.
@@ -205,6 +211,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			// A mucked hand stays on the table face down for everyone, its holder included.
 			if (IsFolded) return false;
 			if (HandRevealed.Value || IsHoleCardShown(slot) || IsHoleCardVisibleToProvider(slot)) return true;
+			if (HiddenFromHolder.Value) return !IsOwner;
 			if (!IsOwner) return false;
 
 			return !HasLookLimit || HasLookedAt(slot);
@@ -450,6 +457,13 @@ namespace Game.Runtime.GameMode.Poker.Player
 			if (!IsServer) return;
 
 			ViewableHoleCards.Value = Mathf.Max(0, count);
+		}
+
+		public void ServerSetHiddenFromHolder(bool hidden)
+		{
+			if (!IsServer) return;
+
+			HiddenFromHolder.Value = hidden;
 		}
 
 		public void ServerRevealHand()

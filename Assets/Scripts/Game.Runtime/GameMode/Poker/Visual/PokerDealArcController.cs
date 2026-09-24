@@ -19,7 +19,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 		public override float DelayFor(PokerDealTurn turn) => _pacing ? _pacing.DelayFor(turn.Slot, turn.Order, turn.Players, turn.IntoHand) : 0f;
 
-		public override Tween Travel(Transform card, Transform parent, Vector3 localPosition, Quaternion localRotation)
-			=> PokerCardVisual.ArcTween(card, parent, localPosition, localRotation, _pacing ? _pacing.CardFlight : 0.01f, _ease, _arc);
+		public override Tween Travel(Transform card, Transform parent, Vector3 localPosition, Quaternion localRotation, Vector3 localScale)
+			=> PokerCardVisual.ArcTween(card, parent, localPosition, localRotation, localScale, _pacing ? _pacing.CardFlight : 0.01f, _ease, _arc);
 	}
 }
