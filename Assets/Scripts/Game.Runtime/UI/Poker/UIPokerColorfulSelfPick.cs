@@ -57,7 +57,7 @@ namespace Game.Runtime.UI.Poker
 			if (_button && _button.gameObject.activeSelf != show) _button.gameObject.SetActive(show);
 		}
 
-		// The amount carries an identity rather than a size: a seat index, the same trick the wager plays
+		// The amount carries an identity rather than a size: a seat index, the same trick the bet plays
 		// with the mushroom kind.
 		private void HandlePick()
 		{

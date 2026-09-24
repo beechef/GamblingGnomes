@@ -1,0 +1,144 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &1884592989309063652
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5502190403150722362}
+  - component: {fileID: 3674957070507514889}
+  m_Layer: 0
+  m_Name: HandHead
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5502190403150722362
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1884592989309063652}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 3720223695837852133}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3674957070507514889
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1884592989309063652}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c787bc971ae3446fb2dfcdfc3c843546, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Visual.PokerCardHeadVisual
+  _depthStep: 0.0008
+  _logLayout: 0
+  _gap: 0.004
+  _cardScale: 1.5
+  _headBone: 4
+  _headLocalPosition: {x: -0.13594192, y: 0.18276976, z: -0.000000015556811}
+  _headLocalEuler: {x: 63.550613, y: 90, z: 180}
+  _rig: {fileID: 6152090614458825383}
+--- !u!1001 &5777571807150621391
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 2128442599610525971, guid: 59e5ab48b33564b4e9e607ac9d457a0d, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 639975479
+      objectReference: {fileID: 0}
+    - target: {fileID: 2128442599610525971, guid: 59e5ab48b33564b4e9e607ac9d457a0d, type: 3}
+      propertyPath: InScenePlacedSourceGlobalObjectIdHash
+      value: 3585866065
+      objectReference: {fileID: 0}
+    - target: {fileID: 6328082092965802174, guid: 59e5ab48b33564b4e9e607ac9d457a0d, type: 3}
+      propertyPath: _hand
+      value: 
+      objectReference: {fileID: 3674957070507514889}
+    - target: {fileID: 7915523810459036602, guid: 59e5ab48b33564b4e9e607ac9d457a0d, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7915523810459036602, guid: 59e5ab48b33564b4e9e607ac9d457a0d, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7915523810459036602, guid: 59e5ab48b33564b4e9e607ac9d457a0d, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7915523810459036602, guid: 59e5ab48b33564b4e9e607ac9d457a0d, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7915523810459036602, guid: 59e5ab48b33564b4e9e607ac9d457a0d, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7915523810459036602, guid: 59e5ab48b33564b4e9e607ac9d457a0d, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7915523810459036602, guid: 59e5ab48b33564b4e9e607ac9d457a0d, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7915523810459036602, guid: 59e5ab48b33564b4e9e607ac9d457a0d, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7915523810459036602, guid: 59e5ab48b33564b4e9e607ac9d457a0d, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7915523810459036602, guid: 59e5ab48b33564b4e9e607ac9d457a0d, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8336770729751643675, guid: 59e5ab48b33564b4e9e607ac9d457a0d, type: 3}
+      propertyPath: m_Name
+      value: Player_Poker_Indian
+      objectReference: {fileID: 0}
+    m_RemovedComponents:
+    - {fileID: 2685139147258332424, guid: 59e5ab48b33564b4e9e607ac9d457a0d, type: 3}
+    m_RemovedGameObjects:
+    - {fileID: 2137956963157968789, guid: 59e5ab48b33564b4e9e607ac9d457a0d, type: 3}
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 7173932181060956970, guid: 59e5ab48b33564b4e9e607ac9d457a0d, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5502190403150722362}
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 59e5ab48b33564b4e9e607ac9d457a0d, type: 3}
+--- !u!4 &3720223695837852133 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7173932181060956970, guid: 59e5ab48b33564b4e9e607ac9d457a0d, type: 3}
+  m_PrefabInstance: {fileID: 5777571807150621391}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &6152090614458825383 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 382404797062674536, guid: 59e5ab48b33564b4e9e607ac9d457a0d, type: 3}
+  m_PrefabInstance: {fileID: 5777571807150621391}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 917bfe7928b428848a247b6bd5a71e27, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.PlayerRigController

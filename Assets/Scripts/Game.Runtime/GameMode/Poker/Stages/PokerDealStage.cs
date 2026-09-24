@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Game.Runtime.GameMode.Poker.Items;
+using Game.Runtime.GameMode.Poker.BetItems;
 using Game.Runtime.Player;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -21,6 +21,9 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		[FormerlySerializedAs("_pickUpWhenDealt")]
 		[SerializeField] private bool _dealIntoHand;
 
+		[Tooltip("On, every player's cards face the table and never their holder, until the hand is shown (Indian Poker).")]
+		[SerializeField] private bool _hideFromHolder;
+
 		[Tooltip("Cards laid face down in the middle of the table for everyone to share. The streets turn them over; zero plays without a board.")]
 		[MinValue(0)]
 		[SerializeField] private int _communityCardCount;
@@ -28,7 +31,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		[Header("Stake")]
 		[Tooltip("Caps every player dealt in puts up before anybody acts, each of a kind drawn at random. Zero plays without an ante.")]
 		[MinValue(0)]
-		[SerializeField] private int _anteItems;
+		[SerializeField] private int _anteSize;
 
 		[Header("Timing")]
 		[Tooltip("How long the deal takes to land. The deck's animation reads the same asset, so the stage waits exactly as long as the cards are in the air, plus a rest.")]
@@ -112,6 +115,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 				// Before the cards, so a hand arrives already knowing how much of itself its holder may see:
 				// the view redraws on the list changing, and a limit written after would arrive too late.
 				data.ServerSetViewableHoleCards(_viewableHoleCards);
+				data.ServerSetHiddenFromHolder(_hideFromHolder);
 
 				// Held before they exist, for the same reason: a card arriving already in the hand is built in
 				// the fan and flies there from the deck, where one lifted afterwards lands on the table first.
@@ -137,17 +141,17 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 		private void PostAnte()
 		{
-			if (_anteItems <= 0) return;
+			if (_anteSize <= 0) return;
 
-			var database = GameMode.ItemDatabase;
+			var database = GameMode.BetItemDatabase;
 
 			foreach (var player in GameMode.SeatedPlayers)
 			{
 				if (!player || !player.Data.IsInHand) continue;
 
-				for (var i = 0; i < _anteItems; i++)
+				for (var i = 0; i < _anteSize; i++)
 				{
-					PokerTableUtility.WagerItem(Data, player, database ? database.DrawItemType() : PokerItemDatabase.PlainChip);
+					PokerTableUtility.PlaceBet(Data, player, database ? database.DrawBetItemType() : PokerBetItemDatabase.PlainChip);
 				}
 			}
 		}

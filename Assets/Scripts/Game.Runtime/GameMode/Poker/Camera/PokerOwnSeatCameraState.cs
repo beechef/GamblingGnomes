@@ -38,7 +38,7 @@ namespace Game.Runtime.GameMode.Poker.Camera
 
 				return _anchor switch
 				{
-					PokerSeatAnchor.Item => seat.ItemAnchor,
+					PokerSeatAnchor.BetItem => seat.BetItemAnchor,
 					PokerSeatAnchor.Ahead => seat.AheadAnchor,
 					_ => seat.CardAnchor
 				};

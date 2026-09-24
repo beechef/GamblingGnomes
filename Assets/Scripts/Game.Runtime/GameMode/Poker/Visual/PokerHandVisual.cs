@@ -23,7 +23,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		[Required]
 		[SerializeField] private PokerCardGroupVisual _table;
 
-		[Tooltip("Where a card goes once it has been picked up. The fan in the hand.")]
+		[Tooltip("Where a card goes once it has been picked up: the fan in the hand, or the row worn on the head.")]
 		[Required]
 		[SerializeField] private PokerCardGroupVisual _hand;
 
@@ -209,7 +209,18 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 			ReleaseAwaited();
 
-			if (moved != 0) AwaitCue(CueFor(moved), moved);
+			if (moved != 0)
+			{
+				if (_hand && _hand.FollowsHandCues)
+				{
+					AwaitCue(CueFor(moved), moved);
+				}
+				else
+				{
+					_awaitedMask = moved;
+					ReleaseAwaited(true);
+				}
+			}
 
 			OnAnyHandChanged?.Invoke();
 		}

@@ -9,11 +9,11 @@ namespace Game.Runtime.GameMode.Poker
 
 		// The two moments a round asks for a cap: one before the cards are dealt and one after three of
 		// them have been looked at. Separate values because the UI routes on the phase, and the second
-		// wager is the only one that also offers folding.
-		FirstWager = 8,
-		SecondWager = 9,
+		// street is the only one that also offers folding.
+		FirstStreet = 8,
+		SecondStreet = 9,
 
-		// Between them: everybody turns their own cards over at once, which is what the second wager is a
+		// Between them: everybody turns their own cards over at once, which is what the second street is a
 		// reaction to. Nobody holds a turn here — the table is waiting on all of them, not one of them.
 		Looking = 10,
 

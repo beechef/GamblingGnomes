@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
@@ -17,9 +18,9 @@ namespace Game.Runtime.GameMode.Poker
 		[HideInInspector] public NetworkVariable<FixedString32Bytes> StageId = new(default,
 			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
 
-		// The pot: one entry per cap on the table, stamped with who it stands in front of, on which wager it
+		// The pot: one entry per cap on the table, stamped with who it stands in front of, on which street it
 		// went up and what kind it is. Only PokerTableUtility writes it.
-		public readonly NetworkList<PokerBetItem> PotItems = new(null,
+		public readonly NetworkList<PokerPotEntry> PotEntries = new(null,
 			NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
 		// How many chairs this table is laid with. Replicated rather than each client reading the lobby
@@ -58,11 +59,6 @@ namespace Game.Runtime.GameMode.Poker
 		[HideInInspector] public NetworkVariable<bool> MatchResetting = new(false,
 			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
 
-		// Change-only on purpose, like the gesture events: a late joiner receives the last announcement as
-		// spawned state, and an action from half a hand ago is not worth flashing at them.
-		[HideInInspector] public NetworkVariable<PokerActionNotice> ActionNotice = new(default,
-			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
-
 		// One clock any stage can run, separate from the turn clock: a deal that plays out, a showdown
 		// that lingers, a beat the whole table answers at once — none of them belong to a single seat.
 		[HideInInspector] public NetworkVariable<double> StageEndTime = new(0d,
@@ -77,23 +73,68 @@ namespace Game.Runtime.GameMode.Poker
 			NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
 		// The board, dealt face down with the hand and turned over street by street. Everyone sees the same
-		// cards, so it is one list on the table; how many of them are face up is the only other fact.
+		// cards, so it is one list on the table; which of them are face up is the only other fact.
 		public readonly NetworkList<CardData> CommunityCards = new(null,
 			NetworkVariableReadPermission.Everyone, NetworkVariableWritePermission.Server);
 
-		[HideInInspector] public NetworkVariable<int> RevealedCommunityCards = new(0,
+		// One bit per board slot turned face up for the whole table. A mask rather than a count, because an
+		// item can turn a card out of street order.
+		[HideInInspector] public NetworkVariable<int> RevealedCommunityMask = new(0,
+			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
+
+		// How many cards are still in the undealt deck. The deck itself lives on the server only; the count is
+		// public, and anything a client offers on it (Extra Draw) reads it here.
+		[HideInInspector] public NetworkVariable<int> DeckRemaining = new(0,
 			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
 
 		public event Action<NetworkListEvent<CardData>> OnCommunityCardsChanged;
 		public event Action OnCommunityRevealChanged;
 
-		public bool IsCommunityCardVisible(int index) => index >= 0 && index < RevealedCommunityCards.Value;
+		// Face up for the whole table. What a hand is scored with, whatever any one screen was shown besides.
+		public bool IsCommunityCardRevealed(int index) =>
+			index >= 0 && index < CommunityCards.Count && index < 31 && (RevealedCommunityMask.Value & (1 << index)) != 0;
+
+		public bool IsCommunityCardVisible(int index)
+		{
+			if (index < 0 || index >= CommunityCards.Count) return false;
+			if (IsCommunityCardRevealed(index)) return true;
+
+			foreach (var provider in CommunityVisibilityProviders)
+			{
+				if (provider != null && provider.Invoke(index)) return true;
+			}
+
+			return false;
+		}
+
+		// Installed by whatever shows this client a board card before the street turns it — an item that
+		// peeked at one. Local sight only; the table's own reveal is RevealedCommunityMask.
+		private static readonly List<Func<int, bool>> CommunityVisibilityProviders = new();
+
+		public static void AddCommunityVisibilityProvider(Func<int, bool> provider)
+		{
+			if (provider != null && !CommunityVisibilityProviders.Contains(provider)) CommunityVisibilityProviders.Add(provider);
+		}
+
+		public static void RemoveCommunityVisibilityProvider(Func<int, bool> provider) => CommunityVisibilityProviders.Remove(provider);
+
+		// Raised by a provider whose answer has just changed; nothing about the board did.
+		public static event Action OnCommunityVisibilityRulesChanged;
+
+		public static void NotifyCommunityVisibilityRulesChanged() => OnCommunityVisibilityRulesChanged?.Invoke();
+
+		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+		private static void ResetStatics()
+		{
+			CommunityVisibilityProviders.Clear();
+			OnCommunityVisibilityRulesChanged = null;
+		}
 
 		public event Action OnShowdownChanged;
 
 		// The change travels with the event, so a view can animate the one cap that arrived rather than
 		// rebuilding a pile that is mid flight.
-		public event Action<NetworkListEvent<PokerBetItem>> OnPotItemsChanged;
+		public event Action<NetworkListEvent<PokerPotEntry>> OnPotEntriesChanged;
 
 		public bool HasTurn => CurrentTurnClientId.Value != NoTurn;
 
@@ -132,22 +173,22 @@ namespace Game.Runtime.GameMode.Poker
 		public override void OnNetworkSpawn()
 		{
 			Showdown.OnListChanged += HandleShowdownChanged;
-			PotItems.OnListChanged += HandlePotItemsChanged;
+			PotEntries.OnListChanged += HandlePotEntriesChanged;
 			CommunityCards.OnListChanged += HandleCommunityCardsChanged;
-			RevealedCommunityCards.OnValueChanged += HandleCommunityRevealChanged;
+			RevealedCommunityMask.OnValueChanged += HandleCommunityRevealChanged;
 		}
 
 		public override void OnNetworkDespawn()
 		{
-			RevealedCommunityCards.OnValueChanged -= HandleCommunityRevealChanged;
+			RevealedCommunityMask.OnValueChanged -= HandleCommunityRevealChanged;
 			CommunityCards.OnListChanged -= HandleCommunityCardsChanged;
-			PotItems.OnListChanged -= HandlePotItemsChanged;
+			PotEntries.OnListChanged -= HandlePotEntriesChanged;
 			Showdown.OnListChanged -= HandleShowdownChanged;
 		}
 
 		private void HandleCommunityCardsChanged(NetworkListEvent<CardData> changeEvent) => OnCommunityCardsChanged?.Invoke(changeEvent);
 		private void HandleCommunityRevealChanged(int previous, int current) => OnCommunityRevealChanged?.Invoke();
-		private void HandlePotItemsChanged(NetworkListEvent<PokerBetItem> changeEvent) => OnPotItemsChanged?.Invoke(changeEvent);
+		private void HandlePotEntriesChanged(NetworkListEvent<PokerPotEntry> changeEvent) => OnPotEntriesChanged?.Invoke(changeEvent);
 		private void HandleShowdownChanged(NetworkListEvent<PokerShowdownEntry> changeEvent) => OnShowdownChanged?.Invoke();
 	}
 }

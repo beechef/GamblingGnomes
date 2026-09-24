@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Game.Runtime.GameMode.Poker.Items;
+using Game.Runtime.GameMode.Poker.BetItems;
 using Game.Runtime.GameMode.Poker.Player;
 using Game.Runtime.Player;
 using Sirenix.OdinInspector;
@@ -8,7 +8,7 @@ using UnityEngine;
 namespace Game.Runtime.GameMode.Poker.Stages
 {
 	// Somebody went all in, and everyone else still in the hand answers at once against one clock: match it
-	// with a cap of the same kind, or fold. Nobody holds a turn, and the answers are sealed until the last one
+	// (as many caps as the all-in player, their all-in cap among them), or fold. Nobody holds a turn, and the answers are sealed until the last one
 	// is in, so nobody can wait to see what the others did. Then the rest of the board is turned over.
 	//
 	// Sits in the sequence after the last street and passes straight through when nobody went all in, which
@@ -18,7 +18,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 	{
 		[Header("Stake")]
 		[Tooltip("What going all in puts up. Whoever has one in the pot went all in; everyone else is asked to match it with one.")]
-		[SerializeField] private PokerItemType _allInItemType = PokerItemType.Colorful;
+		[SerializeField] private PokerBetItemType _allInBetItemType = PokerBetItemType.Colorful;
 
 		[Header("Timing")]
 		[Tooltip("Seconds everybody has to answer. Anyone still silent when it runs out folds.")]
@@ -45,7 +45,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		private float _focusElapsed;
 		private int _focusIndex;
 
-		public PokerItemType AllInItemType => _allInItemType;
+		public PokerBetItemType AllInBetItemType => _allInBetItemType;
 
 		// Sealed: nobody is told who answered what until every answer lands together.
 		public override bool AnnouncesActions => false;
@@ -57,7 +57,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			_asking = false;
 			_holding = false;
 
-			if (!PokerTableUtility.HasAnyStakedKind(Data, _allInItemType))
+			if (!PokerTableUtility.HasAnyStakedKind(Data, _allInBetItemType))
 			{
 				FinishStage();
 				return;
@@ -87,7 +87,10 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		// Still in the hand and not the one who went all in. Asked by the bar too, so the two agree on who is
 		// being offered the choice.
 		public bool IsAsked(PokerPlayer player) =>
-			player && PokerItemWagerStage.CanWager(player.Data) && !PokerTableUtility.HasStakedKind(Data, player.ClientId, _allInItemType);
+			player && PokerStreetStage.CanBet(player.Data) && !PokerTableUtility.HasStakedKind(Data, player.ClientId, _allInBetItemType);
+
+		// Whether folding is an answer here at all. A module can take it away, and then going all in is the only one.
+		public bool CanFold(PokerPlayerData player) => GameMode && GameMode.IsActionAllowed(player, PokerActionType.Fold);
 
 		protected override void OnTickStage(float deltaTime)
 		{
@@ -135,6 +138,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 			var player = GameMode.FindSeatedPlayer(clientId);
 			if (!player || !_asked.Contains(player)) return false;
+			if (action == PokerActionType.Fold && !CanFold(player.Data)) return false;
 
 			_answers[clientId] = action == PokerActionType.AllIn;
 
@@ -160,26 +164,53 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			return true;
 		}
 
-		// Every answer lands at once: the caps go up and the folds go down. Not announced one by one — the
-		// notice is one replicated value, and several writes in a frame reach a client as the last of them.
+		// Matching is having as many caps in the pot as whoever went all in, their all-in cap as the last of
+		// them: whatever this street's bet was never paid is made up with drawn kinds first, so no pile ends
+		// taller or shorter than another however the hand got here.
+		private void MatchAllIn(PokerPlayer player, PokerBetItemDatabase database)
+		{
+			var target = 0;
+			foreach (var other in GameMode.SeatedPlayers)
+			{
+				if (other && PokerTableUtility.HasStakedKind(Data, other.ClientId, _allInBetItemType))
+					target = Mathf.Max(target, PokerTableUtility.CountPotEntries(Data, other.ClientId));
+			}
+
+			var owed = target - PokerTableUtility.CountPotEntries(Data, player.ClientId) - 1;
+			for (var i = 0; i < owed; i++)
+			{
+				PokerTableUtility.PlaceBet(Data, player, database.DrawBetItemType());
+			}
+
+			PokerTableUtility.PlaceBet(Data, player, _allInBetItemType);
+		}
+
+		// Every answer lands at once: the caps go up and the folds go down, and they are sealed, so none is
+		// announced. Somebody who never answered folds, unless folding was taken away, in which case they go in.
 		private void Settle()
 		{
 			_asking = false;
 			GameMode.ClearStageTimer();
 			GameMode.ServerSetFocus(PokerGameData.NoTurn);
 
-			var database = GameMode.ItemDatabase;
-			var hasCap = database && database.TryGetEntry(_allInItemType, out _);
+			var database = GameMode.BetItemDatabase;
+			var hasCap = database && database.TryGetEntry(_allInBetItemType, out _);
 
 			foreach (var player in _asked)
 			{
 				if (!player || !player.Data) continue;
 
-				var allIn = _answers.TryGetValue(player.ClientId, out var answer) && answer && hasCap;
+				// Silence folds where folding is allowed and goes all in where it is not.
+				var answered = _answers.TryGetValue(player.ClientId, out var answer);
+				var wantsAllIn = answered ? answer : !CanFold(player.Data);
+				var allIn = wantsAllIn && hasCap;
+
+				if (wantsAllIn && !hasCap)
+					Debug.LogWarning($"[{StageId}] {player.name} had to fold: no {_allInBetItemType} entry in the table's mushroom database to go all in with.");
 
 				if (allIn)
 				{
-					PokerTableUtility.WagerItem(Data, player, _allInItemType);
+					MatchAllIn(player, database);
 					player.ActionAnimator?.ServerPlay(PlayerActionIds.Bet);
 				}
 				else

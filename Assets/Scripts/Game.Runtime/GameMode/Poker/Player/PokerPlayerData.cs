@@ -42,7 +42,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 		// Whether this body was collected into the match that is running. Stamped when the match begins and
 		// false for anybody who sat down after — a chair arriving mid-match is a seat in the room, not a
-		// place in the game, so they wager nothing, are dealt nothing and cannot be fed. Replicated because
+		// place in the game, so they bet nothing, are dealt nothing and cannot be fed. Replicated because
 		// every view drawing them has to know which of the two they are.
 		//
 		// Its own value rather than read off Status: a mid-match arrival is Waiting, and so is everybody
@@ -54,6 +54,13 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 		// Showdown, or anything else that decides this hand is public.
 		[HideInInspector] public NetworkVariable<bool> HandRevealed = new(false,
+			readPerm: NetworkVariableReadPermission.Everyone,
+			writePerm: NetworkVariableWritePermission.Server);
+
+		// The same thing for single cards: one bit per slot turned face up on the table for everyone before
+		// the showdown. A shown card lies on the table, not in the hand, because a card held in a fan faces
+		// only its holder and nobody else could read it.
+		[HideInInspector] public NetworkVariable<int> ShownHoleCards = new(0,
 			readPerm: NetworkVariableReadPermission.Everyone,
 			writePerm: NetworkVariableWritePermission.Server);
 
@@ -79,6 +86,12 @@ namespace Game.Runtime.GameMode.Poker.Player
 			readPerm: NetworkVariableReadPermission.Everyone,
 			writePerm: NetworkVariableWritePermission.Server);
 
+		// A hand worn facing out (Indian Poker): everybody else reads it and its holder never does, until it is
+		// shown. Stamped by the deal before the cards, like the look limit.
+		[HideInInspector] public NetworkVariable<bool> HiddenFromHolder = new(false,
+			readPerm: NetworkVariableReadPermission.Everyone,
+			writePerm: NetworkVariableWritePermission.Server);
+
 		// Read by everyone the way the wireframe shows it over a head: how hurt somebody is, is table
 		// information. Nothing damages it yet — abilities will, through ServerChangeHealth, so every
 		// future source of harm goes through the same clamp.
@@ -93,16 +106,17 @@ namespace Game.Runtime.GameMode.Poker.Player
 			NetworkVariableReadPermission.Everyone,
 			NetworkVariableWritePermission.Server);
 
-		// Installed by whatever grants extra sight — a cheat ability, a spectator mode, a debug view.
+		// Installed by whatever grants this client extra sight of single cards — an item that peeked, a
+		// spectator mode, a debug view. Asked per slot, because what a player is shown is one card, not a hand.
 		// A list rather than a single slot so two of them can coexist; any one saying yes is enough.
-		private static readonly List<Func<PokerPlayerData, bool>> HandVisibilityProviders = new();
+		private static readonly List<Func<PokerPlayerData, int, bool>> HandVisibilityProviders = new();
 
-		public static void AddHandVisibilityProvider(Func<PokerPlayerData, bool> provider)
+		public static void AddHandVisibilityProvider(Func<PokerPlayerData, int, bool> provider)
 		{
 			if (provider != null && !HandVisibilityProviders.Contains(provider)) HandVisibilityProviders.Add(provider);
 		}
 
-		public static void RemoveHandVisibilityProvider(Func<PokerPlayerData, bool> provider)
+		public static void RemoveHandVisibilityProvider(Func<PokerPlayerData, int, bool> provider)
 		{
 			HandVisibilityProviders.Remove(provider);
 		}
@@ -130,8 +144,8 @@ namespace Game.Runtime.GameMode.Poker.Player
 		// OnStateChanged because everything drawing a hand was waking on every chip that moved and then
 		// asking whether anything about the cards had changed — the answer was almost always no, and a view
 		// that has to check whether it was called for a reason it cares about is a view whose subscription
-		// says nothing about what it does. Raised by LookedAtHoleCards, HandRevealed and the visibility
-		// rules, which are the three things IsHoleCardVisible and IsHoleCardInHand are built from.
+		// says nothing about what it does. Raised by LookedAtHoleCards, ShownHoleCards, HandRevealed and the visibility
+		// rules, which are what IsHoleCardVisible and IsHoleCardInHand are built from.
 		public event Action OnHoleCardPresentationChanged;
 
 		// Separate from OnStateChanged for the same reason: blood is read as a body — fingers come off with
@@ -172,7 +186,21 @@ namespace Game.Runtime.GameMode.Poker.Player
 		public bool CanAct => Status.Value == PokerPlayerStatus.Active;
 		public int CardCount => HoleCards.Count;
 
-		public bool IsHandVisible => IsOwner || HandRevealed.Value || IsHandVisibleToProvider();
+		public bool IsHandVisible
+		{
+			get
+			{
+				if (IsOwner || HandRevealed.Value) return true;
+				if (CardCount == 0) return false;
+
+				for (var slot = 0; slot < CardCount; slot++)
+				{
+					if (!IsHoleCardVisible(slot)) return false;
+				}
+
+				return true;
+			}
+		}
 
 		// The same question asked of one card. A hand held face down to its own holder — five dealt, three
 		// they may turn — is the only case where these two answers differ, and they differ *for the owner*:
@@ -182,7 +210,8 @@ namespace Game.Runtime.GameMode.Poker.Player
 		{
 			// A mucked hand stays on the table face down for everyone, its holder included.
 			if (IsFolded) return false;
-			if (HandRevealed.Value || IsHandVisibleToProvider()) return true;
+			if (HandRevealed.Value || IsHoleCardShown(slot) || IsHoleCardVisibleToProvider(slot)) return true;
+			if (HiddenFromHolder.Value) return !IsOwner;
 			if (!IsOwner) return false;
 
 			return !HasLookLimit || HasLookedAt(slot);
@@ -195,7 +224,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 		// Where this card physically is. A card lifted off the table is in its holder's hand until the
 		// hand is shown, at which point everything goes back down for the table to read — which is why
 		// this is derived rather than replicated: the two facts it needs are already on the wire.
-		public bool IsHoleCardInHand(int slot) => !IsFolded && !HandRevealed.Value && HasLookedAt(slot);
+		public bool IsHoleCardInHand(int slot) => !IsFolded && !HandRevealed.Value && !IsHoleCardShown(slot) && HasLookedAt(slot);
+
+		public bool IsHoleCardShown(int slot) => slot >= 0 && slot < 31 && (ShownHoleCards.Value & (1 << slot)) != 0;
 
 		// Whether any card is up in the hand rather than lying on the table: the pose the body is in, which
 		// anything done with the hands has to be performed around.
@@ -241,16 +272,11 @@ namespace Game.Runtime.GameMode.Poker.Player
 			return LookedAtCount < ViewableHoleCards.Value;
 		}
 
-		// Sight somebody was granted, as opposed to a hand that is simply public. A showdown turns every hand
-		// face up for everyone; this is only true where an ability handed this client a look it was not owed,
-		// which is the difference anything drawing "what I have been shown" has to be able to see.
-		public bool IsHandVisibleByGrant => !IsOwner && !IsFolded && !HandRevealed.Value && IsHandVisibleToProvider();
-
-		private bool IsHandVisibleToProvider()
+		private bool IsHoleCardVisibleToProvider(int slot)
 		{
 			foreach (var provider in HandVisibilityProviders)
 			{
-				if (provider != null && provider.Invoke(this)) return true;
+				if (provider != null && provider.Invoke(this, slot)) return true;
 			}
 
 			return false;
@@ -265,7 +291,8 @@ namespace Game.Runtime.GameMode.Poker.Player
 			HasActed.OnValueChanged += HandleBoolChanged;
 			HandRevealed.OnValueChanged += HandleHandRevealedChanged;
 			Health.OnValueChanged += HandleHealthChanged;
-			LookedAtHoleCards.OnValueChanged += HandleLookedAtChanged;
+			LookedAtHoleCards.OnValueChanged += HandlePresentationMaskChanged;
+			ShownHoleCards.OnValueChanged += HandlePresentationMaskChanged;
 			HallucinationRate.OnValueChanged += HandleHallucinationChanged;
 
 			HoleCards.OnListChanged += HandleHoleCardsChanged;
@@ -281,7 +308,8 @@ namespace Game.Runtime.GameMode.Poker.Player
 			HandRevealed.OnValueChanged -= HandleHandRevealedChanged;
 			Health.OnValueChanged -= HandleHealthChanged;
 			HallucinationRate.OnValueChanged -= HandleHallucinationChanged;
-			LookedAtHoleCards.OnValueChanged -= HandleLookedAtChanged;
+			ShownHoleCards.OnValueChanged -= HandlePresentationMaskChanged;
+			LookedAtHoleCards.OnValueChanged -= HandlePresentationMaskChanged;
 
 			HoleCards.OnListChanged -= HandleHoleCardsChanged;
 
@@ -330,6 +358,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 			// A new hand is fresh cards nobody has dared to look at yet.
 			LookedAtHoleCards.Value = 0;
+			ShownHoleCards.Value = 0;
 		}
 
 		// A new match rather than a new hand. Blood and hallucination are what a match is played *with* —
@@ -430,11 +459,51 @@ namespace Game.Runtime.GameMode.Poker.Player
 			ViewableHoleCards.Value = Mathf.Max(0, count);
 		}
 
+		public void ServerSetHiddenFromHolder(bool hidden)
+		{
+			if (!IsServer) return;
+
+			HiddenFromHolder.Value = hidden;
+		}
+
 		public void ServerRevealHand()
 		{
 			if (!IsServer) return;
 
 			HandRevealed.Value = true;
+		}
+
+		// One slot written in place: a clear and refill would play on every screen as a new deal.
+		public void ServerReplaceHoleCard(int slot, CardData card)
+		{
+			if (!IsServer || slot < 0 || slot >= HoleCards.Count) return;
+
+			HoleCards[slot] = card;
+		}
+
+		// A card handed over is one its new holder has looked at, whatever the round's own limit on looking.
+		public void ServerMarkLookedAt(int slot)
+		{
+			if (!IsServer || slot < 0 || slot >= 31) return;
+
+			LookedAtHoleCards.Value |= 1 << slot;
+		}
+
+		// One more card, straight into the hand. Stamped as looked at before it is added, so it is built in
+		// the hand and flies there rather than landing on the table first.
+		public void ServerDrawHoleCard(CardData card)
+		{
+			if (!IsServer || !card.IsValid) return;
+
+			ServerMarkLookedAt(HoleCards.Count);
+			HoleCards.Add(card);
+		}
+
+		public void ServerShowHoleCard(int slot)
+		{
+			if (!IsServer || slot < 0 || slot >= 31 || slot >= HoleCards.Count) return;
+
+			ShownHoleCards.Value |= 1 << slot;
 		}
 
 		// Negative sobers, positive sends them further under; the clamp lives here for the same reason
@@ -465,7 +534,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		// changing rather than the hand. OnStateChanged carries it to the views that redraw on it.
 		// Purely about how the hand reads — nothing that watches a player's money or turn has any use for
 		// it — so it goes out on the presentation event alone.
-		private void HandleLookedAtChanged(int previous, int current) => OnHoleCardPresentationChanged?.Invoke();
+		private void HandlePresentationMaskChanged(int previous, int current) => OnHoleCardPresentationChanged?.Invoke();
 
 		// Both: turning the hand over is how the cards read *and* a fact about the hand being over, which
 		// is player state like any other.

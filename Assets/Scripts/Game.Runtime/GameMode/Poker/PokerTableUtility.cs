@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using Game.Runtime.GameMode.Poker.Items;
+using Game.Runtime.GameMode.Poker.BetItems;
 using Game.Runtime.GameMode.Poker.Player;
 using UnityEngine;
 
@@ -12,7 +12,7 @@ namespace Game.Runtime.GameMode.Poker
 	{
 		// Scratch space for the settlement, not state — cleared before every use, reset anyway because
 		// statics survive between play sessions with Domain Reload off.
-		private static readonly List<(ulong OwnerClientId, PokerItemType ItemType)> ServeBuffer = new();
+		private static readonly List<(ulong OwnerClientId, PokerBetItemType ItemType)> ServeBuffer = new();
 
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
 		private static void ResetStatics()
@@ -41,15 +41,15 @@ namespace Game.Runtime.GameMode.Poker
 
 		public static void ResetPot(PokerGameData data)
 		{
-			if (data) data.PotItems.Clear();
+			if (data) data.PotEntries.Clear();
 		}
 
-		// A wagered cap goes onto the table as one entry, stamped with the wager it went up on.
-		public static void WagerItem(PokerGameData data, PokerPlayer player, PokerItemType itemType)
+		// A staked cap goes onto the table as one entry, stamped with the street it went up on.
+		public static void PlaceBet(PokerGameData data, PokerPlayer player, PokerBetItemType itemType)
 		{
 			if (!data || !player || !player.Data) return;
 
-			AddPotItem(data, player.ClientId, itemType);
+			AddPotEntry(data, player.ClientId, itemType);
 		}
 
 		// The round's own settlement: what the winner put up is what every loser ends up holding, a full copy
@@ -58,16 +58,16 @@ namespace Game.Runtime.GameMode.Poker
 		// Nothing is ever won: the losers' own caps are simply gone, and so are the winner's.
 		//
 		// The caps change hands rather than being copied onto a second list. Everything on the table comes
-		// off and goes back on through the same AddPotItem the wager uses, stamped with its new owner — so
+		// off and goes back on through the same AddPotEntry the bet uses, stamped with its new owner — so
 		// a settled cap is spawned by exactly the path that spawns a staked one, lands on the same seat
 		// anchor, and is caught by everything watching the table. A plate of its own was a second set of
 		// objects nobody else knew about, and a hallucination painting the caps found half of them.
 		//
 		// Swapped rather than swallowed. The effects used to land in the same frame the showdown resolved, so
 		// a round's entire consequence happened behind the ranking board and nobody saw it — the caps change
-		// owner here and PokerItemConsumeStage is where they actually go down.
+		// owner here and PokerBetItemConsumeStage is where they actually go down.
 		public static void SwapPotToLosers(PokerGameData data, PokerPlayer winner, IReadOnlyList<PokerPlayer> players,
-			PokerItemDatabase database, PokerPhase foldPhase)
+			PokerBetItemDatabase database, PokerPhase foldPhase)
 		{
 			if (!data || database == null) { ResetPot(data); return; }
 
@@ -84,9 +84,9 @@ namespace Game.Runtime.GameMode.Poker
 				var folded = player.Data.IsFolded;
 				if (!player.Data.IsInHand && !folded) continue;
 
-				for (var i = 0; i < data.PotItems.Count; i++)
+				for (var i = 0; i < data.PotEntries.Count; i++)
 				{
-					var item = data.PotItems[i];
+					var item = data.PotEntries[i];
 
 					// A folder keeps their own opening cap and nothing else; everyone still in takes every cap
 					// the winner put up.
@@ -96,7 +96,7 @@ namespace Game.Runtime.GameMode.Poker
 
 					if (!theirs) continue;
 
-					ServeBuffer.Add((player.ClientId, item.ItemType));
+					ServeBuffer.Add((player.ClientId, item.BetItemType));
 				}
 			}
 
@@ -104,7 +104,7 @@ namespace Game.Runtime.GameMode.Poker
 			// was served with it.
 			ResetPot(data);
 
-			foreach (var (ownerClientId, itemType) in ServeBuffer) AddPotItem(data, ownerClientId, itemType);
+			foreach (var (ownerClientId, itemType) in ServeBuffer) AddPotEntry(data, ownerClientId, itemType);
 
 			ServeBuffer.Clear();
 		}
@@ -121,15 +121,15 @@ namespace Game.Runtime.GameMode.Poker
 
 			ServeBuffer.Clear();
 
-			for (var i = 0; i < data.PotItems.Count; i++)
+			for (var i = 0; i < data.PotEntries.Count; i++)
 			{
-				var item = data.PotItems[i];
-				if (!IsOwnedByAny(winners, item.OwnerClientId)) ServeBuffer.Add((item.OwnerClientId, item.ItemType));
+				var item = data.PotEntries[i];
+				if (!IsOwnedByAny(winners, item.OwnerClientId)) ServeBuffer.Add((item.OwnerClientId, item.BetItemType));
 			}
 
 			ResetPot(data);
 
-			foreach (var (ownerClientId, itemType) in ServeBuffer) AddPotItem(data, ownerClientId, itemType);
+			foreach (var (ownerClientId, itemType) in ServeBuffer) AddPotEntry(data, ownerClientId, itemType);
 
 			ServeBuffer.Clear();
 		}
@@ -144,26 +144,26 @@ namespace Game.Runtime.GameMode.Poker
 			return false;
 		}
 
-		public static bool HasStakedKind(PokerGameData data, ulong ownerClientId, PokerItemType itemType)
+		public static bool HasStakedKind(PokerGameData data, ulong ownerClientId, PokerBetItemType itemType)
 		{
 			if (!data) return false;
 
-			for (var i = 0; i < data.PotItems.Count; i++)
+			for (var i = 0; i < data.PotEntries.Count; i++)
 			{
-				var item = data.PotItems[i];
-				if (item.OwnerClientId == ownerClientId && item.ItemType == itemType) return true;
+				var item = data.PotEntries[i];
+				if (item.OwnerClientId == ownerClientId && item.BetItemType == itemType) return true;
 			}
 
 			return false;
 		}
 
-		public static bool HasAnyStakedKind(PokerGameData data, PokerItemType itemType)
+		public static bool HasAnyStakedKind(PokerGameData data, PokerBetItemType itemType)
 		{
 			if (!data) return false;
 
-			for (var i = 0; i < data.PotItems.Count; i++)
+			for (var i = 0; i < data.PotEntries.Count; i++)
 			{
-				if (data.PotItems[i].ItemType == itemType) return true;
+				if (data.PotEntries[i].BetItemType == itemType) return true;
 			}
 
 			return false;
@@ -171,14 +171,14 @@ namespace Game.Runtime.GameMode.Poker
 
 		// How much of the pot is standing in front of one player. What is left to eat, once the settlement
 		// has handed the caps round.
-		public static int CountPotItems(PokerGameData data, ulong ownerClientId)
+		public static int CountPotEntries(PokerGameData data, ulong ownerClientId)
 		{
 			if (!data) return 0;
 
 			var count = 0;
-			for (var i = 0; i < data.PotItems.Count; i++)
+			for (var i = 0; i < data.PotEntries.Count; i++)
 			{
-				if (data.PotItems[i].OwnerClientId == ownerClientId) count++;
+				if (data.PotEntries[i].OwnerClientId == ownerClientId) count++;
 			}
 
 			return count;
@@ -187,17 +187,17 @@ namespace Game.Runtime.GameMode.Poker
 		// The next bite, taken off the table as it goes down rather than after — the ledger is what the
 		// visual draws, so a cap still on it whose effect has already landed is one the table can see that
 		// nobody is going to eat.
-		public static bool ServerTakePotItem(PokerGameData data, ulong ownerClientId, out PokerItemType itemType)
+		public static bool ServerTakePotEntry(PokerGameData data, ulong ownerClientId, out PokerBetItemType itemType)
 		{
-			itemType = PokerItemDatabase.PlainChip;
+			itemType = PokerBetItemDatabase.PlainChip;
 			if (!data) return false;
 
-			for (var i = 0; i < data.PotItems.Count; i++)
+			for (var i = 0; i < data.PotEntries.Count; i++)
 			{
-				if (data.PotItems[i].OwnerClientId != ownerClientId) continue;
+				if (data.PotEntries[i].OwnerClientId != ownerClientId) continue;
 
-				itemType = data.PotItems[i].ItemType;
-				data.PotItems.RemoveAt(i);
+				itemType = data.PotEntries[i].BetItemType;
+				data.PotEntries.RemoveAt(i);
 				return true;
 			}
 
@@ -205,32 +205,32 @@ namespace Game.Runtime.GameMode.Poker
 		}
 
 		// The first of this player's caps whose kind the predicate accepts.
-		public static bool ServerTakePotItem(PokerGameData data, ulong ownerClientId, Func<PokerItemType, bool> accept, out PokerItemType itemType)
+		public static bool ServerTakePotEntry(PokerGameData data, ulong ownerClientId, Func<PokerBetItemType, bool> accept, out PokerBetItemType itemType)
 		{
-			itemType = PokerItemDatabase.PlainChip;
+			itemType = PokerBetItemDatabase.PlainChip;
 			if (!data || accept == null) return false;
 
-			for (var i = 0; i < data.PotItems.Count; i++)
+			for (var i = 0; i < data.PotEntries.Count; i++)
 			{
-				var item = data.PotItems[i];
-				if (item.OwnerClientId != ownerClientId || !accept(item.ItemType)) continue;
+				var item = data.PotEntries[i];
+				if (item.OwnerClientId != ownerClientId || !accept(item.BetItemType)) continue;
 
-				itemType = item.ItemType;
-				data.PotItems.RemoveAt(i);
+				itemType = item.BetItemType;
+				data.PotEntries.RemoveAt(i);
 				return true;
 			}
 
 			return false;
 		}
 
-		// One entry per cap, stamped with who it stands in front of, on which wager and what it is.
-		private static void AddPotItem(PokerGameData data, ulong ownerClientId, PokerItemType itemType)
+		// One entry per cap, stamped with who it stands in front of, on which street and what it is.
+		private static void AddPotEntry(PokerGameData data, ulong ownerClientId, PokerBetItemType itemType)
 		{
-			data.PotItems.Add(new PokerBetItem
+			data.PotEntries.Add(new PokerPotEntry
 			{
 				OwnerClientId = ownerClientId,
 				Phase = data.Phase.Value,
-				ItemType = itemType
+				BetItemType = itemType
 			});
 		}
 

@@ -54,7 +54,15 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			if (!card || !_controller) return;
 
 			var deal = RunningDeal();
-			var dealt = deal ? deal.HoleCardsPerPlayer : -1;
+
+			// A card handed out mid-hand, by an item, takes no turn in any deal: it leaves at once.
+			if (!deal)
+			{
+				card.DealFrom(_top ? _top : transform, 0f, _controller);
+				return;
+			}
+
+			var dealt = deal.HoleCardsPerPlayer;
 			var round = intoHand && dealt > slot ? dealt - 1 - slot : slot;
 
 			card.DealFrom(_top ? _top : transform, _controller.DelayFor(TurnFor(seatIndex, round, intoHand)), _controller);

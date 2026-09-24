@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using Game.Runtime.GameMode.Poker.Items;
+using Game.Runtime.GameMode.Poker.BetItems;
 using Game.Runtime.GameMode.Poker.Player;
 using Game.Runtime.Player;
 using Sirenix.OdinInspector;
@@ -23,7 +23,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 	{
 		[Header("Cap")]
 		[Tooltip("Which kind the table feeds here. Picked rather than typed: it used to be a one-based index into the database, which is a number nobody could check and every reorder could break.")]
-		[SerializeField] private PokerItemType _colorfulItemType = PokerItemType.Colorful;
+		[SerializeField] private PokerBetItemType _colorfulBetItemType = PokerBetItemType.Colorful;
 
 		[Header("Choice")]
 		[Tooltip("On, the winner may name themselves. Off where winning costs nothing, since naming yourself would then be a choice that is never made.")]
@@ -67,7 +67,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		private bool _awaitingServeCue;
 		private float _serveElapsed;
 
-		public PokerItemType ColorfulItemType => _colorfulItemType;
+		public PokerBetItemType ColorfulBetItemType => _colorfulBetItemType;
 
 		protected override void OnStartStage()
 		{
@@ -156,7 +156,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			if (action != PokerActionType.Target) return false;
 			if (clientId != Data.CurrentTurnClientId.Value) return false;
 
-			var target = FindSeatedPlayerAtSeat(amount);
+			var target = GameMode.FindSeatedPlayerAtSeat(amount);
 			if (!target || !CanBeFed(target)) return false;
 
 			Serve(target, GameMode.FindSeatedPlayer(clientId));
@@ -173,16 +173,6 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 		private static bool IsInTheRunning(PokerPlayer player) =>
 			player && player.Data && player.Data.IsSeated && player.Data.InMatch.Value && player.Data.IsAlive;
-
-		private PokerPlayer FindSeatedPlayerAtSeat(int seatIndex)
-		{
-			foreach (var player in GameMode.SeatedPlayers)
-			{
-				if (player && player.Data && player.Data.SeatIndex.Value == seatIndex) return player;
-			}
-
-			return null;
-		}
 
 		// The chooser is null when the clock chose: a silence is not a choice, so it gets no gesture.
 		private void Serve(PokerPlayer target, PokerPlayer chooser = null)
@@ -239,24 +229,24 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 		// Put down in front of them, not swallowed here: the eating is its own beat, and a cap that took
 		// effect during the announcement of who got it is a cap nobody watched go down. Through the same
-		// wager path everything else on this table takes, so it arrives looking like every other cap.
+		// bet path everything else on this table takes, so it arrives looking like every other cap.
 		private void DeliverCap()
 		{
 			var target = _pendingTarget;
 
 			ClearPendingServe();
 
-			var database = GameMode.ItemDatabase;
+			var database = GameMode.BetItemDatabase;
 
-			if (target && database && database.TryGetEntry(ColorfulItemType, out _))
+			if (target && database && database.TryGetEntry(ColorfulBetItemType, out _))
 			{
-				PokerTableUtility.WagerItem(Data, target, ColorfulItemType);
+				PokerTableUtility.PlaceBet(Data, target, ColorfulBetItemType);
 			}
-			else if (!database || !database.TryGetEntry(ColorfulItemType, out _))
+			else if (!database || !database.TryGetEntry(ColorfulBetItemType, out _))
 			{
 				// A cap the table does not carry is a setup that cannot work, and skipping it silently
 				// would read as a winner whose choice simply does nothing.
-				Debug.LogWarning($"[{StageId}] No entry for {ColorfulItemType} in the table's mushroom database.");
+				Debug.LogWarning($"[{StageId}] No entry for {ColorfulBetItemType} in the table's mushroom database.");
 			}
 
 			if (_resultDuration <= 0f)

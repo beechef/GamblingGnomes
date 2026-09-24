@@ -28,9 +28,9 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		[Tooltip("Who ends up holding which caps once the hand is decided.")]
 		[SerializeField] private PokerSettlement _settlement = PokerSettlement.SwapToLosers;
 
-		[Tooltip("Which wager a folder is made to eat their own copy of. The first, by the design — folding after seeing three cards still costs what was put up before them.")]
+		[Tooltip("Which street a folder is made to eat their own copy of. The first, by the design — folding after seeing three cards still costs what was put up before them.")]
 		[ShowIf(nameof(_settlement), PokerSettlement.SwapToLosers)]
-		[SerializeField] private PokerPhase _foldPhase = PokerPhase.FirstWager;
+		[SerializeField] private PokerPhase _foldPhase = PokerPhase.FirstStreet;
 
 		[Tooltip("Off, a hand won because everybody else folded stays face down: nobody paid to see it. On, it is turned over and named like any other.")]
 		[SerializeField] private bool _revealUncontested = true;
@@ -98,7 +98,9 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			if (winner) winner.ActionAnimator?.ServerPlay(PlayerActionIds.Laugh);
 
 			if (_settlement == PokerSettlement.OwnStake) PokerTableUtility.DiscardStakesOf(Data, _winners);
-			else PokerTableUtility.SwapPotToLosers(Data, winner, GameMode.SeatedPlayers, GameMode.ItemDatabase, _foldPhase);
+			else PokerTableUtility.SwapPotToLosers(Data, winner, GameMode.SeatedPlayers, GameMode.BetItemDatabase, _foldPhase);
+
+			GameMode.NotifyHandSettled(_winners);
 
 			PublishRanking();
 
@@ -216,11 +218,11 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 			foreach (var card in player.Data.HoleCards) _evaluationBuffer.Add(card);
 
-			// The board counts only as far as it has been turned over: a card nobody has seen is not one
-			// anybody's hand was made with.
-			for (var i = 0; i < Data.CommunityCards.Count && Data.IsCommunityCardVisible(i); i++)
+			// The board counts only where the whole table has turned it: a card nobody has seen is not one
+			// anybody's hand was made with, and one the host alone was shown is not either.
+			for (var i = 0; i < Data.CommunityCards.Count; i++)
 			{
-				_evaluationBuffer.Add(Data.CommunityCards[i]);
+				if (Data.IsCommunityCardRevealed(i)) _evaluationBuffer.Add(Data.CommunityCards[i]);
 			}
 
 			return GameMode.HandEvaluator.Evaluate(_handDatabase, _evaluationBuffer);

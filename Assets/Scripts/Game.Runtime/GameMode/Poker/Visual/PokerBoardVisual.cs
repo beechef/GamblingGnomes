@@ -72,7 +72,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 		private readonly List<PokerCardVisual> _cards = new();
 		private readonly List<Tween> _flips = new();
-		private int _shownRevealed;
+		private int _shownMask;
 
 		private Vector3 _centre;
 		private float _yaw;
@@ -109,7 +109,8 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		protected override void OnBind()
 		{
 			Data.OnCommunityCardsChanged += HandleCommunityCardsChanged;
-			Data.OnCommunityRevealChanged += HandleRevealChanged;
+			Data.OnCommunityRevealChanged += HandleVisibilityChanged;
+			PokerGameData.OnCommunityVisibilityRulesChanged += HandleVisibilityChanged;
 			PokerPlayer.OnLocalPlayerChanged += HandleLocalPlayerChanged;
 
 			BindLocalPlayer(PokerPlayer.Local);
@@ -123,7 +124,8 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			BindLocalPlayer(null);
 
 			PokerPlayer.OnLocalPlayerChanged -= HandleLocalPlayerChanged;
-			Data.OnCommunityRevealChanged -= HandleRevealChanged;
+			PokerGameData.OnCommunityVisibilityRulesChanged -= HandleVisibilityChanged;
+			Data.OnCommunityRevealChanged -= HandleVisibilityChanged;
 			Data.OnCommunityCardsChanged -= HandleCommunityCardsChanged;
 
 			ClearCards();
@@ -222,6 +224,12 @@ namespace Game.Runtime.GameMode.Poker.Visual
 					ClearCards();
 					break;
 
+				// One slot written in place, by an item exchanging it: the card lying there changes face, and
+				// nothing else on the board moves.
+				case NetworkListEvent<CardData>.EventType.Value:
+					DrawCard(change.Index, false);
+					break;
+
 				default:
 					RebuildAll();
 					break;
@@ -230,27 +238,45 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			NotifyCardsChanged();
 		}
 
-		// Only the cards the count has newly passed are turned, one after another; a count going back down
-		// is a new hand being laid, and those cards are simply put face down.
-		private void HandleRevealChanged()
+		// Only the cards that have newly become visible are turned, one after another. A card that stops being
+		// visible is a new hand being laid, and the whole row is simply put straight face down.
+		private void HandleVisibilityChanged()
 		{
-			var revealed = Mathf.Min(Data.RevealedCommunityCards.Value, _cards.Count);
+			var visible = VisibleMask();
 
-			if (revealed < _shownRevealed)
+			if ((_shownMask & ~visible) != 0)
 			{
 				KillFlips();
-				for (var i = revealed; i < _cards.Count; i++) DrawCard(i, false);
+				for (var i = 0; i < _cards.Count; i++) DrawCard(i, false);
+
+				_shownMask = visible;
+				return;
 			}
 
 			var order = 0;
-			for (var i = _shownRevealed; i < revealed; i++)
+			for (var i = 0; i < _cards.Count && i < 31; i++)
 			{
+				var bit = 1 << i;
+				if ((visible & bit) == 0 || (_shownMask & bit) != 0) continue;
+
 				var index = i;
 				_flips.Add(DOVirtual.DelayedCall(order++ * _flipStagger, () => DrawCard(index, true), false)
 					.SetLink(gameObject));
 			}
 
-			_shownRevealed = revealed;
+			_shownMask = visible;
+		}
+
+		// Which cards this screen may see, one bit each: the table's reveal plus anything shown to this client alone.
+		private int VisibleMask()
+		{
+			var mask = 0;
+			for (var i = 0; i < _cards.Count && i < 31; i++)
+			{
+				if (Data.IsCommunityCardVisible(i)) mask |= 1 << i;
+			}
+
+			return mask;
 		}
 
 		private void AddCard(bool animate)
@@ -267,7 +293,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			var visible = Data.IsCommunityCardVisible(index);
 			visual.SetCard(visible ? CardAt(index) : CardData.None, visible, _database);
 
-			if (visible) _shownRevealed = Mathf.Max(_shownRevealed, index + 1);
+			if (visible && index < 31) _shownMask |= 1 << index;
 
 			_row.Add(visual, index, animate);
 		}
@@ -290,7 +316,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			FaceLocalSeat();
 			for (var i = 0; i < Data.CommunityCards.Count; i++) AddCard(false);
 
-			_shownRevealed = Mathf.Min(Data.RevealedCommunityCards.Value, _cards.Count);
+			_shownMask = VisibleMask();
 			NotifyCardsChanged();
 		}
 
@@ -308,7 +334,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			}
 
 			_cards.Clear();
-			_shownRevealed = 0;
+			_shownMask = 0;
 
 			SetStanding(false);
 		}

@@ -3,12 +3,7 @@ using Unity.Netcode;
 
 namespace Game.Runtime.GameMode.Poker.Items
 {
-	// One item, on the wire, in a list. It exists because `NetworkList<T>` wants `T : unmanaged,
-	// IEquatable<T>` and a bare enum satisfies the first half only — the same reason CardData is a struct
-	// rather than two loose bytes.
-	//
-	// The conversions are implicit in both directions, so nothing outside the list declarations has to
-	// know it is here: a wallet is written and read as PokerItemType at every call site.
+	// One item on the wire, in a list: NetworkList wants IEquatable, which a bare enum is not.
 	public struct PokerItemUnit : INetworkSerializable, IEquatable<PokerItemUnit>
 	{
 		public PokerItemType Type;

@@ -1,10 +1,8 @@
-using Game.Runtime.Controller;
 using Game.Runtime.GameMode.Poker.Stages;
 using Game.Runtime.UI.CursorVisuals;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace Game.Runtime.GameMode.Poker.Player
 {
@@ -12,29 +10,17 @@ namespace Game.Runtime.GameMode.Poker.Player
 	// second place the same players existed, kept in step by hand, and it asked the winner to read a list
 	// at the one moment the whole table is watching faces.
 	//
-	// Owner-only: it reads this client's cursor and asks the server, which checks the choice again with
-	// the very method used here to decide who may be hovered.
+	// Owner-only. The pointing itself is PokerTargetPointer's; this only decides when the winner is being
+	// asked and who may be lit, with the very method the server checks the choice with.
 	public class PokerColorfulPickController : NetworkBehaviour
 	{
-		[Header("Input")]
-		[Tooltip("Pressed to feed the cap to whoever is outlined. UI/Click - pointing at a player is the same act as pointing at a card or a button.")]
-		[SerializeField] private InputActionReference _pickAction;
-
-		[Header("Raycast")]
-		[Tooltip("Layers a player can be found on. A player is found through AimTarget, the trigger every body carries so it can be pointed at on machines where its CharacterController is off.")]
-		[SerializeField] private LayerMask _playerMask = ~0;
-
-		[Tooltip("How far the pick reaches. Across the table, not across the room.")]
-		[SerializeField] private float _maxDistance = 6f;
-
-		// Roomy for the same reason the accusation's cast is: everybody the ray passes through takes a slot
-		// whether or not they can be fed, and a full buffer drops the rest of the list in silence.
-		private readonly RaycastHit[] _hits = new RaycastHit[20];
+		[Header("References")]
+		[Tooltip("The player's pointer. Found on the player when left empty.")]
+		[SerializeField] private PokerTargetPointer _pointer;
 
 		private PokerColorfulPickStage _stage;
-		private PokerPlayer _hovered;
-		private int _lastPickFrame = -1;
-		private int _cursorHandle;
+		private PokerTargetQuery _query;
+		private bool _pointing;
 
 		private FixedString32Bytes _lastStageId;
 		private ulong _lastTurn = ulong.MaxValue;
@@ -43,24 +29,25 @@ namespace Game.Runtime.GameMode.Poker.Player
 		{
 			if (!IsOwner) return;
 
-			if (_pickAction && _pickAction.action != null)
+			if (!_pointer)
 			{
-				_pickAction.action.performed += HandlePick;
-				_pickAction.action.Enable();
+				var player = GetComponentInParent<PokerPlayer>();
+				if (player) _pointer = player.GetComponentInChildren<PokerTargetPointer>(true);
 			}
+
+			// Our own body is skipped by the pointer; naming yourself is the name on your own hallucination bar
+			// instead (UIPokerColorfulSelfPick).
+			_query = new PokerTargetQuery
+			{
+				AcceptPlayer = player => _stage && _stage.CanBeFed(player),
+				Cursor = CursorVisualState.Skull
+			};
 		}
 
-		public override void OnNetworkDespawn()
-		{
-			if (_pickAction && _pickAction.action != null) _pickAction.action.performed -= HandlePick;
+		public override void OnNetworkDespawn() => StopPointing();
 
-			SetHovered(null);
-			SetPickingCursor(false);
-		}
-
-		// Genuinely continuous: who is under the cursor changes as the cursor moves and as the bodies
-		// breathe, and there is no event for either. The stage is only looked up when one of the three
-		// values it depends on has actually moved, so the per-frame path allocates nothing.
+		// The stage is looked up only when one of the two values it depends on has moved, so this costs a
+		// comparison a frame. There is no event for "this client became the one choosing" that spans both.
 		private void Update()
 		{
 			if (!IsOwner) return;
@@ -71,15 +58,14 @@ namespace Game.Runtime.GameMode.Poker.Player
 			var stageId = data ? data.StageId.Value : default;
 			var turn = data ? data.CurrentTurnClientId.Value : PokerGameData.NoTurn;
 
-			if (!stageId.Equals(_lastStageId) || turn != _lastTurn)
-			{
-				_lastStageId = stageId;
-				_lastTurn = turn;
-				_stage = ResolvePickStage(mode);
-				SetPickingCursor(_stage);
-			}
+			if (stageId.Equals(_lastStageId) && turn == _lastTurn) return;
 
-			SetHovered(CanPick() ? Raycast() : null);
+			_lastStageId = stageId;
+			_lastTurn = turn;
+			_stage = ResolvePickStage(mode);
+
+			if (_stage) StartPointing();
+			else StopPointing();
 		}
 
 		// Only while this client is the one being asked. Everybody else is watching the winner choose, and a
@@ -92,95 +78,28 @@ namespace Game.Runtime.GameMode.Poker.Player
 			return mode.FindStage(mode.Data.StageId.Value.ToString()) as PokerColorfulPickStage;
 		}
 
-		// A freed cursor, as for picking cards: with the view being turned the pointer is not on screen, and
-		// a pick aimed by the crosshair would be a different control nobody asked for.
-		private bool CanPick() => _stage && !CursorController.IsLocked;
-
-		private PokerPlayer Raycast()
+		private void StartPointing()
 		{
-			var view = GameCamera.Main;
-			if (!view) return null;
+			if (_pointing || !_pointer) return;
 
-			var pointer = Pointer.current;
-			var screenPosition = pointer != null ? pointer.position.ReadValue() : new Vector2(Screen.width, Screen.height) * 0.5f;
-
-			var ray = view.ScreenPointToRay(screenPosition);
-			var count = Physics.RaycastNonAlloc(ray, _hits, _maxDistance, _playerMask, QueryTriggerInteraction.Collide);
-
-			PokerPlayer best = null;
-			var bestDistance = float.MaxValue;
-
-			for (var i = 0; i < count; i++)
-			{
-				var player = _hits[i].collider.GetComponentInParent<PokerPlayer>();
-
-				// Our own body is skipped outright: it sits just under the eye, so a ray to somebody across the
-				// table passes through it, and naming yourself is the name on your own hallucination bar instead (UIPokerColorfulSelfPick).
-				// Everyone else is asked of the stage the server answers with, so nothing can be outlined that
-				// a click would then have refused.
-				if (!player || player.ClientId == OwnerClientId || !_stage.CanBeFed(player)) continue;
-
-				// Nearest first is not guaranteed by RaycastNonAlloc.
-				if (_hits[i].distance >= bestDistance) continue;
-
-				best = player;
-				bestDistance = _hits[i].distance;
-			}
-
-			return best;
+			_pointing = true;
+			_pointer.Begin(_query, HandlePicked);
 		}
 
-		private void SetHovered(PokerPlayer player)
+		private void StopPointing()
 		{
-			if (_hovered == player) return;
+			if (!_pointing) return;
 
-			SetHighlighted(_hovered, false);
-
-			_hovered = player;
-
-			SetHighlighted(_hovered, true);
+			_pointing = false;
+			if (_pointer) _pointer.End();
 		}
 
-		// The body and the name over it light together, so what is being chosen reads as one thing.
-		private static void SetHighlighted(PokerPlayer player, bool highlighted)
+		private void HandlePicked(PokerTarget target)
 		{
-			if (!player) return;
-
-			if (player.Visual) player.Visual.SetLocalOutlined(highlighted);
-			if (player.NameTag) player.NameTag.SetLocalHighlighted(highlighted);
-		}
-
-		// The pointer turns into a skull for as long as this client is the one choosing who eats the cap —
-		// it is the look of pointing at somebody to poison them, and it goes back the moment the choice does.
-		private void SetPickingCursor(bool picking)
-		{
-			var cursor = CursorVisualController.Instance;
-
-			if (picking && _cursorHandle == 0 && cursor) _cursorHandle = cursor.Request(CursorVisualState.Skull);
-			else if (!picking && _cursorHandle != 0)
-			{
-				if (cursor) cursor.Release(_cursorHandle);
-				_cursorHandle = 0;
-			}
-		}
-
-		// UI/Click is PassThrough and performs on release as well as press, so the callback asks what the
-		// button is doing; the frame guard is the other half, since the pad's cursor is a real Mouse and two
-		// bindings can actuate in one frame. What is chosen is what is outlined, never a fresh raycast —
-		// the thing the player saw lit is exactly the thing they are committing to.
-		private void HandlePick(InputAction.CallbackContext context)
-		{
-			if (!IsOwner || !CanPick()) return;
-			if (!context.ReadValueAsButton()) return;
-			if (_lastPickFrame == Time.frameCount) return;
-
-			var target = _hovered;
-			if (!target || !target.Data) return;
-
-			_lastPickFrame = Time.frameCount;
+			if (!target.Player || !target.Player.Data) return;
 
 			var mode = PokerGameMode.Instance;
-			if (mode) mode.SubmitActionRPC(PokerActionType.Target, target.Data.SeatIndex.Value);
+			if (mode) mode.SubmitActionRPC(PokerActionType.Target, target.Player.Data.SeatIndex.Value);
 		}
 	}
 }
