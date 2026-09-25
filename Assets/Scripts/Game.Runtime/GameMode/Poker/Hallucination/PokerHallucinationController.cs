@@ -66,6 +66,70 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 				return names;
 			}
 		}
+
+		// Runs one effect outright, outside the ladder, to judge a look without climbing to its rung. Only the
+		// owner draws hallucinations, so it only runs on your own player; the ladder never sees these.
+		private readonly List<PokerHallucinationEffectBehaviour> _debugRunning = new();
+
+		[FoldoutGroup("Debug"), PropertyOrder(200), ShowInInspector, LabelText("Effect")]
+		[ValueDropdown(nameof(DebugEffectChoices))]
+		[InfoBox("Play mode, on your own player only.", InfoMessageType.None, nameof(CannotRunDebug))]
+		private PokerHallucinationEffect _debugEffect;
+
+		private bool CanRunDebug => Application.isPlaying && IsSpawned && IsOwner;
+		private bool CannotRunDebug => !CanRunDebug;
+
+		[FoldoutGroup("Debug"), PropertyOrder(201), ShowInInspector, ReadOnly, LabelText("Debug Running")]
+		private List<string> DebugRunningEffects
+		{
+			get
+			{
+				var names = new List<string>();
+
+				foreach (var effect in _debugRunning)
+				{
+					if (effect) names.Add(effect.name);
+				}
+
+				return names;
+			}
+		}
+
+		[FoldoutGroup("Debug"), PropertyOrder(202), Button("Run"), EnableIf(nameof(CanRunDebug))]
+		private void RunDebugEffect()
+		{
+			if (!CanRunDebug || !_debugEffect) return;
+
+			var behaviour = _debugEffect.Run(_effectRoot ? _effectRoot : transform, _player, _pacing);
+			if (!behaviour) return;
+
+			behaviour.name = $"Debug - {_debugEffect.name}";
+			_debugRunning.Add(behaviour);
+		}
+
+		[FoldoutGroup("Debug"), PropertyOrder(203), Button("Stop All"), EnableIf(nameof(CanRunDebug))]
+		private void StopDebugEffects()
+		{
+			foreach (var behaviour in _debugRunning)
+			{
+				if (behaviour) behaviour.Stop();
+			}
+
+			_debugRunning.Clear();
+		}
+
+		// Grouped by effect type, so a long catalogue reads as a tree.
+		private static IEnumerable<ValueDropdownItem<PokerHallucinationEffect>> DebugEffectChoices()
+		{
+			foreach (var guid in UnityEditor.AssetDatabase.FindAssets($"t:{nameof(PokerHallucinationEffect)}"))
+			{
+				var asset = UnityEditor.AssetDatabase.LoadAssetAtPath<PokerHallucinationEffect>(UnityEditor.AssetDatabase.GUIDToAssetPath(guid));
+				if (!asset) continue;
+
+				var kind = asset.GetType().Name.Replace("PokerHallucination", "").Replace("Effect", "");
+				yield return new ValueDropdownItem<PokerHallucinationEffect>($"{kind}/{asset.name}", asset);
+			}
+		}
 #endif
 
 		// The whole blink, start to finish: closing, held shut, opening. The rungs land ApplyDelay into it and
@@ -132,6 +196,9 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 			// Everything comes off on the way out: an effect is a change to this client's whole view, and
 			// leaving one running would outlive the table it belonged to.
 			EndAll();
+#if UNITY_EDITOR
+			StopDebugEffects();
+#endif
 		}
 
 		private void HandleChanged(int previous, int current) => Refresh();

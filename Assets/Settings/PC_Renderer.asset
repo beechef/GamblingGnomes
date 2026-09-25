@@ -30,7 +30,8 @@ MonoBehaviour:
   - {fileID: 683794330387417874}
   - {fileID: 4053837677213543811}
   - {fileID: 9167602928845976793}
-  m_RendererFeatureMap: ad6b866f10d7b46cdad7265d4869417a120b2b1252537d09836d68a7e31f4238d9f4b1af4ade397f
+  - {fileID: 5809492093863684031}
+  m_RendererFeatureMap: ad6b866f10d7b46cdad7265d4869417a120b2b1252537d09836d68a7e31f4238d9f4b1af4ade397fbf672f8447769f50
   xrSystemData: {fileID: 0}
   postProcessData: {fileID: 11400000, guid: 41439944d30ece34e96484bdb6645b55, type: 2}
   m_AssetVersion: 3
@@ -118,6 +119,26 @@ MonoBehaviour:
   fetchColorBuffer: 1
   requirements: 0
   passMaterial: {fileID: 2100000, guid: 3445963697c358f45a7997ee62427dd9, type: 2}
+  passIndex: 0
+  bindDepthStencilAttachment: 0
+  m_Version: 1
+--- !u!114 &5809492093863684031
+MonoBehaviour:
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b00045f12942b46c698459096c89274e, type: 3}
+  m_Name: Hallucination Video Distort
+  m_EditorClassIdentifier: Unity.RenderPipelines.Universal.Runtime::UnityEngine.Rendering.Universal.FullScreenPassRendererFeature
+  m_Active: 1
+  injectionPoint: 600
+  fetchColorBuffer: 1
+  requirements: 0
+  passMaterial: {fileID: 2100000, guid: 080e284b4fa47554a87ef24205d19ccc, type: 2}
   passIndex: 0
   bindDepthStencilAttachment: 0
   m_Version: 1
