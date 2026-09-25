@@ -69,33 +69,30 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 
 		// Runs one effect outright, outside the ladder, to judge a look without climbing to its rung. Only the
 		// owner draws hallucinations, so it only runs on your own player; the ladder never sees these.
-		private readonly List<PokerHallucinationEffectBehaviour> _debugRunning = new();
+		private sealed class DebugEntry
+		{
+			[HorizontalGroup, HideLabel, ReadOnly, ShowInInspector]
+			public PokerHallucinationEffectBehaviour Behaviour;
+
+			public Action<DebugEntry> OnStop;
+
+			[HorizontalGroup(60), Button("Stop")]
+			private void Stop() => OnStop?.Invoke(this);
+		}
 
 		[FoldoutGroup("Debug"), PropertyOrder(200), ShowInInspector, LabelText("Effect")]
 		[ValueDropdown(nameof(DebugEffectChoices))]
 		[InfoBox("Play mode, on your own player only.", InfoMessageType.None, nameof(CannotRunDebug))]
 		private PokerHallucinationEffect _debugEffect;
 
+		[FoldoutGroup("Debug"), PropertyOrder(202), ShowInInspector, LabelText("Debug Running")]
+		[ListDrawerSettings(HideAddButton = true, HideRemoveButton = true, DraggableItems = false)]
+		private List<DebugEntry> _debugRunning = new();
+
 		private bool CanRunDebug => Application.isPlaying && IsSpawned && IsOwner;
 		private bool CannotRunDebug => !CanRunDebug;
 
-		[FoldoutGroup("Debug"), PropertyOrder(201), ShowInInspector, ReadOnly, LabelText("Debug Running")]
-		private List<string> DebugRunningEffects
-		{
-			get
-			{
-				var names = new List<string>();
-
-				foreach (var effect in _debugRunning)
-				{
-					if (effect) names.Add(effect.name);
-				}
-
-				return names;
-			}
-		}
-
-		[FoldoutGroup("Debug"), PropertyOrder(202), Button("Run"), EnableIf(nameof(CanRunDebug))]
+		[FoldoutGroup("Debug"), PropertyOrder(201), Button("Run"), EnableIf(nameof(CanRunDebug))]
 		private void RunDebugEffect()
 		{
 			if (!CanRunDebug || !_debugEffect) return;
@@ -104,15 +101,23 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 			if (!behaviour) return;
 
 			behaviour.name = $"Debug - {_debugEffect.name}";
-			_debugRunning.Add(behaviour);
+			_debugRunning.Add(new DebugEntry { Behaviour = behaviour, OnStop = StopDebugEffect });
+		}
+
+		private void StopDebugEffect(DebugEntry entry)
+		{
+			if (entry.Behaviour) entry.Behaviour.Stop();
+
+			// Deferred: the click lands while the inspector is still drawing this list.
+			UnityEditor.EditorApplication.delayCall += () => _debugRunning.Remove(entry);
 		}
 
 		[FoldoutGroup("Debug"), PropertyOrder(203), Button("Stop All"), EnableIf(nameof(CanRunDebug))]
 		private void StopDebugEffects()
 		{
-			foreach (var behaviour in _debugRunning)
+			foreach (var entry in _debugRunning)
 			{
-				if (behaviour) behaviour.Stop();
+				if (entry.Behaviour) entry.Behaviour.Stop();
 			}
 
 			_debugRunning.Clear();
