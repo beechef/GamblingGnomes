@@ -13,7 +13,7 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 	// a hallucination something you can see in the hierarchy and retune while it is on screen.
 	public abstract class PokerHallucinationEffect : ScriptableObject
 	{
-		public PokerHallucinationEffectBehaviour Run(Transform parent, PokerPlayer viewer)
+		public PokerHallucinationEffectBehaviour Run(Transform parent, PokerPlayer viewer, PokerHallucinationPacing pacing)
 		{
 			if (!viewer) return null;
 
@@ -21,7 +21,7 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 			host.transform.SetParent(parent, false);
 
 			var behaviour = Attach(host);
-			behaviour.Begin(this, viewer);
+			behaviour.Begin(this, viewer, pacing);
 
 			return behaviour;
 		}

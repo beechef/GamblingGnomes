@@ -10,12 +10,14 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		public readonly int Slot;
 		public readonly int Order;
 		public readonly int Players;
+		public readonly bool IntoHand;
 
-		public PokerDealTurn(int slot, int order, int players)
+		public PokerDealTurn(int slot, int order, int players, bool intoHand = false)
 		{
 			Slot = slot;
 			Order = order;
 			Players = Mathf.Max(1, players);
+			IntoHand = intoHand;
 		}
 	}
 
@@ -30,6 +32,6 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		// Carries the card from where it lies now to its slot in `parent`'s space. The card is not parented
 		// there until it lands — it holds it back for the wait, puts it exactly on the slot and only then
 		// takes the new parent, so a subclass handles none of that.
-		public abstract Tween Travel(Transform card, Transform parent, Vector3 localPosition, Quaternion localRotation);
+		public abstract Tween Travel(Transform card, Transform parent, Vector3 localPosition, Quaternion localRotation, Vector3 localScale);
 	}
 }

@@ -8,8 +8,8 @@ namespace Game.Runtime.GameMode.Poker.Stages
 	// them rather than on one of them, so there is no order to take and no seat to pass — the stage is
 	// over when the last player has spent their looks.
 	//
-	// It is its own step rather than something bolted onto the wager it follows, because the question is
-	// a different one: the wager asks which cap, this asks which cards, and folding those two together
+	// It is its own step rather than something bolted onto the street it follows, because the question is
+	// a different one: the street asks which cap, this asks which cards, and folding those two together
 	// would leave a turn that ends on two unrelated answers.
 	[CreateAssetMenu(fileName = "PokerStage_CardLook", menuName = "Game/Poker/Stages/Card Look")]
 	public class PokerCardLookStage : PokerStage
@@ -56,7 +56,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			}
 
 			// A clock that ran out ends the looking with whatever each player chose to turn, which is a
-			// real answer: leaving a card face down is a decision the second wager can be read off.
+			// real answer: leaving a card face down is a decision the second street can be read off.
 			if (Data.HasStageTimer && GameMode.IsStageTimerExpired())
 			{
 				Settle();
@@ -80,7 +80,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			GameMode.BeginStageTimer(_settleDuration);
 		}
 
-		// Seated and still in the hand, the same question the wager asks — a player who folded before the
+		// Seated and still in the hand, the same question the street asks — a player who folded before the
 		// deal is not being waited on, and neither is one the round never dealt to.
 		private bool EveryoneDone()
 		{

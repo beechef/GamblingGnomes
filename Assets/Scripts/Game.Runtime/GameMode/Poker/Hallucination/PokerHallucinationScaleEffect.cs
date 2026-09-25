@@ -23,15 +23,11 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 		[Tooltip("How this joins whatever else is already on the bone. Multiply composes — a swell and a shrink running together cancel out rather than one erasing the other.")]
 		[SerializeField] private PlayerBoneScaleMode _mode = PlayerBoneScaleMode.Multiply;
 
-		[Tooltip("Seconds it takes to grow. Snapping reads as a bug rather than as a symptom.")]
-		[SerializeField] private float _duration = 1.2f;
-
 		[SerializeField] private Ease _ease = Ease.OutBack;
 
 		public PokerHallucinationTarget Target => _target;
 		public Vector3 Scale => _scale;
 		public PlayerBoneScaleMode Mode => _mode;
-		public float Duration => Mathf.Max(0f, _duration);
 		public Ease Ease => _ease;
 
 		protected override PokerHallucinationEffectBehaviour Attach(GameObject host) => host.AddComponent<PokerHallucinationScaleBehaviour>();

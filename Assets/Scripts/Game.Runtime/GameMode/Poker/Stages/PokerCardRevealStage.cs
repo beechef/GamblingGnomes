@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker.Stages
 {
-	// Cards down, faces up, everybody at once. The wagering is over and there is nothing left to hide, so
+	// Cards down, faces up, everybody at once. The betting is over and there is nothing left to hide, so
 	// every hand still in it goes onto the table for the whole room to read — this is the beat the round
 	// has been building to, and it is a stage rather than a line inside the showdown because the table
 	// needs a moment to look before anybody is told who won.
@@ -19,9 +19,15 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		[MinValue(0f)]
 		[SerializeField] private float _duration = 3f;
 
+		[Header("Board")]
+		[Tooltip("On, every community card still face down turns over with the hands, for a round whose streets never turned them (Indian Poker).")]
+		[SerializeField] private bool _revealBoard;
+
 		protected override void OnStartStage()
 		{
 			GameMode.ClearTurn();
+
+			if (_revealBoard) GameMode.ServerRevealAllCommunityCards();
 
 			foreach (var player in GameMode.SeatedPlayers)
 			{

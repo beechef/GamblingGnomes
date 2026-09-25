@@ -2,10 +2,21 @@ using System.Collections.Generic;
 using Game.Runtime.GameMode.Poker.Hands;
 using Game.Runtime.GameMode.Poker.Player;
 using Game.Runtime.Player;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker.Stages
 {
+	// How a settled hand is paid. Stored as a number in the stage assets, so values are never renumbered.
+	public enum PokerSettlement : byte
+	{
+		// Every loser takes a full copy of what the winner staked; a folder keeps only their fold-phase cap.
+		SwapToLosers = 0,
+
+		// Everyone but the winners eats exactly what they staked, folded or beaten alike.
+		OwnStake = 1
+	}
+
 	[CreateAssetMenu(fileName = "PokerStage_Showdown", menuName = "Game/Poker/Stages/Showdown")]
 	public class PokerShowdownStage : PokerStage
 	{
@@ -14,8 +25,15 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		[SerializeField] private PokerHandDatabase _handDatabase;
 
 		[Header("Settlement")]
-		[Tooltip("Which wager a folder is made to eat their own copy of. The first, by the design — folding after seeing three cards still costs what was put up before them.")]
-		[SerializeField] private PokerPhase _foldPhase = PokerPhase.FirstWager;
+		[Tooltip("Who ends up holding which caps once the hand is decided.")]
+		[SerializeField] private PokerSettlement _settlement = PokerSettlement.SwapToLosers;
+
+		[Tooltip("Which street a folder is made to eat their own copy of. The first, by the design — folding after seeing three cards still costs what was put up before them.")]
+		[ShowIf(nameof(_settlement), PokerSettlement.SwapToLosers)]
+		[SerializeField] private PokerPhase _foldPhase = PokerPhase.FirstStreet;
+
+		[Tooltip("Off, a hand won because everybody else folded stays face down: nobody paid to see it. On, it is turned over and named like any other.")]
+		[SerializeField] private bool _revealUncontested = true;
 
 		[Header("Timing")]
 		[Tooltip("Seconds the winning hand stays up before the table resets.")]
@@ -34,6 +52,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		private readonly List<CardData> _evaluationBuffer = new();
 		private readonly List<Contender> _ranking = new();
 		private readonly List<(PokerPlayer Player, int RankGroup)> _contenders = new();
+		private readonly List<PokerPlayer> _winners = new();
 
 		private readonly struct Contender
 		{
@@ -55,8 +74,15 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			ResolveContenders();
 
 			// The winner is named before the settlement, because the settlement is about what the winner put
-			// up and would otherwise have nobody to ask.
-			var winner = _contenders.Count > 0 ? _contenders[0].Player : null;
+			// up and would otherwise have nobody to ask. Hands that tie all win; the one of them nearest the
+			// player who opened the hand is the one named, so a tie is settled the same way every time.
+			_winners.Clear();
+			foreach (var (player, rankGroup) in _contenders)
+			{
+				if (rankGroup == 1) _winners.Add(player);
+			}
+
+			var winner = NearestToOpener(_winners);
 			Data.LastWinnerClientId.Value = winner ? winner.ClientId : PokerGameData.NoTurn;
 
 			// The celebration is held from here until the table comes round to the Colorful pick, so it is
@@ -71,7 +97,10 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			// rig, like every gesture.
 			if (winner) winner.ActionAnimator?.ServerPlay(PlayerActionIds.Laugh);
 
-			PokerTableUtility.SwapPotToLosers(Data, winner, GameMode.SeatedPlayers, GameMode.ItemDatabase, _foldPhase);
+			if (_settlement == PokerSettlement.OwnStake) PokerTableUtility.DiscardStakesOf(Data, _winners);
+			else PokerTableUtility.SwapPotToLosers(Data, winner, GameMode.SeatedPlayers, GameMode.BetItemDatabase, _foldPhase);
+
+			GameMode.NotifyHandSettled(_winners);
 
 			PublishRanking();
 
@@ -124,11 +153,19 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			_ranking.Clear();
 			_contenders.Clear();
 
-			// Every hand still in is turned over and named, the last one standing after everyone else folded
-			// included: the board shows what they held and what it made, even with nothing left to beat.
+			// Every hand still in is turned over and named — the last one standing after everyone else folded
+			// included, unless this table keeps an uncontested hand face down.
+			var contested = PokerTableUtility.CountInHand(GameMode.SeatedPlayers) > 1;
+
 			foreach (var player in GameMode.SeatedPlayers)
 			{
 				if (!player.Data.IsInHand) continue;
+
+				if (!contested && !_revealUncontested)
+				{
+					_ranking.Add(new Contender(player, PokerHandResult.None));
+					continue;
+				}
 
 				player.Data.ServerRevealHand();
 				_ranking.Add(new Contender(player, Evaluate(player)));
@@ -181,7 +218,21 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 			foreach (var card in player.Data.HoleCards) _evaluationBuffer.Add(card);
 
+			// The board counts only where the whole table has turned it: a card nobody has seen is not one
+			// anybody's hand was made with, and one the host alone was shown is not either.
+			for (var i = 0; i < Data.CommunityCards.Count; i++)
+			{
+				if (Data.IsCommunityCardRevealed(i)) _evaluationBuffer.Add(Data.CommunityCards[i]);
+			}
+
 			return GameMode.HandEvaluator.Evaluate(_handDatabase, _evaluationBuffer);
+		}
+
+		private PokerPlayer NearestToOpener(List<PokerPlayer> candidates)
+		{
+			if (candidates.Count <= 1) return candidates.Count == 1 ? candidates[0] : null;
+
+			return PokerTableUtility.NextPlayer(GameMode.SeatedPlayers, GameMode.SeatBeforeHandOpener(), candidates.Contains);
 		}
 	}
 }

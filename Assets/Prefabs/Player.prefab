@@ -420,7 +420,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 3582466838018812344}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: -0.7071068, w: 0.7071068}
+  m_LocalRotation: {x: -0.7071068, y: 0.7071068, z: -0, w: 0}
   m_LocalPosition: {x: -0.0066, y: -0.0158, z: 0.0233}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -607,6 +607,7 @@ GameObject:
   - component: {fileID: 4220622338563496707}
   - component: {fileID: 4487985094724243229}
   - component: {fileID: 5732750062683245202}
+  - component: {fileID: 3877142548683224880}
   m_Layer: 0
   m_Name: FirstPersonCamera
   m_TagString: Untagged
@@ -709,6 +710,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.PlayerCameraFollow
   _reference: {fileID: 5390899513882683757}
+--- !u!114 &3877142548683224880
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5089675411609327401}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 38c2eb24ef62437d92e0f0458867fd54, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.Camera.PlayerCameraFovController
+  _camera: {fileID: 4220622338563496707}
 --- !u!1 &5304580961992640847
 GameObject:
   m_ObjectHideFlags: 0
@@ -1577,7 +1591,7 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7488274604252524799}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: -0.7071068, w: 0.7071068}
+  m_LocalRotation: {x: -0.7071068, y: 0.7071068, z: -0, w: 0}
   m_LocalPosition: {x: -0.0066, y: -0.0158, z: 0.0233}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -4555,6 +4569,21 @@ MonoBehaviour:
   - Bone: 21
     Transform: {fileID: 3441691571832123034}
     BoneName: CapHold
+  - Bone: 22
+    Transform: {fileID: 756864811264605414}
+    BoneName: Ears_L
+  - Bone: 23
+    Transform: {fileID: 6552852367610976066}
+    BoneName: Ears_R
+  - Bone: 24
+    Transform: {fileID: 7459018368264714924}
+    BoneName: Eye_L
+  - Bone: 25
+    Transform: {fileID: 9039150554168871502}
+    BoneName: Eye_R
+  - Bone: 26
+    Transform: {fileID: 3287574432717083873}
+    BoneName: Nose_M
 --- !u!114 &4572397720835468741
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6157,6 +6186,11 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 6449684049948578118, guid: 39bc1341774026a42bfa10073058dab3, type: 3}
   m_PrefabInstance: {fileID: 6471372255580718609}
   m_PrefabAsset: {fileID: 0}
+--- !u!4 &333325838234082692 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6732556893200571285, guid: 39bc1341774026a42bfa10073058dab3, type: 3}
+  m_PrefabInstance: {fileID: 6471372255580718609}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &713139851992264329 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5776845282169415832, guid: 39bc1341774026a42bfa10073058dab3, type: 3}
@@ -6180,6 +6214,11 @@ Transform:
 --- !u!4 &1459431216571567161 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5588437388027775528, guid: 39bc1341774026a42bfa10073058dab3, type: 3}
+  m_PrefabInstance: {fileID: 6471372255580718609}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &2575800719312401795 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 8823110071366628242, guid: 39bc1341774026a42bfa10073058dab3, type: 3}
   m_PrefabInstance: {fileID: 6471372255580718609}
   m_PrefabAsset: {fileID: 0}
 --- !u!4 &3158392345101335744 stripped
@@ -6245,6 +6284,11 @@ Transform:
 --- !u!137 &5999505143390531190 stripped
 SkinnedMeshRenderer:
   m_CorrespondingSourceObject: {fileID: 760097764320143463, guid: 39bc1341774026a42bfa10073058dab3, type: 3}
+  m_PrefabInstance: {fileID: 6471372255580718609}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &6111580539901851168 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8278076976669970383, guid: 39bc1341774026a42bfa10073058dab3, type: 3}
   m_PrefabInstance: {fileID: 6471372255580718609}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &6129266148366629696 stripped
@@ -6354,6 +6398,21 @@ MonoBehaviour:
   - Bone: 21
     Transform: {fileID: 4808521147248479474}
     BoneName: CapHold
+  - Bone: 22
+    Transform: {fileID: 333325838234082692}
+    BoneName: Ears_L
+  - Bone: 23
+    Transform: {fileID: 6111580539901851168}
+    BoneName: Ears_R
+  - Bone: 24
+    Transform: {fileID: 7611957704961399758}
+    BoneName: Eye_L
+  - Bone: 25
+    Transform: {fileID: 8309520737435085612}
+    BoneName: Eye_R
+  - Bone: 26
+    Transform: {fileID: 2575800719312401795}
+    BoneName: Nose_M
 --- !u!114 &5348767635628544556
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6405,9 +6464,19 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -4902732183977445245, guid: 39bc1341774026a42bfa10073058dab3, type: 3}
   m_PrefabInstance: {fileID: 6471372255580718609}
   m_PrefabAsset: {fileID: 0}
+--- !u!4 &7611957704961399758 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 3489715716728331743, guid: 39bc1341774026a42bfa10073058dab3, type: 3}
+  m_PrefabInstance: {fileID: 6471372255580718609}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &7916618522181138247 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3752506043894559062, guid: 39bc1341774026a42bfa10073058dab3, type: 3}
+  m_PrefabInstance: {fileID: 6471372255580718609}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &8309520737435085612 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 3071375584932818237, guid: 39bc1341774026a42bfa10073058dab3, type: 3}
   m_PrefabInstance: {fileID: 6471372255580718609}
   m_PrefabAsset: {fileID: 0}
 --- !u!4 &8730096910151787637 stripped

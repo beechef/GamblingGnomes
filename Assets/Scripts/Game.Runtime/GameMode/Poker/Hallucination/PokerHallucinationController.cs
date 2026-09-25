@@ -24,16 +24,8 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 		[Tooltip("Which rungs exist and what each can draw. Empty plays the round with no hallucinations at all, which is what a table testing the card rules wants.")]
 		[SerializeField] private PokerHallucinationTiers _tiers;
 
-		[Tooltip("Seconds the screen takes to blink when a rung is climbed or lost. Zero applies the change outright, which is what a table testing the ladder wants.")]
-		[SerializeField] private float _transitionDuration = 0.5f;
-
-		[Tooltip("How far through the blink the effects switch, as a fraction of it. The eye is shut exactly then: it closes over the part before and opens over the part after, so 0.5 is an even blink.")]
-		[Range(0f, 1f)]
-		[SerializeField] private float _applyPoint = 0.5f;
-
-		[Tooltip("Seconds the eye stays shut after the effects switch, before it opens. The effects ease in and out as they change — a head growing, a room fading — so this has to outlast the longest of those, or the eye opens on them still moving.")]
-		[MinValue(0f)]
-		[SerializeField] private float _holdDuration = 1.5f;
+		[Tooltip("How long the blink takes and how long the effects ease behind it. Empty applies a rung change outright, which is what a table testing the ladder wants.")]
+		[SerializeField] private PokerHallucinationPacing _pacing;
 
 		[Tooltip("Where the running effects are hung. Empty hangs them on this object, which is what a player prefab wants.")]
 		[SerializeField] private Transform _effectRoot;
@@ -74,20 +66,92 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 				return names;
 			}
 		}
+
+		// Runs one effect outright, outside the ladder, to judge a look without climbing to its rung. Only the
+		// owner draws hallucinations, so it only runs on your own player; the ladder never sees these.
+		private sealed class DebugEntry
+		{
+			[HorizontalGroup, HideLabel, ReadOnly, ShowInInspector]
+			public PokerHallucinationEffectBehaviour Behaviour;
+
+			public Action<DebugEntry> OnStop;
+
+			[HorizontalGroup(60), Button("Stop")]
+			private void Stop() => OnStop?.Invoke(this);
+		}
+
+		[FoldoutGroup("Debug"), PropertyOrder(200), ShowInInspector, LabelText("Effect")]
+		[ValueDropdown(nameof(DebugEffectChoices))]
+		[InfoBox("Play mode, on your own player only.", InfoMessageType.None, nameof(CannotRunDebug))]
+		private PokerHallucinationEffect _debugEffect;
+
+		[FoldoutGroup("Debug"), PropertyOrder(202), ShowInInspector, LabelText("Debug Running")]
+		[ListDrawerSettings(HideAddButton = true, HideRemoveButton = true, DraggableItems = false)]
+		private List<DebugEntry> _debugRunning = new();
+
+		private bool CanRunDebug => Application.isPlaying && IsSpawned && IsOwner;
+		private bool CannotRunDebug => !CanRunDebug;
+
+		[FoldoutGroup("Debug"), PropertyOrder(201), Button("Run"), EnableIf(nameof(CanRunDebug))]
+		private void RunDebugEffect()
+		{
+			if (!CanRunDebug || !_debugEffect) return;
+
+			var behaviour = _debugEffect.Run(_effectRoot ? _effectRoot : transform, _player, _pacing);
+			if (!behaviour) return;
+
+			behaviour.name = $"Debug - {_debugEffect.name}";
+			_debugRunning.Add(new DebugEntry { Behaviour = behaviour, OnStop = StopDebugEffect });
+		}
+
+		private void StopDebugEffect(DebugEntry entry)
+		{
+			if (entry.Behaviour) entry.Behaviour.Stop();
+
+			// Deferred: the click lands while the inspector is still drawing this list.
+			UnityEditor.EditorApplication.delayCall += () => _debugRunning.Remove(entry);
+		}
+
+		[FoldoutGroup("Debug"), PropertyOrder(203), Button("Stop All"), EnableIf(nameof(CanRunDebug))]
+		private void StopDebugEffects()
+		{
+			foreach (var entry in _debugRunning)
+			{
+				if (entry.Behaviour) entry.Behaviour.Stop();
+			}
+
+			_debugRunning.Clear();
+		}
+
+		// Grouped by effect type, so a long catalogue reads as a tree.
+		private static IEnumerable<ValueDropdownItem<PokerHallucinationEffect>> DebugEffectChoices()
+		{
+			foreach (var guid in UnityEditor.AssetDatabase.FindAssets($"t:{nameof(PokerHallucinationEffect)}"))
+			{
+				var asset = UnityEditor.AssetDatabase.LoadAssetAtPath<PokerHallucinationEffect>(UnityEditor.AssetDatabase.GUIDToAssetPath(guid));
+				if (!asset) continue;
+
+				var kind = asset.GetType().Name.Replace("PokerHallucination", "").Replace("Effect", "");
+				yield return new ValueDropdownItem<PokerHallucinationEffect>($"{kind}/{asset.name}", asset);
+			}
+		}
 #endif
 
 		// The whole blink, start to finish: closing, held shut, opening. The rungs land ApplyDelay into it and
 		// the eye stays shut for HoldDuration after, and the view that draws the eyelids reads these same
 		// numbers rather than carrying its own to keep in step.
-		public float TransitionDuration => BlinkDuration + HoldDuration;
+		public float TransitionDuration => _pacing ? _pacing.TransitionDuration : 0f;
 
-		public float ApplyDelay => BlinkDuration * Mathf.Clamp01(_applyPoint);
+		public float ApplyDelay => _pacing ? _pacing.CloseDuration : 0f;
 
-		public float HoldDuration => BlinkDuration > 0f ? Mathf.Max(0f, _holdDuration) : 0f;
+		public float HoldDuration => _pacing ? _pacing.HoldDuration : 0f;
 
-		public float OpenDuration => BlinkDuration - ApplyDelay;
+		public float OpenDuration => _pacing ? _pacing.OpenDuration : 0f;
 
-		private float BlinkDuration => Mathf.Max(0f, _transitionDuration);
+		// How long a beat about this player waits for the blink a change between these rates sets off, which
+		// is none at all when no rung is crossed.
+		public float BlinkWait(int previousRate, int currentRate) =>
+			CrossesRung(previousRate, currentRate) ? TransitionDuration : 0f;
 
 		// The ladder itself, for anything drawing where its rungs sit. Read as authored, so every screen shows the
 		// same marks whether or not it is the one running the effects.
@@ -137,6 +201,9 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 			// Everything comes off on the way out: an effect is a change to this client's whole view, and
 			// leaving one running would outlive the table it belonged to.
 			EndAll();
+#if UNITY_EDITOR
+			StopDebugEffects();
+#endif
 		}
 
 		private void HandleChanged(int previous, int current) => Refresh();
@@ -284,7 +351,7 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 				// one of the two would silently do nothing. An object per draw makes stacking work by
 				// construction, and it names what this player is seeing in the hierarchy, where it can be
 				// watched and retuned while it is on screen.
-				var behaviour = asset.Run(_effectRoot ? _effectRoot : transform, _player);
+				var behaviour = asset.Run(_effectRoot ? _effectRoot : transform, _player, _pacing);
 				if (!behaviour) continue;
 
 				behaviour.name = $"Rung {index} ({rung.Threshold}%) - {asset.name}";

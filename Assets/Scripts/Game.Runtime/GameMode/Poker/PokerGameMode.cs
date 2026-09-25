@@ -8,6 +8,7 @@ using Game.Runtime.GameMode.Poker.Player;
 using Game.Runtime.GameMode.Poker.Stages;
 using Game.Runtime.Player;
 using Game.Runtime.UI;
+using Sirenix.OdinInspector;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
@@ -24,8 +25,8 @@ namespace Game.Runtime.GameMode.Poker
 		[Range(1, 8)]
 		[SerializeField] private int _startingHealth = 8;
 
-		[Tooltip("The kinds of cap this table is played with: what the wager bar offers, what a timeout wagers and what the settlement hands round.")]
-		[SerializeField] private Items.PokerItemDatabase _itemDatabase;
+		[Tooltip("The kinds of cap this table is played with: what the bet bar offers, what a timeout bets and what the settlement hands round.")]
+		[SerializeField] private BetItems.PokerBetItemDatabase _betItemDatabase;
 
 		[Header("Stages")]
 		[Tooltip("The round loop as a preset. Swap this asset to change the game — modules still add to it, and a stage can be queued ahead of the loop at runtime by InsertStage.")]
@@ -42,6 +43,10 @@ namespace Game.Runtime.GameMode.Poker
 		[Header("References")]
 		[SerializeField] private PokerGameData _data;
 		[SerializeField] private MatchConfigData _configData;
+
+		[Tooltip("Where everything the table is told goes out: accepted actions, items played, private news.")]
+		[Required]
+		[SerializeField] private PokerNoticeChannel _notices;
 		[SerializeField] private List<PokerSeat> _seats = new();
 
 		public static PokerGameMode Instance { get; private set; }
@@ -58,7 +63,8 @@ namespace Game.Runtime.GameMode.Poker
 
 		public PokerGameData Data => _data;
 		public MatchConfigData ConfigData => _configData;
-		public Items.PokerItemDatabase ItemDatabase => _itemDatabase;
+		public PokerNoticeChannel Notices => _notices;
+		public BetItems.PokerBetItemDatabase BetItemDatabase => _betItemDatabase;
 		public PokerRuleSettings Rules => _rules;
 		public PokerStageSequence Sequence => _sequence;
 		public PokerDeck Deck { get; } = new();
@@ -123,6 +129,9 @@ namespace Game.Runtime.GameMode.Poker
 		public event Action OnSeatedPlayersChanged;
 		public event Action<PokerStage> OnStageChanged;
 
+		// A module changed what somebody may do or what a bet costs. Raised on every peer.
+		public event Action OnActionRulesChanged;
+
 		private readonly List<PokerPlayer> _seatedPlayers = new();
 
 		private PokerStageMachine _stageMachine;
@@ -184,9 +193,14 @@ namespace Game.Runtime.GameMode.Poker
 
 			if (!IsServer) return;
 
+			Deck.OnRemainingChanged += HandleDeckRemainingChanged;
+			HandleDeckRemainingChanged();
+
 			NetworkManager.Singleton.OnClientDisconnectCallback += HandleClientDisconnected;
 			GoToStage(0);
 		}
+
+		private void HandleDeckRemainingChanged() => _data.DeckRemaining.Value = Deck.Remaining;
 
 		public override void OnNetworkDespawn()
 		{
@@ -200,6 +214,8 @@ namespace Game.Runtime.GameMode.Poker
 			{
 				NetworkManager.Singleton.OnClientDisconnectCallback -= HandleClientDisconnected;
 			}
+
+			if (IsServer) Deck.OnRemainingChanged -= HandleDeckRemainingChanged;
 
 			_stageMachine.Shutdown();
 
@@ -258,6 +274,64 @@ namespace Game.Runtime.GameMode.Poker
 
 		public PokerStage FindStage(string stageId) => _stageMachine.Find(stageId);
 
+		// Whether another street follows this one before the hand is scored. Read off the sequence every peer
+		// builds, so the bar and the server agree without a word on the wire.
+		public bool HasStreetAfter(PokerStage stage)
+		{
+			var stages = Stages;
+			var index = -1;
+
+			for (var i = 0; i < stages.Count; i++)
+			{
+				if (stages[i] != stage) continue;
+
+				index = i;
+				break;
+			}
+
+			if (index < 0) return false;
+
+			for (var i = index + 1; i < stages.Count; i++)
+			{
+				if (stages[i] is PokerStreetStage) return true;
+				if (stages[i] is PokerShowdownStage) return false;
+			}
+
+			return false;
+		}
+
+		public bool IsActionAllowed(PokerPlayerData player, PokerActionType action)
+		{
+			foreach (var module in _modules)
+			{
+				if (module && !module.IsActionAllowed(player, action)) return false;
+			}
+
+			return true;
+		}
+
+		public int ModifyStakeSize(PokerStreetStage street, int stakeSize)
+		{
+			foreach (var module in _modules)
+			{
+				if (module) stakeSize = module.ModifyStakeSize(street, stakeSize);
+			}
+
+			return Mathf.Max(1, stakeSize);
+		}
+
+		public void NotifyActionRulesChanged() => OnActionRulesChanged?.Invoke();
+
+		public void NotifyHandSettled(IReadOnlyList<PokerPlayer> winners)
+		{
+			if (!IsServer) return;
+
+			foreach (var module in _modules)
+			{
+				if (module) module.OnHandSettled(winners);
+			}
+		}
+
 		// Only picks up seats that spawned before this table did; the ones that come later register
 		// themselves on the way in.
 		private void CollectRegisteredSeats()
@@ -296,7 +370,7 @@ namespace Game.Runtime.GameMode.Poker
 		public bool CanBeDealtIn(PokerPlayerData data) => data && data.IsAlive;
 
 		// A place in the match, as opposed to a chair in the room. Everything the round *does* to a player
-		// asks this — dealing to them, letting them wager, feeding them a cap — so somebody who sat down
+		// asks this — dealing to them, letting them bet, feeding them a cap — so somebody who sat down
 		// halfway through watches the rest of it out rather than being collected into a game that was
 		// already scored around them.
 		//
@@ -407,6 +481,18 @@ namespace Game.Runtime.GameMode.Poker
 			ServerApplyStartingValues(resetPlayers: false);
 		}
 
+		public PokerPlayer FindSeatedPlayerAtSeat(int seatIndex)
+		{
+			if (seatIndex < 0) return null;
+
+			foreach (var player in _seatedPlayers)
+			{
+				if (player && player.Data && player.Data.SeatIndex.Value == seatIndex) return player;
+			}
+
+			return null;
+		}
+
 		public PokerPlayer FindSeatedPlayer(ulong clientId)
 		{
 			foreach (var player in _seatedPlayers)
@@ -496,7 +582,7 @@ namespace Game.Runtime.GameMode.Poker
 					// The record of what they have already swallowed belongs to the match too, and it lives on
 					// its own controller — reaching across from the data class to clear it would be a second
 					// place to keep in step.
-					if (player.ItemConsume) player.ItemConsume.ServerResetForMatch();
+					if (player.BetItemConsume) player.BetItemConsume.ServerResetForMatch();
 				}
 			}
 		}
@@ -515,10 +601,19 @@ namespace Game.Runtime.GameMode.Poker
 			// Who the match is being played by, decided once here. Everybody in a chair right now and able to
 			// be dealt in is collected; anybody who sits down after this watches it out. The host who pressed
 			// start while unconscious is not collected either — they hold the button, not a hand.
+			// Between rounds of one match the stamps are still up; only the match reset takes them down.
+			var firstRound = true;
+			var playing = 0;
 			foreach (var player in _seatedPlayers)
 			{
-				if (player && player.Data) player.Data.InMatch.Value = CanBeDealtIn(player.Data);
+				if (!player || !player.Data) continue;
+
+				if (player.Data.InMatch.Value) firstRound = false;
+				player.Data.InMatch.Value = CanBeDealtIn(player.Data);
+				if (player.Data.InMatch.Value) playing++;
 			}
+
+			if (firstRound && _notices) _notices.ServerAnnounce(PokerNotice.ForMatchStarted(playing));
 
 			foreach (var module in _modules)
 			{
@@ -565,6 +660,9 @@ namespace Game.Runtime.GameMode.Poker
 				if (module) module.OnMatchEnded();
 			}
 
+			// Who took the last hand of a finished match has no claim on the first hand of the next one.
+			_data.LastWinnerClientId.Value = PokerGameData.NoTurn;
+
 			_data.Phase.Value = PokerPhase.Finished;
 		}
 
@@ -580,7 +678,7 @@ namespace Game.Runtime.GameMode.Poker
 				if (!player) continue;
 
 				if (player.Data) player.Data.ServerResetForMatch();
-				if (player.ItemConsume) player.ItemConsume.ServerResetForMatch();
+				if (player.BetItemConsume) player.BetItemConsume.ServerResetForMatch();
 			}
 		}
 
@@ -594,6 +692,138 @@ namespace Game.Runtime.GameMode.Poker
 			{
 				if (player && player.Data && player.Data.CardCount > 0) player.Data.HoleCards.Clear();
 			}
+
+			if (_data.CommunityCards.Count > 0) _data.CommunityCards.Clear();
+			_data.RevealedCommunityMask.Value = 0;
+			_streetTurnedCount = 0;
+		}
+
+		// Laid face down in one go, so a street only ever turns over what is already lying there.
+		public void ServerDealCommunityCards(IReadOnlyList<CardData> cards)
+		{
+			if (!IsServer) return;
+
+			_data.RevealedCommunityMask.Value = 0;
+			_streetTurnedCount = 0;
+			if (_data.CommunityCards.Count > 0) _data.CommunityCards.Clear();
+
+			foreach (var card in cards) _data.CommunityCards.Add(card);
+		}
+
+		// Server only: how far along the board the streets have turned. An item turning a card does not move
+		// it, because the flop is always the first three places, the turn the fourth and the river the fifth.
+		private int _streetTurnedCount;
+
+		// A street turns its own places, whatever an item turned before it; a place already face up stays so.
+		public void ServerRevealCommunityCards(int count)
+		{
+			if (!IsServer || count <= 0) return;
+
+			var mask = _data.RevealedCommunityMask.Value;
+			var end = Mathf.Min(_streetTurnedCount + count, Mathf.Min(_data.CommunityCards.Count, 31));
+
+			for (var i = _streetTurnedCount; i < end; i++) mask |= 1 << i;
+
+			_streetTurnedCount = end;
+			_data.RevealedCommunityMask.Value = mask;
+		}
+
+		public void ServerRevealCommunityCard(int slot)
+		{
+			if (!IsServer || slot < 0 || slot >= _data.CommunityCards.Count || slot >= 31) return;
+
+			_data.RevealedCommunityMask.Value |= 1 << slot;
+		}
+
+		// Turns a card an item showed back down; the street that owns the slot still turns it in its turn.
+		public void ServerConcealCommunityCard(int slot)
+		{
+			if (!IsServer || slot < 0 || slot < _streetTurnedCount || slot >= 31) return;
+
+			_data.RevealedCommunityMask.Value &= ~(1 << slot);
+		}
+
+		public void ServerRevealAllCommunityCards()
+		{
+			if (!IsServer) return;
+
+			_streetTurnedCount = Mathf.Min(_data.CommunityCards.Count, 31);
+			_data.RevealedCommunityMask.Value = (1 << _streetTurnedCount) - 1;
+		}
+
+		// One slot written in place, never a clear and refill, which every screen would play as a new deal.
+		public void ServerReplaceCommunityCard(int slot, CardData card)
+		{
+			if (!IsServer || slot < 0 || slot >= _data.CommunityCards.Count) return;
+
+			_data.CommunityCards[slot] = card;
+		}
+
+		// Somebody who went under mid-hand is out of it: their cards go face down as a fold's do and their
+		// stake settles as a folder's, whatever the rules say about folding. The turn is handed on if it was
+		// theirs, by the same path as a player leaving the table.
+		public void ServerFoldOutOfHand(PokerPlayer player)
+		{
+			if (!IsServer || !player || !player.Data || !player.Data.IsInHand) return;
+
+			player.ServerFold();
+
+			if (_data.CurrentTurnClientId.Value == player.ClientId && CurrentStage)
+				CurrentStage.HandlePlayerLeft(player.ClientId, player.Data.SeatIndex.Value);
+		}
+
+		// Who opens this hand: every street starts from them and a tie at the showdown is broken toward them.
+		// Last hand's winner if they were dealt in, else the next player dealt in after their chair, else — the
+		// first hand of a match — the host, or the next player dealt in after the host. Server-only: nothing on a
+		// client asks it.
+		public ulong HandOpenerClientId { get; private set; } = PokerGameData.NoTurn;
+
+		public void ServerChooseHandOpener()
+		{
+			if (!IsServer) return;
+
+			HandOpenerClientId = PokerGameData.NoTurn;
+
+			var winner = FindSeatedPlayer(_data.LastWinnerClientId.Value);
+			if (winner && winner.Data.IsInHand)
+			{
+				HandOpenerClientId = winner.ClientId;
+				return;
+			}
+
+			if (winner)
+			{
+				var next = PokerTableUtility.NextPlayer(_seatedPlayers, winner.Data.SeatIndex.Value, player => player.Data.IsInHand);
+				if (next) HandOpenerClientId = next.ClientId;
+				return;
+			}
+
+			// The first hand of a match: the host opens it, or the next player dealt in after their chair when
+			// the host is not in the hand.
+			var host = FindSeatedPlayer(NetworkManager.ServerClientId);
+			if (host && host.Data.IsInHand)
+			{
+				HandOpenerClientId = host.ClientId;
+				return;
+			}
+
+			var fromSeat = host ? host.Data.SeatIndex.Value : PokerPlayerData.NoSeat;
+			var first = PokerTableUtility.NextPlayer(_seatedPlayers, fromSeat, player => player.Data.IsInHand);
+			if (first) HandOpenerClientId = first.ClientId;
+		}
+
+		// The seat a walk starts *after*, so NextPlayer lands on the opener first. NoSeat with no opener,
+		// which walks from the first chair.
+		public int SeatBeforeHandOpener()
+		{
+			var opener = FindSeatedPlayer(HandOpenerClientId);
+			if (!opener) return PokerPlayerData.NoSeat;
+
+			var seat = opener.Data.SeatIndex.Value;
+			if (seat < 0) return PokerPlayerData.NoSeat;
+
+			var seatCount = Mathf.Max(1, _data.ActiveSeatCount.Value);
+			return (seat - 1 + seatCount) % seatCount;
 		}
 
 		// Transitions are the server's alone; how they play out is the machine's business.
@@ -852,12 +1082,8 @@ namespace Game.Runtime.GameMode.Poker
 
 			if (!CurrentStage || !CurrentStage.HandleAction(senderClientId, action, amount)) return;
 
-			_data.ActionNotice.Value = new PokerActionNotice
-			{
-				ClientId = senderClientId,
-				Action = action,
-				Sequence = _data.ActionNotice.Value.Sequence + 1
-			};
+			// A stage whose answers are sealed tells nobody who answered what.
+			if (CurrentStage.AnnouncesActions && _notices) _notices.ServerAnnounce(PokerNotice.ForAction(senderClientId, action));
 
 			foreach (var module in _modules)
 			{

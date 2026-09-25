@@ -31,16 +31,11 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 		[PropertyRange(0f, 100f)]
 		[SerializeField] private float _weight = 100f;
 
-		[Tooltip("Seconds it takes to grow. Snapping reads as a bug rather than as a symptom.")]
-		[MinValue(0f)]
-		[SerializeField] private float _duration = 1.2f;
-
 		[SerializeField] private Ease _ease = Ease.OutBack;
 
 		public PokerHallucinationTarget Target => _target;
 		public string Shape => _shape;
 		public float Weight => _weight;
-		public float Duration => Mathf.Max(0f, _duration);
 		public Ease Ease => _ease;
 
 		protected override PokerHallucinationEffectBehaviour Attach(GameObject host) => host.AddComponent<PokerHallucinationBlendShapeBehaviour>();

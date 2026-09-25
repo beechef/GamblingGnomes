@@ -1,4 +1,5 @@
 using DG.Tweening;
+using Game.Runtime.GameMode.Poker.Hallucination;
 using Game.Runtime.Player;
 using Sirenix.OdinInspector;
 using Unity.Netcode;
@@ -14,7 +15,8 @@ namespace Game.Runtime.GameMode.Poker.Player
 	// The head stops following the look at once, on every machine: the player who went under can still turn
 	// their view, but a corpse turning its head after the mouse is the one thing the death clip must not have
 	// fighting it, and every machine writes the replicated look onto its own copy of that head. The pose
-	// itself starts a beat later, so the camera cutting to the body arrives before the fall does rather than
+	// itself waits until the blink the ceiling sets off has opened again, or the fall plays behind a shut eye,
+	// and then a beat more, so the camera cutting to the body arrives before the fall does rather than
 	// halfway through it.
 	public class PokerDeathPoseController : NetworkBehaviour
 	{
@@ -22,9 +24,10 @@ namespace Game.Runtime.GameMode.Poker.Player
 		[Tooltip("Bool parameter set while this player is out of the game. A controller without it is skipped, so the pose can be driven before the art lands.")]
 		[SerializeField] private string _deadParameter = "IsDead";
 
-		[Tooltip("Seconds between going under and the death pose starting — the beat the death shot uses to arrive. Everything timed against the clip (the head vanishing) counts from after this.")]
-		[MinValue(0f)]
-		[SerializeField] private float _poseDelay = 0.4f;
+		[Header("Timing")]
+		[Tooltip("How the shot, the fall and the head going are spaced. Shared with the death camera and the head, which ask this controller rather than keeping their own numbers.")]
+		[Required]
+		[SerializeField] private PokerDeathPacing _pacing;
 
 		[Header("References")]
 		[SerializeField] private PokerPlayerData _data;
@@ -35,9 +38,32 @@ namespace Game.Runtime.GameMode.Poker.Player
 		[Tooltip("Told to stop turning the head with the look while this player is out of the game. Empty resolves from the parents.")]
 		[SerializeField] private PlayerController _playerController;
 
+		[Tooltip("Whose blink the death waits out. Empty resolves from the player.")]
+		[SerializeField] private PokerHallucinationController _hallucination;
+
 		private Tween _pendingPose;
 
-		public float PoseDelay => _poseDelay;
+		// When the death beat starts after going under: once the blink the crossing sets off has opened again.
+		// Every machine answers the same from the replicated rates, so the shot and the pose agree on screens
+		// that never blink.
+		public float BlinkWait(int previous, int current) => _hallucination ? _hallucination.BlinkWait(previous, current) : 0f;
+
+		public float PoseStartDelay(int previous, int current) => BlinkWait(previous, current) + (_pacing ? _pacing.PoseDelay : 0f);
+
+		public float HeadVanishDelay(int previous, int current) => PoseStartDelay(previous, current) + (_pacing ? _pacing.HeadVanishDelay : 0f);
+
+		public float ShotDuration => _pacing ? _pacing.ShotDuration : 0f;
+
+		// From the crossing to the last thing about this death being over: what the table waits before moving on.
+		public float DeathWait(int previous, int current) => BlinkWait(previous, current) + (_pacing ? _pacing.BeatDuration : 0f);
+
+		private void Awake()
+		{
+			if (_hallucination) return;
+
+			var player = GetComponentInParent<PokerPlayer>();
+			if (player) _hallucination = player.GetComponentInChildren<PokerHallucinationController>(true);
+		}
 
 		public override void OnNetworkSpawn()
 		{
@@ -71,13 +97,15 @@ namespace Game.Runtime.GameMode.Poker.Player
 			_pendingPose?.Kill();
 			_pendingPose = null;
 
-			if (_data.IsAlive || _poseDelay <= 0f)
+			var delay = PoseStartDelay(previous, current);
+
+			if (_data.IsAlive || delay <= 0f)
 			{
 				SetPose(!_data.IsAlive);
 				return;
 			}
 
-			_pendingPose = DOVirtual.DelayedCall(_poseDelay, () =>
+			_pendingPose = DOVirtual.DelayedCall(delay, () =>
 				{
 					_pendingPose = null;
 					SetPose(_data && !_data.IsAlive);

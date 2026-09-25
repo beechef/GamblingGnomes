@@ -1,5 +1,8 @@
 using System.Collections.Generic;
+using System.Text;
 using Game.Runtime.GameMode.Config;
+using Sirenix.OdinInspector;
+using Unity.Collections;
 using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker.Stages
@@ -14,6 +17,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 	{
 		[Header("Stage")]
 		[Tooltip("Replicated to clients so UI can key off the running stage without knowing the type. Empty falls back to the asset name.")]
+		[InfoBox("This id is longer than the 29 bytes PokerGameData.StageId replicates, so clients can never find this stage. Shorten the asset name or set a shorter id.", InfoMessageType.Error, nameof(IsStageIdTooLong))]
 		[SerializeField] private string _stageId;
 
 		[Tooltip("Seconds the table holds on this stage after it finishes, before the next one opens. Without it a street can end and the next begin in the same frame, and nobody sees what happened.")]
@@ -21,6 +25,8 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 		public string StageId => string.IsNullOrEmpty(_stageId) ? name : _stageId;
 		public float ExitDelay => Mathf.Max(0f, _exitDelay);
+
+		private bool IsStageIdTooLong => Encoding.UTF8.GetByteCount(StageId) > FixedString32Bytes.UTF8MaxLengthInBytes;
 
 		public PokerGameMode GameMode { get; private set; }
 		public bool IsRunning { get; private set; }
@@ -85,6 +91,10 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		}
 
 		public virtual bool HandleAction(ulong clientId, PokerActionType action, int amount) => false;
+
+		// Whether an accepted action is told to the table as it happens. Off for a beat everybody answers
+		// in secret, which announces the answers itself once they are all in.
+		public virtual bool AnnouncesActions => true;
 
 		// A player left the table mid stage. The seat index comes along because the player object may
 		// already be gone by the time this runs, and a stage that was waiting on them needs to know

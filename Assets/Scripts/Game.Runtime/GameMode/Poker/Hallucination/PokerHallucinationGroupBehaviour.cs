@@ -29,7 +29,7 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 				if (!member || member == Config) continue;
 				if (pick-- > 0) continue;
 
-				_picked = member.Run(transform, Viewer);
+				_picked = member.Run(transform, Viewer, Pacing);
 				return;
 			}
 		}

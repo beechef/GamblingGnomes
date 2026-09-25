@@ -23,7 +23,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		[Required]
 		[SerializeField] private PokerCardGroupVisual _table;
 
-		[Tooltip("Where a card goes once it has been picked up. The fan in the hand.")]
+		[Tooltip("Where a card goes once it has been picked up: the fan in the hand, or the row worn on the head.")]
 		[Required]
 		[SerializeField] private PokerCardGroupVisual _hand;
 
@@ -209,7 +209,18 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 			ReleaseAwaited();
 
-			if (moved != 0) AwaitCue(CueFor(moved), moved);
+			if (moved != 0)
+			{
+				if (_hand && _hand.FollowsHandCues)
+				{
+					AwaitCue(CueFor(moved), moved);
+				}
+				else
+				{
+					_awaitedMask = moved;
+					ReleaseAwaited(true);
+				}
+			}
 
 			OnAnyHandChanged?.Invoke();
 		}
@@ -410,7 +421,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			_cards.Add(visual);
 
 			var deck = PokerDeckVisual.Instance;
-			if (animate && deck) deck.Deal(visual, _data.SeatIndex.Value, index);
+			if (animate && deck) deck.Deal(visual, _data.SeatIndex.Value, index, group == _hand);
 
 			// The flip only for a face this client is about to see. A card dealt face down turned over on
 			// the way would show its back on both sides and read as a card spinning for no reason.

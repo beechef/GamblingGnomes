@@ -33,6 +33,10 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 		protected float DepthStep => _depthStep;
 
+		// Whether a card entering or leaving waits for the hand animation's cue. Only a group the hand
+		// carries does; anything else would wait out the backstop for a clip that never plays.
+		public virtual bool FollowsHandCues => true;
+
 		// Where a card sits among the others, as the slot maths is handed it. By default its place in this
 		// group out of however many the group holds, so the arrangement closes up around a card that
 		// leaves — right for a fan being held. An arrangement that keeps every card where it was dealt
@@ -84,6 +88,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 			_cards.Insert(at, card);
 			_order.Insert(at, order);
+			OnCardAdded(card);
 
 			Layout(animate ? card : null, delay);
 		}
@@ -97,6 +102,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 			_cards.RemoveAt(index);
 			_order.RemoveAt(index);
+			OnCardRemoved(card);
 
 			if (layout) Layout(null);
 		}
@@ -150,5 +156,9 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		protected abstract Vector3 SlotPosition(int slot, int count);
 
 		protected virtual Quaternion SlotRotation(int slot, int count) => Quaternion.identity;
+
+		protected virtual void OnCardAdded(PokerCardVisual card) { }
+
+		protected virtual void OnCardRemoved(PokerCardVisual card) { }
 	}
 }

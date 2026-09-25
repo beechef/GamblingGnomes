@@ -1,8 +1,9 @@
 using System;
 using System.Collections.Generic;
 using DG.Tweening;
+using Game.Runtime.GameMode.Poker;
 using Game.Runtime.GameMode.Poker.Hallucination;
-using Game.Runtime.GameMode.Poker.Items;
+using Game.Runtime.GameMode.Poker.BetItems;
 using Game.Runtime.GameMode.Poker.Player;
 using Unity.Netcode;
 using UnityEngine;
@@ -46,7 +47,7 @@ namespace Game.Runtime.UI.Poker
 		[Min(0)]
 		[SerializeField] private int _sweepLoops = 3;
 
-		[Tooltip("Ease over the whole distance — every pass and the run onto the number are one tween, so OutExpo spins fast and slows onto the result. The duration itself is PokerConsumePacing.RollSweepDuration, because the server pays the roll on that same clock.")]
+		[Tooltip("Ease over the whole distance — every pass and the run onto the number are one tween, so OutExpo spins fast and slows onto the result. The duration itself is PokerRollPacing.SweepDuration, because the server pays the roll on that same clock.")]
 		[SerializeField] private Ease _sweepEase = Ease.OutExpo;
 
 		[Tooltip("Seconds the skull takes to go back to the end once the result has been held. How long it holds arrives with the roll, from the beat's pacing, so the skull leaves exactly when the table moves on.")]
@@ -62,9 +63,6 @@ namespace Game.Runtime.UI.Poker
 		[Tooltip("One icon, instantiated per kind eaten under the row (UI_ConsumedItemIcon).")]
 		[SerializeField] private Image _eatenPrefab;
 
-		[Tooltip("Where each kind's icon comes from.")]
-		[SerializeField] private PokerItemDatabase _database;
-
 		[Min(0f)]
 		[SerializeField] private float _popDuration = 0.3f;
 
@@ -75,7 +73,7 @@ namespace Game.Runtime.UI.Poker
 
 		private PokerPlayer _player;
 		private PokerPlayerData _data;
-		private PokerItemConsumeController _consume;
+		private PokerBetItemConsumeController _consume;
 		private PokerHallucinationRollController _roll;
 
 		private Tween _fillTween;
@@ -102,7 +100,7 @@ namespace Game.Runtime.UI.Poker
 			if (!_player) return;
 
 			_data = _player.Data;
-			_consume = _player.ItemConsume;
+			_consume = _player.BetItemConsume;
 			_roll = _player.HallucinationRoll;
 
 			if (_data) _data.OnHallucinationChanged += HandleHallucinationChanged;
@@ -220,8 +218,8 @@ namespace Game.Runtime.UI.Poker
 			}
 		}
 
-		private void HandleConsumedChanged(NetworkListEvent<PokerItemUnit> change) =>
-			RefreshEaten(change.Type == NetworkListEvent<PokerItemUnit>.EventType.Add);
+		private void HandleConsumedChanged(NetworkListEvent<PokerBetItemUnit> change) =>
+			RefreshEaten(change.Type == NetworkListEvent<PokerBetItemUnit>.EventType.Add);
 
 		// Views already made are re-bound in order rather than destroyed and made again, so the row never
 		// draws the old set under the new one for a frame.
@@ -256,8 +254,14 @@ namespace Game.Runtime.UI.Poker
 			popped.DOScale(Vector3.one, _popDuration).SetEase(_popEase).SetLink(popped.gameObject);
 		}
 
-		private Sprite IconFor(PokerItemType itemType) =>
-			_database && _database.TryGetEntry(itemType, out var entry) ? entry.Icon : null;
+		// Asked of the running mode, since each mode brings its own database.
+		private static Sprite IconFor(PokerBetItemType itemType)
+		{
+			var mode = PokerGameMode.Instance;
+			var database = mode ? mode.BetItemDatabase : null;
+
+			return database && database.TryGetEntry(itemType, out var entry) ? entry.Icon : null;
+		}
 
 		// Back and forth, then onto the number, then home. Every duration arrives with the roll, paced by the beat
 		// that started it, so the skull stops and leaves exactly when the server pays the result and moves on —

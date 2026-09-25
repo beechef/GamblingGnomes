@@ -12,6 +12,10 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		[MinValue(0f)]
 		[SerializeField] private float _gap = 0.006f;
 
+		[Tooltip("Places the row is spaced for however many cards have arrived, so a board dealt one card at a time lands each card on its final spot instead of the row re-centring under it. Zero spaces for the cards held.")]
+		[MinValue(0)]
+		[SerializeField] private int _minimumSlots;
+
 		[Header("References")]
 		[SerializeField] private PokerPlayerData _data;
 
@@ -44,7 +48,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		// the two overlapped. A card put back down returns to its own place.
 		protected override int SlotOf(int index) => OrderAt(index);
 
-		protected override int SlotCount => Mathf.Max(_data ? _data.CardCount : 0, HighestOrder + 1);
+		protected override int SlotCount => Mathf.Max(Mathf.Max(_data ? _data.CardCount : 0, HighestOrder + 1), _minimumSlots);
 
 		protected override Vector3 SlotPosition(int slot, int count)
 		{

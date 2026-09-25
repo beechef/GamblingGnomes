@@ -18,8 +18,11 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 			Self
 		}
 
-		[Tooltip("Whose cards. Self is the viewer's own five, which are the ones they are trying to read.")]
+		[Tooltip("Whose cards. Self is the viewer's own hand, which are the ones they are trying to read.")]
 		[SerializeField] private Scope _scope = Scope.Everyone;
+
+		[Tooltip("On, the shared board in the middle of the table is caught too. It belongs to nobody, so it is independent of the scope.")]
+		[SerializeField] private bool _includeBoard = true;
 
 		protected override void OnCollect(PokerPlayer viewer, List<Transform> into)
 		{
@@ -35,13 +38,30 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 					if (card) into.Add(card.transform);
 				}
 			}
+
+			var board = PokerBoardVisual.Instance;
+			if (!_includeBoard || !board) return;
+
+			foreach (var card in board.Cards)
+			{
+				if (card) into.Add(card.transform);
+			}
 		}
 
 		// A hand is emptied and dealt again every round, so anything painted on a card comes off on its own
-		// while the hallucination has not moved at all. This is the event that says so.
-		public override void Subscribe(PokerPlayer viewer, Action onChanged) => PokerHandVisual.OnAnyHandChanged += onChanged;
+		// while the hallucination has not moved at all. These are the events that say so, for the hands and for
+		// the board.
+		public override void Subscribe(PokerPlayer viewer, Action onChanged)
+		{
+			PokerHandVisual.OnAnyHandChanged += onChanged;
+			PokerBoardVisual.OnAnyBoardChanged += onChanged;
+		}
 
-		public override void Unsubscribe(PokerPlayer viewer, Action onChanged) => PokerHandVisual.OnAnyHandChanged -= onChanged;
+		public override void Unsubscribe(PokerPlayer viewer, Action onChanged)
+		{
+			PokerBoardVisual.OnAnyBoardChanged -= onChanged;
+			PokerHandVisual.OnAnyHandChanged -= onChanged;
+		}
 
 		private bool InScope(PokerPlayer viewer, PokerPlayer player)
 		{

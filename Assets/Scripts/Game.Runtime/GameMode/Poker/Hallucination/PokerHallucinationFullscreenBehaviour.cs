@@ -10,9 +10,9 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 		private int _property;
 
 		// The fade out is the effect leaving, so the pass has to keep drawing until it is over.
-		protected override float LingerSeconds => Config ? Config.FadeDuration : 0f;
+		protected override float LingerSeconds => EaseDuration;
 
-		protected override void OnBegin()
+		protected sealed override void OnBegin()
 		{
 			if (!Config.Feature || !Config.Material) return;
 
@@ -22,6 +22,8 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 			_instance.name = Config.Material.name;
 			_property = Shader.PropertyToID(Config.StrengthProperty);
 			_instance.SetFloat(_property, 0f);
+
+			OnPassStarting(_instance);
 
 			if (Config.Feature is UnityEngine.Rendering.Universal.FullScreenPassRendererFeature pass)
 			{
@@ -34,9 +36,9 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 			Fade(Config.Strength);
 		}
 
-		protected override void OnEnd() => Fade(0f);
+		protected sealed override void OnEnd() => Fade(0f);
 
-		protected override void OnDisposed()
+		protected sealed override void OnDisposed()
 		{
 			if (_instance) DOTween.Kill(_instance);
 
@@ -49,15 +51,23 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 				if (Config.Feature is UnityEngine.Rendering.Universal.FullScreenPassRendererFeature pass) pass.passMaterial = _restore;
 			}
 
+			OnPassDisposed();
+
 			if (_instance) Destroy(_instance);
 		}
+
+		// The cloned material, before the pass starts drawing with it: anything else the graph reads is bound here.
+		protected virtual void OnPassStarting(Material instance) { }
+
+		// The pass has stopped drawing; release whatever OnPassStarting made.
+		protected virtual void OnPassDisposed() { }
 
 		private void Fade(float target)
 		{
 			if (!_instance) return;
 
 			DOTween.Kill(_instance);
-			DOTween.To(() => _instance.GetFloat(_property), value => _instance.SetFloat(_property, value), target, Config.FadeDuration)
+			DOTween.To(() => _instance.GetFloat(_property), value => _instance.SetFloat(_property, value), target, EaseDuration)
 				.SetTarget(_instance)
 				.SetUpdate(true);
 		}

@@ -99,7 +99,7 @@ namespace Game.Runtime.Controller
 			if (_players.ContainsKey(clientId)) return;
 
 			var spawnPoint = GetRandomSpawnPoint();
-			var player = NetworkManager.SpawnManager.InstantiateAndSpawn(_playerPrefab,
+			var player = NetworkManager.SpawnManager.InstantiateAndSpawn(SelectedPlayerPrefab,
 				ownerClientId: clientId,
 				isPlayerObject: true,
 				position: spawnPoint ? spawnPoint.transform.position : Vector3.zero,
@@ -114,6 +114,16 @@ namespace Game.Runtime.Controller
 
 			Players.Add(player);
 			_players[clientId] = new PlayerEntry(player, colorIndex);
+		}
+
+		// A mode whose players carry different pieces (Indian Poker wears its cards on the head) names its own body.
+		private NetworkObject SelectedPlayerPrefab
+		{
+			get
+			{
+				var network = GameNetworkManager.Instance;
+				return network && network.TryGetSelectedGameMode(out var entry) && entry.PlayerPrefab ? entry.PlayerPrefab : _playerPrefab;
+			}
 		}
 
 		// Lowest free, so a seat vacated mid-game is the one the next arrival walks into.

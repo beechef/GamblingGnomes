@@ -1,4 +1,4 @@
-using Game.Runtime.GameMode.Poker.Items;
+using Game.Runtime.GameMode.Poker.BetItems;
 using Game.Runtime.GameMode.Poker.Visual;
 using Game.Runtime.Props;
 using Game.Runtime.UI.Button;
@@ -10,7 +10,7 @@ namespace Game.Runtime.UI.Poker
 	// One kind of mushroom in the bet picker. It only says which kind it stands for and shows it — the very
 	// prefab the pot puts on the table, not a copy of it — so a cap on the picker and a cap on the table are
 	// one thing drawn twice. That includes what happens to them: the cap is announced on
-	// PokerItemCapRegistry like any other, so a hallucination that makes the caps smile makes this one
+	// PokerBetItemCapRegistry like any other, so a hallucination that makes the caps smile makes this one
 	// smile too, while the player is choosing which to put up.
 	//
 	// Being pointed at and chosen belong to its UISelectionItem, so a mouse, the arrows and a pad all arrive
@@ -24,7 +24,7 @@ namespace Game.Runtime.UI.Poker
 		private GameObject _registeredCap;
 		private PropVariantController _variants;
 
-		public PokerItemType ItemType { get; private set; }
+		public PokerBetItemType BetItemType { get; private set; }
 
 		public UISelectionItem SelectionItem => _selectionItem;
 
@@ -49,9 +49,9 @@ namespace Game.Runtime.UI.Poker
 			Register(null);
 		}
 
-		public void Bind(PokerItemDatabase.Entry entry)
+		public void Bind(PokerBetItemDatabase.Entry entry)
 		{
-			ItemType = entry.Type;
+			BetItemType = entry.Type;
 			name = $"Kind_{entry.DisplayName}";
 
 			if (_model) _model.Show(entry.WorldPrefab);
@@ -64,12 +64,12 @@ namespace Game.Runtime.UI.Poker
 			if (_registeredCap == cap) return;
 
 			if (_variants) _variants.OnVariantChanged -= HandleVariantChanged;
-			PokerItemCapRegistry.Remove(_registeredCap);
+			PokerBetItemCapRegistry.Remove(_registeredCap);
 
 			_registeredCap = cap;
 			_variants = cap ? cap.GetComponentInChildren<PropVariantController>(true) : null;
 
-			PokerItemCapRegistry.Add(_registeredCap);
+			PokerBetItemCapRegistry.Add(_registeredCap);
 			if (_variants) _variants.OnVariantChanged += HandleVariantChanged;
 		}
 
