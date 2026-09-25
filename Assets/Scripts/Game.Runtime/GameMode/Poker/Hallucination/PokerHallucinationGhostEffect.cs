@@ -12,6 +12,14 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 		// The graph draws each echo as one of this many meshes, so this many can be on screen at once.
 		public const int SnapshotCount = 4;
 
+		// Current leaves the pose the body has once it has moved; Previous leaves the pose it just moved out of,
+		// so the image stays behind where the body was.
+		public enum EchoPose
+		{
+			Current,
+			Previous,
+		}
+
 		[Tooltip("Whose bodies. A player target whose bone is the root, so the whole rig echoes.")]
 		[Required]
 		[SerializeField] private PokerHallucinationTarget _target;
@@ -20,15 +28,22 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 		[Required]
 		[SerializeField] private VisualEffectAsset _visualEffect;
 
-		[Tooltip("Seconds between two afterimages. Each lives for four of these, since four snapshots are reused in turn.")]
+		[Tooltip("Which pose an afterimage shows: the one the body has moved into, or the one it has just left.")]
+		[SerializeField] private EchoPose _pose = EchoPose.Current;
+
+		[Tooltip("Seconds between two looks at each body; at most one afterimage per look.")]
 		[MinValue(0.02f)]
 		[SerializeField] private float _echoInterval = 0.12f;
+
+		[Tooltip("Seconds an afterimage lives. Capped just under the time its snapshot is rebaked: four intervals for Current, three for Previous, which holds one snapshot back.")]
+		[MinValue(0.02f)]
+		[SerializeField] private float _echoLifetime = 0.3f;
 
 		[Tooltip("Metres any bone must have moved since the last afterimage before another is left. A body holding still leaves none.")]
 		[MinValue(0.001f)]
 		[SerializeField] private float _motionThreshold = 0.02f;
 
-		[Tooltip("Metres a second an afterimage slides off the body, in a random direction each time.")]
+		[Tooltip("Metres a second an afterimage slides off the body, in a random direction each time. Ignored by a graph with no Drift.")]
 		[MinValue(0f)]
 		[SerializeField] private float _driftSpeed = 0.25f;
 
@@ -50,8 +65,10 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 		public float Alpha => _alpha;
 		public AnimationCurve AlphaOverLife => _alphaOverLife;
 
-		// Gone just before its snapshot is overwritten by the echo that reuses it.
-		public float EchoLifetime => _echoInterval * SnapshotCount * 0.95f;
+		public EchoPose Pose => _pose;
+
+		// Gone before its snapshot is rebaked for a later echo.
+		public float EchoLifetime => Mathf.Min(_echoLifetime, _echoInterval * (_pose == EchoPose.Previous ? SnapshotCount - 1 : SnapshotCount) * 0.95f);
 
 		protected override PokerHallucinationEffectBehaviour Attach(GameObject host) => host.AddComponent<PokerHallucinationGhostBehaviour>();
 	}

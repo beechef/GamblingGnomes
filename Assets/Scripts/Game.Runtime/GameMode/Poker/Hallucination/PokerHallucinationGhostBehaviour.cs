@@ -35,6 +35,7 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 			public Transform[] Bones;
 			public Vector3[] EchoedPose;
 			public bool HasEchoedPose;
+			public Vector3 HeldPosition;
 			public Mesh[] Baked;
 			public Mesh[] Snapshots;
 			public CombineInstance[] Combine;
@@ -88,20 +89,53 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 
 			foreach (var source in _sources)
 			{
-				if (source.Effect && source.Root && HasMoved(source)) EmitEcho(source);
+				if (!source.Effect || !source.Root) continue;
+
+				if (Config.Pose == PokerHallucinationGhostEffect.EchoPose.Previous) TickPreviousPose(source);
+				else TickCurrentPose(source);
 			}
 		}
 
-		// Measured against the pose the last afterimage was taken in, so slow motion still leaves one once it
-		// has gone far enough, and a body at rest leaves none. The first look only records.
-		private bool HasMoved(Source source)
+		// The pose the body has now, taken the moment it has moved far enough.
+		private void TickCurrentPose(Source source)
 		{
 			if (!source.HasEchoedPose)
 			{
 				RecordPose(source);
-				return false;
+				return;
 			}
 
+			if (!HasMoved(source)) return;
+
+			var index = source.NextSnapshot;
+			if (!BakeSnapshot(source, source.Snapshots[index])) return;
+
+			RecordPose(source);
+			EmitEcho(source, index, source.Root.position);
+		}
+
+		// The pose the body has just left: every look bakes the pose it holds into the next snapshot, and that
+		// snapshot is only let out once the body has moved away from it, so it stays behind where the body was.
+		private void TickPreviousPose(Source source)
+		{
+			if (source.HasEchoedPose)
+			{
+				if (!HasMoved(source)) return;
+
+				EmitEcho(source, source.NextSnapshot, source.HeldPosition);
+			}
+
+			source.HasEchoedPose = BakeSnapshot(source, source.Snapshots[source.NextSnapshot]);
+			if (!source.HasEchoedPose) return;
+
+			source.HeldPosition = source.Root.position;
+			RecordPose(source);
+		}
+
+		// Measured against the pose the last afterimage was taken in, so slow motion still leaves one once it
+		// has gone far enough, and a body at rest leaves none.
+		private bool HasMoved(Source source)
+		{
 			var threshold = Config.MotionThreshold * Config.MotionThreshold;
 
 			for (var i = 0; i < source.Bones.Length; i++)
@@ -122,19 +156,20 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 			source.HasEchoedPose = true;
 		}
 
-		private void EmitEcho(Source source)
+		private void EmitEcho(Source source, int index, Vector3 position)
 		{
-			var index = source.NextSnapshot;
-			if (!BakeSnapshot(source, source.Snapshots[index])) return;
-
-			RecordPose(source);
 			source.NextSnapshot = (index + 1) % source.Snapshots.Length;
 
-			var direction = Random.insideUnitCircle.normalized;
-
 			source.Effect.SetMesh(SnapshotIds[index], source.Snapshots[index]);
-			source.Effect.SetVector3(DriftId, new Vector3(direction.x, 0.25f, direction.y) * Config.DriftSpeed);
-			source.Echo.SetVector3(PositionId, source.Root.position);
+
+			// A graph that leaves its echoes where they fell has no Drift to set.
+			if (source.Effect.HasVector3(DriftId))
+			{
+				var direction = Random.insideUnitCircle.normalized;
+				source.Effect.SetVector3(DriftId, new Vector3(direction.x, 0.25f, direction.y) * Config.DriftSpeed);
+			}
+
+			source.Echo.SetVector3(PositionId, position);
 			source.Echo.SetUint(MeshIndexId, (uint)index);
 			source.Effect.SendEvent(EchoEventId, source.Echo);
 		}
