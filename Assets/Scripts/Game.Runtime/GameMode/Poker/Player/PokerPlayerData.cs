@@ -57,9 +57,8 @@ namespace Game.Runtime.GameMode.Poker.Player
 			readPerm: NetworkVariableReadPermission.Everyone,
 			writePerm: NetworkVariableWritePermission.Server);
 
-		// The same thing for single cards: one bit per slot turned face up on the table for everyone before
-		// the showdown. A shown card lies on the table, not in the hand, because a card held in a fan faces
-		// only its holder and nobody else could read it.
+		// One bit per slot the whole table has been shown before the showdown. The card stays where it is (in
+		// the hand, where items can still point at it); the table reads it off the known-cards row over the head.
 		[HideInInspector] public NetworkVariable<int> ShownHoleCards = new(0,
 			readPerm: NetworkVariableReadPermission.Everyone,
 			writePerm: NetworkVariableWritePermission.Server);
@@ -210,7 +209,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		{
 			// A mucked hand stays on the table face down for everyone, its holder included.
 			if (IsFolded) return false;
-			if (HandRevealed.Value || IsHoleCardShown(slot) || IsHoleCardVisibleToProvider(slot)) return true;
+			if (HandRevealed.Value || IsHoleCardVisibleToProvider(slot)) return true;
 			if (HiddenFromHolder.Value) return !IsOwner;
 			if (!IsOwner) return false;
 
@@ -224,7 +223,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		// Where this card physically is. A card lifted off the table is in its holder's hand until the
 		// hand is shown, at which point everything goes back down for the table to read — which is why
 		// this is derived rather than replicated: the two facts it needs are already on the wire.
-		public bool IsHoleCardInHand(int slot) => !IsFolded && !HandRevealed.Value && !IsHoleCardShown(slot) && HasLookedAt(slot);
+		public bool IsHoleCardInHand(int slot) => !IsFolded && !HandRevealed.Value && HasLookedAt(slot);
 
 		public bool IsHoleCardShown(int slot) => slot >= 0 && slot < 31 && (ShownHoleCards.Value & (1 << slot)) != 0;
 
@@ -504,6 +503,13 @@ namespace Game.Runtime.GameMode.Poker.Player
 			if (!IsServer || slot < 0 || slot >= 31 || slot >= HoleCards.Count) return;
 
 			ShownHoleCards.Value |= 1 << slot;
+		}
+
+		public void ServerHideHoleCard(int slot)
+		{
+			if (!IsServer || slot < 0 || slot >= 31) return;
+
+			ShownHoleCards.Value &= ~(1 << slot);
 		}
 
 		// Negative sobers, positive sends them further under; the clamp lives here for the same reason

@@ -1,18 +1,24 @@
 using System.Collections.Generic;
 using System.Threading;
 using Game.Runtime.GameMode.Poker.Player;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker.Items
 {
-	// The user and a player they choose each turn one card face up for the whole table, until the hand ends.
-	// The other player picks which of theirs; both cards go over together once they have.
+	// The user and a player they choose each show one card to the whole table for a number of streets, over their
+	// heads (the known-cards row); the cards stay in the hand.
+	// The other player picks which of theirs; both are shown together once they have.
 	[CreateAssetMenu(fileName = "PokerItem_MutualReveal", menuName = "Game/Poker/Items/Mutual Reveal")]
 	public class PokerItemMutualReveal : PokerItem
 	{
 		[Header("Reveal")]
 		[Tooltip("Chosen: the user points at the card they show. Random: the table draws it.")]
 		[SerializeField] private PokerChoiceMode _ownChoice = PokerChoiceMode.Chosen;
+
+		[Tooltip("Streets the two cards stay shown, starting with the one the item is played on.")]
+		[MinValue(1)]
+		[SerializeField] private int _shownStreets = 1;
 
 		public override bool NeedsResponse => true;
 
@@ -63,8 +69,8 @@ namespace Game.Runtime.GameMode.Poker.Items
 			var targetSlot = await context.Module.ServerAskForCardAsync(context, this, target, ct);
 
 			// Either may have folded or left while the other was choosing; whoever is still there still shows.
-			if (user && user.Data.IsInHand) user.Data.ServerShowHoleCard(ownSlot);
-			if (target && target.Data.IsInHand) target.Data.ServerShowHoleCard(targetSlot);
+			if (user && user.Data.IsInHand) context.Module.ServerShowCard(user, ownSlot, _shownStreets);
+			if (target && target.Data.IsInHand) context.Module.ServerShowCard(target, targetSlot, _shownStreets);
 		}
 
 		private static bool HasHiddenCard(PokerPlayer player)

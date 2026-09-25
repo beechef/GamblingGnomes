@@ -12,8 +12,9 @@ namespace Game.Runtime.UI.Poker
 {
 	// What the player can do on their own betting turn: bet, fold, go all in, or play an item. Where the
 	// player picks the kind, betting does not put a cap up by itself — it opens the picker, because the kind
-	// is the actual decision — and the menu and the pickers are panels of one group, so only one is ever up
-	// and none is up off the turn. Where the table draws the kind, the press is the whole answer.
+	// is the actual decision — and the menu and the pickers are panels of one group, so only one is ever up.
+	// Where the table draws the kind, the press is the whole answer. Off the turn the menu holds the Items
+	// button alone, so held items can be read at any time; the picker greys each one with the reason.
 	//
 	// This component stays on an object that is always active and only switches the panels, or it would
 	// switch itself off with the menu and never hear the turn come round again.
@@ -85,7 +86,7 @@ namespace Game.Runtime.UI.Poker
 
 			if (LocalPlayer.ItemInventory)
 			{
-				LocalPlayer.ItemInventory.OnItemsChanged += RefreshMenuButtons;
+				LocalPlayer.ItemInventory.OnItemsChanged += Refresh;
 				LocalPlayer.ItemInventory.OnUsesChanged += RefreshMenuButtons;
 			}
 
@@ -97,7 +98,7 @@ namespace Game.Runtime.UI.Poker
 			if (LocalPlayer.ItemInventory)
 			{
 				LocalPlayer.ItemInventory.OnUsesChanged -= RefreshMenuButtons;
-				LocalPlayer.ItemInventory.OnItemsChanged -= RefreshMenuButtons;
+				LocalPlayer.ItemInventory.OnItemsChanged -= Refresh;
 			}
 
 			UnwatchSeatedPlayers();
@@ -131,15 +132,27 @@ namespace Game.Runtime.UI.Poker
 
 			// The hand board covers the same moment, so the bar steps aside while it is up; closing it lands back
 			// on the menu, since the pickers were put away with everything else.
-			if (_stage == null || !IsLocalTurn || IsHandHelperOpen)
+			if (IsHandHelperOpen || (!IsActing && !CanReadItems))
 			{
 				CloseAll();
 				return;
 			}
 
-			// A turn that is still ours keeps whichever panel the player is on; only a fresh turn opens the menu.
-			if (_panels && !_panels.IsShowing(_pickerPanel) && !_panels.IsShowing(_itemPickerPanel) && !_panels.IsShowing(_targetingPanel)) ShowMenu();
+			// Off the turn only the items can be read; a bet picker or an aim left over from the turn is put away.
+			if (!IsActing && _panels && (_panels.IsShowing(_pickerPanel) || _panels.IsShowing(_targetingPanel))) CloseAll();
+
+			// Whichever picker the player is on stays up; otherwise the menu, redrawn for whether it is their turn.
+			if (_panels && (_panels.IsShowing(_pickerPanel) || _panels.IsShowing(_itemPickerPanel) || _panels.IsShowing(_targetingPanel))) return;
+
+			if (_panels && _panels.IsShowing(_menuPanel)) RefreshMenuButtons();
+			else ShowMenu();
 		}
+
+		// Betting, folding and going all in are answers to this player's turn on a street.
+		private bool IsActing => _stage != null && IsLocalTurn;
+
+		// Held items can be read at any moment, so a player can study them before their turn comes.
+		private bool CanReadItems => _itemModule && _itemPicker && LocalPlayer && LocalPlayer.ItemInventory && LocalPlayer.ItemInventory.Items.Count > 0;
 
 		private void ShowMenu()
 		{
@@ -152,11 +165,14 @@ namespace Game.Runtime.UI.Poker
 
 		private void RefreshMenuButtons()
 		{
-			if (_stage == null || !IsBound) return;
+			if (!IsBound) return;
 
-			if (_foldButton) _foldButton.gameObject.SetActive(_stage.CanFold(LocalData));
-			if (_allInButton) _allInButton.gameObject.SetActive(_stage.AllowAllIn);
-			if (_betLabel) _betLabel.text = _stage.IsCall(LocalData) ? _callText : _betText;
+			var acting = IsActing;
+
+			if (_betButton) _betButton.gameObject.SetActive(acting);
+			if (_foldButton) _foldButton.gameObject.SetActive(acting && _stage.CanFold(LocalData));
+			if (_allInButton) _allInButton.gameObject.SetActive(acting && _stage.AllowAllIn);
+			if (_betLabel && acting) _betLabel.text = _stage.IsCall(LocalData) ? _callText : _betText;
 
 			if (!_itemsButton) return;
 
@@ -229,7 +245,7 @@ namespace Game.Runtime.UI.Poker
 
 		private void HandleItems()
 		{
-			if (_stage == null || !_itemModule || !_itemPicker || !IsLocalTurn || IsHandHelperOpen) return;
+			if (!_itemModule || !_itemPicker || IsHandHelperOpen) return;
 
 			if (_panels) _panels.Show(_itemPickerPanel);
 			_itemPicker.Open(GameMode, LocalPlayer, _itemModule, ShowMenu, HandleItemChosen);
@@ -274,7 +290,7 @@ namespace Game.Runtime.UI.Poker
 
 			// Sent, or cancelled from somewhere else: either way the aiming is over and the turn is still ours.
 			EndTargeting();
-			if (IsBound && IsLocalTurn && _stage != null && !IsHandHelperOpen) ShowMenu();
+			if (IsBound) Refresh();
 		}
 
 		private void HandleTargetingEscape()

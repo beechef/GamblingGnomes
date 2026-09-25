@@ -28,6 +28,13 @@ namespace Game.Runtime.Player
 
 		// Not a bone: an authored point in the right hand where a small prop sits when held, hung under the
 		// hand so it follows the fingers. Appended, because the value is what a binding serializes.
-		HoldRight
+		HoldRight,
+
+		// Appended for the face hallucinations, for the same reason.
+		EarLeft,
+		EarRight,
+		EyeLeft,
+		EyeRight,
+		Nose
 	}
 }

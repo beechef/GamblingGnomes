@@ -50,7 +50,12 @@ namespace Game.Runtime.Player
 			(PlayerBone.FootRight, "Ankle_R"),
 			(PlayerBone.ToeLeft, "Toes_L"),
 			(PlayerBone.ToeRight, "Toes_R"),
-			(PlayerBone.HoldRight, "CapHold")
+			(PlayerBone.HoldRight, "CapHold"),
+			(PlayerBone.EarLeft, "Ears_L"),
+			(PlayerBone.EarRight, "Ears_R"),
+			(PlayerBone.EyeLeft, "Eye_L"),
+			(PlayerBone.EyeRight, "Eye_R"),
+			(PlayerBone.Nose, "Nose_M")
 		};
 
 		[Header("Rig")]
