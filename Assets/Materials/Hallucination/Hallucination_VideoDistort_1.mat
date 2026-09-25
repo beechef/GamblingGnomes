@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Hallucination_VideoDistort
+  m_Name: Hallucination_VideoDistort_1
   m_Shader: {fileID: -6465566751694194690, guid: 5be82fd5761a01543b35a11005fd9c42, type: 3}
   m_Parent: {fileID: 0}
   m_ModifiedSerializedProperties: 0
@@ -41,9 +41,11 @@ Material:
         m_Offset: {x: 0, y: 0}
     m_Ints: []
     m_Floats:
-    - _MeltAmount: 0.1
+    - _MeltAmount: 1
     - _Strength: 1
     - _Wobble: 0
-    m_Colors: []
+    m_Colors:
+    - _Direction: {r: 0, g: 1, b: 0, a: 0}
+    - _MeltAmount: {r: 1, g: 1, b: 1, a: 0}
   m_BuildTextureStacks: []
   m_AllowLocking: 1
