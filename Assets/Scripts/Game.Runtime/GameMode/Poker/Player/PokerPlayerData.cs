@@ -457,21 +457,17 @@ namespace Game.Runtime.GameMode.Poker.Player
 			LookedAtHoleCards.Value = (1 << Mathf.Min(count, 31)) - 1;
 		}
 
-		// Every card the round still lets this player see, picked up for them, for a look with nothing to
-		// choose. The same write as a pick, so the cards leave the table on the same gesture cue.
-		public void ServerLookAtAllowedHoleCards()
+		// Every card still on the table picked up, for a look with nothing to choose. Counted off the cards held,
+		// not the allowance left: a card an item already put in the hand spent a look, and counting the allowance
+		// left one of the dealt cards lying on the table. The same write as a pick, so the cards leave on the same cue.
+		public void ServerLookAtEveryHoleCard()
 		{
-			if (!IsServer) return;
+			if (!IsServer || !HasLookLimit || IsFolded) return;
 
 			var slots = 0;
-			var remaining = ViewableHoleCards.Value - LookedAtCount;
-
-			for (var slot = 0; slot < HoleCards.Count && slot < 31 && remaining > 0; slot++)
+			for (var slot = 0; slot < HoleCards.Count && slot < 31; slot++)
 			{
-				if (!CanLookAt(slot)) continue;
-
-				slots |= 1 << slot;
-				remaining--;
+				if (!HasLookedAt(slot)) slots |= 1 << slot;
 			}
 
 			if (slots != 0) LookAtHoleCards(slots);
@@ -520,6 +516,10 @@ namespace Game.Runtime.GameMode.Poker.Player
 		public void ServerDrawHoleCard(CardData card)
 		{
 			if (!IsServer || !card.IsValid) return;
+
+			// The drawn card is seen for free: it widens the look allowance by one rather than spending one, or
+			// a round that turns its dealt cards later would leave one of them lying on the table.
+			if (HasLookLimit) ViewableHoleCards.Value++;
 
 			ServerMarkLookedAt(HoleCards.Count);
 			HoleCards.Add(card);

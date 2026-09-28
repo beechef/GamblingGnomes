@@ -43,7 +43,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			{
 				foreach (var player in GameMode.SeatedPlayers)
 				{
-					if (IsWaitedOn(player)) player.Data.ServerLookAtAllowedHoleCards();
+					if (IsWaitedOn(player)) player.Data.ServerLookAtEveryHoleCard();
 				}
 			}
 

@@ -1,7 +1,8 @@
 namespace Game.Runtime.GameMode.Poker.Items
 {
 	// Whether an item may be used right now, asked by the picker and the server through the same call.
-	// What the rules forbid is hidden; what merely cannot be done yet is dimmed with the reason beside it.
+	// Neither can be played. The picker still draws a held item either way, dimmed with the reason beside
+	// it; "hidden" is only the stronger statement that the rules forbid it here.
 	public readonly struct PokerItemAvailability
 	{
 		public static readonly PokerItemAvailability Usable = new(true, null);

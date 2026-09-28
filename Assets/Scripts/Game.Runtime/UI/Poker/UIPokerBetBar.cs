@@ -178,7 +178,7 @@ namespace Game.Runtime.UI.Poker
 
 			var hasItems = _itemModule && LocalPlayer.ItemInventory && _itemPicker;
 			_itemsButton.gameObject.SetActive(hasItems);
-			if (hasItems) _itemsButton.IsInteractable = AnyItemShown();
+			if (hasItems) _itemsButton.IsInteractable = AnyItemHeld();
 		}
 
 		private void WatchSeatedPlayers()
@@ -205,11 +205,11 @@ namespace Game.Runtime.UI.Poker
 		}
 
 		// An item that cannot be played yet still opens the picker, where its entry says why; a dimmed button would hide the reason.
-		private bool AnyItemShown()
+		private bool AnyItemHeld()
 		{
 			foreach (var unit in LocalPlayer.ItemInventory.Items)
 			{
-				if (_itemModule.GetAvailability(LocalPlayer, unit.Type).IsShown) return true;
+				if (_itemModule.TryGetItem(unit.Type, out _)) return true;
 			}
 
 			return false;
@@ -288,8 +288,11 @@ namespace Game.Runtime.UI.Poker
 				return;
 			}
 
-			// Sent, or cancelled from somewhere else: either way the aiming is over and the turn is still ours.
+			// Sent, or cancelled from somewhere else: either way the aiming is over and the turn is still ours. The
+			// aiming panel is put away first, since Refresh keeps whichever panel is up and would leave the prompt
+			// standing until the turn ended.
 			EndTargeting();
+			if (_panels && _panels.IsShowing(_targetingPanel)) _panels.HideAll();
 			if (IsBound) Refresh();
 		}
 

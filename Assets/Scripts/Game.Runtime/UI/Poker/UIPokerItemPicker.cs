@@ -11,8 +11,8 @@ using UnityEngine.UI;
 
 namespace Game.Runtime.UI.Poker
 {
-	// Which item to play, opened from the bet bar's Items button. One entry per card held; an item the rules
-	// forbid right now is not drawn, one that merely cannot be played yet is greyed with the reason under it.
+	// Which item to play, opened from the bet bar's Items button. One entry per card held; one that cannot be
+	// played right now, whether the rules forbid it or it is merely not ready, is greyed with the reason under it.
 	// Both answers come from PokerItemModule.GetAvailability, the call the server refuses with.
 	//
 	// Opened and closed by the bet bar, which owns the turn. Escape steps back to the menu through UIEscapeStack.
@@ -136,8 +136,9 @@ namespace Game.Runtime.UI.Poker
 			{
 				if (!_module.TryGetItem(unit.Type, out var item)) continue;
 
+				// Every item held is drawn, even one the rules forbid right now: an item missing from the row reads as
+				// an item lost. What cannot be played is dimmed, and its entry says why.
 				var availability = _module.GetAvailability(_player, unit.Type);
-				if (!availability.IsShown) continue;
 
 				if (used == _entries.Count) _entries.Add(Instantiate(_entryPrefab, _entryRow));
 
