@@ -67,6 +67,9 @@ namespace Game.Runtime.GameMode.Poker.Items
 			_ => "POINT AT A FACE-DOWN BOARD CARD"
 		};
 
+		// What the table reads after the user's name once a chance-driven item has come out; null tells nothing.
+		public virtual string GetOutcomeVerb(int outcome) => null;
+
 		// What the player this item asks to answer reads, after the user's name.
 		public virtual string GetResponsePrompt() => "POINT AT ONE OF YOUR CARDS";
 

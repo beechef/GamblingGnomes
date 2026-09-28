@@ -701,6 +701,7 @@ namespace Game.Runtime.GameMode.Poker
 			if (_data.CommunityCards.Count > 0) _data.CommunityCards.Clear();
 			_data.RevealedCommunityMask.Value = 0;
 			_streetTurnedCount = 0;
+			_withheldCommunityMask = 0;
 		}
 
 		// Laid face down in one go, so a street only ever turns over what is already lying there.
@@ -710,6 +711,7 @@ namespace Game.Runtime.GameMode.Poker
 
 			_data.RevealedCommunityMask.Value = 0;
 			_streetTurnedCount = 0;
+			_withheldCommunityMask = 0;
 			if (_data.CommunityCards.Count > 0) _data.CommunityCards.Clear();
 
 			foreach (var card in cards) _data.CommunityCards.Add(card);
@@ -719,6 +721,10 @@ namespace Game.Runtime.GameMode.Poker
 		// it, because the flop is always the first three places, the turn the fourth and the river the fifth.
 		private int _streetTurnedCount;
 
+		// Server only: board places an item is still working on, which no street may turn until it lets them go.
+		// A card laid there in the middle of a trade belongs to somebody's hand, and turning it would show it.
+		private int _withheldCommunityMask;
+
 		// A street turns its own places, whatever an item turned before it; a place already face up stays so.
 		public void ServerRevealCommunityCards(int count)
 		{
@@ -727,7 +733,7 @@ namespace Game.Runtime.GameMode.Poker
 			var mask = _data.RevealedCommunityMask.Value;
 			var end = Mathf.Min(_streetTurnedCount + count, Mathf.Min(_data.CommunityCards.Count, 31));
 
-			for (var i = _streetTurnedCount; i < end; i++) mask |= 1 << i;
+			for (var i = _streetTurnedCount; i < end; i++) mask |= (1 << i) & ~_withheldCommunityMask;
 
 			_streetTurnedCount = end;
 			_data.RevealedCommunityMask.Value = mask;
@@ -753,7 +759,7 @@ namespace Game.Runtime.GameMode.Poker
 			if (!IsServer) return;
 
 			_streetTurnedCount = Mathf.Min(_data.CommunityCards.Count, 31);
-			_data.RevealedCommunityMask.Value = (1 << _streetTurnedCount) - 1;
+			_data.RevealedCommunityMask.Value = (((1 << _streetTurnedCount) - 1) & ~_withheldCommunityMask) | _data.RevealedCommunityMask.Value;
 		}
 
 		// One slot written in place, never a clear and refill, which every screen would play as a new deal.
@@ -762,6 +768,29 @@ namespace Game.Runtime.GameMode.Poker
 			if (!IsServer || slot < 0 || slot >= _data.CommunityCards.Count) return;
 
 			_data.CommunityCards[slot] = card;
+		}
+
+		// One more card laid face down at the end of the board after the deal, withheld from every street's turn
+		// until ServerReleaseCommunityCard. Returns its slot, or -1.
+		public int ServerAddWithheldCommunityCard(CardData card)
+		{
+			if (!IsServer || !card.IsValid || _data.CommunityCards.Count >= 31) return -1;
+
+			var slot = _data.CommunityCards.Count;
+			_withheldCommunityMask |= 1 << slot;
+			_data.CommunityCards.Add(card);
+
+			return slot;
+		}
+
+		// A withheld place goes back to the streets; one they have already passed is turned now, as they would have.
+		public void ServerReleaseCommunityCard(int slot)
+		{
+			if (!IsServer || slot < 0 || slot >= 31 || (_withheldCommunityMask & (1 << slot)) == 0) return;
+
+			_withheldCommunityMask &= ~(1 << slot);
+
+			if (slot < _streetTurnedCount) ServerRevealCommunityCard(slot);
 		}
 
 		// Somebody who went under mid-hand is out of it: their cards go face down as a fold's do and their

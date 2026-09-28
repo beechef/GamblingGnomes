@@ -5,7 +5,7 @@ Status: built. Scoring verified in the editor; mode spawns and the helper reads 
 
 A fifth mode on `Gameplay_Poker`. It plays like the Normal mode (two Streets around a look, a
 Colorful pick at the end of every Hand), but each player holds 2 cards and shares a 3-card board, the
-deck carries 4 Jokers, and Items are handed out once per Match plus one for surviving a Colorful.
+deck carries 4 Jokers, and every Hand deals 2 Items to each player, plus one for surviving a Colorful.
 Words follow `CONTEXT.md` and `docs/items-design.md` (Match, Hand, Street, Bet, BetItem, Item).
 
 ## Rules
@@ -40,13 +40,31 @@ Words follow `CONTEXT.md` and `docs/items-design.md` (Match, Hand, Street, Bet, 
 
 ## Items
 
-- **Pool.** The Liar database's eleven Items, copied into the mode's own database.
-- **Handout.** 2 random Items to every player in the Match at its first deal. No per-Hand handout,
-  no loser bonus.
+- **Pool.** Thirteen Items in `PokerItemDatabase_Baccarat`, all weight 1. Show Together, Suit Count,
+  Lock and Raise are left out of this database only; the other modes keep them.
+
+  | Group | Asset | Name | Effect |
+  |---|---|---|---|
+  | Information | `PeekBoard` | Scry | See one random face-down board card; you cannot Fold this Street. |
+  | Card | `SwapHand` | Swap | Trade one card with a chosen player; they choose which of theirs. |
+  | Card | `SwapBoard` | Board Swap | Choose your card; a random board card is shown to everyone, then the two trade places. |
+  | Card | `ExtraDraw` | Extra Draw | Draw one more card; you cannot Fold for the rest of the Hand. |
+  | Card | `PlaceOnBoard` | Lay Down | Lay a chosen card face up on the board (the board grows by one) and draw a new one in its place. |
+  | Card | `RandomSuit` | Repaint | A chosen card keeps its rank and takes a random other suit. |
+  | Card | `CopyCard` | Copy | 35% (`_chance`) that a chosen card becomes a copy of another card in your hand. The table hears whether it took. |
+  | Death rate | `HalfDose` | Half Dose | Halve your Death Rate, then Death Roll. |
+  | Death rate | `SharedRoll` | Shared Roll | You and a chosen player Death Roll together. |
+  | Death rate | `MushroomDose` | Spike | A chosen player's next 2 mushrooms (`_caps`) do nothing or hit twice as hard, drawn 50/50 (`_nullifyWeight`/`_doubleWeight`), Colorful roll included. Kept across Hands until eaten; the table is told which. |
+  | Disturb | `PeekHand` | Peek | See one card of a chosen player, who is told which. |
+  | Disturb | `PairLockItems` | No Items | You and a chosen player cannot play Items on the next Street. |
+  | Disturb | `PairLockFold` | Chained | You and a chosen player cannot Fold on the next Street. |
+
+  Joker cards are never offered to Repaint or Copy. Chosen own cards before the look are picked face down.
+- **Handout.** 2 random Items to every player in the Match at every deal (`_itemsPerHand` 2), no
+  loser bonus. The winner may name themselves for the Colorful to fish for the survivor's Item.
 - **Inventory.** Capacity 5, 1 Item per Street, kept across Hands, cleared when the Match ends.
-- **Next-Street Items.** Raise and Lock are hidden on the second Street, the last one (existing rule:
-  what the rules forbid is hidden).
-- **Suit Count.** Shows a separate Joker line; Jokers are not added to any suit.
+- **Next-Street Items.** No Items and Chained are hidden on the second Street, the last one (existing
+  rule: what the rules forbid is hidden).
 
 ## Hand ranking
 
@@ -88,8 +106,8 @@ Other modes' helpers are unchanged.
   `PokerHandType` uses it. New `PokerHandFiveOfAKind`. `PokerHandExampleCard` can author a Joker.
 - **Look into hand.** `PokerCardLookStage` gains an option to put every viewable card into every hand
   when it opens and move on once they are there, instead of waiting for picks.
-- **Item handout.** `PokerItemModule` gains a per-Match starting handout (count) beside the per-Hand one
-  (set to 0 here), and a Colorful-survivor reward (count) handed over when the consume stage ends to
+- **Item handout.** `PokerItemModule` deals `_itemsPerHand` (2) at every deal as in Normal; the per-Match
+  handout `_itemsPerMatch` stays available at 0. It also gains a Colorful-survivor reward (count) handed over when the consume stage ends to
   the player `PokerColorfulPickStage.FedClientId` names, if `IsAlive`. Notices `ItemReward` (public)
   and `ItemsLost` (private, when capacity turned items away).
 - **Board of 3.** The board row lays out as many slots as the running deal puts on the table, centred,

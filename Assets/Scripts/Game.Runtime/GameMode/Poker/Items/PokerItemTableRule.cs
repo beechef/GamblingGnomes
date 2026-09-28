@@ -19,7 +19,10 @@ namespace Game.Runtime.GameMode.Poker.Items
 		NoFoldSelfForHand = 4,
 
 		// The source's card in slot Amount is shown to the whole table for the rule's streets.
-		ShowCard = 5
+		ShowCard = 5,
+
+		// Only the rule's source may not play an item on its streets.
+		NoItemsSelf = 6
 	}
 
 	// A rule an item put on the table for a run of streets: nobody folds there, or every bet there stakes more.

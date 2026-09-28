@@ -28,6 +28,10 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 		private bool _settling;
 
+		// Whether anybody is asked which cards to turn. A round that picks them up for everyone offers nothing
+		// to point at, so no screen opens the table for picking.
+		public bool PlayersChoose => !_putEveryCardInHand;
+
 		protected override void OnStartStage()
 		{
 			Data.Phase.Value = PokerPhase.Looking;
@@ -39,7 +43,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			{
 				foreach (var player in GameMode.SeatedPlayers)
 				{
-					if (IsWaitedOn(player)) player.Data.ServerLookAtAllowedHoleCards();
+					if (IsWaitedOn(player)) player.Data.ServerLookAtEveryHoleCard();
 				}
 			}
 

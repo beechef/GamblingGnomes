@@ -4,14 +4,17 @@ using UnityEngine;
 
 namespace Game.Runtime.UI.Poker
 {
-	// How many item cards this player is holding, on the vitals corner. Which ones is shown only on their
-	// turn, in the item picker. Switched off at a table that deals no items.
+	// How many item cards this player is holding, written into a label (the Items button's own). Which ones
+	// is shown in the item picker. At a table that deals no items the optional content is switched off.
 	public class UIPokerItemCount : UIPokerView
 	{
-		[Tooltip("Shown only at a table that deals items. A child, so this view keeps listening while it is hidden.")]
+		[Tooltip("Optional. Shown only at a table that deals items. A child, so this view keeps listening while it is hidden.")]
 		[SerializeField] private GameObject _content;
 
 		[SerializeField] private TMP_Text _countLabel;
+
+		[Tooltip("What the label reads. {0} is how many items are held.")]
+		[SerializeField] private string _format = "{0}";
 
 		private void Awake()
 		{
@@ -38,7 +41,7 @@ namespace Game.Runtime.UI.Poker
 			var shown = inventory && GameMode.FindModule<PokerItemModule>();
 
 			if (_content) _content.SetActive(shown);
-			if (shown && _countLabel) _countLabel.text = inventory.Count.Value.ToString();
+			if (shown && _countLabel) _countLabel.text = string.Format(_format, inventory.Count.Value);
 		}
 	}
 }
