@@ -22,6 +22,10 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		[MinValue(0f)]
 		[SerializeField] private float _settleDuration = 1f;
 
+		[Header("Choice")]
+		[Tooltip("On, every card a player may see goes into their hand as the stage opens, for a round where there is nothing to choose. The settle duration then has to cover the pick-up flight.")]
+		[SerializeField] private bool _putEveryCardInHand;
+
 		private bool _settling;
 
 		protected override void OnStartStage()
@@ -30,6 +34,14 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			GameMode.ClearTurn();
 
 			_settling = false;
+
+			if (_putEveryCardInHand)
+			{
+				foreach (var player in GameMode.SeatedPlayers)
+				{
+					if (IsWaitedOn(player)) player.Data.ServerLookAtAllowedHoleCards();
+				}
+			}
 
 			// Nobody was dealt a hand they may look at — a table configured without a look limit, or one
 			// where everybody has already folded out. There is nothing to wait for.
@@ -86,17 +98,24 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		{
 			foreach (var player in GameMode.SeatedPlayers)
 			{
-				if (!player || !player.Data) continue;
+				if (!IsWaitedOn(player)) continue;
 
 				var data = player.Data;
-				if (!data.IsSeated || !data.IsAlive) continue;
-				if (data.Status.Value == PokerPlayerStatus.Folded) continue;
-				if (!data.HasLookLimit) continue;
-
 				if (data.LookedAtCount < data.ViewableHoleCards.Value) return false;
 			}
 
 			return true;
+		}
+
+		private static bool IsWaitedOn(PokerPlayer player)
+		{
+			if (!player || !player.Data) return false;
+
+			var data = player.Data;
+			if (!data.IsSeated || !data.IsAlive) return false;
+			if (data.Status.Value == PokerPlayerStatus.Folded) return false;
+
+			return data.HasLookLimit;
 		}
 	}
 }

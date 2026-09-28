@@ -69,10 +69,14 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 		public PokerBetItemType ColorfulBetItemType => _colorfulBetItemType;
 
+		// Server only: who this pick put a Colorful in front of, or NoTurn when nobody was fed.
+		public ulong FedClientId { get; private set; } = PokerGameData.NoTurn;
+
 		protected override void OnStartStage()
 		{
 			_picked = false;
 			_turnElapsed = 0f;
+			FedClientId = PokerGameData.NoTurn;
 
 			ClearPendingServe();
 
@@ -241,6 +245,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			if (target && database && database.TryGetEntry(ColorfulBetItemType, out _))
 			{
 				PokerTableUtility.PlaceBet(Data, target, ColorfulBetItemType);
+				FedClientId = target.ClientId;
 			}
 			else if (!database || !database.TryGetEntry(ColorfulBetItemType, out _))
 			{

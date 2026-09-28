@@ -28,6 +28,10 @@ namespace Game.Runtime.GameMode.Poker
 		[Tooltip("The kinds of cap this table is played with: what the bet bar offers, what a timeout bets and what the settlement hands round.")]
 		[SerializeField] private BetItems.PokerBetItemDatabase _betItemDatabase;
 
+		[Tooltip("Which hands this table recognises and how they rank: what the showdown scores and what the helper lists.")]
+		[Required]
+		[SerializeField] private Hands.PokerHandDatabase _handDatabase;
+
 		[Header("Stages")]
 		[Tooltip("The round loop as a preset. Swap this asset to change the game — modules still add to it, and a stage can be queued ahead of the loop at runtime by InsertStage.")]
 		[SerializeField] private PokerStageSequence _sequence;
@@ -65,6 +69,7 @@ namespace Game.Runtime.GameMode.Poker
 		public MatchConfigData ConfigData => _configData;
 		public PokerNoticeChannel Notices => _notices;
 		public BetItems.PokerBetItemDatabase BetItemDatabase => _betItemDatabase;
+		public Hands.PokerHandDatabase HandDatabase => _handDatabase;
 		public PokerRuleSettings Rules => _rules;
 		public PokerStageSequence Sequence => _sequence;
 		public PokerDeck Deck { get; } = new();

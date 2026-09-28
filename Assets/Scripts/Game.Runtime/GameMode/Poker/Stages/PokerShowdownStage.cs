@@ -20,10 +20,6 @@ namespace Game.Runtime.GameMode.Poker.Stages
 	[CreateAssetMenu(fileName = "PokerStage_Showdown", menuName = "Game/Poker/Stages/Showdown")]
 	public class PokerShowdownStage : PokerStage
 	{
-		[Header("Hands")]
-		[Tooltip("Which hands this showdown recognises and how they rank. Swap the asset to change the ranking wholesale.")]
-		[SerializeField] private PokerHandDatabase _handDatabase;
-
 		[Header("Settlement")]
 		[Tooltip("Who ends up holding which caps once the hand is decided.")]
 		[SerializeField] private PokerSettlement _settlement = PokerSettlement.SwapToLosers;
@@ -225,7 +221,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 				if (Data.IsCommunityCardRevealed(i)) _evaluationBuffer.Add(Data.CommunityCards[i]);
 			}
 
-			return GameMode.HandEvaluator.Evaluate(_handDatabase, _evaluationBuffer);
+			return GameMode.HandEvaluator.Evaluate(GameMode.HandDatabase, _evaluationBuffer);
 		}
 
 		private PokerPlayer NearestToOpener(List<PokerPlayer> candidates)

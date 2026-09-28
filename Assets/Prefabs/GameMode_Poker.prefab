@@ -47,8 +47,10 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   _moduleId: 
   _database: {fileID: 11400000, guid: 3daee3f5deeaf274a920593b1329fa6a, type: 2}
+  _itemsPerMatch: 0
   _itemsPerHand: 2
   _loserBonus: 1
+  _colorfulSurvivorItems: 0
   _capacity: 5
   _startingItems: 
   _usesPerStreet: 1
@@ -237,6 +239,11 @@ MonoBehaviour:
       MinSecondsBetweenUpdates: 0
       MaxSecondsBetweenUpdates: 0
     m_InternalValue: 0
+  DeckRemaining:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
 --- !u!114 &7373537335293292376
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -253,6 +260,7 @@ MonoBehaviour:
   _rules: {fileID: 11400000, guid: b1b95d1241dc51c489c9dc6b9916290c, type: 2}
   _startingHealth: 8
   _betItemDatabase: {fileID: 11400000, guid: 5178fb66ae0b30740a0e39488bef578b, type: 2}
+  _handDatabase: {fileID: 11400000, guid: f9a0e57ee9d53a449b55ff940040745e, type: 2}
   _sequence: {fileID: 11400000, guid: fef264d3b67498b4191fb3f76f2e9f4e, type: 2}
   _modules:
   - {fileID: 8300465974966724970}

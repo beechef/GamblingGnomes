@@ -6,6 +6,7 @@ namespace Game.Runtime.GameMode
 		Poker = 1,
 		PokerLiar = 2,
 		PokerIndian = 3,
-		PokerIndianNoBoard = 4
+		PokerIndianNoBoard = 4,
+		BaccaratPoker = 5
 	}
 }

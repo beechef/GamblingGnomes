@@ -22,6 +22,10 @@ namespace Game.Runtime.GameMode.Poker.Items
 		[SerializeField] private PokerItemDatabase _database;
 
 		[Header("Dealing")]
+		[Tooltip("Items every player in the match is dealt once, at the first hand they are dealt into.")]
+		[MinValue(0)]
+		[SerializeField] private int _itemsPerMatch;
+
 		[Tooltip("Items every player still in the match is dealt as a hand starts.")]
 		[MinValue(0)]
 		[SerializeField] private int _itemsPerHand = 2;
@@ -29,6 +33,10 @@ namespace Game.Runtime.GameMode.Poker.Items
 		[Tooltip("Extra items for everyone who did not win the previous hand, folders included.")]
 		[MinValue(0)]
 		[SerializeField] private int _loserBonus = 1;
+
+		[Tooltip("Items handed to the player the winner fed a Colorful, once the eating is over, if they are still conscious.")]
+		[MinValue(0)]
+		[SerializeField] private int _colorfulSurvivorItems;
 
 		[Tooltip("Most items one player can hold. What is dealt beyond it is lost.")]
 		[MinValue(1)]
@@ -87,6 +95,8 @@ namespace Game.Runtime.GameMode.Poker.Items
 
 		// Server only: who has had the starting items this match.
 		private readonly HashSet<ulong> _startingItemsGiven = new();
+		private readonly HashSet<ulong> _matchItemsGiven = new();
+		private ulong _fedColorfulClientId = PokerGameData.NoTurn;
 
 		// Server only: an item is being resolved, and the answer it is waiting on.
 		private bool _resolving;
@@ -282,9 +292,60 @@ namespace Game.Runtime.GameMode.Poker.Items
 		}
 
 		// After the cards, before the first street: the hand is dealt, and so are the items to play it with.
+		// The Colorful's eater is only rewarded once the eating beat is over, so the reward can never land
+		// ahead of the roll that decides whether they are still there to take it.
 		public override void OnStageEnded(PokerStage stage)
 		{
-			if (IsServer && stage is PokerDealStage) ServerDealItems();
+			if (!IsServer) return;
+
+			switch (stage)
+			{
+				case PokerDealStage:
+					ServerDealItems();
+					break;
+
+				case PokerColorfulPickStage pick:
+					_fedColorfulClientId = pick.FedClientId;
+					break;
+
+				case PokerBetItemConsumeStage:
+					ServerRewardColorfulSurvivor();
+					break;
+			}
+		}
+
+		private void ServerRewardColorfulSurvivor()
+		{
+			var clientId = _fedColorfulClientId;
+			_fedColorfulClientId = PokerGameData.NoTurn;
+
+			if (_colorfulSurvivorItems <= 0 || !_database || clientId == PokerGameData.NoTurn) return;
+
+			var player = PokerPlayer.Find(clientId);
+			if (!player || !player.Data || !player.Data.IsAlive || !player.ItemInventory) return;
+
+			var given = ServerDealFromDatabase(player, _colorfulSurvivorItems);
+			if (given > 0 && GameMode.Notices) GameMode.Notices.ServerAnnounce(PokerNotice.ForItemReward(clientId, given));
+		}
+
+		// Draws and gives, telling the player alone about whatever their full hand turned away. Returns how
+		// many were kept.
+		private int ServerDealFromDatabase(PokerPlayer player, int count)
+		{
+			if (count <= 0) return 0;
+
+			_database.Draw(count, _drawn);
+
+			var given = 0;
+			foreach (var type in _drawn)
+			{
+				if (player.ItemInventory.ServerGive(type, Capacity)) given++;
+			}
+
+			var lost = _drawn.Count - given;
+			if (lost > 0 && GameMode.Notices) GameMode.Notices.ServerTell(player.ClientId, PokerNotice.ForItemsLost(player.ClientId, lost));
+
+			return given;
 		}
 
 		public override void OnHandSettled(IReadOnlyList<PokerPlayer> winners)
@@ -316,6 +377,8 @@ namespace Game.Runtime.GameMode.Poker.Items
 
 			_previousLosers.Clear();
 			_startingItemsGiven.Clear();
+			_matchItemsGiven.Clear();
+			_fedColorfulClientId = PokerGameData.NoTurn;
 
 			foreach (var player in PokerPlayer.All)
 			{
@@ -341,9 +404,9 @@ namespace Game.Runtime.GameMode.Poker.Items
 				ServerGiveStartingItems(player);
 
 				var bonus = _previousLosers.Contains(player.ClientId) ? _loserBonus : 0;
+				var forMatch = _matchItemsGiven.Add(player.ClientId) ? _itemsPerMatch : 0;
 
-				_database.Draw(_itemsPerHand + bonus, _drawn);
-				foreach (var type in _drawn) player.ItemInventory.ServerGive(type, Capacity);
+				ServerDealFromDatabase(player, forMatch + _itemsPerHand + bonus);
 
 				if (bonus > 0 && GameMode.Notices) GameMode.Notices.ServerAnnounce(PokerNotice.ForItemBonus(player.ClientId, bonus));
 			}

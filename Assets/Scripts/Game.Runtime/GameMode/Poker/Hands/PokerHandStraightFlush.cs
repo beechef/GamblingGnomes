@@ -8,9 +8,7 @@ namespace Game.Runtime.GameMode.Poker.Hands
 	{
 		public override bool TryEvaluate(PokerCardAnalysis analysis, List<int> kickers)
 		{
-			if (analysis.FlushSuit < 0) return false;
-
-			var high = analysis.StraightHigh(analysis.SuitRankMasks[analysis.FlushSuit]);
+			var high = analysis.StraightFlushHigh();
 			if (high == 0) return false;
 
 			kickers.Add(high);

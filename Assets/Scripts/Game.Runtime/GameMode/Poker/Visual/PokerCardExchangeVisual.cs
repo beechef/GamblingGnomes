@@ -30,6 +30,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			public PokerCardVisual Card;
 			public PokerCardVisual Stand;
 			public CardData Before;
+			public CardData Incoming;
 			public PokerPlayerData Holder;
 			public Tween Flight;
 			public Tween Backstop;
@@ -60,14 +61,14 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			var secondCard = VisualAt(second);
 			if (!pacing || !firstCard || !secondCard || !_cardPrefab) return;
 
-			Launch(firstCard, secondCard, second, pacing, pacing.Arc, flyFaceDown);
-			Launch(secondCard, firstCard, first, pacing, pacing.Arc * _lowerArcShare, flyFaceDown);
+			Launch(firstCard, secondCard, first, second, pacing, pacing.Arc, flyFaceDown);
+			Launch(secondCard, firstCard, second, first, pacing, pacing.Arc * _lowerArcShare, flyFaceDown);
 
 			firstCard.SetConcealed(true);
 			secondCard.SetConcealed(true);
 		}
 
-		private void Launch(PokerCardVisual from, PokerCardVisual to, PokerCardPlace toPlace, PokerCardExchangePacing pacing, float arc, bool flyFaceDown)
+		private void Launch(PokerCardVisual from, PokerCardVisual to, PokerCardPlace fromPlace, PokerCardPlace toPlace, PokerCardExchangePacing pacing, float arc, bool flyFaceDown)
 		{
 			var stand = Instantiate(_cardPrefab, from.transform.position, from.transform.rotation);
 			stand.transform.localScale = from.transform.lossyScale;
@@ -87,6 +88,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 				Card = to,
 				Stand = stand,
 				Before = ReadCard(toPlace),
+				Incoming = ReadCard(fromPlace),
 				Holder = toPlace.IsBoard ? null : FindData(toPlace.HolderClientId)
 			};
 
@@ -164,7 +166,9 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		}
 
 		// The slot holds something other than what it held when the card set off: the swap has been written.
-		private bool HasArrived(Landing landing) => !ReadCard(landing.Place).Equals(landing.Before);
+		// Two equal cards trading places write nothing a client can hear, so there is nothing to wait for.
+		private bool HasArrived(Landing landing) =>
+			landing.Incoming.Equals(landing.Before) || !ReadCard(landing.Place).Equals(landing.Before);
 
 		private CardData ReadCard(PokerCardPlace place)
 		{

@@ -4,7 +4,8 @@ using Unity.Netcode;
 namespace Game.Runtime.GameMode.Poker.Items
 {
 	// How many cards of each suit were still in the undealt deck when somebody counted. A snapshot: the
-	// deck keeps moving, the count does not.
+	// deck keeps moving, the count does not. Jokers belong to no suit and are counted on their own, and
+	// only on a table that deals them.
 	public struct PokerSuitCounts : INetworkSerializable, IEquatable<PokerSuitCounts>
 	{
 		public bool IsKnown;
@@ -12,6 +13,8 @@ namespace Game.Runtime.GameMode.Poker.Items
 		public byte Diamonds;
 		public byte Hearts;
 		public byte Spades;
+		public bool HasJokers;
+		public byte Jokers;
 
 		public int Get(CardSuit suit) => suit switch
 		{
@@ -28,9 +31,12 @@ namespace Game.Runtime.GameMode.Poker.Items
 			serializer.SerializeValue(ref Diamonds);
 			serializer.SerializeValue(ref Hearts);
 			serializer.SerializeValue(ref Spades);
+			serializer.SerializeValue(ref HasJokers);
+			serializer.SerializeValue(ref Jokers);
 		}
 
 		public bool Equals(PokerSuitCounts other) =>
-			IsKnown == other.IsKnown && Clubs == other.Clubs && Diamonds == other.Diamonds && Hearts == other.Hearts && Spades == other.Spades;
+			IsKnown == other.IsKnown && Clubs == other.Clubs && Diamonds == other.Diamonds && Hearts == other.Hearts && Spades == other.Spades &&
+			HasJokers == other.HasJokers && Jokers == other.Jokers;
 	}
 }

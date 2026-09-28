@@ -19,6 +19,8 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		[Header("References")]
 		[SerializeField] private PokerPlayerData _data;
 
+		private int _spacedFor;
+
 		private void Awake()
 		{
 			if (!_data) _data = GetComponentInParent<PokerPlayerData>();
@@ -48,7 +50,12 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		// the two overlapped. A card put back down returns to its own place.
 		protected override int SlotOf(int index) => OrderAt(index);
 
-		protected override int SlotCount => Mathf.Max(Mathf.Max(_data ? _data.CardCount : 0, HighestOrder + 1), _minimumSlots);
+		protected override int SlotCount =>
+			Mathf.Max(Mathf.Max(_data ? _data.CardCount : 0, HighestOrder + 1), _spacedFor > 0 ? _spacedFor : _minimumSlots);
+
+		// The row spaced for a known number of cards ahead of their arrival, which beats the authored
+		// minimum; zero hands the spacing back to it.
+		public void SpaceFor(int count) => _spacedFor = Mathf.Max(0, count);
 
 		protected override Vector3 SlotPosition(int slot, int count)
 		{
