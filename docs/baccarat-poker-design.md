@@ -5,7 +5,7 @@ Status: built. Scoring verified in the editor; mode spawns and the helper reads 
 
 A fifth mode on `Gameplay_Poker`. It plays like the Normal mode (two Streets around a look, a
 Colorful pick at the end of every Hand), but each player holds 2 cards and shares a 3-card board, the
-deck carries 4 Jokers, and Items are handed out once per Match plus one for surviving a Colorful.
+deck carries 4 Jokers, and every Hand deals 2 Items to each player, plus one for surviving a Colorful.
 Words follow `CONTEXT.md` and `docs/items-design.md` (Match, Hand, Street, Bet, BetItem, Item).
 
 ## Rules
@@ -41,8 +41,8 @@ Words follow `CONTEXT.md` and `docs/items-design.md` (Match, Hand, Street, Bet, 
 ## Items
 
 - **Pool.** The Liar database's eleven Items, copied into the mode's own database.
-- **Handout.** 2 random Items to every player in the Match at its first deal. No per-Hand handout,
-  no loser bonus.
+- **Handout.** 2 random Items to every player in the Match at every deal (`_itemsPerHand` 2), no
+  loser bonus. The winner may name themselves for the Colorful to fish for the survivor's Item.
 - **Inventory.** Capacity 5, 1 Item per Street, kept across Hands, cleared when the Match ends.
 - **Next-Street Items.** Raise and Lock are hidden on the second Street, the last one (existing rule:
   what the rules forbid is hidden).
@@ -88,8 +88,8 @@ Other modes' helpers are unchanged.
   `PokerHandType` uses it. New `PokerHandFiveOfAKind`. `PokerHandExampleCard` can author a Joker.
 - **Look into hand.** `PokerCardLookStage` gains an option to put every viewable card into every hand
   when it opens and move on once they are there, instead of waiting for picks.
-- **Item handout.** `PokerItemModule` gains a per-Match starting handout (count) beside the per-Hand one
-  (set to 0 here), and a Colorful-survivor reward (count) handed over when the consume stage ends to
+- **Item handout.** `PokerItemModule` deals `_itemsPerHand` (2) at every deal as in Normal; the per-Match
+  handout `_itemsPerMatch` stays available at 0. It also gains a Colorful-survivor reward (count) handed over when the consume stage ends to
   the player `PokerColorfulPickStage.FedClientId` names, if `IsAlive`. Notices `ItemReward` (public)
   and `ItemsLost` (private, when capacity turned items away).
 - **Board of 3.** The board row lays out as many slots as the running deal puts on the table, centred,
