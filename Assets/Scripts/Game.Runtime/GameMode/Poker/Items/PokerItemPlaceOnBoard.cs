@@ -63,17 +63,26 @@ namespace Game.Runtime.GameMode.Poker.Items
 			var drawn = context.GameMode.Deck.Draw();
 			if (!drawn.IsValid) return;
 
-			var boardSlot = context.GameMode.ServerAddCommunityCard(drawn, faceUp: false);
+			// Withheld while it lies there: it is the user's card, and a street ending mid-trade must not turn it.
+			var gameMode = context.GameMode;
+			var boardSlot = gameMode.ServerAddWithheldCommunityCard(drawn);
 			if (boardSlot < 0) return;
 
-			if (_landHold > 0f) await Awaitable.WaitForSecondsAsync(_landHold, ct);
+			try
+			{
+				if (_landHold > 0f) await Awaitable.WaitForSecondsAsync(_landHold, ct);
 
-			if (!await context.Module.ServerExchangeCardsAsync(
-				    PokerCardPlace.InHand(user.ClientId, ownSlot), PokerCardPlace.OnBoard(boardSlot), ct, flyFaceDown: true)) return;
+				if (!await context.Module.ServerExchangeCardsAsync(
+					    PokerCardPlace.InHand(user.ClientId, ownSlot), PokerCardPlace.OnBoard(boardSlot), ct, flyFaceDown: true)) return;
 
-			// The card drawn is the user's own to see; the one laid down is everybody's.
-			user.Data.ServerMarkLookedAt(ownSlot);
-			context.GameMode.ServerRevealCommunityCard(boardSlot);
+				// The card drawn is the user's own to see; the one laid down is everybody's.
+				user.Data.ServerMarkLookedAt(ownSlot);
+				gameMode.ServerRevealCommunityCard(boardSlot);
+			}
+			finally
+			{
+				gameMode.ServerReleaseCommunityCard(boardSlot);
+			}
 		}
 	}
 }

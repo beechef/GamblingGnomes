@@ -13,8 +13,8 @@ namespace Game.Runtime.UI.Poker
 	// What the player can do on their own betting turn: bet, fold, go all in, or play an item. Where the
 	// player picks the kind, betting does not put a cap up by itself — it opens the picker, because the kind
 	// is the actual decision — and the menu and the pickers are panels of one group, so only one is ever up.
-	// Where the table draws the kind, the press is the whole answer. Off the turn the menu holds the Items
-	// button alone, so held items can be read at any time; the picker greys each one with the reason.
+	// Where the table draws the kind, the press is the whole answer. The Items button lives in the hand helper's
+	// column, outside the menu, so held items can be read at any time; the picker greys each one with the reason.
 	//
 	// This component stays on an object that is always active and only switches the panels, or it would
 	// switch itself off with the menu and never hear the turn come round again.
@@ -49,7 +49,7 @@ namespace Game.Runtime.UI.Poker
 		[Tooltip("Shown only on a street that allows going all in.")]
 		[SerializeField] private UIButton _allInButton;
 
-		[Tooltip("Shown only at a table that deals items; greyed while nothing held can be played.")]
+		[Tooltip("In the hand helper's button column, not the menu (wired on UI_Poker). Shown only at a table that deals items; greyed while nothing is held.")]
 		[SerializeField] private UIButton _itemsButton;
 
 		[Header("Overlays")]
@@ -135,13 +135,20 @@ namespace Game.Runtime.UI.Poker
 			if (IsHandHelperOpen || (!IsActing && !CanReadItems))
 			{
 				CloseAll();
+				RefreshMenuButtons();
 				return;
 			}
 
-			// Off the turn only the items can be read; a bet picker or an aim left over from the turn is put away.
-			if (!IsActing && _panels && (_panels.IsShowing(_pickerPanel) || _panels.IsShowing(_targetingPanel))) CloseAll();
+			// Off the turn only the items can be read. The menu holds nothing but the turn's answers, so it goes,
+			// with a bet picker or an aim left over from the turn; an item picker the player opened stays.
+			if (!IsActing)
+			{
+				if (_panels && !_panels.IsShowing(_itemPickerPanel)) CloseAll();
+				RefreshMenuButtons();
+				return;
+			}
 
-			// Whichever picker the player is on stays up; otherwise the menu, redrawn for whether it is their turn.
+			// Whichever picker the player is on stays up; otherwise the menu.
 			if (_panels && (_panels.IsShowing(_pickerPanel) || _panels.IsShowing(_itemPickerPanel) || _panels.IsShowing(_targetingPanel))) return;
 
 			if (_panels && _panels.IsShowing(_menuPanel)) RefreshMenuButtons();
@@ -158,7 +165,13 @@ namespace Game.Runtime.UI.Poker
 		{
 			if (_picker) _picker.Close();
 			if (_itemPicker) _itemPicker.Close();
-			if (_panels) _panels.Show(_menuPanel);
+
+			// Off the turn there is no menu to go back to, so stepping back from the item picker puts it all away.
+			if (_panels)
+			{
+				if (IsActing) _panels.Show(_menuPanel);
+				else _panels.HideAll();
+			}
 
 			RefreshMenuButtons();
 		}
