@@ -416,6 +416,13 @@ namespace Game.Runtime.GameMode.Poker.Player
 				return;
 			}
 
+			LookAtHoleCards(slots);
+		}
+
+		// The one write every pick-up goes through, chosen by the player or by a round with nothing to choose,
+		// so both look the same on every screen.
+		private void LookAtHoleCards(int slots)
+		{
 			LookedAtHoleCards.Value |= slots;
 
 			// Reaching for the cards is something the table watches, so the gesture is played on the server for
@@ -450,8 +457,8 @@ namespace Game.Runtime.GameMode.Poker.Player
 			LookedAtHoleCards.Value = (1 << Mathf.Min(count, 31)) - 1;
 		}
 
-		// Every card the round still lets this player see, turned in one write, for a look with nothing to
-		// choose. Played like a pick so the cards leave the table on the same gesture cue.
+		// Every card the round still lets this player see, picked up for them, for a look with nothing to
+		// choose. The same write as a pick, so the cards leave the table on the same gesture cue.
 		public void ServerLookAtAllowedHoleCards()
 		{
 			if (!IsServer) return;
@@ -467,10 +474,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 				remaining--;
 			}
 
-			if (slots == 0) return;
-
-			LookedAtHoleCards.Value |= slots;
-			GetComponent<PokerPlayer>()?.ActionAnimator?.ServerPlay(PlayerActionIds.PickUpCard);
+			if (slots != 0) LookAtHoleCards(slots);
 		}
 
 		// The mode stamps this beside the starting stats: how many of the five its round lets a player see.

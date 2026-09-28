@@ -321,6 +321,10 @@ namespace Game.Runtime.GameMode.Poker.Visual
 				var visible = IsVisible(i);
 				_cards[i].SetCard(visible ? CardAt(i) : CardData.None, visible, _database);
 
+				// A card waiting on the clip's cue is on its way already; put straight here, it would skip the
+				// flight it is waiting to make.
+				if ((_awaitedMask & (1 << i)) != 0) continue;
+
 				HandOver(i, false);
 			}
 
