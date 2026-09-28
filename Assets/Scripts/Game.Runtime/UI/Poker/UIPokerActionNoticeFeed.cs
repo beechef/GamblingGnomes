@@ -12,6 +12,12 @@ namespace Game.Runtime.UI.Poker
 		[Tooltip("Read after the name when somebody is dealt extra items for losing the last hand.")]
 		[SerializeField] private string _itemBonusVerb = "LOST LAST HAND: +{0} ITEM";
 
+		[Tooltip("Read after the name when somebody survives the Colorful they were fed and is handed items for it.")]
+		[SerializeField] private string _itemRewardVerb = "SURVIVED: +{0} ITEM";
+
+		[Tooltip("Told only to a player whose items were full, so what they were handed was lost.")]
+		[SerializeField] private string _itemsLostVerb = "ITEMS FULL: {0} LOST";
+
 		[Header("Match")]
 		[Tooltip("Read on top when the first hand of a match is about to be dealt.")]
 		[SerializeField] private string _matchStartedTitle = "MATCH START";
@@ -58,6 +64,14 @@ namespace Game.Runtime.UI.Poker
 
 				case PokerNoticeKind.ItemBonus:
 					Announce(NameOf(notice.ActorClientId), string.Format(_itemBonusVerb, notice.Amount));
+					break;
+
+				case PokerNoticeKind.ItemReward:
+					Announce(NameOf(notice.ActorClientId), string.Format(_itemRewardVerb, notice.Amount));
+					break;
+
+				case PokerNoticeKind.ItemsLost:
+					Announce(NameOf(notice.ActorClientId), string.Format(_itemsLostVerb, notice.Amount));
 					break;
 			}
 		}

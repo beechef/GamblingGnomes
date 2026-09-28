@@ -8,12 +8,8 @@ namespace Game.Runtime.GameMode.Poker.Hands
 	{
 		public override bool TryEvaluate(PokerCardAnalysis analysis, List<int> kickers)
 		{
-			var trips = analysis.HighestRankWithCount(3);
-			if (trips == 0) return false;
-
 			// Seven cards can hold two sets of trips, and the lower one plays as the pair.
-			var pair = analysis.HighestRankWithCount(2, trips);
-			if (pair == 0) return false;
+			if (!analysis.TryTwoGroups(3, 2, out var trips, out var pair)) return false;
 
 			kickers.Add(trips);
 			kickers.Add(pair);

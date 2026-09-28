@@ -18,6 +18,10 @@ namespace Game.Runtime.UI.Poker
 		[SerializeField] private TMP_Text _heartsLabel;
 		[SerializeField] private TMP_Text _spadesLabel;
 
+		[Tooltip("Shown only on a table that deals Jokers.")]
+		[SerializeField] private GameObject _jokersRow;
+		[SerializeField] private TMP_Text _jokersLabel;
+
 		private void Awake()
 		{
 			if (_content) _content.SetActive(false);
@@ -49,6 +53,9 @@ namespace Game.Runtime.UI.Poker
 			SetLabel(_diamondsLabel, counts.Get(CardSuit.Diamonds));
 			SetLabel(_heartsLabel, counts.Get(CardSuit.Hearts));
 			SetLabel(_spadesLabel, counts.Get(CardSuit.Spades));
+
+			if (_jokersRow) _jokersRow.SetActive(counts.HasJokers);
+			SetLabel(_jokersLabel, counts.Jokers);
 		}
 
 		private static void SetLabel(TMP_Text label, int count)

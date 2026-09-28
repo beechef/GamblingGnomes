@@ -15,7 +15,7 @@ namespace Game.Runtime.GameMode.Poker
 
 		public event Action OnRemainingChanged;
 
-		public void Rebuild()
+		public void Rebuild(int jokers = 0)
 		{
 			_cards.Clear();
 
@@ -26,6 +26,8 @@ namespace Game.Runtime.GameMode.Poker
 					_cards.Enqueue(new CardData(rank, (CardSuit)suit));
 				}
 			}
+
+			for (var i = 0; i < jokers; i++) _cards.Enqueue(CardData.Joker);
 
 			OnRemainingChanged?.Invoke();
 		}
@@ -53,7 +55,18 @@ namespace Game.Runtime.GameMode.Poker
 			var count = 0;
 			foreach (var card in _cards)
 			{
-				if (card.SuitType == suit) count++;
+				if (!card.IsJoker && card.SuitType == suit) count++;
+			}
+
+			return count;
+		}
+
+		public int CountJokers()
+		{
+			var count = 0;
+			foreach (var card in _cards)
+			{
+				if (card.IsJoker) count++;
 			}
 
 			return count;

@@ -450,6 +450,29 @@ namespace Game.Runtime.GameMode.Poker.Player
 			LookedAtHoleCards.Value = (1 << Mathf.Min(count, 31)) - 1;
 		}
 
+		// Every card the round still lets this player see, turned in one write, for a look with nothing to
+		// choose. Played like a pick so the cards leave the table on the same gesture cue.
+		public void ServerLookAtAllowedHoleCards()
+		{
+			if (!IsServer) return;
+
+			var slots = 0;
+			var remaining = ViewableHoleCards.Value - LookedAtCount;
+
+			for (var slot = 0; slot < HoleCards.Count && slot < 31 && remaining > 0; slot++)
+			{
+				if (!CanLookAt(slot)) continue;
+
+				slots |= 1 << slot;
+				remaining--;
+			}
+
+			if (slots == 0) return;
+
+			LookedAtHoleCards.Value |= slots;
+			GetComponent<PokerPlayer>()?.ActionAnimator?.ServerPlay(PlayerActionIds.PickUpCard);
+		}
+
 		// The mode stamps this beside the starting stats: how many of the five its round lets a player see.
 		public void ServerSetViewableHoleCards(int count)
 		{

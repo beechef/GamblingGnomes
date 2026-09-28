@@ -15,7 +15,13 @@ namespace Game.Runtime.GameMode.Poker
 		[PropertyRange(2, 6)]
 		[SerializeField] private int _seatCount = 4;
 
+		[Header("Deck")]
+		[Tooltip("Wild cards shuffled in with the 52. Each stands for any rank and any suit.")]
+		[PropertyRange(0, 4)]
+		[SerializeField] private int _jokerCount;
+
 		public int MinimumPlayersToStart => Mathf.Max(2, _minimumPlayersToStart);
+		public int JokerCount => Mathf.Clamp(_jokerCount, 0, 4);
 		public int SeatCount => Mathf.Clamp(_seatCount, 2, 6);
 	}
 }

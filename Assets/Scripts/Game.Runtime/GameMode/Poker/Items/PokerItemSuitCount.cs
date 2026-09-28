@@ -26,7 +26,9 @@ namespace Game.Runtime.GameMode.Poker.Items
 				Clubs = (byte)deck.CountRemaining(CardSuit.Clubs),
 				Diamonds = (byte)deck.CountRemaining(CardSuit.Diamonds),
 				Hearts = (byte)deck.CountRemaining(CardSuit.Hearts),
-				Spades = (byte)deck.CountRemaining(CardSuit.Spades)
+				Spades = (byte)deck.CountRemaining(CardSuit.Spades),
+				HasJokers = context.GameMode.Rules && context.GameMode.Rules.JokerCount > 0,
+				Jokers = (byte)deck.CountJokers()
 			});
 		}
 	}
