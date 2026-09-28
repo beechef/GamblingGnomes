@@ -73,6 +73,9 @@ afford it).
 | `PokerItem_LockFold` | Lock | Nobody may Fold on the next Street (`_streets` streets from there, default 1). `_affectsAllIn` toggles whether the All-in stage is locked too. | both |
 | `PokerItem_RaiseStakes` | Raise | Every Bet on the next Street stakes +1 cap (`_streets` streets from there, default 1). Stacks. Never applies to All-in. | both |
 
+Baccarat Poker adds six more (Lay Down, Repaint, Copy, Spike, No Items, Chained); they are described in
+`docs/baccarat-poker-design.md`, which also lists which of the eleven that mode leaves out.
+
 Default targets: card Items target players still `IsInHand`, not yourself; Shared Roll targets
 `InMatch && IsAlive`, not yourself. No valid target dims the Item. All weights start equal.
 

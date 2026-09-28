@@ -77,7 +77,15 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			if (!card || !_controller) return;
 
 			var deal = RunningDeal();
-			var holeCardsPerPlayer = deal ? deal.HoleCardsPerPlayer : 0;
+
+			// A card laid on the board mid-hand, by an item, takes no turn in any deal either.
+			if (!deal)
+			{
+				card.DealFrom(_top ? _top : transform, 0f, _controller);
+				return;
+			}
+
+			var holeCardsPerPlayer = deal.HoleCardsPerPlayer;
 
 			var players = 0;
 
@@ -89,7 +97,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 				}
 			}
 
-			var turn = new PokerDealTurn(holeCardsPerPlayer, boardIndex, players, deal && deal.DealsIntoHand);
+			var turn = new PokerDealTurn(holeCardsPerPlayer, boardIndex, players, deal.DealsIntoHand);
 			card.DealFrom(_top ? _top : transform, _controller.DelayFor(turn), _controller);
 		}
 

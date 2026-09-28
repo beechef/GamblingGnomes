@@ -23,7 +23,7 @@ namespace Game.Runtime.GameMode.Poker.BetItems
 		[MinValue(0)]
 		[SerializeField] private int _repeatGain = 10;
 
-		protected override void OnConsumeServer(PokerGameMode gameMode, PokerPlayer eater, PokerBetItemType itemType)
+		protected override void OnConsumeServer(PokerGameMode gameMode, PokerPlayer eater, PokerBetItemType itemType, int dose)
 		{
 			var consume = eater.BetItemConsume;
 
@@ -32,7 +32,7 @@ namespace Game.Runtime.GameMode.Poker.BetItems
 
 			if (consume) consume.ServerRecordConsumed(itemType);
 
-			eater.Data.ServerChangeHallucination(metBefore ? _repeatGain : _newTypeGain);
+			eater.Data.ServerChangeHallucination((metBefore ? _repeatGain : _newTypeGain) * dose);
 		}
 
 		// The same question the bite itself asks, minus the writing. Read through the controller rather

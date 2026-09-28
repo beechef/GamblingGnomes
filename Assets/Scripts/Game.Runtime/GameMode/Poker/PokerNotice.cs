@@ -19,7 +19,10 @@ namespace Game.Runtime.GameMode.Poker
 		ItemReward = 5,
 
 		// Told only to a player whose full hand of items turned some away. Amount is how many were lost.
-		ItemsLost = 6
+		ItemsLost = 6,
+
+		// How a chance-driven item came out, told to the whole table. The item words it from Amount.
+		ItemOutcome = 7
 	}
 
 	// Something the table is told about, as data rather than as words: who, what, at whom, how many. The
@@ -84,6 +87,15 @@ namespace Game.Runtime.GameMode.Poker
 			ActorClientId = actor,
 			TargetClientId = PokerGameData.NoTurn,
 			Amount = amount
+		};
+
+		public static PokerNotice ForItemOutcome(ulong actor, PokerItemType item, ulong target, int outcome) => new()
+		{
+			Kind = PokerNoticeKind.ItemOutcome,
+			ActorClientId = actor,
+			TargetClientId = target,
+			Item = item,
+			Amount = outcome
 		};
 
 		public static PokerNotice ForMatchStarted(int players) => new()

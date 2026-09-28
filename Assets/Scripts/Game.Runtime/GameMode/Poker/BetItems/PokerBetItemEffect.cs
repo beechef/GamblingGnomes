@@ -8,11 +8,12 @@ namespace Game.Runtime.GameMode.Poker.BetItems
 	// every mushroom of its kind in the pot.
 	public abstract class PokerBetItemEffect : ScriptableObject
 	{
-		public void ConsumeServer(PokerGameMode gameMode, PokerPlayer eater, PokerBetItemType itemType)
+		public void ConsumeServer(PokerGameMode gameMode, PokerPlayer eater, PokerBetItemType itemType, int dose = 1)
 		{
-			if (!gameMode || !eater || !eater.Data) return;
+			// A dose of nothing is a cap that does nothing at all: no price, no record, no roll.
+			if (!gameMode || !eater || !eater.Data || dose <= 0) return;
 
-			OnConsumeServer(gameMode, eater, itemType);
+			OnConsumeServer(gameMode, eater, itemType, dose);
 		}
 
 		// What this bite is about to add, asked before it is taken. Not a prediction: the only thing the
@@ -23,14 +24,15 @@ namespace Game.Runtime.GameMode.Poker.BetItems
 		// Anything decided by chance is outside this on purpose. A Colorful cap that rolls somebody under
 		// goes to the ceiling, and that is a death rather than a hit: it has its own pose and wants no
 		// impact in front of it.
-		public int PreviewHallucinationGain(PokerGameMode gameMode, PokerPlayer eater, PokerBetItemType itemType)
+		public int PreviewHallucinationGain(PokerGameMode gameMode, PokerPlayer eater, PokerBetItemType itemType, int dose = 1)
 		{
 			if (!gameMode || !eater || !eater.Data) return 0;
 
-			return OnPreviewHallucinationGain(gameMode, eater, itemType);
+			return OnPreviewHallucinationGain(gameMode, eater, itemType) * Mathf.Max(0, dose);
 		}
 
-		protected abstract void OnConsumeServer(PokerGameMode gameMode, PokerPlayer eater, PokerBetItemType itemType);
+		// How strong the bite is: 2 is a double dose. Never called for a dose of 0.
+		protected abstract void OnConsumeServer(PokerGameMode gameMode, PokerPlayer eater, PokerBetItemType itemType, int dose);
 
 		// Zero for a kind that costs no hallucination at all, which is the honest answer for most of them.
 		protected virtual int OnPreviewHallucinationGain(PokerGameMode gameMode, PokerPlayer eater, PokerBetItemType itemType) => 0;

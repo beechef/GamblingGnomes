@@ -155,6 +155,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 			if (!GameMode || !GameMode.IsPlayingThisMatch(user.Data)) return PokerItemAvailability.Dimmed("You are out of this match.");
 			if (!IsStreetCurrent) return PokerItemAvailability.Dimmed("Only on a betting street.");
 			if (Data.CurrentTurnClientId.Value != user.ClientId) return PokerItemAvailability.Dimmed("Only on your turn.");
+			if (HasRule(PokerItemTableRuleKind.NoItemsSelf, StreetSerial.Value, user.ClientId)) return PokerItemAvailability.Dimmed("Locked out of items this street.");
 			if (HasSpentStreetUses(user)) return PokerItemAvailability.Dimmed(UsesPerStreet == 1 ? "Already played an item this street." : $"Already played {UsesPerStreet} items this street.");
 			if (PendingResponse.Value.IsPending) return PokerItemAvailability.Dimmed("Waiting on another item.");
 
@@ -609,6 +610,15 @@ namespace Game.Runtime.GameMode.Poker.Items
 			ServerForget(second);
 
 			return true;
+		}
+
+		// One of a player's cards turned into another in place. Whatever anybody knew of the old face is forgotten.
+		public void ServerRewriteHoleCard(PokerPlayer holder, int slot, CardData card)
+		{
+			if (!IsServer || !holder || !holder.Data || slot < 0 || slot >= holder.Data.CardCount || !card.IsValid) return;
+
+			holder.Data.ServerReplaceHoleCard(slot, card);
+			ServerForget(PokerCardPlace.InHand(holder.ClientId, slot));
 		}
 
 		[Rpc(SendTo.Everyone)]

@@ -73,7 +73,23 @@ namespace Game.Runtime.UI.Poker
 				case PokerNoticeKind.ItemsLost:
 					Announce(NameOf(notice.ActorClientId), string.Format(_itemsLostVerb, notice.Amount));
 					break;
+
+				case PokerNoticeKind.ItemOutcome:
+					AnnounceItemOutcome(notice);
+					break;
 			}
+		}
+
+		private void AnnounceItemOutcome(PokerNotice notice)
+		{
+			var module = GameMode.FindModule<PokerItemModule>();
+			if (!module || !module.TryGetItem(notice.Item, out var item)) return;
+
+			var verb = item.GetOutcomeVerb(notice.Amount);
+			if (string.IsNullOrEmpty(verb)) return;
+
+			if (notice.HasTarget) AnnounceTarget(NameOf(notice.ActorClientId), verb, NameOf(notice.TargetClientId));
+			else Announce(NameOf(notice.ActorClientId), verb);
 		}
 
 		// Told to this player alone: what the item did to them, the card included.

@@ -764,6 +764,18 @@ namespace Game.Runtime.GameMode.Poker
 			_data.CommunityCards[slot] = card;
 		}
 
+		// One more card laid at the end of the board after the deal. Returns its slot, or -1.
+		public int ServerAddCommunityCard(CardData card, bool faceUp)
+		{
+			if (!IsServer || !card.IsValid || _data.CommunityCards.Count >= 31) return -1;
+
+			var slot = _data.CommunityCards.Count;
+			_data.CommunityCards.Add(card);
+			if (faceUp) _data.RevealedCommunityMask.Value |= 1 << slot;
+
+			return slot;
+		}
+
 		// Somebody who went under mid-hand is out of it: their cards go face down as a fold's do and their
 		// stake settles as a folder's, whatever the rules say about folding. The turn is handed on if it was
 		// theirs, by the same path as a player leaving the table.
