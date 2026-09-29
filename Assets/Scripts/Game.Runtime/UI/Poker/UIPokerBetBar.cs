@@ -80,6 +80,7 @@ namespace Game.Runtime.UI.Poker
 
 			Data.CurrentTurnClientId.OnValueChanged += HandleTurnChanged;
 			Data.StageId.OnValueChanged += HandleStageChanged;
+			Data.Phase.OnValueChanged += HandlePhaseChanged;
 			GameMode.OnActionRulesChanged += RefreshMenuButtons;
 			GameMode.OnSeatedPlayersChanged += WatchSeatedPlayers;
 			WatchSeatedPlayers();
@@ -90,11 +91,15 @@ namespace Game.Runtime.UI.Poker
 				LocalPlayer.ItemInventory.OnUsesChanged += RefreshMenuButtons;
 			}
 
+			if (LocalData) LocalData.OnHallucinationChanged += HandleHallucinationChanged;
+
 			Refresh();
 		}
 
 		protected override void OnUnbind()
 		{
+			if (LocalData) LocalData.OnHallucinationChanged -= HandleHallucinationChanged;
+
 			if (LocalPlayer.ItemInventory)
 			{
 				LocalPlayer.ItemInventory.OnUsesChanged -= RefreshMenuButtons;
@@ -104,6 +109,7 @@ namespace Game.Runtime.UI.Poker
 			UnwatchSeatedPlayers();
 			GameMode.OnSeatedPlayersChanged -= WatchSeatedPlayers;
 			GameMode.OnActionRulesChanged -= RefreshMenuButtons;
+			Data.Phase.OnValueChanged -= HandlePhaseChanged;
 			if (_handHelper) _handHelper.OnOpenChanged -= HandleHandHelperOpenChanged;
 			Data.StageId.OnValueChanged -= HandleStageChanged;
 			Data.CurrentTurnClientId.OnValueChanged -= HandleTurnChanged;
@@ -121,6 +127,11 @@ namespace Game.Runtime.UI.Poker
 		private void HandleTurnChanged(ulong previous, ulong current) => Refresh();
 		private void HandleStageChanged(FixedString32Bytes previous, FixedString32Bytes current) => Refresh();
 		private void HandleHandHelperOpenChanged(bool open) => Refresh();
+		private void HandlePhaseChanged(PokerPhase previous, PokerPhase current) => RefreshMenuButtons();
+		private void HandleHallucinationChanged(int previous, int current) => Refresh();
+
+		// Out of the game: nothing on this bar is theirs to answer any more, items included.
+		private bool IsAlive => LocalData && LocalData.IsAlive;
 
 		private bool IsHandHelperOpen => _handHelper && _handHelper.IsOpen;
 
@@ -132,7 +143,7 @@ namespace Game.Runtime.UI.Poker
 
 			// The hand board covers the same moment, so the bar steps aside while it is up; closing it lands back
 			// on the menu, since the pickers were put away with everything else.
-			if (IsHandHelperOpen || (!IsActing && !CanReadItems))
+			if (IsHandHelperOpen || !IsAlive || (!IsActing && !CanReadItems))
 			{
 				CloseAll();
 				RefreshMenuButtons();
@@ -180,7 +191,7 @@ namespace Game.Runtime.UI.Poker
 		{
 			if (!IsBound) return;
 
-			var acting = IsActing;
+			var acting = IsActing && IsAlive;
 
 			if (_betButton) _betButton.gameObject.SetActive(acting);
 			if (_foldButton) _foldButton.gameObject.SetActive(acting && _stage.CanFold(LocalData));
@@ -189,7 +200,8 @@ namespace Game.Runtime.UI.Poker
 
 			if (!_itemsButton) return;
 
-			var hasItems = _itemModule && LocalPlayer.ItemInventory && _itemPicker;
+			// Nothing is dealt before the match starts, so the waiting room shows no Items button at all.
+			var hasItems = _itemModule && LocalPlayer.ItemInventory && _itemPicker && Data.Phase.Value != PokerPhase.Waiting && IsAlive;
 			_itemsButton.gameObject.SetActive(hasItems);
 			if (hasItems) _itemsButton.IsInteractable = AnyItemHeld();
 		}
@@ -258,7 +270,15 @@ namespace Game.Runtime.UI.Poker
 
 		private void HandleItems()
 		{
-			if (!_itemModule || !_itemPicker || IsHandHelperOpen) return;
+			if (!_itemModule || !_itemPicker || IsHandHelperOpen || !IsAlive) return;
+
+			// The button toggles: pressed again it steps back exactly as Escape does.
+			if (_panels && _panels.IsShowing(_itemPickerPanel))
+			{
+				_itemPicker.Close();
+				ShowMenu();
+				return;
+			}
 
 			if (_panels) _panels.Show(_itemPickerPanel);
 			_itemPicker.Open(GameMode, LocalPlayer, _itemModule, ShowMenu, HandleItemChosen);

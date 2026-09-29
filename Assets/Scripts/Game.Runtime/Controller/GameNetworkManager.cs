@@ -337,6 +337,11 @@ namespace Game.Runtime.Controller
 				return;
 			}
 
+			// The overlay only exists when Steam could hook the process (a build launched through Steam, not the
+			// editor); without it the call below does nothing at all, so say why.
+			if (!SteamUtils.IsOverlayEnabled)
+				Debug.LogWarning("[GameNetworkManager] Steam overlay is not available in this process, so the invite dialog cannot open. Launch the build through Steam.");
+
 			SteamFriends.OpenGameInviteOverlay(CurrentLobby.Value.Id);
 		}
 
