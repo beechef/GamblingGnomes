@@ -22,6 +22,10 @@ namespace Game.Runtime.GameMode.Poker
 
 		Backroom = 6,
 
-		CheckerHall = 7
+		CheckerHall = 7,
+
+		DancingTavern = 8,
+
+		GalaxyFarm = 9
 	}
 }
