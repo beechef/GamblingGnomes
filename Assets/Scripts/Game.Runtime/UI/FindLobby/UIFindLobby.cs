@@ -1,7 +1,7 @@
 using System;
 using Game.Runtime.Controller;
+using Game.Runtime.Lobby;
 using Game.Runtime.UI.MainMenu;
-using Steamworks.Data;
 using UnityEngine;
 
 namespace Game.Runtime.UI.FindLobby
@@ -67,14 +67,14 @@ namespace Game.Runtime.UI.FindLobby
 			}
 		}
 
-		private void AddItem(Lobby lobby)
+		private void AddItem(ILobby lobby)
 		{
 			var item = Instantiate(_itemPrefab, _itemContainer);
 			item.OnJoinLobbyRequested += OnJoinLobbyRequested;
 			item.SetData(lobby);
 		}
 
-		private async void OnJoinLobbyRequested(Lobby lobby)
+		private async void OnJoinLobbyRequested(ILobby lobby)
 		{
 			if (_joiningLobby) return;
 			_joiningLobby = true;
