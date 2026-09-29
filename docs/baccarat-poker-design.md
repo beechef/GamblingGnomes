@@ -17,13 +17,15 @@ Words follow `CONTEXT.md` and `docs/items-design.md` (Match, Hand, Street, Bet, 
   turn, nobody decides it.
 - **Look.** Right after the deal, both hole cards go into every hand at once. Nothing to choose, so
   nothing to click.
-- **Second Street.** Bet (1 random cap) or Fold. No All-in. Items may be used.
-- **Reveal.** All 3 community cards turn at once, with every hand still in play. A winner everyone else
-  folded to is still turned over, board included.
+- **Second Street.** The first community card turns, then Bet (1 random cap) or Fold. No All-in. Items
+  may be used.
+- **Third Street.** The other two community cards turn, then the same Bet or Fold.
+- **Reveal.** Every hand still in play turns over. A winner everyone else folded to is still turned
+  over, board included.
 - **Showdown.** A hand is exactly 5 cards: 2 hole + 3 board (6 with Extra Draw, best five scored).
   Ties all win.
-- **Settlement: `OwnStake`.** The winners' caps are discarded. Every loser eats the 2 caps they
-  staked; a folder eats the 1 cap from the first Street.
+- **Settlement: `OwnStake`.** The winners' caps are discarded. Every loser eats what they staked:
+  the ante plus one cap per Street they bet on (up to 3); a folder eats what they had in when they folded.
 - **Colorful pick.** The existing `PokerColorfulPickStage` rules: the winner names anyone `InMatch &&
   IsAlive`, themselves included; folders can be named; with several winners the one nearest the hand
   opener picks.
@@ -95,7 +97,8 @@ Other modes' helpers are unchanged.
   hides its kind picker on a Random street by itself. Configs under
   `Configs/Poker/Baccarat/`.
 - **Sequence.** Waiting → Deal (hole 2, community 3, `_anteSize` 1) → CardLook (every card into the
-  hand) → SecondStreet (Random kind, fold) → CardReveal (`_revealBoard`) →
+  hand) → SecondStreet (turns 1 board card, Random kind, fold) → ThirdStreet (turns the other 2, same
+  bet) → CardReveal (`_revealBoard`) →
   Showdown (`OwnStake`, `_revealUncontested`, own hand database) → ColorfulPick (gain 20) → Consume
   (ordinary gain 10/10) → MatchOver. Every named exit is re-pointed at this sequence's own stages.
 - **Joker card.** `CardData` gains a Joker value that `IsValid` accepts and `IsJoker` names; its
