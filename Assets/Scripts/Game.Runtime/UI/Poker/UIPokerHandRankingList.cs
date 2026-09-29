@@ -40,8 +40,6 @@ namespace Game.Runtime.UI.Poker
 		[Tooltip("On, the rows are re-bound from the database every time the board opens. Off, the rows built in the editor are shown as they were saved.")]
 		[SerializeField] private bool _rebuildAtRuntime = true;
 
-		private const int HouseRank = 0;
-
 		private readonly List<UIPokerHandRow> _rows = new();
 		private readonly List<UIPokerHandRow> _houseRows = new();
 
@@ -90,11 +88,11 @@ namespace Game.Runtime.UI.Poker
 
 				if (hand.IsHouseHand && _houseContainer && _houseRowPrefab)
 				{
-					BindRow(_houseRows, houseUsed++, _houseRowPrefab, _houseContainer, HouseRank, hand);
+					BindRow(_houseRows, houseUsed++, _houseRowPrefab, _houseContainer, database.DisplayRankOf(hand), hand);
 					continue;
 				}
 
-				BindRow(_rows, used, _rowPrefab, _container, used + 1, hand);
+				BindRow(_rows, used, _rowPrefab, _container, database.DisplayRankOf(hand), hand);
 				used++;
 			}
 

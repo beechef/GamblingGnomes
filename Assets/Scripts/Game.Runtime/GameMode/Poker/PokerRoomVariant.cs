@@ -10,6 +10,8 @@ namespace Game.Runtime.GameMode.Poker
 		// The room as the scene built it. What everything falls back to when no effect is asking.
 		Default = 0,
 
-		Water = 1
+		Water = 1,
+
+		Dreamcore = 2
 	}
 }
