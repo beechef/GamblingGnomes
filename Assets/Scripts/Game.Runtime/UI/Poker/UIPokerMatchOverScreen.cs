@@ -18,6 +18,10 @@ namespace Game.Runtime.UI.Poker
 		[SerializeField] private CanvasGroup _announcement;
 		[SerializeField] private TextMeshProUGUI _titleLabel;
 		[SerializeField] private TextMeshProUGUI _nameLabel;
+
+		[Tooltip("What the name is written on. Hidden when nobody survived, so an empty board is never shown.")]
+		[SerializeField] private GameObject _namePlank;
+
 		[SerializeField] private string _survivorTitle = "LAST GNOME STANDING";
 		[SerializeField] private string _nobodyTitle = "NOBODY MADE IT";
 		[SerializeField] private float _announceFadeDuration = 0.4f;
@@ -111,6 +115,7 @@ namespace Game.Runtime.UI.Poker
 
 			if (_titleLabel) _titleLabel.text = survivor ? _survivorTitle : _nobodyTitle;
 			if (_nameLabel) _nameLabel.text = survivor ? survivor.DisplayName : string.Empty;
+			if (_namePlank) _namePlank.SetActive(survivor);
 		}
 
 		private void SetBlink(bool shut, bool animate)
