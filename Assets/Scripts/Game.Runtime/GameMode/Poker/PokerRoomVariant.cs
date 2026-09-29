@@ -20,6 +20,8 @@ namespace Game.Runtime.GameMode.Poker
 
 		SkyIslands = 5,
 
-		Backroom = 6
+		Backroom = 6,
+
+		CheckerHall = 7
 	}
 }
