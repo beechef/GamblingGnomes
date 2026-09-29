@@ -1,16 +1,15 @@
 using System;
-using Game.Runtime.UI.Button;
 using UnityEngine;
 
 namespace Game.Runtime.UI.Poker
 {
-	// The hand ranking board, opened and closed from the HELPER button (or its key). It sits on an object
-	// that stays active and switches only the panel, or it would switch itself off with the board and never
-	// hear the button again. Escape closes it through UIEscapeStack, so it never pulls the pause menu up.
+	// The hand ranking board, opened and closed by whoever holds a reference to it (the HELPER button,
+	// UIPokerHandHelperButton). It sits on an object that stays active and switches only the panel, or it would
+	// switch itself off with the board and never be opened again. Escape closes it through UIEscapeStack, so it
+	// never pulls the pause menu up.
 	public class UIPokerHandHelper : MonoBehaviour
 	{
 		[Header("References")]
-		[SerializeField] private UIButton _button;
 		[SerializeField] private GameObject _panel;
 
 		[Tooltip("Optional. Pops the board in on open and back out on close; without it the board simply switches.")]
@@ -28,15 +27,8 @@ namespace Game.Runtime.UI.Poker
 			if (_panel) _panel.SetActive(false);
 		}
 
-		private void OnEnable()
-		{
-			if (_button) _button.OnClick += Toggle;
-		}
-
 		private void OnDisable()
 		{
-			if (_button) _button.OnClick -= Toggle;
-
 			var wasOpen = IsOpen;
 
 			UIEscapeStack.Remove(Close);
