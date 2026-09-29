@@ -90,6 +90,9 @@ namespace Game.Runtime.UI.MainMenu
 			{
 				GameNetworkManager.Instance.OnGameLeft += Show;
 
+				// A way into a table can start from outside the menu (a Steam invite), with any of its screens up.
+				GameNetworkManager.Instance.OnConnectStarted += HideAll;
+
 				// A failed attempt does not always tear anything down, so OnGameLeft can never arrive — and
 				// the menu hid itself on the way in. Without this the player is left looking at nothing.
 				GameNetworkManager.Instance.OnConnectFailed += HandleConnectFailed;
@@ -109,6 +112,7 @@ namespace Game.Runtime.UI.MainMenu
 
 			if (GameNetworkManager.Instance)
 			{
+				GameNetworkManager.Instance.OnConnectStarted -= HideAll;
 				GameNetworkManager.Instance.OnGameLeft -= Show;
 				GameNetworkManager.Instance.OnConnectFailed -= HandleConnectFailed;
 			}
@@ -136,6 +140,15 @@ namespace Game.Runtime.UI.MainMenu
 			if (_findLobbyUI) _findLobbyUI.gameObject.SetActive(false);
 
 			ShowRootMenu();
+		}
+
+		private void HideAll()
+		{
+			if (_roomSettingUI) _roomSettingUI.gameObject.SetActive(false);
+			if (_findLobbyUI) _findLobbyUI.gameObject.SetActive(false);
+			if (_optionScreen) _optionScreen.SetActive(false);
+
+			gameObject.SetActive(false);
 		}
 
 		public void CreateLobby()

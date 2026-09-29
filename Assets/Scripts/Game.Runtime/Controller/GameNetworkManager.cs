@@ -136,6 +136,8 @@ namespace Game.Runtime.Controller
 			SteamMatchmaking.OnLobbyMemberJoined += OnLobbyMemberJoined;
 			SteamMatchmaking.OnLobbyMemberLeave += OnLobbyMemberLeave;
 			SteamFriends.OnGameLobbyJoinRequested += OnGameLobbyJoinRequested;
+
+			AcceptLaunchInvite();
 		}
 
 		private void UnbindSteamEvents()
@@ -320,9 +322,95 @@ namespace Game.Runtime.Controller
 			return result ?? Array.Empty<Lobby>();
 		}
 
-		private void OnGameLobbyJoinRequested(Lobby lobby, SteamId friendId)
+		// Accepted from the Steam overlay or a friend's chat while the game is already running.
+		private void OnGameLobbyJoinRequested(Lobby lobby, SteamId friendId) => AcceptInvite(lobby.Id);
+
+		// Whether this player has a room friends can be asked into.
+		public bool CanInviteFriends => CurrentLobby.HasValue && SteamClient.IsValid;
+
+		// Opens Steam's own friend picker on the current room; whoever accepts lands in AcceptInvite on their side.
+		public void InviteFriends()
 		{
-			JoinLobby(lobby).LogExceptionsAndForget();
+			if (!CanInviteFriends)
+			{
+				Debug.LogWarning("[GameNetworkManager] Invite refused: not in a Steam lobby.");
+				return;
+			}
+
+			SteamFriends.OpenGameInviteOverlay(CurrentLobby.Value.Id);
+		}
+
+		// Every way an invite arrives ends here: launched by it, accepted in the menu, or accepted while sitting
+		// in another room. Only the latest one counts, and one arriving while a join or leave is still running
+		// waits for it rather than being dropped, since the player has no way to send it again.
+		public void AcceptInvite(SteamId lobbyId)
+		{
+			if (CurrentLobby.HasValue && CurrentLobby.Value.Id == lobbyId) return;
+
+			_pendingInvite = lobbyId;
+			if (_acceptingInvite) return;
+
+			AcceptPendingInvitesAsync(destroyCancellationToken).LogExceptionsAndForget();
+		}
+
+		private SteamId? _pendingInvite;
+		private bool _acceptingInvite;
+
+		private async Awaitable AcceptPendingInvitesAsync(CancellationToken ct)
+		{
+			_acceptingInvite = true;
+
+			try
+			{
+				// One frame first: an invite read off the command line arrives from Start, and the menu that hides
+				// itself on OnConnectStarted may not have subscribed yet.
+				await Awaitable.NextFrameAsync(ct);
+
+				while (_pendingInvite.HasValue)
+				{
+					// A join or a leave already under way finishes first; tearing into it halfway leaves the
+					// transport and the scene out of step.
+					while (_joiningLobby || _leavingGame) await Awaitable.NextFrameAsync(ct);
+
+					var lobbyId = _pendingInvite.Value;
+					_pendingInvite = null;
+
+					if (CurrentLobby.HasValue && CurrentLobby.Value.Id == lobbyId) continue;
+
+					// Sitting in another room: walk out of it the normal way first, so the next room starts
+					// from the same blank state a join from the menu does.
+					if (IsInGame) await LeaveGame(ct);
+
+					// A newer invite arrived while leaving: that one is the one the player meant.
+					if (_pendingInvite.HasValue) continue;
+
+					await JoinLobby(lobbyId, ct);
+				}
+			}
+			finally
+			{
+				_acceptingInvite = false;
+			}
+		}
+
+		// A game started by accepting an invite while it was closed is launched by Steam with
+		// "+connect_lobby <id>" on its command line. Read once, as soon as Steam can answer.
+		private bool _launchInviteRead;
+
+		private void AcceptLaunchInvite()
+		{
+			if (_launchInviteRead) return;
+			_launchInviteRead = true;
+
+			var args = Environment.GetCommandLineArgs();
+			for (var i = 0; i < args.Length - 1; i++)
+			{
+				if (args[i] != "+connect_lobby" || !ulong.TryParse(args[i + 1], out var id)) continue;
+
+				Debug.Log($"[GameNetworkManager] Launched by an invite to lobby {id}.");
+				AcceptInvite(id);
+				return;
+			}
 		}
 
 		private void OnLobbyEntered(Lobby lobby)
