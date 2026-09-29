@@ -11,24 +11,31 @@ using UnityEngine.UI;
 
 namespace Game.Runtime.UI.Poker
 {
-	// Which item to play, opened from the bet bar's Items button. One entry per card held; one that cannot be
-	// played right now, whether the rules forbid it or it is merely not ready, is greyed with the reason under it.
-	// Both answers come from PokerItemModule.GetAvailability, the call the server refuses with.
+	// Which item to play, opened from the Items button and laid out like the bet picker: a row of item icons with
+	// the marked one's name and description under it. One entry per card held; one that cannot be played right
+	// now is greyed with the reason under it. The answer comes from PokerItemModule.GetAvailability, the call the
+	// server refuses with.
 	//
 	// Opened and closed by the bet bar, which owns the turn. Escape steps back to the menu through UIEscapeStack.
 	public class UIPokerItemPicker : MonoBehaviour
 	{
 		[Header("Entries")]
-		[Tooltip("One held item, instantiated per card under the row (UI_PokerItemEntry).")]
+		[Tooltip("One held item, instantiated per card under the row (UI_PokerItemIcon).")]
 		[SerializeField] private UIPokerItemEntry _entryPrefab;
 
-		[Tooltip("Auto-layout row the entries are laid out in.")]
+		[Tooltip("Auto-layout row the entries are laid out in. Fixed width: past it the icons shrink toward their minimum instead of scrolling.")]
 		[SerializeField] private RectTransform _entryRow;
 
 		[SerializeField] private UISelectionGroup _selection;
 
 		[Tooltip("Plays whatever item is marked. Greyed while the marked item cannot be played.")]
 		[SerializeField] private UIButton _chooseButton;
+
+		[Header("Cost")]
+		[Tooltip("Optional. Shows the marked item's hallucination cost, hidden for an item that costs nothing.")]
+		[SerializeField] private CanvasGroup _costGroup;
+
+		[SerializeField] private TMP_Text _costLabel;
 
 		[Header("Details")]
 		[SerializeField] private TMP_Text _nameLabel;
@@ -167,10 +174,12 @@ namespace Game.Runtime.UI.Poker
 			{
 				if (_chooseButton) _chooseButton.IsInteractable = false;
 				SetDetailsVisible(false);
+				SetCost(0);
 				return;
 			}
 
 			var availability = _module.GetAvailability(_player, entry.Item.Type);
+			SetCost(entry.Item.HallucinationCost);
 
 			if (_chooseButton) _chooseButton.IsInteractable = availability.IsUsable;
 			if (_nameLabel) _nameLabel.text = entry.Item.DisplayName;
@@ -229,6 +238,13 @@ namespace Game.Runtime.UI.Poker
 		private void SetDetailsVisible(bool visible)
 		{
 			if (_detailsGroup) _detailsGroup.alpha = visible ? 1f : 0f;
+		}
+
+		// Faded rather than switched off, so the row below does not jump when an item that costs nothing is marked.
+		private void SetCost(int cost)
+		{
+			if (_costGroup) _costGroup.alpha = cost > 0 ? 1f : 0f;
+			if (_costLabel && cost > 0) _costLabel.text = cost.ToString();
 		}
 	}
 }
