@@ -6,8 +6,14 @@ namespace Game.Runtime.UI.Poker
 {
 	// Turns what the table is told into something on screen: accepted actions, items played, and the item
 	// news only this player receives. Each becomes a notice that fades in, lingers, and leaves.
+	// Every notice names who it is about ("BOB ALL IN").
 	public class UIPokerActionNoticeFeed : UIPokerNoticeFeed
 	{
+		[Header("Actions")]
+		[SerializeField] private string _betText = "BET";
+		[SerializeField] private string _foldText = "FOLD";
+		[SerializeField] private string _allInText = "ALL IN";
+
 		[Header("Items")]
 		[Tooltip("Read after the name when somebody is dealt extra items for losing the last hand.")]
 		[SerializeField] private string _itemBonusVerb = "LOST LAST HAND: +{0} ITEM";
@@ -47,7 +53,7 @@ namespace Game.Runtime.UI.Poker
 			switch (notice.Kind)
 			{
 				case PokerNoticeKind.Action:
-					Announce(NameOf(notice.ActorClientId), notice.Action.ToString().ToUpperInvariant());
+					Announce(NameOf(notice.ActorClientId), ActionText(notice.Action));
 					break;
 
 				case PokerNoticeKind.ItemUsed:
@@ -91,6 +97,14 @@ namespace Game.Runtime.UI.Poker
 			if (notice.HasTarget) AnnounceTarget(NameOf(notice.ActorClientId), verb, NameOf(notice.TargetClientId));
 			else Announce(NameOf(notice.ActorClientId), verb);
 		}
+
+		private string ActionText(PokerActionType action) => action switch
+		{
+			PokerActionType.Bet => _betText,
+			PokerActionType.Fold => _foldText,
+			PokerActionType.AllIn => _allInText,
+			_ => action.ToString().ToUpperInvariant()
+		};
 
 		// Told to this player alone: what the item did to them, the card included.
 		private void AnnounceItemDetail(PokerNotice notice)
