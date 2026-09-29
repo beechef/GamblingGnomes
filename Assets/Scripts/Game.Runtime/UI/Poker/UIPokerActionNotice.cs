@@ -26,6 +26,10 @@ namespace Game.Runtime.UI.Poker
 		[SerializeField] private GameObject _amountRoot;
 
 		[SerializeField] private TextMeshProUGUI _amountLabel;
+
+		[Tooltip("On the amount label. Its minimum is pinned to the count's width, so a long line shrinks the words and never the count.")]
+		[SerializeField] private LayoutElement _amountLayout;
+
 		[SerializeField] private Image _amountIcon;
 
 		[Header("Motion")]
@@ -58,6 +62,7 @@ namespace Game.Runtime.UI.Poker
 			if (counted)
 			{
 				if (_amountLabel) _amountLabel.text = $"x{amount}";
+				if (_amountLabel && _amountLayout) _amountLayout.minWidth = _amountLabel.GetPreferredValues(_amountLabel.text).x;
 				if (_amountIcon && icon) _amountIcon.sprite = icon;
 			}
 
