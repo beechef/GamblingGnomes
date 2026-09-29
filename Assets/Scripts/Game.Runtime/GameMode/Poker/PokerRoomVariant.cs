@@ -12,6 +12,12 @@ namespace Game.Runtime.GameMode.Poker
 
 		Water = 1,
 
-		Dreamcore = 2
+		Dreamcore = 2,
+
+		MushroomGrove = 3,
+
+		TavernStorm = 4,
+
+		SkyIslands = 5
 	}
 }
