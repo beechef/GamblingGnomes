@@ -12,10 +12,11 @@ Words follow `CONTEXT.md` and `docs/items-design.md` (Match, Hand, Street, Bet, 
 
 - **Deck.** 56 cards: the 52 plus 4 Jokers. All four Jokers share one picture. A Joker stands for any
   rank and any suit, including a card already in the hand. Other modes keep the 52-card deck.
-- **Deal.** 2 hole cards per player, face down on the table, and 3 community cards, face down. No ante.
-- **First Street.** Bet only, 1 cap of a random kind (the kinds are worth the same). No Fold, no
-  All-in. Items may be used. Nobody has seen their cards yet.
-- **Look.** Both hole cards go into every hand at once. Nothing to choose, so nothing to click.
+- **Deal.** 2 hole cards per player, face down on the table, and 3 community cards, face down. Every
+  player dealt in antes 1 cap of a random kind (the kinds are worth the same) as the cards go out — no
+  turn, nobody decides it.
+- **Look.** Right after the deal, both hole cards go into every hand at once. Nothing to choose, so
+  nothing to click.
 - **Second Street.** Bet (1 random cap) or Fold. No All-in. Items may be used.
 - **Reveal.** All 3 community cards turn at once, with every hand still in play. A winner everyone else
   folded to is still turned over, board included.
@@ -93,8 +94,8 @@ Other modes' helpers are unchanged.
   `_betItemDatabase`, `_handDatabase` and the item module's settings. The HUD is Normal's: the bet bar
   hides its kind picker on a Random street by itself. Configs under
   `Configs/Poker/Baccarat/`.
-- **Sequence.** Waiting → Deal (hole 2, community 3) → FirstStreet (Random kind, no fold) → CardLook
-  (every card into the hand) → SecondStreet (Random kind, fold) → CardReveal (`_revealBoard`) →
+- **Sequence.** Waiting → Deal (hole 2, community 3, `_anteSize` 1) → CardLook (every card into the
+  hand) → SecondStreet (Random kind, fold) → CardReveal (`_revealBoard`) →
   Showdown (`OwnStake`, `_revealUncontested`, own hand database) → ColorfulPick (gain 20) → Consume
   (ordinary gain 10/10) → MatchOver. Every named exit is re-pointed at this sequence's own stages.
 - **Joker card.** `CardData` gains a Joker value that `IsValid` accepts and `IsJoker` names; its

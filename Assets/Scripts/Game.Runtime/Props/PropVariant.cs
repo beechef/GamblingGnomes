@@ -12,6 +12,9 @@ namespace Game.Runtime.Props
 		// Value 1 is serialized in every look and effect that names it — renamed from Smiling, never renumbered.
 		Transformed = 1,
 		ExtraArm,
-		Breasts
+		Breasts,
+		// Card decks: what a card becomes when it is drawn from another deck.
+		BlackGold = 4,
+		Inverted = 5
 	}
 }

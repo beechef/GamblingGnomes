@@ -237,6 +237,8 @@ GameObject:
   - component: {fileID: 35827909712756921}
   - component: {fileID: 2273976980707683780}
   - component: {fileID: 8697099536705004940}
+  - component: {fileID: 7445599009869088880}
+  - component: {fileID: 3186370759982303708}
   m_Layer: 0
   m_Name: Card_Poker
   m_TagString: Untagged
@@ -304,3 +306,35 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.06692023, y: 0.08806818, z: 0.002}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &7445599009869088880
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5323790224759338796}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 93a11e2df94e5a94382d46ada1816732, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Props.PropVariantController
+  _looks: []
+--- !u!114 &3186370759982303708
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5323790224759338796}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f400e0d3b97618246b7cdf33204ec408, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Visual.PokerCardDeckLook
+  _variants: {fileID: 7445599009869088880}
+  _card: {fileID: 2273976980707683780}
+  _decks:
+  - Variant: 4
+    Database: {fileID: 11400000, guid: 77c5d99944b0fd543ac57bd24dda5b52, type: 2}
+  - Variant: 5
+    Database: {fileID: 11400000, guid: 33c0619bac4fbf84db56c441ec1ddbb8, type: 2}
