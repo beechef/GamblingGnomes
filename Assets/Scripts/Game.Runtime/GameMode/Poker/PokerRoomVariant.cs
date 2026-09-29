@@ -18,6 +18,8 @@ namespace Game.Runtime.GameMode.Poker
 
 		TavernStorm = 4,
 
-		SkyIslands = 5
+		SkyIslands = 5,
+
+		Backroom = 6
 	}
 }
