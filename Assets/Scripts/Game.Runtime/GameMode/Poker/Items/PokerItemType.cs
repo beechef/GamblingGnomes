@@ -15,6 +15,12 @@ namespace Game.Runtime.GameMode.Poker.Items
 		HalfDose = 8,
 		SharedRoll = 9,
 		LockFold = 10,
-		RaiseStakes = 11
+		RaiseStakes = 11,
+		PlaceOnBoard = 12,
+		RandomSuit = 13,
+		CopyCard = 14,
+		MushroomDose = 15,
+		PairLockItems = 16,
+		PairLockFold = 17
 	}
 }

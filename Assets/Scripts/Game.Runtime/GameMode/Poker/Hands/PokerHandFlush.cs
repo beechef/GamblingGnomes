@@ -8,10 +8,7 @@ namespace Game.Runtime.GameMode.Poker.Hands
 	{
 		public override bool TryEvaluate(PokerCardAnalysis analysis, List<int> kickers)
 		{
-			if (analysis.FlushSuit < 0) return false;
-
-			analysis.FillTopRanks(analysis.SuitRankMasks[analysis.FlushSuit], 5, kickers);
-			return true;
+			return analysis.TryFillFlush(kickers);
 		}
 	}
 }

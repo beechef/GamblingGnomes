@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using DG.Tweening;
 using Game.Runtime.GameMode.Poker.Player;
+using Game.Runtime.GameMode.Poker.Stages;
 using Sirenix.OdinInspector;
 using Unity.Netcode;
 using UnityEngine;
@@ -22,7 +23,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 	public class PokerBoardVisual : PokerVisual
 	{
 		[Required]
-		[SerializeField] private PokerCardGroupVisual _row;
+		[SerializeField] private PokerCardRowVisual _row;
 
 		[Required]
 		[SerializeField] private PokerCardVisual _cardPrefab;
@@ -216,7 +217,12 @@ namespace Game.Runtime.GameMode.Poker.Visual
 				case NetworkListEvent<CardData>.EventType.Add:
 					// The first card of a hand is where the board is squared up again: the chairs have long been
 					// laid by then, whichever order this client heard about them in.
-					if (_cards.Count == 0) FaceLocalSeat();
+					if (_cards.Count == 0)
+					{
+						FaceLocalSeat();
+						SpaceRowForBoard();
+					}
+
 					AddCard(true);
 					break;
 
@@ -306,6 +312,16 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			_cards[index].SetCard(visible ? CardAt(index) : CardData.None, visible, _database, animate && visible);
 		}
 
+		// The board arrives one card at a time, so its size is asked of the deal that lays it rather than read
+		// off a list still growing; a board already laid (a late join) answers for itself.
+		private void SpaceRowForBoard()
+		{
+			if (!_row) return;
+
+			var deal = GameMode.FindStage(Data.StageId.Value.ToString()) as PokerDealStage;
+			_row.SpaceFor(Mathf.Max(deal ? deal.CommunityCardCount : 0, Data.CommunityCards.Count));
+		}
+
 		private CardData CardAt(int index) =>
 			index >= 0 && index < Data.CommunityCards.Count ? Data.CommunityCards[index] : CardData.None;
 
@@ -314,6 +330,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			ClearCards();
 
 			FaceLocalSeat();
+			SpaceRowForBoard();
 			for (var i = 0; i < Data.CommunityCards.Count; i++) AddCard(false);
 
 			_shownMask = VisibleMask();

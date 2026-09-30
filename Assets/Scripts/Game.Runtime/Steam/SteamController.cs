@@ -61,7 +61,8 @@ namespace Game.Runtime.Steam
 			catch (Exception e)
 			{
 				IsInitialized = false;
-				Debug.LogError($"[SteamController] SteamClient.Init failed: {e.Message}");
+				// Not an error on its own: Steam may simply not be running, and the lobby falls back to local rooms.
+				Debug.LogWarning($"[SteamController] SteamClient.Init failed: {e.Message}");
 				OnInitFailed?.Invoke(e.Message);
 			}
 		}

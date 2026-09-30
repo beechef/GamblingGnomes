@@ -25,6 +25,8 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 		[SerializeField] private PokerCardDatabase _database;
 
+		private PokerCardDatabase _deck;
+
 		[Tooltip("White rim switched on while the card is hovered for picking. Drawn at render queue 2999, before the face at 3000, so the card covers all of it but the edge.")]
 		[SerializeField] private GameObject _hoverOutline;
 
@@ -268,10 +270,28 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			_initialized = true;
 			Card = card;
 
-			// A hand this client may not see shows its back on both sides rather than a blank face.
-			if (_database) Draw(faceUp ? _database.GetFace(card) : _database.CardBack, _database.CardBack);
+			DrawCurrent(faceUp);
 
 			Flip(faceUp, animateFlip);
+		}
+
+		// Which deck the pictures are cut from, over the one the card was dealt with; null goes back to that one.
+		// A look the card wears, so it redraws the card it already holds and leaves the flip where it is.
+		public void SetDeck(PokerCardDatabase deck)
+		{
+			if (_deck == deck) return;
+
+			_deck = deck;
+			if (_initialized) DrawCurrent(FaceUp);
+		}
+
+		private PokerCardDatabase Deck => _deck ? _deck : _database;
+
+		// A hand this client may not see shows its back on both sides rather than a blank face.
+		private void DrawCurrent(bool faceUp)
+		{
+			var deck = Deck;
+			if (deck) Draw(faceUp ? deck.GetFace(Card) : deck.CardBack, deck.CardBack);
 		}
 
 		// Both pictures onto the one renderer, and nothing else. How big the card is and what the hit box

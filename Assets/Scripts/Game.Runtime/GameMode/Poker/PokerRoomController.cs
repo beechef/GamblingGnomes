@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace Game.Runtime.GameMode.Poker
 {
@@ -31,8 +32,48 @@ namespace Game.Runtime.GameMode.Poker
 			[Tooltip("What is switched on for it. Everything belonging to every other room goes off, so a piece shared by two rooms belongs in both lists.")]
 			[SerializeField] private List<GameObject> _objects = new();
 
+			[Tooltip("The sky over it. Empty keeps the sky the scene had when the table was laid.")]
+			[SerializeField] private Material _skybox;
+
+			[Tooltip("Mist hanging in it. Off keeps the fog the scene had when the table was laid.")]
+			[SerializeField] private bool _hasFog;
+
+			[SerializeField] private Fog _fog = new() { Mode = FogMode.ExponentialSquared, Color = new Color(0.45f, 0.5f, 0.58f), Density = 0.04f };
+
 			public PokerRoomVariant Variant => _variant;
 			public IReadOnlyList<GameObject> Objects => _objects;
+			public Material Skybox => _skybox;
+			public bool HasFog => _hasFog;
+			public Fog Fog => _fog;
+		}
+
+		[Serializable]
+		public struct Fog
+		{
+			public FogMode Mode;
+			public Color Color;
+
+			[Min(0f)]
+			public float Density;
+
+			[HideInInspector]
+			public bool Enabled;
+
+			public static Fog FromRenderSettings() => new()
+			{
+				Enabled = RenderSettings.fog,
+				Mode = RenderSettings.fogMode,
+				Color = RenderSettings.fogColor,
+				Density = RenderSettings.fogDensity,
+			};
+
+			public void ApplyToRenderSettings()
+			{
+				RenderSettings.fog = Enabled;
+				RenderSettings.fogMode = Mode;
+				RenderSettings.fogColor = Color;
+				RenderSettings.fogDensity = Density;
+			}
 		}
 
 		[Tooltip("Every room the scene carries, the default one included. A room nobody authored is a room an effect asking for it leaves alone.")]
@@ -51,6 +92,10 @@ namespace Game.Runtime.GameMode.Poker
 		private readonly List<object> _handles = new();
 		private readonly List<PokerRoomVariant> _wanted = new();
 
+		private Material _sceneSkybox;
+		private SphericalHarmonicsL2 _sceneAmbientProbe;
+		private Fog _sceneFog;
+
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
 		private static void ResetStatics()
 		{
@@ -67,6 +112,9 @@ namespace Game.Runtime.GameMode.Poker
 			}
 
 			Instance = this;
+			_sceneSkybox = RenderSettings.skybox;
+			_sceneAmbientProbe = RenderSettings.ambientProbe;
+			_sceneFog = Fog.FromRenderSettings();
 
 			// A room entry that lost its object switches nothing, which reads as a room that never changes.
 			foreach (var room in _rooms)
@@ -90,6 +138,11 @@ namespace Game.Runtime.GameMode.Poker
 
 			_handles.Clear();
 			_wanted.Clear();
+
+			// The sky belongs to the active scene, which outlives gameplay, so hand back what was there.
+			RestoreSceneSky();
+			_sceneSkybox = null;
+			_sceneFog.ApplyToRenderSettings();
 
 			Instance = null;
 			OnInstanceChanged?.Invoke();
@@ -146,6 +199,9 @@ namespace Game.Runtime.GameMode.Poker
 				}
 			}
 
+			Material skybox = null;
+			var fog = _sceneFog;
+
 			foreach (var room in _rooms)
 			{
 				if (room == null || room.Variant != variant) continue;
@@ -154,12 +210,43 @@ namespace Game.Runtime.GameMode.Poker
 				{
 					if (member) member.SetActive(true);
 				}
+
+				if (room.Skybox) skybox = room.Skybox;
+
+				if (room.HasFog)
+				{
+					fog = room.Fog;
+					fog.Enabled = true;
+				}
 			}
+
+			if (skybox) ApplySkybox(skybox);
+			else RestoreSceneSky();
+
+			fog.ApplyToRenderSettings();
 
 			if (Current == variant) return;
 
 			Current = variant;
 			OnRoomChanged?.Invoke(variant);
+		}
+
+		private static void ApplySkybox(Material skybox)
+		{
+			if (RenderSettings.skybox == skybox) return;
+
+			RenderSettings.skybox = skybox;
+
+			// Ambient light is taken from the sky, so a new sky over the old ambient reads as a pasted backdrop.
+			DynamicGI.UpdateEnvironment();
+		}
+
+		// The scene's ambient is baked, not taken from its sky: recomputing it from the sky tints the default room
+		// with whatever that sky happens to be, so the baked probe captured on enable is written back instead.
+		private void RestoreSceneSky()
+		{
+			RenderSettings.skybox = _sceneSkybox;
+			RenderSettings.ambientProbe = _sceneAmbientProbe;
 		}
 
 		private bool Has(PokerRoomVariant variant)

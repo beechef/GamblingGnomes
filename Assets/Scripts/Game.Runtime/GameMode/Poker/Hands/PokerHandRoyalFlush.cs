@@ -9,9 +9,7 @@ namespace Game.Runtime.GameMode.Poker.Hands
 	{
 		public override bool TryEvaluate(PokerCardAnalysis analysis, List<int> kickers)
 		{
-			if (analysis.FlushSuit < 0) return false;
-
-			return analysis.StraightHigh(analysis.SuitRankMasks[analysis.FlushSuit]) == CardData.HighestRank;
+			return analysis.StraightFlushHigh() == CardData.HighestRank;
 		}
 	}
 }

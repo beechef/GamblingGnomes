@@ -2,12 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Game.Runtime.GameMode;
+using Game.Runtime.Lobby;
 using Game.Runtime.Steam;
-using Steamworks;
-using Steamworks.Data;
 using Unity.Netcode;
+using Unity.Netcode.Transports.UTP;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.Serialization;
 
 namespace Game.Runtime.Controller
 {
@@ -33,17 +34,26 @@ namespace Game.Runtime.Controller
 
 		[SerializeField] private GameModeDatabase _gameModeDatabase;
 
+		[Header("Lobby")]
+		[Tooltip("Which lobby the editor opens and searches. Local needs neither Steam nor the internet: rooms are files in the temp folder, seen by every editor, Multiplayer Play Mode player and build on this machine. A build always tries Steam first.")]
+		[SerializeField] private LobbyBackend _editorLobby = LobbyBackend.Local;
+
+		[Tooltip("When the preferred lobby is Steam and Steam is not signed in (offline, not running), open and search local rooms instead of failing.")]
+		[SerializeField] private bool _fallBackToLocal = true;
+
 		[Header("References")]
 		[SerializeField] private NetworkManager _networkManager;
 
 		[SerializeField] private FacepunchTransport _steamTransport;
-		[SerializeField] private NetworkTransport _editorTransport;
+
+		[FormerlySerializedAs("_editorTransport")]
+		[SerializeField] private UnityTransport _localTransport;
 
 		public event Action<string> OnConnectFailed;
 		public event Action OnLobbyEnter;
 		public event Action OnHostStarted;
 
-		// Raised the moment a way into a table is taken, before Steam is asked anything. The answer can be
+		// Raised the moment a way into a table is taken, before the lobby is asked anything. The answer can be
 		// seconds away, and OnHostStarted/OnLobbyEnter only arrive once it comes — so this is the edge
 		// anything covering the wait has to start from.
 		public event Action OnConnectStarted;
@@ -56,14 +66,15 @@ namespace Game.Runtime.Controller
 		// player walked out, the host vanished, or the transport died.
 		public event Action OnGameLeft;
 
-		public Lobby? CurrentLobby { get; private set; }
+		public ILobby CurrentLobby { get; private set; }
 
-		public bool IsInGame => CurrentLobby.HasValue || _networkManager.IsListening;
+		public bool IsInGame => CurrentLobby != null || _networkManager.IsListening;
 
-		// Whether Steam's own callbacks are hooked up. Not a formality: OnLobbyCreated is where the host
-		// actually starts and the gameplay scene is loaded, so losing it means a room that opens on Steam
-		// and a game that never begins.
-		private bool _steamEventsBound;
+		private SteamLobbyService _steamLobby;
+		private LocalLobbyService _localLobby;
+
+		// The service the current room came from; leaving and inviting go back through it.
+		private ILobbyService _lobbyService;
 
 		private bool _joiningLobby;
 		private bool _leavingGame;
@@ -80,14 +91,8 @@ namespace Game.Runtime.Controller
 			Instance = this;
 			DontDestroyOnLoad(gameObject);
 
-			if (Application.isEditor)
-			{
-				_networkManager.NetworkConfig.NetworkTransport = _editorTransport;
-			}
-			else
-			{
-				_networkManager.NetworkConfig.NetworkTransport = _steamTransport;
-			}
+			_steamLobby = new SteamLobbyService(_steamTransport, _localTransport);
+			_localLobby = new LocalLobbyService(_networkManager, _localTransport);
 
 			LobbySettings.GameSearchStrings.Add(new LobbyData(LobbyConstant.GameIDKey, LobbyConstant.GameIDValue));
 		}
@@ -108,46 +113,37 @@ namespace Game.Runtime.Controller
 			_networkManager.OnServerStopped -= OnServerStopped;
 		}
 
-		// Steam's callbacks only dispatch once SteamClient.Init has run, and two objects in one scene wake
-		// in no guaranteed order — so subscribing in OnEnable is a coin toss, and losing it means
-		// OnLobbyCreated never arrives: the room opens on Steam and the gameplay scene is never loaded,
-		// with nothing logged to say why. Start, plus the initialised event, catches it either way round.
+		// Steam binds its callbacks once SteamClient.Init has run, which happens in the same scene in no
+		// guaranteed order — the service waits for it itself, so this only has to start it after Awake.
 		private void Start()
 		{
-			SteamController.OnInitialized += BindSteamEvents;
+			if (Instance != this) return;
 
-			if (SteamController.IsInitialized) BindSteamEvents();
+			_steamLobby.OnInviteAccepted += AcceptInvite;
+			_steamLobby.Initialize();
+			_localLobby.Initialize();
 		}
 
 		private void OnDestroy()
 		{
-			SteamController.OnInitialized -= BindSteamEvents;
+			if (Instance != this) return;
 
-			UnbindSteamEvents();
+			_steamLobby.OnInviteAccepted -= AcceptInvite;
+			_steamLobby.Dispose();
+			_localLobby.Dispose();
 		}
 
-		private void BindSteamEvents()
+		// Asked at every host, join and search rather than once: Steam signs in after the menu is up, and can
+		// drop out (offline) between one room and the next.
+		private ILobbyService ResolveLobbyService()
 		{
-			if (_steamEventsBound) return;
-			_steamEventsBound = true;
+			var preferSteam = !Application.isEditor || _editorLobby == LobbyBackend.Steam;
+			if (!preferSteam || _steamLobby.IsAvailable) return preferSteam ? _steamLobby : _localLobby;
 
-			SteamMatchmaking.OnLobbyCreated += OnLobbyCreated;
-			SteamMatchmaking.OnLobbyEntered += OnLobbyEntered;
-			SteamMatchmaking.OnLobbyMemberJoined += OnLobbyMemberJoined;
-			SteamMatchmaking.OnLobbyMemberLeave += OnLobbyMemberLeave;
-			SteamFriends.OnGameLobbyJoinRequested += OnGameLobbyJoinRequested;
-		}
+			if (!_fallBackToLocal) return _steamLobby;
 
-		private void UnbindSteamEvents()
-		{
-			if (!_steamEventsBound) return;
-			_steamEventsBound = false;
-
-			SteamFriends.OnGameLobbyJoinRequested -= OnGameLobbyJoinRequested;
-			SteamMatchmaking.OnLobbyMemberLeave -= OnLobbyMemberLeave;
-			SteamMatchmaking.OnLobbyMemberJoined -= OnLobbyMemberJoined;
-			SteamMatchmaking.OnLobbyEntered -= OnLobbyEntered;
-			SteamMatchmaking.OnLobbyCreated -= OnLobbyCreated;
+			Debug.LogWarning("[GameNetworkManager] Steam is not signed in; using local rooms on this machine instead.");
+			return _localLobby;
 		}
 
 		public void ConfigureLobby(int maxPlayers, bool isPrivate, GameModeType gameMode)
@@ -166,20 +162,13 @@ namespace Game.Runtime.Controller
 		{
 			ct.ThrowIfCancellationRequested();
 
-			if (!SteamClient.IsValid)
-			{
-				// Reported rather than only logged: every start has to end in an outcome the UI hears, or
-				// whatever covered the wait is left up with nothing coming to take it down.
-				OnConnectFailed?.Invoke("SteamClient invalid before CreateLobbyAsync.");
-				return;
-			}
+			var service = ResolveLobbyService();
 
-			// The host is started and the scene loaded from inside OnLobbyCreated, so a run that gets this
-			// far with nothing listening opens a Steam room and then sits there forever. Refused loudly
-			// rather than left to look like a scene that would not load.
-			if (!_steamEventsBound)
+			// Reported rather than only logged: every start has to end in an outcome the UI hears, or
+			// whatever covered the wait is left up with nothing coming to take it down.
+			if (!service.IsAvailable)
 			{
-				OnConnectFailed?.Invoke("Steam callbacks are not bound — OnLobbyCreated would never arrive.");
+				OnConnectFailed?.Invoke($"{service.Name} lobby is not available.");
 				return;
 			}
 
@@ -194,65 +183,34 @@ namespace Game.Runtime.Controller
 			// Raised past the guards, so the only starts announced are the ones that go on to answer.
 			OnConnectStarted?.Invoke();
 
-			var result = await SteamMatchmaking.CreateLobbyAsync(LobbySettings.MaxPlayers);
+			var request = new LobbyCreateRequest(LobbySettings.MaxPlayers, LobbySettings.IsPrivate, BuildLobbyData(service));
+			var lobby = await service.CreateAsync(request, ct);
 
-			// Steam has no way to call a request already in flight back, and the room is up by the time
-			// this returns — so a caller that gave up gets it handed back rather than left hosting a
-			// table nobody is going to walk into.
+			// A lobby cannot call a request already in flight back, and the room is up by the time this
+			// returns — so a caller that gave up gets it handed back rather than left hosting a table nobody
+			// is going to walk into.
 			if (ct.IsCancellationRequested)
 			{
-				if (result.HasValue) Shutdown();
+				if (lobby != null) service.Leave(lobby);
 				ct.ThrowIfCancellationRequested();
 			}
 
-			if (!result.HasValue)
+			if (lobby == null)
 			{
-				OnConnectFailed?.Invoke("Failed to create Steam lobby.");
-			}
-		}
-
-		private void OnLobbyCreated(Result result, Lobby lobby)
-		{
-			if (result != Result.OK)
-			{
-				OnConnectFailed?.Invoke($"Lobby creation failed: {result}");
+				OnConnectFailed?.Invoke($"Failed to create a {service.Name} lobby.");
 				return;
 			}
 
-			if (LobbySettings.IsPrivate)
-			{
-				lobby.SetPrivate();
-			}
-			else
-			{
-				lobby.SetPublic();
-			}
-
-			lobby.SetJoinable(true);
-			lobby.SetData(LobbyConstant.RoomNameKey, SteamClient.Name);
-			lobby.SetData(LobbyConstant.GameModeKey, LobbySettings.SelectedGameMode.ToString());
-
-			foreach (var searchKeyPair in LobbySettings.GameSearchStrings)
-			{
-				lobby.SetData(searchKeyPair.Key, searchKeyPair.Value);
-			}
-
-			foreach (var kvp in LobbySettings.LobbyData)
-			{
-				lobby.SetData(kvp.Key, kvp.Value);
-			}
-
 			CurrentLobby = lobby;
-
-			_steamTransport.TargetSteamId = SteamClient.SteamId.Value;
+			_lobbyService = service;
 
 			if (_networkManager.IsConnectedClient) _networkManager.Shutdown();
-			var started = _networkManager.StartHost();
-			if (!started)
+			_networkManager.NetworkConfig.NetworkTransport = service.BindTransport(lobby, true);
+
+			if (!_networkManager.StartHost())
 			{
 				OnConnectFailed?.Invoke("NetworkManager.StartHost() failed.");
-				lobby.Leave();
-				CurrentLobby = null;
+				LeaveLobby(false);
 				return;
 			}
 
@@ -260,17 +218,30 @@ namespace Game.Runtime.Controller
 			StartListenGameplaySceneLoad();
 
 			OnHostStarted?.Invoke();
+			OnLobbyEnter?.Invoke();
 		}
 
-		public async Awaitable JoinLobby(Lobby lobby, CancellationToken ct = default)
+		private List<LobbyData> BuildLobbyData(ILobbyService service)
 		{
-			await JoinLobby(lobby.Id, ct);
+			var data = new List<LobbyData>
+			{
+				new(LobbyConstant.RoomNameKey, service.LocalUserName),
+				new(LobbyConstant.GameModeKey, LobbySettings.SelectedGameMode.ToString())
+			};
+
+			data.AddRange(LobbySettings.GameSearchStrings);
+			data.AddRange(LobbySettings.LobbyData);
+			return data;
 		}
 
-		public async Awaitable JoinLobby(SteamId lobbyId, CancellationToken ct = default)
+		// A room from the list is joined through the same service the list came from.
+		public Awaitable JoinLobby(ILobby lobby, CancellationToken ct = default) =>
+			JoinLobby(ResolveLobbyService(), lobby.Id, ct);
+
+		private async Awaitable JoinLobby(ILobbyService service, ulong lobbyId, CancellationToken ct = default)
 		{
 			if (_joiningLobby) return;
-			if (CurrentLobby.HasValue) return;
+			if (CurrentLobby != null) return;
 
 			_joiningLobby = true;
 
@@ -282,18 +253,21 @@ namespace Game.Runtime.Controller
 
 				OnConnectStarted?.Invoke();
 
-				var lobby = await SteamMatchmaking.JoinLobbyAsync(lobbyId);
+				var lobby = await service.JoinAsync(lobbyId, ct);
 
 				if (ct.IsCancellationRequested)
 				{
-					if (lobby.HasValue) Shutdown();
+					if (lobby != null) service.Leave(lobby);
 					ct.ThrowIfCancellationRequested();
 				}
 
-				if (!lobby.HasValue)
+				if (lobby == null)
 				{
-					OnConnectFailed?.Invoke("Failed to join Steam lobby (timeout or invalid lobby).");
+					OnConnectFailed?.Invoke($"Failed to join the {service.Name} lobby (timeout, full or gone).");
+					return;
 				}
+
+				EnterAsClient(service, lobby);
 			}
 			finally
 			{
@@ -301,36 +275,11 @@ namespace Game.Runtime.Controller
 			}
 		}
 
-		public async Awaitable<Lobby[]> SearchLobby(CancellationToken ct = default)
-		{
-			ct.ThrowIfCancellationRequested();
-
-			var lobbyQuery = SteamMatchmaking.LobbyList;
-
-			foreach (var searchKeyPair in LobbySettings.GameSearchStrings)
-			{
-				lobbyQuery.WithKeyValue(searchKeyPair.Key, searchKeyPair.Value);
-			}
-
-			var lobbies = lobbyQuery.RequestAsync();
-			var result = await lobbies;
-
-			ct.ThrowIfCancellationRequested();
-
-			return result ?? Array.Empty<Lobby>();
-		}
-
-		private void OnGameLobbyJoinRequested(Lobby lobby, SteamId friendId)
-		{
-			JoinLobby(lobby).LogExceptionsAndForget();
-		}
-
-		private void OnLobbyEntered(Lobby lobby)
+		private void EnterAsClient(ILobbyService service, ILobby lobby)
 		{
 			CurrentLobby = lobby;
+			_lobbyService = service;
 			OnLobbyEnter?.Invoke();
-
-			if (_networkManager.IsHost) return;
 
 			var gameModeString = lobby.GetData(LobbyConstant.GameModeKey);
 			if (Enum.TryParse<GameModeType>(gameModeString, out var gameMode) &&
@@ -339,28 +288,96 @@ namespace Game.Runtime.Controller
 				_gameplaySceneName = entry.SceneName;
 			}
 
-			_steamTransport.TargetSteamId = lobby.Owner.Id;
+			_networkManager.NetworkConfig.NetworkTransport = service.BindTransport(lobby, false);
 
-			var started = _networkManager.StartClient();
-			if (!started)
+			if (!_networkManager.StartClient())
 			{
 				OnConnectFailed?.Invoke("NetworkManager.StartClient() failed.");
-				lobby.Leave();
-				CurrentLobby = null;
+				LeaveLobby(false);
 				return;
 			}
 
 			StartListenGameplaySceneLoad();
 		}
 
-		private void OnLobbyMemberJoined(Lobby lobby, Friend friend)
+		public async Awaitable<IReadOnlyList<ILobby>> SearchLobby(CancellationToken ct = default)
 		{
-			Debug.Log($"[GameNetworkManager] {friend.Name} joined lobby.");
+			ct.ThrowIfCancellationRequested();
+
+			var lobbies = await ResolveLobbyService().SearchAsync(LobbySettings.GameSearchStrings, ct);
+
+			ct.ThrowIfCancellationRequested();
+
+			return lobbies ?? Array.Empty<ILobby>();
 		}
 
-		private void OnLobbyMemberLeave(Lobby lobby, Friend friend)
+		// Whether this player has a room friends can be asked into.
+		public bool CanInviteFriends => CurrentLobby != null && _lobbyService != null && _lobbyService.CanInvite(CurrentLobby);
+
+		// Opens the lobby's own friend picker on the current room; whoever accepts lands in AcceptInvite on their side.
+		public void InviteFriends()
 		{
-			Debug.Log($"[GameNetworkManager] {friend.Name} left lobby.");
+			if (!CanInviteFriends)
+			{
+				Debug.LogWarning("[GameNetworkManager] Invite refused: this room has no invites.");
+				return;
+			}
+
+			_lobbyService.OpenInviteDialog(CurrentLobby);
+		}
+
+		// Every way an invite arrives ends here: launched by it, accepted in the menu, or accepted while sitting
+		// in another room. Only the latest one counts, and one arriving while a join or leave is still running
+		// waits for it rather than being dropped, since the player has no way to send it again. Invites only
+		// come from Steam, so they are joined through it.
+		public void AcceptInvite(ulong lobbyId)
+		{
+			if (CurrentLobby != null && CurrentLobby.Id == lobbyId) return;
+
+			_pendingInvite = lobbyId;
+			if (_acceptingInvite) return;
+
+			AcceptPendingInvitesAsync(destroyCancellationToken).LogExceptionsAndForget();
+		}
+
+		private ulong? _pendingInvite;
+		private bool _acceptingInvite;
+
+		private async Awaitable AcceptPendingInvitesAsync(CancellationToken ct)
+		{
+			_acceptingInvite = true;
+
+			try
+			{
+				// One frame first: an invite read off the command line arrives from Start, and the menu that hides
+				// itself on OnConnectStarted may not have subscribed yet.
+				await Awaitable.NextFrameAsync(ct);
+
+				while (_pendingInvite.HasValue)
+				{
+					// A join or a leave already under way finishes first; tearing into it halfway leaves the
+					// transport and the scene out of step.
+					while (_joiningLobby || _leavingGame) await Awaitable.NextFrameAsync(ct);
+
+					var lobbyId = _pendingInvite.Value;
+					_pendingInvite = null;
+
+					if (CurrentLobby != null && CurrentLobby.Id == lobbyId) continue;
+
+					// Sitting in another room: walk out of it the normal way first, so the next room starts
+					// from the same blank state a join from the menu does.
+					if (IsInGame) await LeaveGame(ct);
+
+					// A newer invite arrived while leaving: that one is the one the player meant.
+					if (_pendingInvite.HasValue) continue;
+
+					await JoinLobby(_steamLobby, lobbyId, ct);
+				}
+			}
+			finally
+			{
+				_acceptingInvite = false;
+			}
 		}
 
 		private void OnClientConnected(ulong clientId)
@@ -470,17 +487,16 @@ namespace Game.Runtime.Controller
 
 		private void LeaveLobby(bool hostOnly)
 		{
-			if (!CurrentLobby.HasValue) return;
+			if (CurrentLobby == null) return;
 
-			// Two editor instances share one lobby, so only the host may hand it back — a client leaving
+			// Two editor instances share one Steam lobby, so only the host may hand it back — a client leaving
 			// would close the room out from under the player still hosting it.
 			var mayLeave = !hostOnly || _networkManager.IsHost;
 
-			// Steam can already be down by the time this runs: nothing orders one OnApplicationQuit
-			// against another, and calling into a shut down client throws from inside Facepunch.
-			if (mayLeave && SteamClient.IsValid) CurrentLobby.Value.Leave();
+			if (mayLeave) _lobbyService?.Leave(CurrentLobby);
 
 			CurrentLobby = null;
+			_lobbyService = null;
 		}
 
 		private void StartListenGameplaySceneLoad()

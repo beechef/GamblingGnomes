@@ -1,7 +1,7 @@
 using DG.Tweening;
 using Game.Runtime.GameMode.Poker.Hallucination;
-using Game.Runtime.GameMode.Poker.Player;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Game.Runtime.UI.Poker
 {
@@ -12,27 +12,48 @@ namespace Game.Runtime.UI.Poker
 	// Not one of the effects in a pool. A blink happens on every rung change whatever that rung drew, so
 	// putting it in a pool would make it something a player might or might not get.
 	//
+	// The eye closes as a vignette drawn by UI_Vignette, from the edges in, and opens the same way back.
+	// Only its one percent is driven; how soft the edge is lives on the material.
+	//
 	// It never takes the pointer. The hand carries on underneath, and a player who was mid-press when the
 	// bar moved has not stopped pressing.
 	public class UIPokerHallucinationBlink : UIPokerView
 	{
-		[Header("Screen")]
-		[Tooltip("Faded to opaque and back. Placeholder for whatever eyelids the art lands on.")]
-		[SerializeField] private CanvasGroup _screen;
+		[Header("Eyelid")]
+		[Tooltip("Full-screen image wearing a UI_Vignette material. The material is cloned before it is driven, so the asset is never written.")]
+		[SerializeField] private Image _eyelid;
+
+		[Tooltip("The float on the material that closes the vignette: 0 open, 1 shut.")]
+		[SerializeField] private string _percentProperty = "_Percent";
 
 		[SerializeField] private Ease _closeEase = Ease.InQuad;
 
 		[SerializeField] private Ease _openEase = Ease.OutQuad;
 
 		private PokerHallucinationController _controller;
+		private Material _material;
+		private int _percentId;
 		private Sequence _blink;
 
 		private void Awake()
 		{
-			if (_screen) _screen.alpha = 0f;
+			_percentId = Shader.PropertyToID(_percentProperty);
+
+			if (!_eyelid) return;
+
+			_eyelid.raycastTarget = false;
+			_material = new Material(_eyelid.material);
+			_eyelid.material = _material;
+
+			SetPercent(0f);
 		}
 
-		private void OnDestroy() => _blink?.Kill();
+		private void OnDestroy()
+		{
+			_blink?.Kill();
+
+			if (_material) Destroy(_material);
+		}
 
 		protected override void OnBind()
 		{
@@ -53,7 +74,7 @@ namespace Game.Runtime.UI.Poker
 			_blink?.Kill();
 			_blink = null;
 
-			if (_screen) _screen.alpha = 0f;
+			SetPercent(0f);
 		}
 
 		// One blink per transition, restarted rather than layered: the controller already folds a change
@@ -61,7 +82,7 @@ namespace Game.Runtime.UI.Poker
 		// beat that is not happening.
 		private void HandleTransitionStarted()
 		{
-			if (!_screen || !_controller) return;
+			if (!_material || !_controller) return;
 
 			var duration = _controller.TransitionDuration;
 			if (duration <= 0f) return;
@@ -72,19 +93,21 @@ namespace Game.Runtime.UI.Poker
 			var hold = _controller.HoldDuration;
 			var open = _controller.OpenDuration;
 
-			_screen.blocksRaycasts = false;
-			_screen.interactable = false;
-
 			_blink?.Kill();
 			_blink = DOTween.Sequence()
-				// Driven by value rather than DOFade: DOTween's UI module is not in this project, which is
-				// the same reason UIPokerBlackoutScreen drives its own group this way.
-				.Append(DOTween.To(() => _screen.alpha, alpha => _screen.alpha = alpha, 1f, close).SetEase(_closeEase))
+				.Append(DOTween.To(GetPercent, SetPercent, 1f, close).SetEase(_closeEase))
 				// Held shut while the effects ease into place, so the eye opens on a room that has finished changing.
 				.AppendInterval(hold)
-				.Append(DOTween.To(() => _screen.alpha, alpha => _screen.alpha = alpha, 0f, open).SetEase(_openEase))
+				.Append(DOTween.To(GetPercent, SetPercent, 0f, open).SetEase(_openEase))
 				.SetUpdate(true)
-				.SetTarget(_screen);
+				.SetTarget(this);
+		}
+
+		private float GetPercent() => _material ? _material.GetFloat(_percentId) : 0f;
+
+		private void SetPercent(float percent)
+		{
+			if (_material) _material.SetFloat(_percentId, percent);
 		}
 	}
 }

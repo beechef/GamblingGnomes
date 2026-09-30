@@ -200,7 +200,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			// Only somebody who was dealt into this hand is being asked anything: a player who took a chair
 			// mid round has no cards to turn, so taking their view down to a row of nobody else's would be a
 			// shot of the table with the game happening somewhere above it.
-			var picking = stage is PokerCardLookStage && _data && _data.IsInHand;
+			var picking = stage is PokerCardLookStage { PlayersChoose: true } && _data && _data.IsInHand;
 
 			if (picking == _picking) return;
 

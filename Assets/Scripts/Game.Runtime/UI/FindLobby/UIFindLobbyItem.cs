@@ -1,8 +1,8 @@
 using System;
 using Game.Runtime.Controller;
 using Game.Runtime.GameMode;
+using Game.Runtime.Lobby;
 using Game.Runtime.UI.Button;
-using Steamworks.Data;
 using TMPro;
 using UnityEngine;
 
@@ -10,7 +10,7 @@ namespace Game.Runtime.UI.FindLobby
 {
 	public class UIFindLobbyItem : MonoBehaviour
 	{
-		public event Action<Lobby> OnJoinLobbyRequested;
+		public event Action<ILobby> OnJoinLobbyRequested;
 
 		[SerializeField] private GameModeDatabase _gameModeDatabase;
 
@@ -19,7 +19,7 @@ namespace Game.Runtime.UI.FindLobby
 		[SerializeField] private TMP_Text _playerCountText;
 		[SerializeField] private UIButton _joinButton;
 
-		private Lobby _currentLobby;
+		private ILobby _currentLobby;
 
 		private void Awake()
 		{
@@ -31,7 +31,7 @@ namespace Game.Runtime.UI.FindLobby
 			_joinButton.OnClick -= OnJoinButtonClicked;
 		}
 
-		public void SetData(Lobby lobby)
+		public void SetData(ILobby lobby)
 		{
 			_currentLobby = lobby;
 

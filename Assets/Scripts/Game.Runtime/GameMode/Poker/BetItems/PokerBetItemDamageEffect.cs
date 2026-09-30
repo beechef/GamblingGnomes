@@ -13,9 +13,9 @@ namespace Game.Runtime.GameMode.Poker.BetItems
 		[MinValue(0)]
 		[SerializeField] private int _damage = 1;
 
-		protected override void OnConsumeServer(PokerGameMode gameMode, PokerPlayer eater, PokerBetItemType itemType)
+		protected override void OnConsumeServer(PokerGameMode gameMode, PokerPlayer eater, PokerBetItemType itemType, int dose)
 		{
-			eater.Data.ServerChangeHealth(-Mathf.Max(0, _damage));
+			eater.Data.ServerChangeHealth(-Mathf.Max(0, _damage) * dose);
 		}
 	}
 }

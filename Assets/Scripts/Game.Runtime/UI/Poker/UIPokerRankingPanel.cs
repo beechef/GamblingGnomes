@@ -15,6 +15,10 @@ namespace Game.Runtime.UI.Poker
 	// winner on top. Both are the same view with a different face, so everything the row knows about
 	// keeping a hand that is already over applies to the winner too.
 	//
+	// A table with community cards gets the other face of the same board (UI_RankingBoardPanel): no winner
+	// prefab, a head with the RESULT title and the board the hand ended on, and every place a plain row. The
+	// two sit side by side in the HUD and each answers only its kind of table (_forBoardTables).
+	//
 	// It arrives in beats: the winner's crown and name pop, their hand fans open from the left, then the
 	// other places rise one after another. What each place's arrival looks like is its own
 	// UIPokerRankingEntryVisual; the board only lays the beats on one timeline. It leaves by fading once
@@ -27,8 +31,18 @@ namespace Game.Runtime.UI.Poker
 		[Tooltip("Faded out when the showdown ends. On the panel.")]
 		[SerializeField] private CanvasGroup _panelGroup;
 
+		[Tooltip("On, this board answers only a hand with community cards; off, only one without. Both boards sit in the HUD and exactly one goes up for any showdown.")]
+		[SerializeField] private bool _forBoardTables;
+
+		[Header("Head")]
+		[Tooltip("Optional, used when there is no winner prefab: what is revealed first, before the rows (the RESULT title and the board).")]
+		[SerializeField] private UIPokerRankingEntryVisual _headVisual;
+
+		[Tooltip("Optional. The community cards the hand ended with.")]
+		[SerializeField] private UIPokerRankingBoardCards _boardCards;
+
 		[Header("Rows")]
-		[Tooltip("The first place (UI_PokerRankingWinner).")]
+		[Tooltip("Optional. The first place (UI_PokerRankingWinner). Empty draws the winner as a plain row, first among them.")]
 		[SerializeField] private UIPokerRankingRow _winnerPrefab;
 
 		[Tooltip("Every other place (UI_PokerRankingRow), one per entry — a table of two and a table of eight both fit.")]
@@ -105,6 +119,10 @@ namespace Game.Runtime.UI.Poker
 				return;
 			}
 
+			// Decided when the board goes up and kept until it comes down: the other board answers the other kind
+			// of table.
+			if (!_shown && Data.CommunityCards.Count > 0 != _forBoardTables) return;
+
 			var appearing = !_shown;
 			_shown = true;
 
@@ -112,11 +130,16 @@ namespace Game.Runtime.UI.Poker
 			if (_panelGroup) _panelGroup.alpha = 1f;
 			if (_panel && !_panel.activeSelf) _panel.SetActive(true);
 
-			RefreshWinner();
-			if (appearing) PlayWinnerReveal();
+			if (_boardCards) _boardCards.Draw(Data);
 
-			RefreshRows(showdown.Count - 1, appearing);
+			RefreshWinner();
+			if (appearing) PlayHeadReveal();
+
+			RefreshRows(showdown.Count - FirstRowEntry, appearing);
 		}
+
+		// With a winner face, the first entry is theirs and the rows start at the second.
+		private int FirstRowEntry => _winnerPrefab ? 1 : 0;
 
 		// Views already made are re-bound rather than rebuilt, so a board refreshed on the reveal landing
 		// never draws a frame of both.
@@ -161,24 +184,26 @@ namespace Game.Runtime.UI.Poker
 				if (_rows[i].gameObject.activeSelf != used) _rows[i].gameObject.SetActive(used);
 				if (!used) continue;
 
-				var entry = Data.Showdown[i + 1];
+				var entry = Data.Showdown[i + FirstRowEntry];
 				_rows[i].SetEntry(entry, PokerPlayer.Find(entry.ClientId));
 
 				if (arriving) RevealRow(i);
 			}
 		}
 
-		private void PlayWinnerReveal()
+		// What arrives first: the winner's face, or the head when the board has none.
+		private void PlayHeadReveal()
 		{
 			KillTweens();
 
 			_revealStartedAt = Time.time;
 			_rowsAt = _rowsDelay;
 
-			if (!_winnerVisual) return;
+			var visual = _winnerPrefab ? _winnerVisual : _headVisual;
+			if (!visual) return;
 
-			_winnerVisual.Conceal();
-			_winnerReveal = _winnerVisual.Reveal().SetLink(gameObject);
+			visual.Conceal();
+			_winnerReveal = visual.Reveal().SetLink(gameObject);
 			_rowsAt = _winnerReveal.Duration() + _rowsDelay;
 		}
 

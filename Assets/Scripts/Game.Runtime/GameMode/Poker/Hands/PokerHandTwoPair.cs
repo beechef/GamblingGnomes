@@ -8,11 +8,7 @@ namespace Game.Runtime.GameMode.Poker.Hands
 	{
 		public override bool TryEvaluate(PokerCardAnalysis analysis, List<int> kickers)
 		{
-			var highPair = analysis.HighestRankWithCount(2);
-			if (highPair == 0) return false;
-
-			var lowPair = analysis.HighestRankWithCount(2, highPair);
-			if (lowPair == 0) return false;
+			if (!analysis.TryTwoGroups(2, 2, out var highPair, out var lowPair)) return false;
 
 			kickers.Add(highPair);
 			kickers.Add(lowPair);

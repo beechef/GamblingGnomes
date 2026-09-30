@@ -20,6 +20,11 @@ namespace Game.Runtime.GameMode.Poker.BetItems
 		Yellow = 4,
 
 		// Never staked and never dealt at random: the winner aims it at somebody.
-		Colorful = 5
+		Colorful = 5,
+
+		// The casino set: a die, a chip and a jester's hat on the same little body as the four suits.
+		Pink = 6,
+		Teal = 7,
+		Orange = 8
 	}
 }

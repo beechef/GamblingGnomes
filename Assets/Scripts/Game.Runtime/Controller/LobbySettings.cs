@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Game.Runtime.GameMode;
+using Game.Runtime.Lobby;
 
 namespace Game.Runtime.Controller
 {
@@ -20,19 +21,6 @@ namespace Game.Runtime.Controller
 			SelectedGameMode = selectedGameMode;
 			GameSearchStrings = gameSearchStrings;
 			LobbyData = lobbyData;
-		}
-	}
-
-	[Serializable]
-	public struct LobbyData
-	{
-		public string Key;
-		public string Value;
-
-		public LobbyData(string key, string value)
-		{
-			Key = key;
-			Value = value;
 		}
 	}
 }

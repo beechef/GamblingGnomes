@@ -14,8 +14,11 @@ namespace Game.Runtime.GameMode.Poker.Hands
 		[Header("Hand")]
 		[SerializeField] private string _displayName;
 
-		[Tooltip("Higher beats lower. Standard hands run 0 (high card) to 8 (straight flush).")]
+		[Tooltip("Higher beats lower. Standard hands run 0 (high card) to 9 (royal flush).")]
 		[SerializeField] private int _tier;
+
+		[Tooltip("A hand only a house rule makes (Five of a Kind, off Jokers). The helper crowns it above the standard ranking.")]
+		[SerializeField] private bool _isHouseHand;
 
 		[Header("Helper")]
 		[TextArea]
@@ -26,6 +29,7 @@ namespace Game.Runtime.GameMode.Poker.Hands
 
 		public string DisplayName => string.IsNullOrEmpty(_displayName) ? name : _displayName;
 		public int Tier => _tier;
+		public bool IsHouseHand => _isHouseHand;
 
 		public string GetName() => DisplayName;
 

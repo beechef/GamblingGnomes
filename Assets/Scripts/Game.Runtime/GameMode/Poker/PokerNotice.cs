@@ -13,7 +13,16 @@ namespace Game.Runtime.GameMode.Poker
 		ItemDetail = 3,
 
 		// The first hand of a match is about to be dealt. Amount is how many are playing it.
-		MatchStarted = 4
+		MatchStarted = 4,
+
+		// Items handed over for surviving the Colorful the winner fed. Amount is how many.
+		ItemReward = 5,
+
+		// Told only to a player whose full hand of items turned some away. Amount is how many were lost.
+		ItemsLost = 6,
+
+		// How a chance-driven item came out, told to the whole table. The item words it from Amount.
+		ItemOutcome = 7
 	}
 
 	// Something the table is told about, as data rather than as words: who, what, at whom, how many. The
@@ -62,6 +71,31 @@ namespace Game.Runtime.GameMode.Poker
 			ActorClientId = actor,
 			TargetClientId = PokerGameData.NoTurn,
 			Amount = amount
+		};
+
+		public static PokerNotice ForItemReward(ulong actor, int amount) => new()
+		{
+			Kind = PokerNoticeKind.ItemReward,
+			ActorClientId = actor,
+			TargetClientId = PokerGameData.NoTurn,
+			Amount = amount
+		};
+
+		public static PokerNotice ForItemsLost(ulong actor, int amount) => new()
+		{
+			Kind = PokerNoticeKind.ItemsLost,
+			ActorClientId = actor,
+			TargetClientId = PokerGameData.NoTurn,
+			Amount = amount
+		};
+
+		public static PokerNotice ForItemOutcome(ulong actor, PokerItemType item, ulong target, int outcome) => new()
+		{
+			Kind = PokerNoticeKind.ItemOutcome,
+			ActorClientId = actor,
+			TargetClientId = target,
+			Item = item,
+			Amount = outcome
 		};
 
 		public static PokerNotice ForMatchStarted(int players) => new()

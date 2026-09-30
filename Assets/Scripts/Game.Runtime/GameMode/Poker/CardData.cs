@@ -11,12 +11,18 @@ namespace Game.Runtime.GameMode.Poker
 		public const byte LowestRank = 2;
 		public const byte HighestRank = 14;
 
-		public static CardData None => new() { Rank = 0, Suit = 0 };
+		// A wild card: any rank and any suit. It carries no suit of its own, so nothing counting by suit
+		// may count it.
+		public const byte JokerRank = 15;
 
-		public bool IsValid => Rank >= LowestRank && Rank <= HighestRank;
+		public static CardData None => new() { Rank = 0, Suit = 0 };
+		public static CardData Joker => new() { Rank = JokerRank, Suit = 0 };
+
+		public bool IsJoker => Rank == JokerRank;
+		public bool IsValid => IsJoker || (Rank >= LowestRank && Rank <= HighestRank);
 		public CardSuit SuitType => (CardSuit)Suit;
 
-		// Suit-major so a 52 entry sprite list can be indexed straight off a card.
+		// Suit-major so a 52 entry sprite list can be indexed straight off a card. A Joker has no place in it.
 		public int DatabaseIndex => Suit * 13 + (Rank - LowestRank);
 
 		public CardData(byte rank, CardSuit suit)
@@ -38,6 +44,7 @@ namespace Game.Runtime.GameMode.Poker
 		public override string ToString()
 		{
 			if (!IsValid) return "--";
+			if (IsJoker) return "JOKER";
 
 			var rank = Rank switch
 			{

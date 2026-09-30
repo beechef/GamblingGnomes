@@ -16,6 +16,9 @@ namespace Game.Runtime.UI.Poker
 		[SerializeField] private TextMeshProUGUI _nameLabel;
 		[SerializeField] private TextMeshProUGUI _handLabel;
 
+		[Tooltip("Optional. Shown on a first place, so tied winners all wear it.")]
+		[SerializeField] private GameObject _crown;
+
 		[Header("Cards")]
 		[Tooltip("Where this row's hole cards are laid out.")]
 		[SerializeField] private RectTransform _cardContainer;
@@ -49,6 +52,7 @@ namespace Game.Runtime.UI.Poker
 
 			if (_placeLabel) _placeLabel.text = Ordinal(entry.Rank);
 			if (_handLabel) _handLabel.text = entry.HandName.ToString();
+			if (_crown) _crown.SetActive(entry.Rank == 1);
 
 			if (_nameLabel) _nameLabel.text = player ? player.DisplayName : $"Player {entry.ClientId}";
 

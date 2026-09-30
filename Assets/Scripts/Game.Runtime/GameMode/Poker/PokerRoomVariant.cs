@@ -10,6 +10,22 @@ namespace Game.Runtime.GameMode.Poker
 		// The room as the scene built it. What everything falls back to when no effect is asking.
 		Default = 0,
 
-		Water = 1
+		Water = 1,
+
+		Dreamcore = 2,
+
+		MushroomGrove = 3,
+
+		TavernStorm = 4,
+
+		SkyIslands = 5,
+
+		Backroom = 6,
+
+		CheckerHall = 7,
+
+		DancingTavern = 8,
+
+		GalaxyFarm = 9
 	}
 }

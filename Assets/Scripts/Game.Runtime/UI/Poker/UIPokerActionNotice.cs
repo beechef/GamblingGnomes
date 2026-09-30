@@ -6,34 +6,31 @@ using UnityEngine.UI;
 
 namespace Game.Runtime.UI.Poker
 {
-	// One announcement over the table, fading in and taking itself out. Visual only — the feed decides
-	// when one appears; this only knows the shapes an announcement can take and how to leave.
+	// One announcement over the table: a plank with one line on it, fading in and taking itself out. Visual
+	// only — the feed decides when one appears; this only knows the shapes an announcement can take and how to leave.
 	//
-	// Three shapes, because an announcement has three things it can say underneath the verb, and they are
-	// not interchangeable: nothing at all, a number in some currency, or another player. The last two look
-	// different on purpose — a name is drawn like the name on top, a count is drawn beside its icon — and
-	// that is exactly what one shared "detail" string could not express.
+	// Three shapes, because an announcement has three things it can say after the verb, and they are not
+	// interchangeable: nothing at all, a number in some currency, or another player. A name is written into the
+	// line; a count sits beside its icon, which is what one shared "detail" string could not express.
 	[RequireComponent(typeof(CanvasGroup))]
 	public class UIPokerActionNotice : MonoBehaviour
 	{
 		[Header("References")]
 		[SerializeField] private CanvasGroup _group;
 
-		[SerializeField] private TextMeshProUGUI _nameLabel;
-		[SerializeField] private TextMeshProUGUI _actionLabel;
+		[Tooltip("The one line on the plank: who (when named), what, and at whom.")]
+		[SerializeField] private TextMeshProUGUI _label;
 
 		[Header("Amount Row")]
 		[Tooltip("A count and what it is counted in. Hidden outright when nothing was moved — FOLD x0 reads as a bug.")]
 		[SerializeField] private GameObject _amountRoot;
 
 		[SerializeField] private TextMeshProUGUI _amountLabel;
+
+		[Tooltip("On the amount label. Its minimum is pinned to the count's width, so a long line shrinks the words and never the count.")]
+		[SerializeField] private LayoutElement _amountLayout;
+
 		[SerializeField] private Image _amountIcon;
-
-		[Header("Target Row")]
-		[Tooltip("Another player, drawn the way the name on top is drawn — both rows are somebody, so they read as somebody.")]
-		[SerializeField] private GameObject _targetRoot;
-
-		[SerializeField] private TextMeshProUGUI _targetLabel;
 
 		[Header("Motion")]
 		[MinValue(0f)]
@@ -44,22 +41,20 @@ namespace Game.Runtime.UI.Poker
 			_group = GetComponent<CanvasGroup>();
 		}
 
-		// name / ACTION — an act with nothing to price and nobody at the other end of it.
+		// ACTION — an act with nothing to price and nobody at the other end of it.
 		public void Show(string playerName, string action, float lifetime)
 		{
-			Fill(playerName, action);
+			Fill(playerName, action, null);
 			SetActive(_amountRoot, false);
-			SetActive(_targetRoot, false);
 
 			Play(lifetime);
 		}
 
-		// name / ACTION / xN — what an act cost, in whatever it was counted in. A missing icon leaves the
-		// authored sprite; zero hides the row rather than announcing that nothing moved.
+		// ACTION xN — what an act cost, in whatever it was counted in. A missing icon leaves the authored
+		// sprite; zero hides the row rather than announcing that nothing moved.
 		public void ShowAmount(string playerName, string action, int amount, Sprite icon, float lifetime)
 		{
-			Fill(playerName, action);
-			SetActive(_targetRoot, false);
+			Fill(playerName, action, null);
 
 			var counted = amount > 0;
 			SetActive(_amountRoot, counted);
@@ -67,28 +62,28 @@ namespace Game.Runtime.UI.Poker
 			if (counted)
 			{
 				if (_amountLabel) _amountLabel.text = $"x{amount}";
+				if (_amountLabel && _amountLayout) _amountLayout.minWidth = _amountLabel.GetPreferredValues(_amountLabel.text).x;
 				if (_amountIcon && icon) _amountIcon.sprite = icon;
 			}
 
 			Play(lifetime);
 		}
 
-		// name / ACTION / name — an act aimed at somebody.
+		// ACTION name — an act aimed at somebody.
 		public void ShowTarget(string playerName, string action, string targetName, float lifetime)
 		{
-			Fill(playerName, action);
+			Fill(playerName, action, targetName);
 			SetActive(_amountRoot, false);
-			SetActive(_targetRoot, true);
-
-			if (_targetLabel) _targetLabel.text = targetName;
 
 			Play(lifetime);
 		}
 
-		private void Fill(string playerName, string action)
+		private void Fill(string playerName, string action, string targetName)
 		{
-			if (_nameLabel) _nameLabel.text = playerName;
-			if (_actionLabel) _actionLabel.text = action;
+			if (!_label) return;
+
+			var line = string.IsNullOrEmpty(playerName) ? action : $"{playerName} {action}";
+			_label.text = string.IsNullOrEmpty(targetName) ? line : $"{line} {targetName}";
 		}
 
 		private static void SetActive(GameObject root, bool active)

@@ -86,7 +86,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		{
 			var dealt = 0;
 
-			GameMode.Deck.Rebuild();
+			GameMode.Deck.Rebuild(GameMode.Rules ? GameMode.Rules.JokerCount : 0);
 			GameMode.Deck.Shuffle();
 
 			foreach (var player in GameMode.SeatedPlayers)

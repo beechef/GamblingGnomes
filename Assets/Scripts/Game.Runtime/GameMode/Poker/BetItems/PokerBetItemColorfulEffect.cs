@@ -20,12 +20,12 @@ namespace Game.Runtime.GameMode.Poker.BetItems
 		[Tooltip("On, the roll is made against the rate *after* the gain, which is what the design document describes.")]
 		[SerializeField] private bool _rollAfterGain = true;
 
-		protected override void OnConsumeServer(PokerGameMode gameMode, PokerPlayer eater, PokerBetItemType itemType)
+		protected override void OnConsumeServer(PokerGameMode gameMode, PokerPlayer eater, PokerBetItemType itemType, int dose)
 		{
 			var data = eater.Data;
 
 			var rateBefore = data.HallucinationRate.Value;
-			data.ServerChangeHallucination(_gain);
+			data.ServerChangeHallucination(_gain * dose);
 			var rateAfter = data.HallucinationRate.Value;
 
 			// Shown before it is paid: queued on the eater's roller, which the running beat starts with its own
