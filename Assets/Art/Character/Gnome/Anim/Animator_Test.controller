@@ -202,13 +202,16 @@ AnimatorStateMachine:
     m_Position: {x: 230, y: 430, z: 0}
   - serializedVersion: 1
     m_State: {fileID: 4682484134799463293}
-    m_Position: {x: 434, y: 405.70587, z: 0}
+    m_Position: {x: 440, y: 410, z: 0}
   - serializedVersion: 1
     m_State: {fileID: 9177206133386858088}
-    m_Position: {x: 95.764694, y: 326.2941, z: 0}
+    m_Position: {x: -50, y: 250, z: 0}
   - serializedVersion: 1
     m_State: {fileID: -266977362263131966}
-    m_Position: {x: 105.764694, y: 336.2941, z: 0}
+    m_Position: {x: 100, y: 340, z: 0}
+  - serializedVersion: 1
+    m_State: {fileID: 7204047281124203752}
+    m_Position: {x: 402.01224, y: 346.34863, z: 0}
   m_ChildStateMachines: []
   m_AnyStateTransitions: []
   m_EntryTransitions: []
@@ -218,7 +221,33 @@ AnimatorStateMachine:
   m_EntryPosition: {x: 50, y: 120, z: 0}
   m_ExitPosition: {x: 800, y: 120, z: 0}
   m_ParentStateMachinePosition: {x: 800, y: 20, z: 0}
-  m_DefaultState: {fileID: 5378777200248253122}
+  m_DefaultState: {fileID: 7204047281124203752}
+--- !u!1102 &7204047281124203752
+AnimatorState:
+  serializedVersion: 6
+  m_ObjectHideFlags: 1
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_Name: Anim_Smile
+  m_Speed: 1
+  m_CycleOffset: 0
+  m_Transitions: []
+  m_StateMachineBehaviours: []
+  m_Position: {x: 50, y: 50, z: 0}
+  m_IKOnFeet: 0
+  m_WriteDefaultValues: 1
+  m_Mirror: 0
+  m_SpeedParameterActive: 0
+  m_MirrorParameterActive: 0
+  m_CycleOffsetParameterActive: 0
+  m_TimeParameterActive: 0
+  m_Motion: {fileID: 2119266694448073147, guid: 5308ce5caf3753e43992330e12832b9b, type: 3}
+  m_Tag: 
+  m_SpeedParameter: 
+  m_MirrorParameter: 
+  m_CycleOffsetParameter: 
+  m_TimeParameter: 
 --- !u!1102 &9177206133386858088
 AnimatorState:
   serializedVersion: 6
