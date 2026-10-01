@@ -120,6 +120,9 @@ namespace Game.Runtime.UI.Poker
 			var module = GameMode.FindModule<PokerItemModule>();
 			if (!module || !module.TryGetItem(notice.Item, out var item)) return;
 
+			// The player an item asks to answer reads it on the response panel instead.
+			if (item.NeedsResponse && notice.HasTarget && notice.TargetClientId == LocalClientId) return;
+
 			if (notice.HasTarget) AnnounceTarget(NameOf(notice.ActorClientId), item.NoticeVerb, NameOf(notice.TargetClientId));
 			else Announce(NameOf(notice.ActorClientId), item.NoticeVerb);
 		}

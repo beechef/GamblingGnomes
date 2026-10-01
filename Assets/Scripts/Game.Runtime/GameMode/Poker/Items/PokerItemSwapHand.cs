@@ -30,7 +30,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 			_ => base.GetTargetPrompt(kind)
 		};
 
-		public override string GetResponsePrompt() => "SWAPS A CARD WITH YOU: POINT AT THE ONE YOU GIVE";
+		public override string GetResponsePrompt() => "swaps a card with you - choose one to swap";
 
 		protected override PokerItemAvailability OnGetAvailability(in PokerItemContext context)
 		{
