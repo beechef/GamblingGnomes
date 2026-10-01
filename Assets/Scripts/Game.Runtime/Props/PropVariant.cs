@@ -17,6 +17,8 @@ namespace Game.Runtime.Props
 		BlackGold = 4,
 		Inverted = 5,
 		// A mushroom growing out of the chest, worn alongside the other attachments.
-		ChestMushroom = 6
+		ChestMushroom = 6,
+		// A pile of dung sitting where the hat was; the hat itself is hidden by the same effect.
+		DungHat = 7
 	}
 }

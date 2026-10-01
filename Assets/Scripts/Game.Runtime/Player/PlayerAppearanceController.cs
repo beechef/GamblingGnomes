@@ -16,6 +16,7 @@ namespace Game.Runtime.Player
 
 		private readonly List<(object Handle, PlayerModel Model)> _models = new();
 		private readonly List<(object Handle, PlayerLookVersion Version)> _versions = new();
+		private readonly List<(object Handle, PlayerEyeKind Eyes)> _eyes = new();
 
 		private void Awake()
 		{
@@ -24,10 +25,11 @@ namespace Game.Runtime.Player
 
 		private void OnDisable()
 		{
-			if (_models.Count == 0 && _versions.Count == 0) return;
+			if (_models.Count == 0 && _versions.Count == 0 && _eyes.Count == 0) return;
 
 			_models.Clear();
 			_versions.Clear();
+			_eyes.Clear();
 			Apply();
 		}
 
@@ -65,6 +67,29 @@ namespace Game.Runtime.Player
 			Apply();
 		}
 
+		public void SetEyes(object handle, PlayerEyeKind eyes)
+		{
+			if (handle == null) return;
+
+			Remove(_eyes, handle);
+			_eyes.Add((handle, eyes));
+
+			Apply();
+		}
+
+		public void ClearEyes(object handle)
+		{
+			if (handle == null || !Remove(_eyes, handle)) return;
+
+			Apply();
+		}
+
+		// Counted by PlayerVisual per caller, so it needs no stack here.
+		public void SetSlotHidden(object handle, PlayerSlot slot, bool hidden)
+		{
+			if (_visual) _visual.SetSlotHidden(handle, slot, hidden);
+		}
+
 		private static bool Remove<T>(List<(object Handle, T Value)> requests, object handle)
 		{
 			for (var i = requests.Count - 1; i >= 0; i--)
@@ -84,6 +109,7 @@ namespace Game.Runtime.Player
 
 			_visual.SetModelOverride(_models.Count > 0 ? _models[^1].Model : null);
 			_visual.SetVersion(_versions.Count > 0 ? _versions[^1].Version : PlayerLookVersion.Cartoon);
+			_visual.SetEyes(_eyes.Count > 0 ? _eyes[^1].Eyes : PlayerEyeKind.Default);
 		}
 	}
 }

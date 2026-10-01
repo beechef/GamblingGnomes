@@ -108,7 +108,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 			_hidden = true;
 
-			foreach (var slot in _hiddenSlots) _visual.SetSlotHidden(slot, true);
+			foreach (var slot in _hiddenSlots) _visual.SetSlotHidden(this, slot, true);
 		}
 
 		private void Restore()
@@ -123,7 +123,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 			if (!_visual) return;
 
-			foreach (var slot in _hiddenSlots) _visual.SetSlotHidden(slot, false);
+			foreach (var slot in _hiddenSlots) _visual.SetSlotHidden(this, slot, false);
 		}
 	}
 }

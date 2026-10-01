@@ -66,6 +66,7 @@ namespace Game.Runtime.Player
 		// PlayerAppearanceController, which resolves whose request wins.
 		private PlayerModel _modelOverride;
 		private PlayerLookVersion _version = PlayerLookVersion.Cartoon;
+		private PlayerEyeKind _eyes = PlayerEyeKind.Default;
 
 		// Which slots the current model fills, so visibility can be asked again without resolving again.
 		private readonly HashSet<PlayerSlot> _filled = new();
@@ -73,7 +74,7 @@ namespace Game.Runtime.Player
 		// Slots switched off on top of everything else — a head gone when its owner goes under. Held here
 		// because this is the one writer of renderer.enabled; switched off anywhere else, the next rig or
 		// model change would switch it straight back on.
-		private readonly HashSet<PlayerSlot> _hidden = new();
+		private readonly Dictionary<PlayerSlot, HashSet<object>> _hidden = new();
 
 		private readonly List<Material> _resolvedMaterials = new();
 
@@ -190,6 +191,27 @@ namespace Game.Runtime.Player
 			ApplyAppearance();
 		}
 
+		// Another kind of eyes: the model's face for them (PlayerModel.FaceFor) painted on the submeshes it says
+		// carry the eyes (PlayerModel.Face); a model with no face for them keeps its own.
+		public void SetEyes(PlayerEyeKind eyes)
+		{
+			if (_eyes == eyes) return;
+
+			_eyes = eyes;
+			ApplyAppearance();
+		}
+
+		private void PaintFace(PlayerModel model, PlayerSlot slot, List<Material> materials)
+		{
+			var faceMaterial = model.FaceFor(_eyes, _version);
+			if (!faceMaterial) return;
+
+			foreach (var face in model.Face)
+			{
+				if (face.Slot == slot && face.SubmeshIndex < materials.Count) materials[face.SubmeshIndex] = faceMaterial;
+			}
+		}
+
 		private void HandleOutfitChanged(PlayerOutfitId previous, PlayerOutfitId current) => ApplyAppearance();
 
 		private void HandleOutlinedChanged(bool previous, bool current) => ApplyOutline(IsOutlined);
@@ -209,6 +231,7 @@ namespace Game.Runtime.Player
 				if (!mesh) continue;
 
 				_filled.Add(slot.Slot);
+				PaintFace(model, slot.Slot, _resolvedMaterials);
 				WriteMesh(slot.Renderer, mesh);
 				WriteMaterials(slot.Renderer, _resolvedMaterials);
 			}
@@ -231,11 +254,25 @@ namespace Game.Runtime.Player
 			OnRenderAllBodyChanged?.Invoke(_renderAllBody);
 		}
 
-		public void SetSlotHidden(PlayerSlot slot, bool hidden)
+		// Counted per caller, so a head gone under and a hat swapped for something else never switch each
+		// other's slot back on.
+		public void SetSlotHidden(object handle, PlayerSlot slot, bool hidden)
 		{
-			var changed = hidden ? _hidden.Add(slot) : _hidden.Remove(slot);
+			if (handle == null) return;
+
+			if (!_hidden.TryGetValue(slot, out var holders))
+			{
+				if (!hidden) return;
+
+				holders = new HashSet<object>();
+				_hidden.Add(slot, holders);
+			}
+
+			var changed = hidden ? holders.Add(handle) : holders.Remove(handle);
 			if (changed) RefreshVisibility();
 		}
+
+		private bool IsHidden(PlayerSlot slot) => _hidden.TryGetValue(slot, out var holders) && holders.Count > 0;
 
 		// A renderer is drawn when its model fills it and it is on the rig this client renders: the full
 		// body while RenderAllBody is on, the hand-only rig otherwise. Before spawn nobody owns anything yet,
@@ -247,7 +284,7 @@ namespace Game.Runtime.Player
 				if (!slot.Renderer) continue;
 
 				var onRenderedRig = !IsSpawned || IsHandOnly(slot.Slot) != _renderAllBody;
-				slot.Renderer.enabled = onRenderedRig && _filled.Contains(slot.Slot) && !_hidden.Contains(slot.Slot);
+				slot.Renderer.enabled = onRenderedRig && _filled.Contains(slot.Slot) && !IsHidden(slot.Slot);
 			}
 		}
 
