@@ -2,6 +2,7 @@ using DG.Tweening;
 using Game.Runtime.GameMode.Poker.Hallucination;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.Video;
 
 namespace Game.Runtime.UI.Poker
 {
@@ -12,47 +13,57 @@ namespace Game.Runtime.UI.Poker
 	// Not one of the effects in a pool. A blink happens on every rung change whatever that rung drew, so
 	// putting it in a pool would make it something a player might or might not get.
 	//
-	// The eye closes as a vignette drawn by UI_Vignette, from the edges in, and opens the same way back.
-	// Only its one percent is driven; how soft the edge is lives on the material.
+	// The lids are a video (the pacing's Blink Video) drawn through UI_LumaMask: black in it is lid, the rest
+	// is seen through. It plays up to the shut frame, is put on that frame exactly as the rungs land, waits
+	// there for the hold, and plays on from the reopen frame. Every one of those times is the controller's,
+	// read off the video, so nothing here keeps its own.
 	//
 	// It never takes the pointer. The hand carries on underneath, and a player who was mid-press when the
 	// bar moved has not stopped pressing.
 	public class UIPokerHallucinationBlink : UIPokerView
 	{
-		[Header("Eyelid")]
-		[Tooltip("Full-screen image wearing a UI_Vignette material. The material is cloned before it is driven, so the asset is never written.")]
-		[SerializeField] private Image _eyelid;
+		[Header("Eyelids")]
+		[Tooltip("Full-screen image wearing a UI_LumaMask material. Off between blinks.")]
+		[SerializeField] private RawImage _eyelids;
 
-		[Tooltip("The float on the material that closes the vignette: 0 open, 1 shut.")]
-		[SerializeField] private string _percentProperty = "_Percent";
+		[Tooltip("Plays the blink video into a texture this makes; the clip is set from the pacing.")]
+		[SerializeField] private VideoPlayer _video;
 
-		[SerializeField] private Ease _closeEase = Ease.InQuad;
-
-		[SerializeField] private Ease _openEase = Ease.OutQuad;
+		[Tooltip("The lids' texture size as a fraction of the video's. They are soft shapes; a quarter of the pixels is plenty.")]
+		[Range(0.1f, 1f)]
+		[SerializeField] private float _resolutionScale = 0.5f;
 
 		private PokerHallucinationController _controller;
-		private Material _material;
-		private int _percentId;
+		private RenderTexture _texture;
 		private Sequence _blink;
 
 		private void Awake()
 		{
-			_percentId = Shader.PropertyToID(_percentProperty);
+			if (_eyelids)
+			{
+				_eyelids.raycastTarget = false;
+				_eyelids.enabled = false;
+			}
 
-			if (!_eyelid) return;
-
-			_eyelid.raycastTarget = false;
-			_material = new Material(_eyelid.material);
-			_eyelid.material = _material;
-
-			SetPercent(0f);
+			if (_video)
+			{
+				_video.playOnAwake = false;
+				_video.isLooping = false;
+				_video.renderMode = VideoRenderMode.RenderTexture;
+				_video.audioOutputMode = VideoAudioOutputMode.None;
+				_video.timeUpdateMode = VideoTimeUpdateMode.UnscaledGameTime;
+			}
 		}
 
 		private void OnDestroy()
 		{
 			_blink?.Kill();
 
-			if (_material) Destroy(_material);
+			if (_texture)
+			{
+				_texture.Release();
+				Destroy(_texture);
+			}
 		}
 
 		protected override void OnBind()
@@ -63,6 +74,9 @@ namespace Game.Runtime.UI.Poker
 			_controller = local ? local.GetComponentInChildren<PokerHallucinationController>(true) : null;
 
 			if (_controller) _controller.OnTransitionStarted += HandleTransitionStarted;
+
+			// Ready before the first blink, so the lids start moving on the frame the change does.
+			PrepareVideo();
 		}
 
 		protected override void OnUnbind()
@@ -71,10 +85,38 @@ namespace Game.Runtime.UI.Poker
 
 			_controller = null;
 
-			_blink?.Kill();
-			_blink = null;
+			StopBlink();
+		}
 
-			SetPercent(0f);
+		private void PrepareVideo()
+		{
+			var clip = _controller ? _controller.BlinkVideo : null;
+			if (!_video || !_eyelids || !clip) return;
+
+			if (!_texture)
+			{
+				var width = Mathf.Max(1, Mathf.RoundToInt(clip.width * _resolutionScale));
+				var height = Mathf.Max(1, Mathf.RoundToInt(clip.height * _resolutionScale));
+				_texture = new RenderTexture(width, height, 0, RenderTextureFormat.ARGB32) { name = "HallucinationBlink" };
+				_texture.Create();
+			}
+
+			ClearTexture();
+
+			_video.targetTexture = _texture;
+			_eyelids.texture = _texture;
+
+			if (_video.clip != clip) _video.clip = clip;
+			_video.Prepare();
+		}
+
+		// White is an open eye, so a texture the video has not drawn into yet never flashes a shut one.
+		private void ClearTexture()
+		{
+			var previous = RenderTexture.active;
+			RenderTexture.active = _texture;
+			GL.Clear(false, true, Color.white);
+			RenderTexture.active = previous;
 		}
 
 		// One blink per transition, restarted rather than layered: the controller already folds a change
@@ -82,32 +124,48 @@ namespace Game.Runtime.UI.Poker
 		// beat that is not happening.
 		private void HandleTransitionStarted()
 		{
-			if (!_material || !_controller) return;
+			if (!_controller || !_video || !_eyelids || !_controller.BlinkVideo) return;
+			if (_controller.TransitionDuration <= 0f) return;
 
-			var duration = _controller.TransitionDuration;
-			if (duration <= 0f) return;
+			StopBlink();
+			PrepareVideo();
 
-			// Fully shut on the very moment the controller switches the effects, however far through the
-			// blink that is authored to be.
-			var close = _controller.ApplyDelay;
-			var hold = _controller.HoldDuration;
-			var open = _controller.OpenDuration;
+			var shut = _controller.ApplyDelay;
+			var reopen = _controller.BlinkReopenTime;
 
-			_blink?.Kill();
+			_eyelids.enabled = true;
+			_video.time = 0d;
+			_video.Play();
+
 			_blink = DOTween.Sequence()
-				.Append(DOTween.To(GetPercent, SetPercent, 1f, close).SetEase(_closeEase))
+				.AppendInterval(shut)
+				// Put on the shut frame however the playback drifted, on the very moment the controller
+				// switches the effects.
+				.AppendCallback(() =>
+				{
+					_video.Pause();
+					_video.time = shut;
+				})
 				// Held shut while the effects ease into place, so the eye opens on a room that has finished changing.
-				.AppendInterval(hold)
-				.Append(DOTween.To(GetPercent, SetPercent, 0f, open).SetEase(_openEase))
+				.AppendInterval(_controller.HoldDuration)
+				.AppendCallback(() =>
+				{
+					_video.time = reopen;
+					_video.Play();
+				})
+				.AppendInterval(_controller.OpenDuration)
+				.AppendCallback(StopBlink)
 				.SetUpdate(true)
 				.SetTarget(this);
 		}
 
-		private float GetPercent() => _material ? _material.GetFloat(_percentId) : 0f;
-
-		private void SetPercent(float percent)
+		private void StopBlink()
 		{
-			if (_material) _material.SetFloat(_percentId, percent);
+			_blink?.Kill();
+			_blink = null;
+
+			if (_video) _video.Stop();
+			if (_eyelids) _eyelids.enabled = false;
 		}
 	}
 }

@@ -47,11 +47,12 @@ namespace Game.Runtime.GameMode.Poker.Items
 				if (AcceptsPlayer(context, player)) return PokerItemAvailability.Usable;
 			}
 
-			return PokerItemAvailability.Dimmed("Nobody else is left to spike.");
+			return PokerItemAvailability.Dimmed("Nobody is left to spike.");
 		}
 
+		// Yourself included: doubling or emptying your own next caps is a gamble worth taking.
 		public override bool AcceptsPlayer(in PokerItemContext context, PokerPlayer target) =>
-			target && target.Data && target != context.User && target.Data.InMatch.Value && target.Data.IsAlive && target.BetItemConsume;
+			target && target.Data && target.Data.InMatch.Value && target.Data.IsAlive && target.BetItemConsume;
 
 		protected override void OnUseServer(in PokerItemContext context, in PokerItemUseRequest request)
 		{
