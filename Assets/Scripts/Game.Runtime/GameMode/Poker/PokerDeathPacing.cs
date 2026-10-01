@@ -12,7 +12,7 @@ namespace Game.Runtime.GameMode.Poker
 		[Tooltip("Seconds between the death shot going up and the fall starting, so the camera has arrived before the body moves.")]
 		[field: SerializeField, Min(0f)] public float PoseDelay { get; private set; } = 0.4f;
 
-		[Tooltip("Seconds after the fall starts before the head goes — the frame the death animation's shaking ends.")]
+		[Tooltip("Seconds after the fall starts before the head goes — the frame Anim_Die snaps down (68 at 24 fps), where AnimationVfxCueDatabase bursts the head.")]
 		[field: SerializeField, Min(0f)] public float HeadVanishDelay { get; private set; } = 2.5f;
 
 		[Tooltip("Seconds the whole room watches the body, from the shot going up.")]
