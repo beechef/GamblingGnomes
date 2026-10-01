@@ -53,7 +53,13 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			baseMesh.GetNormals(Normals);
 			Rects.Clear();
 
-			foreach (var normal in Normals) Rects.Add(normal.z < 0f ? frontRect : backRect);
+			// The box's four edges are square where the pictures' corners are round, so drawing anything on them
+			// shows a square corner through the round one. They point at the front picture's corner texel,
+			// which is clear, and draw nothing.
+			var texture = front.texture;
+			var edgeRect = new Vector4(frontRect.x + 0.5f / texture.width, frontRect.y + 0.5f / texture.height, 0f, 0f);
+
+			foreach (var normal in Normals) Rects.Add(normal.z < -0.5f ? frontRect : normal.z > 0.5f ? backRect : edgeRect);
 
 			mesh.SetUVs(RectChannel, Rects);
 			Meshes[key] = mesh;
