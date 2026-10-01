@@ -16,6 +16,9 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		[MinValue(0)]
 		[SerializeField] private int _minimumSlots;
 
+		[Tooltip("Turns every card half round on its face, so a row laid out to be read from the anchor's -Y side (the board, facing the local chair) reads the right way up. A card's picture is upright along its own -Y.")]
+		[SerializeField] private bool _turnCardsAround;
+
 		[Header("References")]
 		[SerializeField] private PokerPlayerData _data;
 
@@ -68,5 +71,8 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			// table has to travel. A card dealt later rests on the ones already there.
 			return new Vector3(offset, 0f, -slot * DepthStep);
 		}
+
+		protected override Quaternion SlotRotation(int slot, int count) =>
+			_turnCardsAround ? Quaternion.Euler(0f, 0f, 180f) : Quaternion.identity;
 	}
 }
