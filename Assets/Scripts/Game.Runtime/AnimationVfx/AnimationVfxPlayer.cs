@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -25,6 +26,9 @@ namespace Game.Runtime.AnimationVfx
 
 		private Renderer[] _renderers;
 
+		// A cue that has just spawned its effect, for anything that should change on the same frame.
+		public event Action<AnimationVfxCue> OnCueFired;
+
 		private void Awake()
 		{
 			_renderers = GetComponentsInChildren<Renderer>(true);
@@ -45,6 +49,8 @@ namespace Game.Runtime.AnimationVfx
 
 			var instance = cue.Spawn(ResolveBone(cue.Bone));
 			if (instance) Destroy(instance, cue.Lifetime);
+
+			OnCueFired?.Invoke(cue);
 		}
 
 		private Transform ResolveBone(string name)
