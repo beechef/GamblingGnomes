@@ -104,10 +104,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 
 		public PokerItemDatabase Database => _database;
 		public int Capacity => Mathf.Max(1, _capacity);
-		// What feeding this player the Colorful would hand them if they survive it: the reward, cut to the room
-		// left in their hand, since a full hand turns the rest away.
-		public int ColorfulRewardFor(PokerPlayer player) =>
-			player && player.ItemInventory ? Mathf.Min(_colorfulSurvivorItems, Mathf.Max(0, Capacity - player.ItemInventory.Count.Value)) : 0;
+		public int ColorfulSurvivorItems => _colorfulSurvivorItems;
 
 		public float ResponseDuration => Mathf.Max(0f, _responseDuration);
 		public bool IsResponseTimed => _responseDuration > 0f;

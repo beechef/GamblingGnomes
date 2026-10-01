@@ -31,6 +31,12 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		[Min(0f)]
 		[SerializeField] private float _handOverStagger = 0.15f;
 
+		[Tooltip("Seconds the cards a question asks for are lit, once, as it is asked.")]
+		[Min(0f)]
+		[SerializeField] private float _flashDuration = 0.4f;
+
+		private Tween _flash;
+
 
 		// A card sets off when the hand reaches it, and which frame that is belongs to the clip rather than
 		// to a number counted here: the same beat lands on a different frame in each of the three clips,
@@ -505,6 +511,31 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 				_cards[i].Pickupable = pickupable && !IsInHand(i);
 			}
+		}
+
+		// Lights the cards a question is about, once, so the player sees which ones they are asked to point at.
+		public void FlashCards(Func<int, bool> slots)
+		{
+			_flash?.Kill();
+
+			var lit = new List<PokerCardVisual>();
+			for (var i = 0; i < _cards.Count; i++)
+			{
+				if (!_cards[i] || slots == null || !slots(i)) continue;
+
+				_cards[i].SetHighlighted(true);
+				lit.Add(_cards[i]);
+			}
+
+			if (lit.Count == 0) return;
+
+			_flash = DOVirtual.DelayedCall(_flashDuration, () =>
+			{
+				foreach (var card in lit)
+				{
+					if (card) card.SetHighlighted(false);
+				}
+			}, ignoreTimeScale: true).SetLink(gameObject);
 		}
 
 		// Which slot a card on screen belongs to. Asked by whatever a player just pointed at: the card

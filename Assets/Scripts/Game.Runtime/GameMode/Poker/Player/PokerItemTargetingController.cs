@@ -198,6 +198,8 @@ namespace Game.Runtime.GameMode.Poker.Player
 			{
 				AcceptHoleCard = (target, slot) => target == self && item.AcceptsResponseCard(context, self, slot)
 			}, HandleAnswerPicked);
+
+			if (_player.HandVisual) _player.HandVisual.FlashCards(slot => item.AcceptsResponseCard(context, self, slot));
 		}
 
 		private void StopAnswering()
