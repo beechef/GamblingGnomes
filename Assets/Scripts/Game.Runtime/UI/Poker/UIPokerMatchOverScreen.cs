@@ -28,13 +28,10 @@ namespace Game.Runtime.UI.Poker
 		[SerializeField] private Ease _announceEase = Ease.OutQuad;
 
 		[Header("Blink")]
-		[Tooltip("Faded to opaque while the table is put back. Placeholder for whatever eyelids the art lands on.")]
-		[SerializeField] private CanvasGroup _blinkScreen;
-		[SerializeField] private Ease _closeEase = Ease.InQuad;
-		[SerializeField] private Ease _openEase = Ease.OutQuad;
+		[Tooltip("The eyelids shut while the table is put back, from the stage's blink video.")]
+		[SerializeField] private UIVideoBlink _blink;
 
 		private Tween _announceTween;
-		private Tween _blinkTween;
 
 		// Resolved when the eye starts to close: by the time it opens again the table has already moved on to
 		// the idle stage, and the running stage is no longer the one that knows how long opening takes.
@@ -43,14 +40,9 @@ namespace Game.Runtime.UI.Poker
 		private void Awake()
 		{
 			SetAlpha(_announcement, 0f);
-			SetAlpha(_blinkScreen, 0f);
 		}
 
-		private void OnDestroy()
-		{
-			_announceTween?.Kill();
-			_blinkTween?.Kill();
-		}
+		private void OnDestroy() => _announceTween?.Kill();
 
 		protected override void OnBind()
 		{
@@ -69,11 +61,10 @@ namespace Game.Runtime.UI.Poker
 			Data.MatchResetting.OnValueChanged -= HandleResettingChanged;
 
 			_announceTween?.Kill();
-			_blinkTween?.Kill();
 			_stage = null;
 
 			SetAlpha(_announcement, 0f);
-			SetAlpha(_blinkScreen, 0f);
+			if (_blink) _blink.Hide();
 		}
 
 		// Leaving the phase happens behind the shut eye, so the announcement goes at once rather than fading.
@@ -120,26 +111,29 @@ namespace Game.Runtime.UI.Poker
 
 		private void SetBlink(bool shut, bool animate)
 		{
-			if (!_blinkScreen) return;
+			if (!_blink) return;
 
 			if (shut) _stage = GameMode.FindStage(Data.StageId.Value.ToString()) as PokerMatchOverStage;
 
-			var duration = _stage ? (shut ? _stage.BlinkCloseDuration : _stage.BlinkOpenDuration) : 0f;
-			var target = shut ? 1f : 0f;
+			var pacing = _stage ? _stage.Blink : null;
+			var clip = pacing ? pacing.BlinkVideo : null;
 
-			_blinkTween?.Kill();
-
-			if (!animate || duration <= 0f)
+			// A screen joining behind a shut eye found no match-over stage to ask, and simply sees the table.
+			if (!clip)
 			{
-				_blinkScreen.alpha = target;
+				_blink.Hide();
 				return;
 			}
 
-			// Driven by value rather than DOFade: DOTween's UI module is not in this project.
-			_blinkTween = DOTween.To(() => _blinkScreen.alpha, alpha => _blinkScreen.alpha = alpha, target, duration)
-				.SetEase(shut ? _closeEase : _openEase)
-				.SetUpdate(true)
-				.SetTarget(_blinkScreen);
+			if (shut)
+			{
+				if (animate) _blink.Close(clip, pacing.CloseDuration);
+				else _blink.SnapShut(clip);
+				return;
+			}
+
+			if (animate) _blink.Open(clip, pacing.ReopenTime, pacing.OpenDuration);
+			else _blink.Hide();
 		}
 
 		private static void SetAlpha(CanvasGroup group, float alpha)

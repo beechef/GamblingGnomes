@@ -14,6 +14,7 @@ GameObject:
   - component: {fileID: 8730151816861267896}
   - component: {fileID: 92312589946695886}
   - component: {fileID: 1322020392528633300}
+  - component: {fileID: 966466506853007628}
   m_Layer: 5
   m_Name: UI_HallucinationBlink
   m_TagString: Untagged
@@ -72,9 +73,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: aef5af28fde18fe45a3cfb92e84a6f36, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Poker.UIPokerHallucinationBlink
-  _eyelids: {fileID: 92312589946695886}
-  _video: {fileID: 1322020392528633300}
-  _resolutionScale: 0.5
+  _eyelids: {fileID: 966466506853007628}
 --- !u!114 &92312589946695886
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -138,3 +137,18 @@ VideoPlayer:
   m_WaitForFirstFrame: 1
   m_FrameReadyEventEnabled: 0
   m_VideoShaders: []
+--- !u!114 &966466506853007628
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1677942578201661036}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2294b6d1a2afb45418d5bc536cced53b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.UIVideoBlink
+  _eyelids: {fileID: 92312589946695886}
+  _video: {fileID: 1322020392528633300}
+  _resolutionScale: 0.5

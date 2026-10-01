@@ -22,6 +22,8 @@ namespace Game.Runtime.GameMode.Poker.Items
 
 		public override string GetOutcomeVerb(int outcome) => outcome != 0 ? _copiedVerb : _failedVerb;
 
+		public override bool AnnouncesOutcome => true;
+
 		// Needs another card to copy from.
 		protected override bool CanRewrite(PokerPlayerData holder, int slot) => holder.CardCount > 1;
 

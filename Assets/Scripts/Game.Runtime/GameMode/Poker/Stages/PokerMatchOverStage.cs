@@ -1,5 +1,6 @@
 using System;
 using System.Threading;
+using Game.Runtime.GameMode.Poker.Hallucination;
 using Game.Runtime.Utility;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -29,17 +30,13 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		[MinValue(0f)]
 		[SerializeField] private float _announceDuration = 4f;
 
-		[Tooltip("Seconds every screen takes to shut. The reset is written once this has run out.")]
-		[MinValue(0f)]
-		[SerializeField] private float _blinkCloseDuration = 0.4f;
+		[Tooltip("The eyelids every screen shuts with: the same blink video a rung change uses. Its close is when the reset is written; its open is how long the eye takes to open again.")]
+		[Required]
+		[SerializeField] private PokerHallucinationPacing _blink;
 
 		[Tooltip("Seconds the eye stays shut after the reset is written and the idle stage has opened. Long enough for the reset to reach every client, for the hallucination blink it sets off to close and hold (PokerHallucinationController close + hold), and for the idle shot to turn the view ahead — all behind the black.")]
 		[MinValue(0f)]
 		[SerializeField] private float _blinkHoldDuration = 0.8f;
-
-		[Tooltip("Seconds every screen takes to open again, on the idle table.")]
-		[MinValue(0f)]
-		[SerializeField] private float _blinkOpenDuration = 0.5f;
 
 		[Header("References")]
 		[Tooltip("Where the table goes once everything is back — the waiting room, where the host starts the next match.")]
@@ -49,8 +46,9 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		private Step _step;
 		private float _timer;
 
-		public float BlinkCloseDuration => _blinkCloseDuration;
-		public float BlinkOpenDuration => _blinkOpenDuration;
+		public PokerHallucinationPacing Blink => _blink;
+
+		private float BlinkCloseDuration => _blink ? _blink.CloseDuration : 0f;
 
 		protected override void OnStartStage()
 		{
@@ -75,7 +73,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 				case Step.Announcing:
 					Data.MatchResetting.Value = true;
 					_step = Step.Closing;
-					_timer = _blinkCloseDuration;
+					_timer = BlinkCloseDuration;
 					break;
 
 				// The table is put back and the idle stage opens while every screen is still shut, so whatever the

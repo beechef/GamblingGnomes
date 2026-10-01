@@ -40,6 +40,8 @@ namespace Game.Runtime.GameMode.Poker.Items
 		public override string GetOutcomeVerb(int outcome) =>
 			string.Format(outcome == Nullified ? _nullifiedVerb : _doubledVerb, Mathf.Max(1, _caps));
 
+		public override bool AnnouncesOutcome => true;
+
 		protected override PokerItemAvailability OnGetAvailability(in PokerItemContext context)
 		{
 			foreach (var player in context.GameMode.SeatedPlayers)
