@@ -1,4 +1,4 @@
-# Baccarat Poker — design
+# Main (formerly Baccarat Poker) — design
 
 Date: 2026-09-28
 Status: built. Scoring verified in the editor; mode spawns and the helper reads it in solo Play mode; a two-player match is not yet played.
@@ -43,7 +43,7 @@ Words follow `CONTEXT.md` and `docs/items-design.md` (Match, Hand, Street, Bet, 
 
 ## Items
 
-- **Pool.** Thirteen Items in `PokerItemDatabase_Baccarat`, all weight 1. Show Together, Suit Count,
+- **Pool.** Thirteen Items in `PokerItemDatabase_Main`, all weight 1. Show Together, Suit Count,
   Lock and Raise are left out of this database only; the other modes keep them.
 
   | Group | Asset | Name | Effect |
@@ -91,16 +91,18 @@ Other modes' helpers are unchanged.
 
 ## Architecture
 
-- **Mode.** `GameModeType.BaccaratPoker = 5` ("Baccarat Poker"), a `GameModeDatabase` entry pointing at
-  `GameMode_PokerBaccarat.prefab`, a variant of `GameMode_Poker` overriding `_rules`, `_sequence`,
+- **Mode.** `GameModeType.Main = 5` ("Main", the only mode in the pool; the others are out of `GameModeDatabase` for now), a `GameModeDatabase` entry pointing at
+  `GameMode_Main.prefab`, a variant of `GameMode_Poker` overriding `_rules`, `_sequence`,
   `_betItemDatabase`, `_handDatabase` and the item module's settings. The HUD is Normal's: the bet bar
   hides its kind picker on a Random street by itself. Configs under
-  `Configs/Poker/Baccarat/`.
-- **Sequence.** Waiting → Deal (hole 2, community 3, `_anteSize` 1) → CardLook (every card into the
-  hand) → SecondStreet (turns 1 board card, Random kind, fold) → ThirdStreet (turns the other 2, same
-  bet) → CardReveal (`_revealBoard`) →
-  Showdown (`OwnStake`, `_revealUncontested`, own hand database) → ColorfulPick (gain 20) → Consume
-  (ordinary gain 10/10) → MatchOver. Every named exit is re-pointed at this sequence's own stages.
+  `Configs/Poker/Main/`.
+- **Sequence.** Waiting → Deal (hole 2, community 5, `_anteSize` 1, the forced bet) → CardLook (every
+  card into the hand) → SecondStreet (turns none, Random kind, fold) → ThirdStreet (turns 3, same bet)
+  → FourthStreet (turns 1, same bet) → CardReveal (`_revealBoard`, the last 1) → Showdown (`OwnStake`,
+  `_revealUncontested`, own hand database) → ColorfulPick (gain 0: roll only) → Consume (ordinary gain
+  10/10) → MatchOver. Four bets, three item streets, three turns of the board. Every named exit is
+  re-pointed at this sequence's own stages. Scry (`PokerItem_PeekBoard_Main`) shows the last face-down
+  board card (`PokerBoardPeekSlot.LastFaceDown`).
 - **Joker card.** `CardData` gains a Joker value that `IsValid` accepts and `IsJoker` names; its
   sprite is a separate entry on `PokerCardDatabase` and a `joker.png` in the `Cards` atlas folder
   (placeholder until art lands). Every reader of `Rank`/`Suit`/`DatabaseIndex` is audited for it.

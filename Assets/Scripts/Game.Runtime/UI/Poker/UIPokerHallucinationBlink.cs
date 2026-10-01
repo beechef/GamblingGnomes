@@ -1,7 +1,6 @@
 using DG.Tweening;
 using Game.Runtime.GameMode.Poker.Hallucination;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace Game.Runtime.UI.Poker
 {
@@ -12,48 +11,18 @@ namespace Game.Runtime.UI.Poker
 	// Not one of the effects in a pool. A blink happens on every rung change whatever that rung drew, so
 	// putting it in a pool would make it something a player might or might not get.
 	//
-	// The eye closes as a vignette drawn by UI_Vignette, from the edges in, and opens the same way back.
-	// Only its one percent is driven; how soft the edge is lives on the material.
-	//
-	// It never takes the pointer. The hand carries on underneath, and a player who was mid-press when the
-	// bar moved has not stopped pressing.
+	// The lids are the pacing's blink video (UIVideoBlink): closed onto the shut frame exactly as the rungs
+	// land, held there, and opened from the reopen frame. Every one of those times is the controller's, read
+	// off the video, so nothing here keeps its own.
 	public class UIPokerHallucinationBlink : UIPokerView
 	{
-		[Header("Eyelid")]
-		[Tooltip("Full-screen image wearing a UI_Vignette material. The material is cloned before it is driven, so the asset is never written.")]
-		[SerializeField] private Image _eyelid;
-
-		[Tooltip("The float on the material that closes the vignette: 0 open, 1 shut.")]
-		[SerializeField] private string _percentProperty = "_Percent";
-
-		[SerializeField] private Ease _closeEase = Ease.InQuad;
-
-		[SerializeField] private Ease _openEase = Ease.OutQuad;
+		[Header("Eyelids")]
+		[SerializeField] private UIVideoBlink _eyelids;
 
 		private PokerHallucinationController _controller;
-		private Material _material;
-		private int _percentId;
-		private Sequence _blink;
+		private Tween _open;
 
-		private void Awake()
-		{
-			_percentId = Shader.PropertyToID(_percentProperty);
-
-			if (!_eyelid) return;
-
-			_eyelid.raycastTarget = false;
-			_material = new Material(_eyelid.material);
-			_eyelid.material = _material;
-
-			SetPercent(0f);
-		}
-
-		private void OnDestroy()
-		{
-			_blink?.Kill();
-
-			if (_material) Destroy(_material);
-		}
+		private void OnDestroy() => _open?.Kill();
 
 		protected override void OnBind()
 		{
@@ -63,6 +32,8 @@ namespace Game.Runtime.UI.Poker
 			_controller = local ? local.GetComponentInChildren<PokerHallucinationController>(true) : null;
 
 			if (_controller) _controller.OnTransitionStarted += HandleTransitionStarted;
+
+			if (_controller && _eyelids) _eyelids.Prepare(_controller.BlinkVideo);
 		}
 
 		protected override void OnUnbind()
@@ -71,43 +42,29 @@ namespace Game.Runtime.UI.Poker
 
 			_controller = null;
 
-			_blink?.Kill();
-			_blink = null;
+			_open?.Kill();
+			_open = null;
 
-			SetPercent(0f);
+			if (_eyelids) _eyelids.Hide();
 		}
 
 		// One blink per transition, restarted rather than layered: the controller already folds a change
-		// arriving mid-blink into the beat that is running, so a second sequence here would be drawing a
-		// beat that is not happening.
+		// arriving mid-blink into the beat that is running, so a second blink here would be drawing a beat
+		// that is not happening.
 		private void HandleTransitionStarted()
 		{
-			if (!_material || !_controller) return;
+			if (!_controller || !_eyelids || !_controller.BlinkVideo || _controller.TransitionDuration <= 0f) return;
 
-			var duration = _controller.TransitionDuration;
-			if (duration <= 0f) return;
+			var clip = _controller.BlinkVideo;
+			var reopen = _controller.BlinkReopenTime;
+			var openDuration = _controller.OpenDuration;
 
-			// Fully shut on the very moment the controller switches the effects, however far through the
-			// blink that is authored to be.
-			var close = _controller.ApplyDelay;
-			var hold = _controller.HoldDuration;
-			var open = _controller.OpenDuration;
+			_eyelids.Close(clip, _controller.ApplyDelay);
 
-			_blink?.Kill();
-			_blink = DOTween.Sequence()
-				.Append(DOTween.To(GetPercent, SetPercent, 1f, close).SetEase(_closeEase))
-				// Held shut while the effects ease into place, so the eye opens on a room that has finished changing.
-				.AppendInterval(hold)
-				.Append(DOTween.To(GetPercent, SetPercent, 0f, open).SetEase(_openEase))
-				.SetUpdate(true)
-				.SetTarget(this);
-		}
-
-		private float GetPercent() => _material ? _material.GetFloat(_percentId) : 0f;
-
-		private void SetPercent(float percent)
-		{
-			if (_material) _material.SetFloat(_percentId, percent);
+			// Held shut while the effects ease into place, so the eye opens on a room that has finished changing.
+			_open?.Kill();
+			_open = DOVirtual.DelayedCall(_controller.ApplyDelay + _controller.HoldDuration,
+				() => _eyelids.Open(clip, reopen, openDuration), ignoreTimeScale: true).SetTarget(this);
 		}
 	}
 }

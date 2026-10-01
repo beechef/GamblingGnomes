@@ -1,4 +1,5 @@
 using DG.Tweening;
+using Unity.Collections;
 using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker.Visual
@@ -39,12 +40,14 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			// replicated, so the first look can come up empty. Seating changes bring it back rather than
 			// leaving the arrow hidden until the turn moves on.
 			GameMode.OnSeatedPlayersChanged += Refresh;
+			Data.StageId.OnValueChanged += HandleStageChanged;
 
 			Refresh();
 		}
 
 		protected override void OnUnbind()
 		{
+			if (Data) Data.StageId.OnValueChanged -= HandleStageChanged;
 			GameMode.OnSeatedPlayersChanged -= Refresh;
 
 			if (Data) Data.CurrentTurnClientId.OnValueChanged -= HandleTurnChanged;
@@ -55,19 +58,21 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 		private void HandleTurnChanged(ulong previous, ulong current) => Refresh();
 
+		// A turn cleared inside a stage is only the beat between two (the street clears it while a bet
+		// lands), so the arrow stays on the last seat and swings on from there. Only a stage that moves on
+		// with nobody on the clock takes it away.
+		private void HandleStageChanged(FixedString32Bytes previous, FixedString32Bytes current)
+		{
+			// Hidden but still aimed, so the next street's first turn swings round from the last seat.
+			if (!ResolveTurnSeat() && _arrow) _arrow.SetActive(false);
+		}
+
 		private void Refresh()
 		{
 			var seat = ResolveTurnSeat();
+			if (!seat) return;
 
-			if (_arrow && _arrow.activeSelf != seat) _arrow.SetActive(seat);
-
-			if (!seat)
-			{
-				// A hand that opens on a seat should point there straight away rather than sweeping
-				// round from wherever the last one ended.
-				_aimed = false;
-				return;
-			}
+			if (_arrow && !_arrow.activeSelf) _arrow.SetActive(true);
 
 			AimAt(seat);
 		}

@@ -317,7 +317,7 @@ namespace Game.Runtime.UI.Poker
 
 			if (targeting && targeting.IsTargeting)
 			{
-				if (_targetingPrompt) _targetingPrompt.text = targeting.Prompt;
+				if (_targetingPrompt) _targetingPrompt.text = UIPokerActionNotice.Capitalize(targeting.Prompt?.ToLowerInvariant());
 				return;
 			}
 

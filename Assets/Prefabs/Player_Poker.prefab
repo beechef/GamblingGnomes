@@ -66,8 +66,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Visual.PokerDeathVisual
   ShowTopMostFoldoutHeaderGroup: 1
   _hiddenSlots: 0100000003000000
-  _vanishEffect: {fileID: 0}
-  _vanishEffectLifetime: 3
+  _burstEffect: {fileID: 1839818785237793788, guid: adfa426142c17c54ba782eb17c1ddd95, type: 3}
+  _burstTimeout: 0.5
   _data: {fileID: 6935137486891752095}
   _rig: {fileID: 382404797062674536}
   _visual: {fileID: 2386824806186768469}
@@ -282,7 +282,8 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   _table: {fileID: 6057641942966068475}
   _hand: {fileID: 3345757001518581811}
-  _handOverStagger: 0.15
+  _handOverStagger: 0.1
+  _flashDuration: 0.4
   _pickUpCue: CardPickUp
   _putDownCue: CardPutDown
   _showCue: CardShow
@@ -308,7 +309,7 @@ MonoBehaviour:
   _pickAction: {fileID: 3001919216989983466, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   _cardMask:
     serializedVersion: 2
-    m_Bits: 4294967295
+    m_Bits: 319
   _maxDistance: 4
   _hoverLift: 0.015
   _selectedLift: 0.035
@@ -404,6 +405,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 56e750e3910d86a4e8690f9c76ed752d, type: 2}
   - {fileID: 11400000, guid: bbe8354c75643194bb2d7056be711daa, type: 2}
   - {fileID: 11400000, guid: efd3544d421de524b86a371d1ebf8957, type: 2}
+  - {fileID: 11400000, guid: e0c709a103cdc3d4489bb13e67ef7c3b, type: 2}
   _requiresPlaceInMatch: 0
   _data: {fileID: 6935137486891752095}
 --- !u!1 &2137956963157968789
@@ -450,7 +452,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5797e5eb5a482e945b8260e3fdf393b3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Visual.PokerCardFanVisual
-  _depthStep: 0.002
+  _depthStep: 0.01
   _logLayout: 0
   _fanAngle: 35
   _pivotDrop: 0.5
@@ -1328,6 +1330,7 @@ MonoBehaviour:
   _logLayout: 0
   _gap: 0.0062
   _minimumSlots: 0
+  _turnCardsAround: 0
   _data: {fileID: 6935137486891752095}
 --- !u!1 &8336348170960471977
 GameObject:
@@ -1398,6 +1401,99 @@ MonoBehaviour:
   _eatSwallowCue: EatSwallow
   _cueTimeout: 3
   _lateCueWindow: 0.5
+--- !u!1001 &1463668452541524349
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 215543839289335669}
+    m_Modifications:
+    - target: {fileID: 3881027328509131378, guid: 88979eeef968b4a48ad31c9808ae9101, type: 3}
+      propertyPath: m_Name
+      value: MushMid_Rig
+      objectReference: {fileID: 0}
+    - target: {fileID: 3881027328509131378, guid: 88979eeef968b4a48ad31c9808ae9101, type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4510352168341921992, guid: 88979eeef968b4a48ad31c9808ae9101, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0.09
+      objectReference: {fileID: 0}
+    - target: {fileID: 4510352168341921992, guid: 88979eeef968b4a48ad31c9808ae9101, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0.215
+      objectReference: {fileID: 0}
+    - target: {fileID: 4510352168341921992, guid: 88979eeef968b4a48ad31c9808ae9101, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4510352168341921992, guid: 88979eeef968b4a48ad31c9808ae9101, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 4510352168341921992, guid: 88979eeef968b4a48ad31c9808ae9101, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 4510352168341921992, guid: 88979eeef968b4a48ad31c9808ae9101, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 4510352168341921992, guid: 88979eeef968b4a48ad31c9808ae9101, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 4510352168341921992, guid: 88979eeef968b4a48ad31c9808ae9101, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: -90
+      objectReference: {fileID: 0}
+    - target: {fileID: 4510352168341921992, guid: 88979eeef968b4a48ad31c9808ae9101, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 90
+      objectReference: {fileID: 0}
+    - target: {fileID: 4510352168341921992, guid: 88979eeef968b4a48ad31c9808ae9101, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 5469159867527189672, guid: 88979eeef968b4a48ad31c9808ae9101, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5014578803416818393}
+  m_SourcePrefab: {fileID: 100100000, guid: 88979eeef968b4a48ad31c9808ae9101, type: 3}
+--- !u!1 &2419509941639336719 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3881027328509131378, guid: 88979eeef968b4a48ad31c9808ae9101, type: 3}
+  m_PrefabInstance: {fileID: 1463668452541524349}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &3087221760395839925 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 4510352168341921992, guid: 88979eeef968b4a48ad31c9808ae9101, type: 3}
+  m_PrefabInstance: {fileID: 1463668452541524349}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &6893222535688175061 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 5469159867527189672, guid: 88979eeef968b4a48ad31c9808ae9101, type: 3}
+  m_PrefabInstance: {fileID: 1463668452541524349}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &5014578803416818393
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6893222535688175061}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cf5bc114bb764d24d99cb9e4f131f6ed, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.PlayerLookFollower
+  _invert: 0
+  _weight: 1
 --- !u!1001 &2123252171795382031
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2363,6 +2459,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 2734819149101292962, guid: 8a531d709826a264e9027ff908ced981, type: 3}
       insertIndex: -1
       addedObject: {fileID: 7181582182888109943}
+    - targetCorrespondingSourceObject: {fileID: 2734819149101292962, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 3087221760395839925}
     - targetCorrespondingSourceObject: {fileID: 6402216969967643271, guid: 8a531d709826a264e9027ff908ced981, type: 3}
       insertIndex: -1
       addedObject: {fileID: 8457618247727723098}
@@ -2611,12 +2710,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Props.PropVariantController
   _looks:
   - _variant: 2
+    _wornAlongside: 1
     _objects:
     - {fileID: 9085078011213801696}
     _meshes: []
   - _variant: 3
+    _wornAlongside: 0
     _objects:
     - {fileID: 6291263893682779195}
+    _meshes: []
+  - _variant: 6
+    _wornAlongside: 1
+    _objects:
+    - {fileID: 2419509941639336719}
     _meshes: []
 --- !u!114 &2520641782098330038
 MonoBehaviour:

@@ -6,9 +6,9 @@ using UnityEngine;
 
 namespace Game.Runtime.UI.Poker
 {
-	// What the table is waiting on when an item asks somebody to answer: the one asked reads what to point
-	// at, everyone else who they are waiting on, both over the time left. Read straight off the module's
-	// replicated PendingResponse, so it is up on every screen at the same moment.
+	// An item asking this player to answer: they read who asks and what to point at, over the time left,
+	// on the same plank as every notice. Everyone else already read the item's own notice. Read straight off
+	// the module's replicated PendingResponse.
 	public class UIPokerItemResponsePanel : UIPokerView
 	{
 		[Tooltip("Shown while an answer is pending. A child, so this view keeps listening while it is hidden.")]
@@ -16,9 +16,6 @@ namespace Game.Runtime.UI.Poker
 
 		[SerializeField] private TMP_Text _label;
 		[SerializeField] private UITimerBar _timerBar;
-
-		[Tooltip("Read by everyone but the player being asked. {0} is their name.")]
-		[SerializeField] private string _waitingText = "{0} IS CHOOSING A CARD";
 
 		private PokerItemModule _module;
 
@@ -48,17 +45,16 @@ namespace Game.Runtime.UI.Poker
 		private void Refresh()
 		{
 			var pending = _module ? _module.PendingResponse.Value : PokerItemResponse.None;
+			PokerItem item = null;
+			var asked = pending.IsPending && pending.ResponderClientId == LocalClientId && _module.TryGetItem(pending.Item, out item);
 
-			if (_content) _content.SetActive(pending.IsPending);
-			if (!pending.IsPending || !_label) return;
+			if (_content) _content.SetActive(asked);
+			if (!asked || !_label) return;
 
 			// An answer with no clock shows no bar: a bar that never moves reads as a hung timer.
 			if (_timerBar) _timerBar.gameObject.SetActive(pending.IsTimed);
 
-			if (pending.ResponderClientId == LocalClientId && _module.TryGetItem(pending.Item, out var item))
-				_label.text = $"{PokerPlayer.NameOf(pending.RequesterClientId)} {item.GetResponsePrompt()}";
-			else
-				_label.text = string.Format(_waitingText, PokerPlayer.NameOf(pending.ResponderClientId));
+			_label.text = UIPokerActionNotice.Capitalize($"{PokerPlayer.NameOf(pending.RequesterClientId)} {item.GetResponsePrompt()}");
 
 			OnTick();
 		}

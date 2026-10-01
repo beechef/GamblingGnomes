@@ -15,6 +15,8 @@ namespace Game.Runtime.Props
 		Breasts,
 		// Card decks: what a card becomes when it is drawn from another deck.
 		BlackGold = 4,
-		Inverted = 5
+		Inverted = 5,
+		// A mushroom growing out of the chest, worn alongside the other attachments.
+		ChestMushroom = 6
 	}
 }

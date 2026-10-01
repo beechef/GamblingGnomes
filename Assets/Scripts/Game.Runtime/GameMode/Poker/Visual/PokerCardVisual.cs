@@ -27,8 +27,14 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 		private PokerCardDatabase _deck;
 
-		[Tooltip("White rim switched on while the card is hovered for picking. Drawn at render queue 2999, before the face at 3000, so the card covers all of it but the edge.")]
+		[Tooltip("White rim switched on while the card is hovered for picking. Same render queue as the face; while hovered the card draws at Hover Sorting Order and the rim one below, so the rim sits under its own card and over every other.")]
 		[SerializeField] private GameObject _hoverOutline;
+
+		[Tooltip("Sorting order a hovered card draws at, over the cards around it (which stay at 0). Its rim draws one below.")]
+		[Min(1)]
+		[SerializeField] private int _hoverSortingOrder = 2;
+
+		private Renderer _hoverOutlineRenderer;
 
 		[Header("Flip")]
 		[Tooltip("What actually turns over. Kept separate from the root so the fan and layout rotations are not fighting the flip.")]
@@ -122,6 +128,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		{
 			if (!_meshFilter && _renderer) _meshFilter = _renderer.GetComponent<MeshFilter>();
 			if (_meshFilter) _baseMesh = _meshFilter.sharedMesh;
+			if (_hoverOutline) _hoverOutlineRenderer = _hoverOutline.GetComponent<Renderer>();
 			RestScale = transform.localScale;
 		}
 
@@ -334,6 +341,9 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		public void SetHighlighted(bool highlighted)
 		{
 			if (_hoverOutline && _hoverOutline.activeSelf != highlighted) _hoverOutline.SetActive(highlighted);
+
+			if (_renderer) _renderer.sortingOrder = highlighted ? _hoverSortingOrder : 0;
+			if (_hoverOutlineRenderer) _hoverOutlineRenderer.sortingOrder = _hoverSortingOrder - 1;
 		}
 
 		public void SetLift(float lift)

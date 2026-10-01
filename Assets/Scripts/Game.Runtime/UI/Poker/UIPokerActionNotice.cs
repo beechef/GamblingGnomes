@@ -82,9 +82,15 @@ namespace Game.Runtime.UI.Poker
 		{
 			if (!_label) return;
 
-			var line = string.IsNullOrEmpty(playerName) ? action : $"{playerName} {action}";
-			_label.text = string.IsNullOrEmpty(targetName) ? line : $"{line} {targetName}";
+			var verb = action != null ? action.ToLowerInvariant() : string.Empty;
+			var line = string.IsNullOrEmpty(playerName) ? verb : $"{playerName} {verb}";
+			_label.text = Capitalize(string.IsNullOrEmpty(targetName) ? line : $"{line} {targetName}");
 		}
+
+		// A notice reads as a sentence: the words lower whatever case they arrive in, names as the player wrote
+		// them, and the first letter capital.
+		public static string Capitalize(string text) =>
+			string.IsNullOrEmpty(text) ? text : char.ToUpperInvariant(text[0]) + text.Substring(1);
 
 		private static void SetActive(GameObject root, bool active)
 		{

@@ -36,7 +36,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			}
 
 			// Our own body is skipped by the pointer; naming yourself is the name on your own hallucination bar
-			// instead (UIPokerColorfulSelfPick).
+			// instead (UIPokerSelfPick).
 			_query = new PokerTargetQuery
 			{
 				AcceptPlayer = player => _stage && _stage.CanBeFed(player),

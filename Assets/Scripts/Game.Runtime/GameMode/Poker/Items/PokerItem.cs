@@ -70,6 +70,10 @@ namespace Game.Runtime.GameMode.Poker.Items
 		// What the table reads after the user's name once a chance-driven item has come out; null tells nothing.
 		public virtual string GetOutcomeVerb(int outcome) => null;
 
+		// On, the item tells the table its outcome itself, and that one notice is all the table hears of it:
+		// the module says nothing when it is played.
+		public virtual bool AnnouncesOutcome => false;
+
 		// What the player this item asks to answer reads, after the user's name.
 		public virtual string GetResponsePrompt() => "POINT AT ONE OF YOUR CARDS";
 

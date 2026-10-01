@@ -40,6 +40,8 @@ namespace Game.Runtime.GameMode.Poker.Items
 		public override string GetOutcomeVerb(int outcome) =>
 			string.Format(outcome == Nullified ? _nullifiedVerb : _doubledVerb, Mathf.Max(1, _caps));
 
+		public override bool AnnouncesOutcome => true;
+
 		protected override PokerItemAvailability OnGetAvailability(in PokerItemContext context)
 		{
 			foreach (var player in context.GameMode.SeatedPlayers)
@@ -47,11 +49,12 @@ namespace Game.Runtime.GameMode.Poker.Items
 				if (AcceptsPlayer(context, player)) return PokerItemAvailability.Usable;
 			}
 
-			return PokerItemAvailability.Dimmed("Nobody else is left to spike.");
+			return PokerItemAvailability.Dimmed("Nobody is left to spike.");
 		}
 
+		// Yourself included: doubling or emptying your own next caps is a gamble worth taking.
 		public override bool AcceptsPlayer(in PokerItemContext context, PokerPlayer target) =>
-			target && target.Data && target != context.User && target.Data.InMatch.Value && target.Data.IsAlive && target.BetItemConsume;
+			target && target.Data && target.Data.InMatch.Value && target.Data.IsAlive && target.BetItemConsume;
 
 		protected override void OnUseServer(in PokerItemContext context, in PokerItemUseRequest request)
 		{
