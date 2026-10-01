@@ -25,8 +25,11 @@ namespace Game.Runtime.UI.Poker
 
 		[SerializeField] private TMP_Text _label;
 
+		[Tooltip("Space around the name the button answers the pointer in. The button is sized to the name plus this, so only the name is hit.")]
+		[SerializeField] private Vector2 _hitPadding = new(24f, 8f);
+
 		[Header("Colorful Reward")]
-		[Tooltip("The items whoever eats the Colorful is handed if they survive it, shown over your name while you may name yourself. Hidden for an item's pick and at tables that hand none.")]
+		[Tooltip("The items you would be handed for surviving the Colorful (PokerItemModule.ColorfulRewardFor: the reward cut to the room left in your hand), shown over your name while you may name yourself. Hidden for an item's pick and when it would hand you none.")]
 		[SerializeField] private GameObject _reward;
 
 		[SerializeField] private TMP_Text _rewardLabel;
@@ -35,6 +38,7 @@ namespace Game.Runtime.UI.Poker
 		[SerializeField] private string _rewardFormat = "+{0}";
 
 		private PokerItemTargetingController _targeting;
+		private PokerItemInventory _inventory;
 
 		private void Awake()
 		{
@@ -49,14 +53,24 @@ namespace Game.Runtime.UI.Poker
 			_targeting = LocalPlayer.ItemTargeting;
 			if (_targeting) _targeting.OnTargetingChanged += Refresh;
 
+			_inventory = LocalPlayer.ItemInventory;
+			if (_inventory) _inventory.OnCountChanged += Refresh;
+
 			if (_button) _button.OnClick += HandlePick;
+			if (_button) _button.OnStateChanged += HandleButtonStateChanged;
 
 			Refresh();
 		}
 
 		protected override void OnUnbind()
 		{
+			SetBodyLit(false);
+
+			if (_button) _button.OnStateChanged -= HandleButtonStateChanged;
 			if (_button) _button.OnClick -= HandlePick;
+
+			if (_inventory) _inventory.OnCountChanged -= Refresh;
+			_inventory = null;
 
 			if (_targeting) _targeting.OnTargetingChanged -= Refresh;
 			_targeting = null;
@@ -89,7 +103,8 @@ namespace Game.Runtime.UI.Poker
 			var colorful = LocalPlayer && !item && ColorfulAsksForSelf;
 			var show = item || colorful;
 
-			if (show && _label) _label.text = LocalPlayer.DisplayName;
+			if (show) FillName(LocalPlayer.DisplayName);
+			if (!show) SetBodyLit(false);
 			if (_button && _button.gameObject.activeSelf != show) _button.gameObject.SetActive(show);
 
 			var reward = colorful ? ColorfulReward() : 0;
@@ -97,10 +112,34 @@ namespace Game.Runtime.UI.Poker
 			if (_reward && _reward.activeSelf != reward > 0) _reward.SetActive(reward > 0);
 		}
 
+		// The button is as big as the name it shows, so the pointer has to be on the name to pick it.
+		private void FillName(string displayName)
+		{
+			if (!_label) return;
+
+			_label.text = displayName;
+
+			if (!_button || _button.transform is not RectTransform hit) return;
+
+			var size = _label.GetPreferredValues(displayName);
+			hit.sizeDelta = new Vector2(size.x + _hitPadding.x * 2f, size.y + _hitPadding.y * 2f);
+		}
+
+		// Pointing at your own name lights your own body, as pointing at anybody else lights theirs; on your
+		// screen that is the hand rig.
+		private void HandleButtonStateChanged(UIButtonState previous, UIButtonState current) =>
+			SetBodyLit(current is UIButtonState.Hovered or UIButtonState.Selected or UIButtonState.Pressed);
+
+		private void SetBodyLit(bool lit)
+		{
+			var visual = LocalPlayer ? LocalPlayer.Visual : null;
+			if (visual) visual.SetLocalOutlined(lit);
+		}
+
 		private int ColorfulReward()
 		{
 			var module = GameMode ? GameMode.FindModule<PokerItemModule>() : null;
-			return module ? module.ColorfulSurvivorItems : 0;
+			return module ? module.ColorfulRewardFor(LocalPlayer) : 0;
 		}
 
 		// The Colorful answer's amount carries an identity rather than a size: a seat index, the same trick
