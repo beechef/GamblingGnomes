@@ -104,6 +104,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 
 		public PokerItemDatabase Database => _database;
 		public int Capacity => Mathf.Max(1, _capacity);
+		public int ColorfulSurvivorItems => _colorfulSurvivorItems;
 		public float ResponseDuration => Mathf.Max(0f, _responseDuration);
 		public bool IsResponseTimed => _responseDuration > 0f;
 

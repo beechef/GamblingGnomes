@@ -1,4 +1,5 @@
 using Game.Runtime.GameMode.Poker;
+using Game.Runtime.GameMode.Poker.Items;
 using Game.Runtime.GameMode.Poker.Player;
 using Game.Runtime.GameMode.Poker.Stages;
 using Game.Runtime.UI.Button;
@@ -23,6 +24,15 @@ namespace Game.Runtime.UI.Poker
 		[SerializeField] private UIButton _button;
 
 		[SerializeField] private TMP_Text _label;
+
+		[Header("Colorful Reward")]
+		[Tooltip("The items whoever eats the Colorful is handed if they survive it, shown over your name while you may name yourself. Hidden for an item's pick and at tables that hand none.")]
+		[SerializeField] private GameObject _reward;
+
+		[SerializeField] private TMP_Text _rewardLabel;
+
+		[Tooltip("{0} is how many items.")]
+		[SerializeField] private string _rewardFormat = "+{0}";
 
 		private PokerItemTargetingController _targeting;
 
@@ -75,10 +85,22 @@ namespace Game.Runtime.UI.Poker
 
 		private void Refresh()
 		{
-			var show = LocalPlayer && (ItemAsksForSelf || ColorfulAsksForSelf);
+			var item = LocalPlayer && ItemAsksForSelf;
+			var colorful = LocalPlayer && !item && ColorfulAsksForSelf;
+			var show = item || colorful;
 
 			if (show && _label) _label.text = LocalPlayer.DisplayName;
 			if (_button && _button.gameObject.activeSelf != show) _button.gameObject.SetActive(show);
+
+			var reward = colorful ? ColorfulReward() : 0;
+			if (reward > 0 && _rewardLabel) _rewardLabel.text = string.Format(_rewardFormat, reward);
+			if (_reward && _reward.activeSelf != reward > 0) _reward.SetActive(reward > 0);
+		}
+
+		private int ColorfulReward()
+		{
+			var module = GameMode ? GameMode.FindModule<PokerItemModule>() : null;
+			return module ? module.ColorfulSurvivorItems : 0;
 		}
 
 		// The Colorful answer's amount carries an identity rather than a size: a seat index, the same trick

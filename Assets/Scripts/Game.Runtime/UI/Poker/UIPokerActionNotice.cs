@@ -83,7 +83,17 @@ namespace Game.Runtime.UI.Poker
 			if (!_label) return;
 
 			var line = string.IsNullOrEmpty(playerName) ? action : $"{playerName} {action}";
-			_label.text = string.IsNullOrEmpty(targetName) ? line : $"{line} {targetName}";
+			_label.text = SentenceCase(string.IsNullOrEmpty(targetName) ? line : $"{line} {targetName}");
+		}
+
+		// A notice reads as a sentence: its first letter capital, the rest lower, whatever case the verbs
+		// and names arrive in.
+		private static string SentenceCase(string text)
+		{
+			if (string.IsNullOrEmpty(text)) return text;
+
+			var lower = text.ToLowerInvariant();
+			return char.ToUpperInvariant(lower[0]) + lower.Substring(1);
 		}
 
 		private static void SetActive(GameObject root, bool active)
