@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Game.Runtime.Player
 {
@@ -82,6 +83,54 @@ namespace Game.Runtime.Player
 		[SerializeField] private List<Tint> _tints = new();
 
 		public IReadOnlyList<Tint> Tints => _tints;
+
+		[Serializable]
+		public struct SubmeshRef
+		{
+			public PlayerSlot Slot;
+
+			[MinValue(0)]
+			public int SubmeshIndex;
+		}
+
+		[Header("Eyes")]
+		[Tooltip("Where the eyes are drawn: the face whose texture carries the pupils. Another kind of eyes is another material painted here. Empty: this body's eyes cannot be swapped.")]
+		[SerializeField] private List<SubmeshRef> _face = new();
+
+		[Tooltip("The whites of the eyes, cut out on their own so they can be tinted without the face. Empty: nothing to tint.")]
+		[FormerlySerializedAs("_eyes")]
+		[SerializeField] private List<SubmeshRef> _eyes = new();
+
+		[Serializable]
+		public struct EyeLook
+		{
+			public PlayerEyeKind Eyes;
+			public PlayerLookVersion Version;
+
+			[Tooltip("The face painted on Face for these eyes in this version.")]
+			public Material Face;
+		}
+
+		[Tooltip("This body's face for each other kind of eyes, per version. A version with none takes Cartoon's; a kind with none keeps the default eyes.")]
+		[SerializeField] private List<EyeLook> _eyeLooks = new();
+
+		public IReadOnlyList<SubmeshRef> Face => _face;
+
+		public Material FaceFor(PlayerEyeKind eyes, PlayerLookVersion version)
+		{
+			if (eyes == PlayerEyeKind.Default) return null;
+
+			Material cartoon = null;
+			foreach (var look in _eyeLooks)
+			{
+				if (look.Eyes != eyes || !look.Face) continue;
+				if (look.Version == version) return look.Face;
+				if (look.Version == PlayerLookVersion.Cartoon) cartoon = look.Face;
+			}
+
+			return cartoon;
+		}
+		public IReadOnlyList<SubmeshRef> Eyes => _eyes;
 
 		// The body's own parts come first, so an outfit cannot take a slot the body already fills. Materials
 		// come back one per submesh; a submesh the version leaves empty takes Cartoon's, and one neither
