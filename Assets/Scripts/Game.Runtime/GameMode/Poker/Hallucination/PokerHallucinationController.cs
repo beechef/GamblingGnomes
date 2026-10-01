@@ -6,6 +6,7 @@ using Game.Runtime.Utility;
 using Unity.Netcode;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.Video;
 
 namespace Game.Runtime.GameMode.Poker.Hallucination
 {
@@ -147,6 +148,11 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 		public float HoldDuration => _pacing ? _pacing.HoldDuration : 0f;
 
 		public float OpenDuration => _pacing ? _pacing.OpenDuration : 0f;
+
+		public VideoClip BlinkVideo => _pacing ? _pacing.BlinkVideo : null;
+
+		// Where in the blink video the eye starts to open again; it is fully shut at ApplyDelay.
+		public float BlinkReopenTime => _pacing ? _pacing.ReopenTime : 0f;
 
 		// How long a beat about this player waits for the blink a change between these rates sets off, which
 		// is none at all when no rung is crossed.

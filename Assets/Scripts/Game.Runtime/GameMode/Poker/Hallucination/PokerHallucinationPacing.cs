@@ -1,4 +1,6 @@
+using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.Video;
 
 namespace Game.Runtime.GameMode.Poker.Hallucination
 {
@@ -6,17 +8,26 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 	// the two only work together. The eye has to stay shut until the slowest effect has finished moving, so
 	// the hold is never allowed to be shorter than the ease, whatever is typed into it.
 	//
+	// The blink is a video of the eyelids, and its own frames say when: it closes up to Shut Frame, the
+	// rungs land there, the video waits on that frame for the hold, then plays on from Reopen Frame to its
+	// end. So the effects switch on exactly as the lids meet, and retiming the blink is choosing two frames.
+	//
 	// Everything pacing a beat around a rung change (the eating, the roll, a death) asks the player's
 	// hallucination controller, which reads this.
 	[CreateAssetMenu(fileName = "PokerHallucinationPacing", menuName = "Game/Poker/Hallucination Pacing")]
 	public class PokerHallucinationPacing : ScriptableObject
 	{
 		[Header("Blink")]
-		[Tooltip("Seconds the eye spends closing and opening, together. Zero applies a rung change outright with no blink.")]
-		[SerializeField, Min(0f)] private float _blinkDuration = 1f;
+		[Tooltip("The eyelids, black where they are and light where the eye sees through. Empty applies a rung change outright with no blink.")]
+		[SerializeField] private VideoClip _blinkVideo;
 
-		[Tooltip("How much of the blink is spent closing. 0.5 closes and opens at the same speed.")]
-		[SerializeField, Range(0f, 1f)] private float _closeShare = 0.5f;
+		[Tooltip("First frame the lids are fully shut. The rungs land on it.")]
+		[MinValue(0)]
+		[SerializeField] private int _shutFrame = 31;
+
+		[Tooltip("Last frame the lids are fully shut. After the hold the video plays on from here.")]
+		[MinValue(0)]
+		[SerializeField] private int _reopenFrame = 38;
 
 		[Tooltip("Seconds the eye stays shut after the change lands. Never shorter than Effect Ease, so the eye cannot open on an effect still moving.")]
 		[SerializeField, Min(0f)] private float _hold = 0.8f;
@@ -27,13 +38,22 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 
 		public float EffectEase => _effectEase;
 
-		public float CloseDuration => _blinkDuration * _closeShare;
+		public VideoClip BlinkVideo => _blinkVideo;
 
-		public float HoldDuration => _blinkDuration > 0f ? Mathf.Max(_hold, _effectEase) : 0f;
+		private bool HasBlink => _blinkVideo && _blinkVideo.frameRate > 0d;
 
-		public float OpenDuration => _blinkDuration - CloseDuration;
+		private float FrameTime(int frame) =>
+			HasBlink ? (float)(Mathf.Clamp(frame, 0, (int)_blinkVideo.frameCount) / _blinkVideo.frameRate) : 0f;
+
+		public float CloseDuration => FrameTime(_shutFrame);
+
+		public float ReopenTime => FrameTime(Mathf.Max(_reopenFrame, _shutFrame));
+
+		public float HoldDuration => HasBlink ? Mathf.Max(_hold, _effectEase) : 0f;
+
+		public float OpenDuration => HasBlink ? (float)_blinkVideo.length - ReopenTime : 0f;
 
 		// The whole beat: closing, held shut, opening.
-		public float TransitionDuration => _blinkDuration + HoldDuration;
+		public float TransitionDuration => CloseDuration + HoldDuration + OpenDuration;
 	}
 }
