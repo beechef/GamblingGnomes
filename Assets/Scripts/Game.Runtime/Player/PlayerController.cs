@@ -696,8 +696,15 @@ namespace Game.Runtime.Player
 		//
 		// Yaw first, then pitch: pitching inside the turned frame is what makes a body look up along the
 		// way it is facing rather than along the way it was placed.
+		// The look the head was turned by this frame, zero while it is held still; for anything that turns with it.
+		public float AppliedLookYaw { get; private set; }
+		public float AppliedLookPitch { get; private set; }
+
 		private void ApplyLook(float yaw, float pitch)
 		{
+			AppliedLookYaw = _headLookSuspended ? 0f : yaw;
+			AppliedLookPitch = _headLookSuspended ? 0f : pitch;
+
 			if (_headLookSuspended) return;
 
 			ApplyLookTo(ActiveLookTransform, transform, yaw, pitch);

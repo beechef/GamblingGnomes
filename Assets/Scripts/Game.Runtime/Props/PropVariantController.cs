@@ -21,6 +21,9 @@ namespace Game.Runtime.Props
 		{
 			[SerializeField] private PropVariant _variant;
 
+			[Tooltip("On, this look is worn whenever anybody asks for it, alongside whichever look leads — for a piece added to the prop (an extra arm, a mushroom on the chest) rather than one reshaping it. Off, it is worn only while it is the latest request.")]
+			[SerializeField] private bool _wornAlongside;
+
 			[Tooltip("Switched on while this variant is worn, and off for every other one.")]
 			[SerializeField] private List<GameObject> _objects = new();
 
@@ -28,6 +31,7 @@ namespace Game.Runtime.Props
 			[SerializeField] private List<MeshSwap> _meshes = new();
 
 			public PropVariant Variant => _variant;
+			public bool WornAlongside => _wornAlongside;
 			public IReadOnlyList<GameObject> Objects => _objects;
 			public IReadOnlyList<MeshSwap> Meshes => _meshes;
 		}
@@ -90,7 +94,15 @@ namespace Game.Runtime.Props
 
 		private void Apply()
 		{
-			var wanted = _requests.Count > 0 ? _requests[^1].Variant : PropVariant.Default;
+			// The latest request for a look that reshapes the prop leads; looks worn alongside are not in that race.
+			var wanted = PropVariant.Default;
+			for (var i = _requests.Count - 1; i >= 0; i--)
+			{
+				if (IsWornAlongside(_requests[i].Variant)) continue;
+
+				wanted = _requests[i].Variant;
+				break;
+			}
 
 			// Everything any variant owns goes off first, so a prop whose looks share an object cannot end up
 			// wearing half of each.
@@ -111,7 +123,7 @@ namespace Game.Runtime.Props
 
 			foreach (var look in _looks)
 			{
-				if (look.Variant != wanted) continue;
+				if (look.WornAlongside ? !IsRequested(look.Variant) : look.Variant != wanted) continue;
 
 				foreach (var go in look.Objects)
 				{
@@ -134,6 +146,26 @@ namespace Game.Runtime.Props
 
 			_current = wanted;
 			OnVariantChanged?.Invoke(wanted);
+		}
+
+		private bool IsWornAlongside(PropVariant variant)
+		{
+			foreach (var look in _looks)
+			{
+				if (look.Variant == variant) return look.WornAlongside;
+			}
+
+			return false;
+		}
+
+		private bool IsRequested(PropVariant variant)
+		{
+			foreach (var request in _requests)
+			{
+				if (request.Variant == variant) return true;
+			}
+
+			return false;
 		}
 
 		private static Mesh ReadMesh(GameObject target)
