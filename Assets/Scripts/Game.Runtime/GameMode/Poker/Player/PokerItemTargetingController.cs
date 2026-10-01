@@ -30,6 +30,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 		public bool IsTargeting => _item;
 		public string Prompt { get; private set; }
 
+		// The pointer never lights your own body, so a step that may name you is answered off the HUD.
+		public bool CanPickSelf { get; private set; }
+
 		// Raised when targeting starts, moves to its next step, or ends.
 		public event Action OnTargetingChanged;
 
@@ -98,6 +101,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 			_item = null;
 			Prompt = null;
+			CanPickSelf = false;
 			if (_pointer && !_answering) _pointer.End();
 
 			OnTargetingChanged?.Invoke();
@@ -131,9 +135,15 @@ namespace Game.Runtime.GameMode.Poker.Player
 			}
 
 			Prompt = item.GetTargetPrompt(kind);
+			CanPickSelf = kind == PokerItemTargetKind.Player && item.AcceptsPlayer(context, self);
 			if (_pointer) _pointer.Begin(query, HandleStepPicked);
 
 			OnTargetingChanged?.Invoke();
+		}
+
+		public void PickSelf()
+		{
+			if (CanPickSelf) HandleStepPicked(new PokerTarget(_player, -1, false));
 		}
 
 		private void HandleStepPicked(PokerTarget target)

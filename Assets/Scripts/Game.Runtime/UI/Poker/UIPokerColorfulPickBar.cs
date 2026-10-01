@@ -7,7 +7,7 @@ namespace Game.Runtime.UI.Poker
 {
 	// The clock on the winner choosing who eats the Colorful cap. The choice itself has no buttons here:
 	// everybody else is pointed at across the table (PokerColorfulPickController) and the winner's own name
-	// sits on their hallucination bar (UIPokerColorfulSelfPick).
+	// sits on their hallucination bar (UIPokerSelfPick).
 	public class UIPokerColorfulPickBar : UIPokerView
 	{
 		[Header("Panel")]
