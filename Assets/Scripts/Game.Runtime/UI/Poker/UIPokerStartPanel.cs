@@ -17,6 +17,9 @@ namespace Game.Runtime.UI.Poker
 		[SerializeField] private UIButton _startButton;
 		[SerializeField] private TextMeshProUGUI _hintLabel;
 
+		[Tooltip("Shown only in the waiting room before a match, for everybody, alongside the start button.")]
+		[SerializeField] private GameObject _inviteButton;
+
 		// Every seat this panel is counting. It reads who is still conscious off other players' objects, so it
 		// has to hear those change — the seated list only says who is at the table, never what they are
 		// carrying. A match ending restores everyone at once, which arrives as a change on each of them and
@@ -52,6 +55,7 @@ namespace Game.Runtime.UI.Poker
 			LocalData.SeatIndex.OnValueChanged -= HandleSeatChanged;
 
 			if (_panel) _panel.SetActive(false);
+			if (_inviteButton) _inviteButton.SetActive(true);
 		}
 
 		private void HandlePhaseChanged(PokerPhase previous, PokerPhase current) => Refresh();
@@ -91,7 +95,10 @@ namespace Game.Runtime.UI.Poker
 			var isHost = NetworkManager.Singleton && NetworkManager.Singleton.IsHost;
 			// Between two rounds of a match still in progress the idle table deals the next one itself, so the
 			// button is only offered once a match is over and everything has been put back.
-			var visible = isHost && LocalData.IsSeated && Data.Phase.Value == PokerPhase.Waiting && !GameMode.CanDealAnotherHand;
+			var waitingRoom = Data.Phase.Value == PokerPhase.Waiting && !GameMode.CanDealAnotherHand;
+			var visible = isHost && LocalData.IsSeated && waitingRoom;
+
+			if (_inviteButton && _inviteButton.activeSelf != waitingRoom) _inviteButton.SetActive(waitingRoom);
 
 			if (_panel && _panel.activeSelf != visible) _panel.SetActive(visible);
 			if (!visible) return;
