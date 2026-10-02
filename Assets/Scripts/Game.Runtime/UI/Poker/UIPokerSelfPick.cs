@@ -96,7 +96,7 @@ namespace Game.Runtime.UI.Poker
 			var colorful = LocalPlayer && !item && ColorfulAsksForSelf;
 			var show = item || colorful;
 
-			if (show) FillName(LocalPlayer.DisplayName);
+			if (show) FillName(LocalPlayer.ColoredName);
 			if (!show) SetBodyLit(false);
 			if (_button && _button.gameObject.activeSelf != show) _button.gameObject.SetActive(show);
 

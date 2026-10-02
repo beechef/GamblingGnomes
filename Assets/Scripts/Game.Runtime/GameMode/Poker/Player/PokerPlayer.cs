@@ -31,6 +31,8 @@ namespace Game.Runtime.GameMode.Poker.Player
 		[FormerlySerializedAs("_wallet")]
 		[SerializeField] private PlayerData _identity;
 
+		[SerializeField] private PlayerColorVisual _color;
+
 		[Tooltip("The rig this client renders for this player — where an ability aiming at them finds a hand or a head.")]
 		[SerializeField] private PlayerRigController _rig;
 
@@ -133,6 +135,21 @@ namespace Game.Runtime.GameMode.Poker.Player
 			return player ? player.DisplayName : $"Player {clientId}";
 		}
 
+		public Color Color => _color ? _color.Color : Color.white;
+
+		// The name in this player's own colour, for every UI line that names them (the name tag excepted).
+		// noparse, so a name can never carry rich text of its own.
+		public string ColoredName => Colorize(DisplayName, Color);
+
+		public static string ColoredNameOf(ulong clientId)
+		{
+			var player = Find(clientId);
+			return player ? player.ColoredName : $"Player {clientId}";
+		}
+
+		private static string Colorize(string name, Color color) =>
+			$"<color=#{ColorUtility.ToHtmlStringRGB(color)}><noparse>{name}</noparse></color>";
+
 		public static PokerPlayer Find(ulong clientId)
 		{
 			foreach (var player in Registry)
@@ -151,6 +168,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			if (!_winnerPose) _winnerPose = GetComponentInChildren<PokerWinnerPoseController>(true);
 			if (!_hallucinationRoll) _hallucinationRoll = GetComponentInChildren<PokerHallucinationRollController>(true);
 			if (!_identity) _identity = GetComponent<PlayerData>();
+			if (!_color) _color = GetComponentInChildren<PlayerColorVisual>(true);
 			if (!_rig) _rig = GetComponent<PlayerRigController>();
 
 			// Feature components live on child objects of the player rather than piling up on the root.

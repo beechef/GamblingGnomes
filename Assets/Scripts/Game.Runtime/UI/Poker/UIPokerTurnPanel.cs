@@ -111,7 +111,7 @@ namespace Game.Runtime.UI.Poker
 
 			_titleLabel.text = turnClientId == LocalClientId
 				? "YOUR TURN"
-				: $"{(turnPlayer ? turnPlayer.DisplayName : "Player")}'S TURN";
+				: $"{(turnPlayer ? turnPlayer.ColoredName : "Player")}'S TURN";
 		}
 
 		private void RefreshStage()

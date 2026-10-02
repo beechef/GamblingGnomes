@@ -1,5 +1,4 @@
 using Game.Runtime.GameMode.Poker.Player;
-using Game.Runtime.Player;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -26,10 +25,6 @@ namespace Game.Runtime.UI.Poker
 		[Tooltip("What this feed's numbers are counted in. Empty keeps the sprite the notice prefab was authored with.")]
 		[SerializeField] private Sprite _amountIcon;
 
-		[Header("Names")]
-		[Tooltip("Names are written in the player's hat colour. Empty writes them plain.")]
-		[SerializeField] private PlayerColorDatabase _playerColors;
-
 		// A caller that knows how long its moment lasts says so — a verdict held on screen for three
 		// seconds wants a notice that is gone in three seconds, not one on the feed's own clock.
 		protected void Announce(string playerName, string action, float lifetime = -1f)
@@ -50,15 +45,6 @@ namespace Game.Runtime.UI.Poker
 			return Instantiate(_noticePrefab, _container);
 		}
 
-		// The name in the player's own colour; noparse so a name can never carry rich text of its own.
-		protected string NameOf(ulong clientId)
-		{
-			var name = PokerPlayer.NameOf(clientId);
-			var player = PokerPlayer.Find(clientId);
-			if (!_playerColors || !player || !player.Identity) return name;
-
-			var color = _playerColors.Get(player.Identity.ColorIndex.Value);
-			return $"<color=#{ColorUtility.ToHtmlStringRGB(color)}><noparse>{name}</noparse></color>";
-		}
+		protected static string NameOf(ulong clientId) => PokerPlayer.ColoredNameOf(clientId);
 	}
 }

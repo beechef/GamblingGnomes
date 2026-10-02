@@ -54,7 +54,7 @@ namespace Game.Runtime.UI.Poker
 			// An answer with no clock shows no bar: a bar that never moves reads as a hung timer.
 			if (_timerBar) _timerBar.gameObject.SetActive(pending.IsTimed);
 
-			_label.text = UIPokerActionNotice.Capitalize($"{PokerPlayer.NameOf(pending.RequesterClientId)} {item.GetResponsePrompt()}");
+			_label.text = UIPokerActionNotice.Capitalize($"{PokerPlayer.ColoredNameOf(pending.RequesterClientId)} {item.GetResponsePrompt()}");
 
 			OnTick();
 		}

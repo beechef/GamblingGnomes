@@ -54,7 +54,7 @@ namespace Game.Runtime.UI.Poker
 			if (_handLabel) _handLabel.text = entry.HandName.ToString();
 			if (_crown) _crown.SetActive(entry.Rank == 1);
 
-			if (_nameLabel) _nameLabel.text = player ? player.DisplayName : $"Player {entry.ClientId}";
+			if (_nameLabel) _nameLabel.text = player ? player.ColoredName : $"Player {entry.ClientId}";
 
 			RebuildCards();
 		}

@@ -843,6 +843,10 @@ MonoBehaviour:
   _state: {fileID: 572206989904838628}
   _camera: {fileID: 0}
   _targeting: {fileID: 0}
+  _fov: {fileID: 0}
+  _zoomFieldOfView: 38
+  _zoomDuration: 0.35
+  _zoomEase: 9
 --- !u!1 &5347883484298159708
 GameObject:
   m_ObjectHideFlags: 0
@@ -2784,6 +2788,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 72b217ab1056f6f4d9f1f518278c8b35, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.PlayerNameTagVisual
+--- !u!114 &6571746258828032850 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8951550889444866437, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+  m_PrefabInstance: {fileID: 2812995479481287383}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8336770729751643675}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 37cc9ebfb79d2ba47817a8fe1be01e98, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.PlayerColorVisual
 --- !u!4 &6932038990881902405 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 5132494714845482386, guid: 8a531d709826a264e9027ff908ced981, type: 3}
@@ -2903,6 +2918,7 @@ MonoBehaviour:
   _winnerPose: {fileID: 4197549116505931211}
   _hallucinationRoll: {fileID: 8171426156567892191}
   _identity: {fileID: 1277917375681613223}
+  _color: {fileID: 6571746258828032850}
   _rig: {fileID: 382404797062674536}
   _actionAnimator: {fileID: 7776873476951557616}
   _handIk: {fileID: 8832795126120928936}

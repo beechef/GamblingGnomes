@@ -114,7 +114,7 @@ namespace Game.Runtime.UI.Poker
 				var knowledge = _local ? _local.ItemKnowledge : null;
 				if (knowledge && _subject == _local)
 				{
-					foreach (var exposed in knowledge.ExposedCards) Place(ref used, exposed.Card, PokerPlayer.NameOf(exposed.OtherClientId));
+					foreach (var exposed in knowledge.ExposedCards) Place(ref used, exposed.Card, PokerPlayer.ColoredNameOf(exposed.OtherClientId));
 				}
 				else if (knowledge)
 				{
