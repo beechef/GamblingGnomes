@@ -21,6 +21,8 @@ namespace Game.Runtime.GameMode.Poker.Items
 		CopyCard = 14,
 		MushroomDose = 15,
 		PairLockItems = 16,
-		PairLockFold = 17
+		PairLockFold = 17,
+		RateShift = 18,
+		TableReveal = 19
 	}
 }
