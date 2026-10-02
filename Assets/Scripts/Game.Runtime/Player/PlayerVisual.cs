@@ -97,6 +97,8 @@ namespace Game.Runtime.Player
 
 		private bool IsOutlined => Outlined.Value || _localOutlined;
 
+		private readonly Dictionary<SkinnedMeshRenderer, Dictionary<string, Transform>> _skeletons = new();
+
 		public PlayerModel Model => _modelOverride ? _modelOverride : _defaultModel;
 
 		// Raised after every slot has been re-meshed and repainted, for anything drawing on top of them —
@@ -191,8 +193,8 @@ namespace Game.Runtime.Player
 			ApplyAppearance();
 		}
 
-		// Another kind of eyes: the model's face for them (PlayerModel.FaceFor) painted on the submeshes it says
-		// carry the eyes (PlayerModel.Face); a model with no face for them keeps its own.
+		// Another kind of eyes: the model's mask for them (PlayerModel.EyeMaskFor) painted on its eye submeshes,
+		// whatever the version and outfit.
 		public void SetEyes(PlayerEyeKind eyes)
 		{
 			if (_eyes == eyes) return;
@@ -201,14 +203,14 @@ namespace Game.Runtime.Player
 			ApplyAppearance();
 		}
 
-		private void PaintFace(PlayerModel model, PlayerSlot slot, List<Material> materials)
+		private void PaintEyes(PlayerModel model, PlayerSlot slot, List<Material> materials)
 		{
-			var faceMaterial = model.FaceFor(_eyes, _version);
-			if (!faceMaterial) return;
+			var mask = model.EyeMaskFor(_eyes);
+			if (!mask) return;
 
-			foreach (var face in model.Face)
+			foreach (var eye in model.Eyes)
 			{
-				if (face.Slot == slot && face.SubmeshIndex < materials.Count) materials[face.SubmeshIndex] = faceMaterial;
+				if (eye.Slot == slot && eye.SubmeshIndex < materials.Count) materials[eye.SubmeshIndex] = mask;
 			}
 		}
 
@@ -227,12 +229,13 @@ namespace Game.Runtime.Player
 			{
 				if (!slot.Renderer) continue;
 
-				model.Resolve(slot.Slot, _outfit.Value, _version, out var mesh, _resolvedMaterials);
+				model.Resolve(slot.Slot, _outfit.Value, _version, out var part, _resolvedMaterials);
+				var mesh = part.Mesh;
 				if (!mesh) continue;
 
 				_filled.Add(slot.Slot);
-				PaintFace(model, slot.Slot, _resolvedMaterials);
-				WriteMesh(slot.Renderer, mesh);
+				PaintEyes(model, slot.Slot, _resolvedMaterials);
+				WriteMesh(slot.Renderer, part);
 				WriteMaterials(slot.Renderer, _resolvedMaterials);
 			}
 
@@ -353,18 +356,21 @@ namespace Game.Runtime.Player
 
 		private Transform RootBoneOf(PlayerSlot slot) => Find(slot) is SkinnedMeshRenderer skinned ? skinned.rootBone : null;
 
-		// Only the mesh changes hands: the renderer keeps the bones it was bound to, which is why every model
-		// is exported against the same skeleton in the same bone order. A mesh that was not is said out loud,
+		// A mesh may be skinned to any subset of the skeleton in any order, so the renderer is rebound by the
+		// part's bone names onto the skeleton of the rig it sits in. A name the rig lacks is said out loud,
 		// because it would otherwise deform into a spike with nothing logged.
-		private static void WriteMesh(Renderer renderer, Mesh mesh)
+		private void WriteMesh(Renderer renderer, PlayerModel.Part part)
 		{
+			var mesh = part.Mesh;
+
 			if (renderer is SkinnedMeshRenderer skinned)
 			{
 				if (skinned.sharedMesh == mesh) return;
 
-				if (mesh.bindposes.Length != skinned.bones.Length)
+				if (part.Bones != null && part.Bones.Length == mesh.bindposes.Length) skinned.bones = BindBones(skinned, part.Bones, mesh);
+				else if (mesh.bindposes.Length != skinned.bones.Length)
 				{
-					Debug.LogWarning($"{mesh.name} is skinned to {mesh.bindposes.Length} bones and {skinned.name} holds {skinned.bones.Length}. It was not exported against the shared skeleton and will deform wrong.", skinned);
+					Debug.LogWarning($"{mesh.name} is skinned to {mesh.bindposes.Length} bones, {skinned.name} holds {skinned.bones.Length}, and its model has no bone names to rebind by. Open the model asset to bake them.", skinned);
 				}
 
 				skinned.sharedMesh = mesh;
@@ -372,6 +378,43 @@ namespace Game.Runtime.Player
 			}
 
 			if (renderer.TryGetComponent<MeshFilter>(out var filter)) filter.sharedMesh = mesh;
+		}
+
+		private Transform[] BindBones(SkinnedMeshRenderer skinned, string[] names, Mesh mesh)
+		{
+			var skeleton = SkeletonOf(skinned);
+			var bones = new Transform[names.Length];
+
+			for (var i = 0; i < names.Length; i++)
+			{
+				if (skeleton.TryGetValue(names[i], out var bone)) bones[i] = bone;
+				else
+				{
+					bones[i] = skinned.rootBone;
+					Debug.LogWarning($"{mesh.name} is skinned to {names[i]}, which {skinned.name}'s rig does not have. Its vertices follow the root.", skinned);
+				}
+			}
+
+			return bones;
+		}
+
+		// Every bone of the rig the renderer is animated by, by name: the two rigs share names, so each
+		// renderer looks only inside the Animator over its root bone (outfits are rebound onto the body in Awake).
+		private Dictionary<string, Transform> SkeletonOf(SkinnedMeshRenderer skinned)
+		{
+			if (_skeletons.TryGetValue(skinned, out var skeleton)) return skeleton;
+
+			skeleton = new Dictionary<string, Transform>();
+			var rig = skinned.rootBone ? skinned.rootBone.GetComponentInParent<Animator>(true) : null;
+			var root = rig ? rig.transform : skinned.rootBone;
+
+			if (root)
+			{
+				foreach (var bone in root.GetComponentsInChildren<Transform>(true)) skeleton.TryAdd(bone.name, bone);
+			}
+
+			_skeletons[skinned] = skeleton;
+			return skeleton;
 		}
 
 		// One material per submesh, so the list is rebuilt to exactly the mesh's size: a model with fewer
