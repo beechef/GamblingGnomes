@@ -96,8 +96,8 @@ namespace Game.Runtime.GameMode.Poker.Items
 			return false;
 		}
 
-		// Not one the whole table already sees: a card lying face up is out of the game of hiding.
+		// A card shown over the head trades too; the row then shows whatever lands in that slot.
 		private static bool IsTradeable(PokerPlayer player, int slot) =>
-			player && player.Data && player.Data.IsInHand && slot >= 0 && slot < player.Data.CardCount && !player.Data.IsHoleCardShown(slot);
+			player && player.Data && player.Data.IsInHand && slot >= 0 && slot < player.Data.CardCount;
 	}
 }

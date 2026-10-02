@@ -57,7 +57,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 		public override bool AcceptsOwnCard(in PokerItemContext context, int slot)
 		{
 			var data = context.User ? context.User.Data : null;
-			return data && data.IsInHand && slot >= 0 && slot < data.CardCount && !data.IsHoleCardShown(slot);
+			return data && data.IsInHand && slot >= 0 && slot < data.CardCount;
 		}
 
 		public override bool AcceptsBoardCard(in PokerItemContext context, int slot)

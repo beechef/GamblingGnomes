@@ -20,7 +20,7 @@ namespace Game.Runtime.UI.Poker
 		[Header("Timing")]
 		[Tooltip("How long a notice stands when the caller has no opinion. Long enough to read, short enough that the next hand's announcements never queue behind it.")]
 		[MinValue(0f)]
-		[SerializeField] private float _lifetime = 2f;
+		[SerializeField] private float _lifetime = 2.5f;
 
 		[Header("Currency")]
 		[Tooltip("What this feed's numbers are counted in. Empty keeps the sprite the notice prefab was authored with.")]

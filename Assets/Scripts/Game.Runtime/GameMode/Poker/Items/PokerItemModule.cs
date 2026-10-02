@@ -320,6 +320,14 @@ namespace Game.Runtime.GameMode.Poker.Items
 				case PokerBetItemConsumeStage:
 					ServerRewardColorfulSurvivor();
 					break;
+
+				case PokerStreetStage:
+					foreach (var player in PokerPlayer.All)
+					{
+						if (player && player.ItemKnowledge) player.ItemKnowledge.ServerForgetBoard();
+					}
+
+					break;
 			}
 		}
 

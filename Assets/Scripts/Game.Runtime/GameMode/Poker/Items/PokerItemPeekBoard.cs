@@ -3,8 +3,8 @@ using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker.Items
 {
-	// See one board card the streets have not turned yet, at the price of not folding on the street it is
-	// played on. Only the user sees it; the table hears that a board card was looked at.
+	// See one board card the streets have not turned yet, for the street it is played on only (it turns back
+	// down when that street ends), at the price of not folding on that street. Only the user sees it; the table hears that a board card was looked at.
 	[CreateAssetMenu(fileName = "PokerItem_PeekBoard", menuName = "Game/Poker/Items/Peek Board")]
 	public class PokerItemPeekBoard : PokerItem
 	{
