@@ -6,7 +6,7 @@ using UnityEngine;
 namespace Game.Runtime.GameMode.Poker.Items
 {
 	// The user and a player they choose trade one card. The other player picks which of theirs goes; both
-	// cards cross the table together, land in their new holder's hand as looked at, and each side knows
+	// cards cross the table together face down, land in their new holder's hand as looked at, and each side knows
 	// where the card they gave went.
 	[CreateAssetMenu(fileName = "PokerItem_SwapHand", menuName = "Game/Poker/Items/Swap Hand")]
 	public class PokerItemSwapHand : PokerItem
@@ -72,7 +72,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 			var userPlace = PokerCardPlace.InHand(user.ClientId, ownSlot);
 			var targetPlace = PokerCardPlace.InHand(target.ClientId, targetSlot);
 
-			if (!await context.Module.ServerExchangeCardsAsync(userPlace, targetPlace, ct)) return;
+			if (!await context.Module.ServerExchangeCardsAsync(userPlace, targetPlace, ct, flyFaceDown: true)) return;
 
 			user.Data.ServerMarkLookedAt(ownSlot);
 			target.Data.ServerMarkLookedAt(targetSlot);

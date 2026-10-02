@@ -171,7 +171,7 @@ Hold code to an industry-standard bar; check whether this codebase or the indust
 - UI reads the mode's `*Data` and the stage's own methods; never computes a rule or talks to Netcode beyond the mode's public API.
 - **A view finds the running stage through the replicated stage id, never `CurrentStage`** (server-only): `GameMode.FindStage(Data.StageId.Value.ToString())`. `UIPokerBetBar`
 - **The numbers and actions the UI offers come from the stage's own methods, which the server also calls**; a new stage permission is read by the UI in the same change. `PokerStreetStage.IsBettable`
-- **What the rules forbid is hidden; what the player can't afford is dimmed.** A stage asking a different question gets its own bar; each bar decides its visibility from the running stage.
+- **What the rules forbid is hidden; what the player can't afford is dimmed.** Exception: Fold forbidden by an item on a street that allows it stays up, locked (`PokerStreetStage.AllowsFold` vs `CanFold`, `UIPokerBetBar._foldLock`). A stage asking a different question gets its own bar; each bar decides its visibility from the running stage.
 - **A button opening a list of choices stays pressable while any choice is shown**, even if none can be taken — the dimmed entry carries the reason. Items button: `UI_ShortcutButtons/Button_Items` (wired to the bar on `UI_Poker`), label via `UIPokerItemCount` ("ITEM ({0})"), hidden while `Phase == Waiting` (nothing dealt yet); off turn the bar shows only the item picker (`IsActing` gates the menu, `CanReadItems` the picker), `UIPokerBetBar.AnyItemHeld`. The picker draws every held item, forbidden ones dimmed with reason (`UIPokerItemPicker.Rebuild`).
 - **A view fed by two network objects subscribes to both** (arrival order differs host vs client). `UIPokerRankingRow`
 - **A view counting across players subscribes to every player, not only the roster.** `UIPokerStartPanel`
@@ -358,6 +358,8 @@ Hold code to an industry-standard bar; check whether this codebase or the indust
 - **A local hover is ORed with replicated state, never written into it.** `PlayerVisual.SetLocalOutlined`
 - **A `CharacterController` is not a hit volume** (owner-only); `AimTarget` is a `SphereCollider` on the body rig's `Chest_M`.
 - **Diagnose a cast that finds nothing by drawing it**: colour-code rays (own body distinct), log hits once per change.
+
+- **An item's prop is a row in `PokerItemPropDatabase`**, shown on every screen by `PokerItemPropVisual` (on `PokerTableVisual`) from `PokerItemModule.OnItemUsed`: place (user, target, both, last face-down board card), appear/move/hold/vanish. Placeholder primitives live in `Assets/Prefabs/Items/`; art replaces the prefab, not the row.
 
 ### Notices
 - **What the table is told is an event on `PokerNoticeChannel`, never a replicated value.** `ServerAnnounce` (everyone), `ServerTell` (`SendTo.SpecifiedInParams`). `PokerNotice` carries data; the feed picks wording. `UIPokerActionNoticeFeed`

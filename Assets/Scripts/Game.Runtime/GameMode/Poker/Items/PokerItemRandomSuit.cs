@@ -9,6 +9,8 @@ namespace Game.Runtime.GameMode.Poker.Items
 	{
 		private const int SuitCount = 4;
 
+		protected override PokerCardFlickerFaces FlickerFaces => PokerCardFlickerFaces.Suits;
+
 		protected override bool TryRewrite(PokerPlayerData holder, int slot, out CardData card)
 		{
 			var old = holder.HoleCards[slot];
