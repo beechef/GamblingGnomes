@@ -1,15 +1,13 @@
-using System.Collections.Generic;
 using Game.Runtime.GameMode.Poker.BetItems;
-using Game.Runtime.GameMode.Poker.Player;
 using Game.Runtime.Player;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker.Stages
 {
-	// The opening caps as a beat of their own, before the deal: each player still in the match puts theirs up
-	// in seat order, with the bet gesture, a pause apart, so the table sees the first mushroom land. Its own
-	// phase, so the pot hands the cap to the player's hand the way a street bet is (BetGrab to BetRelease).
+	// The opening caps as a beat of their own, before the deal: every player still in the match puts theirs up
+	// at once, with the bet gesture. Its own phase, so the pot hands each cap through the player's hand the way
+	// a street bet is (BetGrab to BetRelease). Exit Delay is how long the table waits before the deal.
 	[CreateAssetMenu(fileName = "PokerStage_Ante", menuName = "Game/Poker/Stages/Ante")]
 	public class PokerAnteStage : PokerStage
 	{
@@ -17,59 +15,25 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		[MinValue(1)]
 		[SerializeField] private int _anteSize = 1;
 
-		[Tooltip("Seconds between one player's cap and the next.")]
-		[MinValue(0f)]
-		[SerializeField] private float _stagger = 0.6f;
-
-		[Tooltip("Seconds the table holds after the last cap lands, before the deal.")]
-		[MinValue(0f)]
-		[SerializeField] private float _hold = 1f;
-
-		private readonly List<PokerPlayer> _queue = new();
-		private float _timer;
-
 		protected override void OnStartStage()
 		{
 			Data.Phase.Value = PokerPhase.Ante;
 			GameMode.ClearTurn();
 
-			_queue.Clear();
+			var database = GameMode.BetItemDatabase;
 			foreach (var player in GameMode.SeatedPlayers)
 			{
-				if (player && GameMode.IsPlayingThisMatch(player.Data)) _queue.Add(player);
+				if (!player || !GameMode.IsPlayingThisMatch(player.Data)) continue;
+
+				for (var i = 0; i < _anteSize; i++)
+				{
+					PokerTableUtility.PlaceBet(Data, player, database ? database.DrawBetItemType() : PokerBetItemDatabase.PlainChip);
+				}
+
+				player.ActionAnimator?.ServerPlay(PlayerActionIds.Bet);
 			}
 
-			_queue.Sort((a, b) => a.Data.SeatIndex.Value.CompareTo(b.Data.SeatIndex.Value));
-			_timer = 0f;
-		}
-
-		protected override void OnTickStage(float deltaTime)
-		{
-			_timer -= deltaTime;
-			if (_timer > 0f) return;
-
-			if (_queue.Count == 0)
-			{
-				FinishStage();
-				return;
-			}
-
-			PostAnte(_queue[0]);
-			_queue.RemoveAt(0);
-			_timer = _queue.Count > 0 ? _stagger : _hold;
-		}
-
-		private void PostAnte(PokerPlayer player)
-		{
-			if (!player || !player.Data) return;
-
-			var database = GameMode.BetItemDatabase;
-			for (var i = 0; i < _anteSize; i++)
-			{
-				PokerTableUtility.PlaceBet(Data, player, database ? database.DrawBetItemType() : PokerBetItemDatabase.PlainChip);
-			}
-
-			player.ActionAnimator?.ServerPlay(PlayerActionIds.Bet);
+			FinishStage();
 		}
 	}
 }
