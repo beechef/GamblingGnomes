@@ -36,6 +36,13 @@ namespace Game.Runtime.GameMode.Poker.Player
 		// Raised when targeting starts, moves to its next step, or ends.
 		public event Action OnTargetingChanged;
 
+		// Pointing at one of this player's own cards: an item step that asks for one, or answering another
+		// player's item. The camera holds on the hand for it.
+		public bool IsPickingOwnCard => _answering || (_item && _stepIndex < _steps.Count && _steps[_stepIndex] == PokerItemTargetKind.OwnCard);
+
+		// Raised when IsPickingOwnCard may have changed.
+		public event Action OnOwnCardPickChanged;
+
 		public override void OnNetworkSpawn()
 		{
 			if (!IsOwner) return;
@@ -105,6 +112,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			if (_pointer && !_answering) _pointer.End();
 
 			OnTargetingChanged?.Invoke();
+			OnOwnCardPickChanged?.Invoke();
 		}
 
 		private void AskStep()
@@ -139,6 +147,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			if (_pointer) _pointer.Begin(query, HandleStepPicked);
 
 			OnTargetingChanged?.Invoke();
+			OnOwnCardPickChanged?.Invoke();
 		}
 
 		public void PickSelf()
@@ -200,6 +209,8 @@ namespace Game.Runtime.GameMode.Poker.Player
 			}, HandleAnswerPicked);
 
 			if (_player.HandVisual) _player.HandVisual.FlashCards(slot => item.AcceptsResponseCard(context, self, slot));
+
+			OnOwnCardPickChanged?.Invoke();
 		}
 
 		private void StopAnswering()
@@ -208,6 +219,8 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 			_answering = false;
 			if (_pointer) _pointer.End();
+
+			OnOwnCardPickChanged?.Invoke();
 		}
 
 		private void HandleAnswerPicked(PokerTarget target)

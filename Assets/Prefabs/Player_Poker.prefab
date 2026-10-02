@@ -667,6 +667,7 @@ GameObject:
   - component: {fileID: 2201927442127855364}
   - component: {fileID: 4528476252277623363}
   - component: {fileID: 48590640832765361}
+  - component: {fileID: 5873092702817807523}
   m_Layer: 0
   m_Name: State_OwnCards
   m_TagString: Untagged
@@ -734,6 +735,22 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 8d095084ca66f18448894fe69c8d66b8, type: 2}
   _requiresPlaceInMatch: 1
   _data: {fileID: 6935137486891752095}
+--- !u!114 &5873092702817807523
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4554624356382271699}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2f0149129c2a61740abaafe66b517867, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Camera.PokerCardPickCameraHold
+  ShowTopMostFoldoutHeaderGroup: 1
+  _state: {fileID: 4528476252277623363}
+  _camera: {fileID: 0}
+  _targeting: {fileID: 0}
 --- !u!1 &5025441949699639480
 GameObject:
   m_ObjectHideFlags: 0
