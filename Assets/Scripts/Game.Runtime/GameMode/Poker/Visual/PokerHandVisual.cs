@@ -152,6 +152,8 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		{
 			if (!_data) return;
 
+			MarkExposed();
+
 			var faceUp = CurrentFaceUpMask();
 			var inHand = CurrentInHandMask();
 			if (faceUp == _shownFaceUpMask && inHand == _shownInHandMask) return;
@@ -319,6 +321,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 			_shownFaceUpMask = CurrentFaceUpMask();
 			_shownInHandMask = CurrentInHandMask();
+			MarkExposed();
 
 			for (var i = 0; i < _cards.Count && i < 31; i++)
 			{
@@ -440,9 +443,21 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 			_shownFaceUpMask = CurrentFaceUpMask();
 			_shownInHandMask = CurrentInHandMask();
+			visual.SetExposed(IsExposed(index));
 
 			HandOver(index, animate);
 		}
+
+		// The holder sees which of their own cards the table is shown (the row over their head).
+		private void MarkExposed()
+		{
+			for (var i = 0; i < _cards.Count; i++)
+			{
+				if (_cards[i]) _cards[i].SetExposed(IsExposed(i));
+			}
+		}
+
+		private bool IsExposed(int index) => _data && _data.IsOwner && _data.IsHoleCardShown(index);
 
 		private void RemoveCard(int index)
 		{

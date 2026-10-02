@@ -32,6 +32,14 @@ namespace Game.Runtime.UI.Poker
 
 		[SerializeField] private Ease _fillEase = Ease.OutCubic;
 
+		[Tooltip("Filled Horizontal image under the fill. When the rate drops, it holds the old amount and fades out, so the lost part dissolves. Optional.")]
+		[SerializeField] private Image _loss;
+
+		[Min(0f)]
+		[SerializeField] private float _lossDuration = 1.2f;
+
+		[SerializeField] private Ease _lossEase = Ease.InQuad;
+
 		[Header("Rungs")]
 		[Tooltip("Stretched over the fill. Each mark is anchored at its rung's threshold along it.")]
 		[SerializeField] private RectTransform _rungContainer;
@@ -77,6 +85,7 @@ namespace Game.Runtime.UI.Poker
 		private PokerHallucinationRollController _roll;
 
 		private Tween _fillTween;
+		private Tween _lossTween;
 		private Sequence _knotSequence;
 		private float _knotValue = 1f;
 		private PokerHallucinationTiers _tiers;
@@ -125,6 +134,9 @@ namespace Game.Runtime.UI.Poker
 
 			_fillTween?.Kill();
 			_fillTween = null;
+			_lossTween?.Kill();
+			_lossTween = null;
+			if (_loss) SetLossAlpha(0f);
 
 			_knotSequence?.Kill();
 			_knotSequence = null;
@@ -141,6 +153,8 @@ namespace Game.Runtime.UI.Poker
 		{
 			RaiseRungCrossings(previous, current);
 
+			if (current < previous) Dissolve(previous);
+
 			if (!_fill) return;
 
 			_fillTween?.Kill();
@@ -154,6 +168,26 @@ namespace Game.Runtime.UI.Poker
 			_fillTween = DOTween.To(() => _fill.fillAmount, value => _fill.fillAmount = value, Rate, _fillDuration)
 				.SetEase(_fillEase)
 				.SetLink(gameObject);
+		}
+
+		private void Dissolve(int previous)
+		{
+			if (!_loss) return;
+
+			_lossTween?.Kill();
+			_loss.fillAmount = previous / (float)PokerPlayerData.MaxHallucination;
+			SetLossAlpha(1f);
+
+			_lossTween = DOTween.To(() => _loss.color.a, SetLossAlpha, 0f, _lossDuration)
+				.SetEase(_lossEase)
+				.SetLink(gameObject);
+		}
+
+		private void SetLossAlpha(float alpha)
+		{
+			var color = _loss.color;
+			color.a = alpha;
+			_loss.color = color;
 		}
 
 		// Every rung passed between the two rates, in the order they were passed. Drawn off the same ladder

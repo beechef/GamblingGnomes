@@ -64,6 +64,8 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		private Tween _moveTween;
 		private Tween _liftTween;
 		private bool _initialized;
+		private bool _highlighted;
+		private bool _exposed;
 
 		// When the card leaves where it lies — its turn in the deal, or its turn among cards picked up
 		// together — and, for a deal, how it travels. Until then every placement and flip waits, so a layout
@@ -340,10 +342,26 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 		public void SetHighlighted(bool highlighted)
 		{
-			if (_hoverOutline && _hoverOutline.activeSelf != highlighted) _hoverOutline.SetActive(highlighted);
+			_highlighted = highlighted;
 
 			if (_renderer) _renderer.sortingOrder = highlighted ? _hoverSortingOrder : 0;
 			if (_hoverOutlineRenderer) _hoverOutlineRenderer.sortingOrder = _hoverSortingOrder - 1;
+
+			ApplyRim();
+		}
+
+		// The holder's own card the table can see. Wears the same rim as a hover, ORed with it, but never
+		// draws over the other cards.
+		public void SetExposed(bool exposed)
+		{
+			_exposed = exposed;
+			ApplyRim();
+		}
+
+		private void ApplyRim()
+		{
+			var lit = _highlighted || _exposed;
+			if (_hoverOutline && _hoverOutline.activeSelf != lit) _hoverOutline.SetActive(lit);
 		}
 
 		public void SetLift(float lift)
