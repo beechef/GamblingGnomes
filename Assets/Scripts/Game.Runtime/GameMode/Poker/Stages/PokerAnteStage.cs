@@ -7,8 +7,8 @@ namespace Game.Runtime.GameMode.Poker.Stages
 {
 	// The opening caps as a beat of their own, before the deal: every player still in the match puts theirs up
 	// at once, with the bet gesture. Its own phase, so the pot hands each cap through the player's hand the way
-	// a street bet is (BetGrab to BetRelease). The stage lasts the bet clip, so the deal (which puts everybody
-	// back to idle) never cuts the gesture off; Exit Delay is any extra wait after it.
+	// a street bet is (BetGrab to BetRelease). The stage lasts until the clip's BetRelease marker (the cap is
+	// down), then Exit Delay.
 	[CreateAssetMenu(fileName = "PokerStage_Ante", menuName = "Game/Poker/Stages/Ante")]
 	public class PokerAnteStage : PokerStage
 	{
@@ -16,9 +16,11 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		[MinValue(1)]
 		[SerializeField] private int _anteSize = 1;
 
-		[Tooltip("The bet gesture's clip. The stage waits its length so the caps land before the deal.")]
+		[Tooltip("The bet gesture's clip. The stage waits until its BetRelease marker, or its length without one.")]
 		[Required]
 		[SerializeField] private AnimationClip _betClip;
+
+		private const string ReleaseCue = "BetRelease";
 
 		private float _timer;
 
@@ -40,7 +42,19 @@ namespace Game.Runtime.GameMode.Poker.Stages
 				player.ActionAnimator?.ServerPlay(PlayerActionIds.Bet);
 			}
 
-			_timer = _betClip ? _betClip.length : 0f;
+			_timer = CapDownTime();
+		}
+
+		private float CapDownTime()
+		{
+			if (!_betClip) return 0f;
+
+			foreach (var marker in _betClip.events)
+			{
+				if (marker.stringParameter == ReleaseCue) return marker.time;
+			}
+
+			return _betClip.length;
 		}
 
 		protected override void OnTickStage(float deltaTime)
