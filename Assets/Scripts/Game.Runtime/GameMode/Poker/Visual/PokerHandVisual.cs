@@ -65,6 +65,9 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 		public IReadOnlyList<PokerCardVisual> Cards => _cards;
 
+		// Where picked-up cards are held: the fan in the hand (or the row on the head).
+		public Transform HandAnchor => _hand ? _hand.Anchor : null;
+
 		// Cards are torn down and dealt again every round, so anything drawing on them has to be told
 		// rather than resolving once. Static because the things that care are about every hand at the
 		// table, not about one player's.
