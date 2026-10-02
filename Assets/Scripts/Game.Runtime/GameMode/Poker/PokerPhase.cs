@@ -28,6 +28,9 @@ namespace Game.Runtime.GameMode.Poker
 		MatchOver = 12,
 
 		// Somebody went all in: everyone else still in the hand is answering at once, against one clock.
-		AllIn = 13
+		AllIn = 13,
+
+		// Everybody puts up the opening cap, one after another, before the deal.
+		Ante = 14
 	}
 }

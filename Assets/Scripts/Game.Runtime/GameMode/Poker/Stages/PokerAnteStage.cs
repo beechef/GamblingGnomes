@@ -8,8 +8,8 @@ using UnityEngine;
 namespace Game.Runtime.GameMode.Poker.Stages
 {
 	// The opening caps as a beat of their own, before the deal: each player still in the match puts theirs up
-	// in seat order, with the bet gesture, a pause apart, so the table sees the first mushroom land. Written in
-	// the Dealing phase, which is what the settlement reads as an opening cap.
+	// in seat order, with the bet gesture, a pause apart, so the table sees the first mushroom land. Its own
+	// phase, so the pot hands the cap to the player's hand the way a street bet is (BetGrab to BetRelease).
 	[CreateAssetMenu(fileName = "PokerStage_Ante", menuName = "Game/Poker/Stages/Ante")]
 	public class PokerAnteStage : PokerStage
 	{
@@ -30,7 +30,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 		protected override void OnStartStage()
 		{
-			Data.Phase.Value = PokerPhase.Dealing;
+			Data.Phase.Value = PokerPhase.Ante;
 			GameMode.ClearTurn();
 
 			_queue.Clear();
