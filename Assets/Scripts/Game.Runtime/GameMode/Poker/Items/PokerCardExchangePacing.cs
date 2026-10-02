@@ -18,5 +18,12 @@ namespace Game.Runtime.GameMode.Poker.Items
 
 		[Tooltip("Seconds a landed card stays hidden waiting for its new face to arrive before it is shown anyway.")]
 		[field: SerializeField, Min(0f)] public float LandingBackstop { get; private set; } = 1f;
+
+		[Header("Rewrite")]
+		[Tooltip("Seconds a card rewritten in place flickers through faces before it settles. The server writes the new face at the end.")]
+		[field: SerializeField, Min(0.1f)] public float RewriteDuration { get; private set; } = 3f;
+
+		[Tooltip("Seconds each face is shown while flickering.")]
+		[field: SerializeField, Min(0.02f)] public float RewriteFlickerInterval { get; private set; } = 0.08f;
 	}
 }

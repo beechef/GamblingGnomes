@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using Game.Runtime.GameMode.Poker.Player;
 using UnityEngine;
 
@@ -42,18 +43,22 @@ namespace Game.Runtime.GameMode.Poker.Items
 			return card.IsValid && !card.IsJoker && CanRewrite(data, slot);
 		}
 
-		protected override void OnUseServer(in PokerItemContext context, in PokerItemUseRequest request)
+		// Which faces the card flickers through while it changes.
+		protected abstract PokerCardFlickerFaces FlickerFaces { get; }
+
+		protected override async Awaitable OnUseServerAsync(PokerItemContext context, PokerItemUseRequest request, CancellationToken ct)
 		{
-			var local = context;
 			var user = context.User;
 
 			var slot = _cardChoice == PokerChoiceMode.Chosen
 				? request.OwnSlot
-				: PokerItemModule.PickRandomSlot(user.Data.CardCount, s => AcceptsOwnCard(local, s));
+				: PokerItemModule.PickRandomSlot(user.Data.CardCount, s => AcceptsOwnCard(context, s));
 
 			if (!AcceptsOwnCard(context, slot)) return;
 
-			if (TryRewrite(user.Data, slot, out var card)) context.Module.ServerRewriteHoleCard(user, slot, card);
+			if (!TryRewrite(user.Data, slot, out var card)) card = CardData.None;
+
+			await context.Module.ServerRewriteHoleCardAsync(user, slot, card, FlickerFaces, ct);
 
 			OnRewriteSettled(context, card.IsValid);
 		}

@@ -87,6 +87,9 @@ namespace Game.Runtime.GameMode.Poker.Items
 		// saw. The swap itself is written once they land.
 		public event Action<PokerCardPlace, PokerCardPlace, bool> OnCardsExchanging;
 
+		// A card about to be rewritten in place, and which faces it flickers through on the way.
+		public event Action<PokerCardPlace, PokerCardFlickerFaces> OnCardRewriting;
+
 		public PokerCardExchangePacing ExchangePacing => _exchangePacing;
 
 		// Server only: who did not win the hand just settled, owed a bonus at the next deal.
@@ -614,14 +617,26 @@ namespace Game.Runtime.GameMode.Poker.Items
 			return true;
 		}
 
-		// One of a player's cards turned into another in place. Whatever anybody knew of the old face is forgotten.
-		public void ServerRewriteHoleCard(PokerPlayer holder, int slot, CardData card)
+		// One of a player's cards turned into another in place. Every screen is told first and flickers it;
+		// the new face is written once the flicker is over. An invalid card leaves the old face, after the
+		// same flicker, so a gamble that failed looks like one that took. Whatever anybody knew of a
+		// rewritten face is forgotten.
+		public async Awaitable ServerRewriteHoleCardAsync(PokerPlayer holder, int slot, CardData card, PokerCardFlickerFaces faces, CancellationToken ct)
 		{
-			if (!IsServer || !holder || !holder.Data || slot < 0 || slot >= holder.Data.CardCount || !card.IsValid) return;
+			if (!IsServer || !holder || !holder.Data || slot < 0 || slot >= holder.Data.CardCount) return;
+
+			PlayCardRewriteRPC(PokerCardPlace.InHand(holder.ClientId, slot), faces);
+
+			if (_exchangePacing) await Awaitable.WaitForSecondsAsync(_exchangePacing.RewriteDuration, ct);
+
+			if (!card.IsValid || !holder || !holder.Data || slot >= holder.Data.CardCount) return;
 
 			holder.Data.ServerReplaceHoleCard(slot, card);
 			ServerForget(PokerCardPlace.InHand(holder.ClientId, slot));
 		}
+
+		[Rpc(SendTo.Everyone)]
+		private void PlayCardRewriteRPC(PokerCardPlace place, PokerCardFlickerFaces faces) => OnCardRewriting?.Invoke(place, faces);
 
 		[Rpc(SendTo.Everyone)]
 		private void PlayCardExchangeRPC(PokerCardPlace first, PokerCardPlace second, bool flyFaceDown) => OnCardsExchanging?.Invoke(first, second, flyFaceDown);
