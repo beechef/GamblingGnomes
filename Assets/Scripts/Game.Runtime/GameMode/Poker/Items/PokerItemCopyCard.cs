@@ -15,10 +15,10 @@ namespace Game.Runtime.GameMode.Poker.Items
 		[SerializeField] private int _chance = 35;
 
 		[Tooltip("What the user reads when the copy takes.")]
-		[SerializeField] private string _copiedVerb = "COPIED A CARD";
+		[SerializeField] private string _copiedVerb = "COPIED";
 
 		[Tooltip("What the user reads when it does not.")]
-		[SerializeField] private string _failedVerb = "FAILED TO COPY A CARD";
+		[SerializeField] private string _failedVerb = "COPY FAILED";
 
 		public override string GetOutcomeVerb(int outcome) => outcome != 0 ? _copiedVerb : _failedVerb;
 

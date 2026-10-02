@@ -27,10 +27,10 @@ namespace Game.Runtime.GameMode.Poker.Items
 		[SerializeField] private int _doubleWeight = 50;
 
 		[Tooltip("What the table reads when the caps come out empty. {0} is how many.")]
-		[SerializeField] private string _nullifiedVerb = "NULLIFIED THE NEXT {0} MUSHROOMS OF";
+		[SerializeField] private string _nullifiedVerb = "EMPTIED {0} CAPS OF";
 
 		[Tooltip("What the table reads when the caps come out doubled. {0} is how many.")]
-		[SerializeField] private string _doubledVerb = "DOUBLED THE NEXT {0} MUSHROOMS OF";
+		[SerializeField] private string _doubledVerb = "DOUBLED {0} CAPS OF";
 
 		protected override void OnCollectTargetSteps(List<PokerItemTargetKind> steps) => steps.Add(PokerItemTargetKind.Player);
 

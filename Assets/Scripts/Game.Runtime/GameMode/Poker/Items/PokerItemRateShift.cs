@@ -27,10 +27,10 @@ namespace Game.Runtime.GameMode.Poker.Items
 		[SerializeField] private int _lowerWeight = 50;
 
 		[Tooltip("What the table reads when the rate goes up. {0} is the amount.")]
-		[SerializeField] private string _raisedVerb = "RAISED BY {0} THE DOSE OF";
+		[SerializeField] private string _raisedVerb = "+{0} DOSE TO";
 
 		[Tooltip("What the table reads when the rate goes down. {0} is the amount.")]
-		[SerializeField] private string _loweredVerb = "LOWERED BY {0} THE DOSE OF";
+		[SerializeField] private string _loweredVerb = "-{0} DOSE TO";
 
 		protected override void OnCollectTargetSteps(List<PokerItemTargetKind> steps) => steps.Add(PokerItemTargetKind.Player);
 

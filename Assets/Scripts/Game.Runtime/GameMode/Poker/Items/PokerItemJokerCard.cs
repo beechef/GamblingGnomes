@@ -15,10 +15,10 @@ namespace Game.Runtime.GameMode.Poker.Items
 		[SerializeField] private int _chance = 50;
 
 		[Tooltip("What the user reads when the card becomes a Joker.")]
-		[SerializeField] private string _jokerVerb = "TURNED A CARD INTO A JOKER";
+		[SerializeField] private string _jokerVerb = "GOT A JOKER";
 
 		[Tooltip("What the user reads when it does not.")]
-		[SerializeField] private string _failedVerb = "FAILED TO MAKE A JOKER";
+		[SerializeField] private string _failedVerb = "NO JOKER";
 
 		protected override PokerCardFlickerFaces FlickerFaces => PokerCardFlickerFaces.Joker;
 

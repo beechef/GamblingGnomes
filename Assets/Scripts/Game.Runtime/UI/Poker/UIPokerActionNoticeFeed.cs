@@ -16,13 +16,13 @@ namespace Game.Runtime.UI.Poker
 
 		[Header("Items")]
 		[Tooltip("Read after the name when somebody is dealt extra items for losing the last hand.")]
-		[SerializeField] private string _itemBonusVerb = "LOST LAST HAND: +{0} ITEM";
+		[SerializeField] private string _itemBonusVerb = "+{0} ITEM";
 
 		[Tooltip("Read after the name when somebody survives the Colorful they were fed and is handed items for it.")]
-		[SerializeField] private string _itemRewardVerb = "SURVIVED: +{0} ITEM";
+		[SerializeField] private string _itemRewardVerb = "SURVIVED +{0} ITEM";
 
 		[Tooltip("Told only to a player whose items were full, so what they were handed was lost.")]
-		[SerializeField] private string _itemsLostVerb = "ITEMS FULL: {0} LOST";
+		[SerializeField] private string _itemsLostVerb = "{0} ITEM LOST";
 
 		[Header("Match")]
 		[Tooltip("Read on top when the first hand of a match is about to be dealt.")]
