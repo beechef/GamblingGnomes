@@ -43,8 +43,8 @@ Words follow `CONTEXT.md` and `docs/items-design.md` (Match, Hand, Street, Bet, 
 
 ## Items
 
-- **Pool.** Thirteen Items in `PokerItemDatabase_Main`, all weight 1. Show Together, Suit Count,
-  Lock, Raise, Peek and Spike are left out of this database only; the other modes keep them.
+- **Pool.** Twelve Items in `PokerItemDatabase_Main`, all weight 1. Show Together, Suit Count,
+  Lock, Raise, Peek, Spike, Copy and No Items are left out of this database only; the other modes keep them.
 
   | Group | Asset | Name | Effect |
   |---|---|---|---|
@@ -54,17 +54,18 @@ Words follow `CONTEXT.md` and `docs/items-design.md` (Match, Hand, Street, Bet, 
   | Card | `ExtraDraw` | Extra Draw | Draw one more card; you cannot Fold for the rest of the Hand. |
   | Card | `PlaceOnBoard` | Lay Down | Lay a chosen card face up on the board (the board grows by one) and draw a new one in its place. |
   | Card | `RandomSuit` | Repaint | A chosen card keeps its rank and takes a random other suit. |
-  | Card | `CopyCard` | Copy | 35% (`_chance`) that a chosen card becomes a copy of another card in your hand. Only you hear whether it took; the table hears it was used. |
+  | Card | `JokerCard` | Wild Card | 50% (`_chance`) that a chosen card becomes a Joker. Only you hear whether it took; the card flickers between itself and a Joker for 3 s either way. |
+  | Card | `CopyCard` | Copy (out of the pool) | 35% (`_chance`) that a chosen card becomes a copy of another card in your hand. Only you hear whether it took. |
   | Death rate | `HalfDose` | Half Dose | A chosen player (you included) halves their Death Rate, then Death Rolls. |
   | Death rate | `RateShift` | Rate Shift | A chosen player's Death Rate goes up or down by 20 (`_amount`), drawn 50/50; the table is told which. A raise stops one short of the ceiling. |
   | Death rate | `SharedRoll` | Shared Roll | You and a chosen player Death Roll together. |
   | Death rate | `MushroomDose` | Spike (out of the pool) | A chosen player's next 2 mushrooms (`_caps`) do nothing or hit twice as hard, drawn 50/50 (`_nullifyWeight`/`_doubleWeight`), Colorful roll included. Kept across Hands until eaten; the table is told which. |
   | Disturb | `PeekHand` | Peek (out of the pool) | See one card of a chosen player, who is told which. |
-  | Disturb | `PairLockItems` | No Items | You and a chosen player cannot play Items on the next Street. |
+  | Disturb | `PairLockItems` | No Items (out of the pool) | You and a chosen player cannot play Items on the next Street. |
   | Disturb | `PairLockFold` | Chained | You and a chosen player cannot Fold on the next Street. |
   | Disturb | `TableReveal` | Exposure | Every player still in the Hand shows one random hidden card over their head this Street (`_shownStreets`). |
 
-  Joker cards are never offered to Repaint or Copy. Chosen own cards before the look are picked face down.
+  Joker cards are never offered to Repaint, Copy or Wild Card. Chosen own cards before the look are picked face down.
 - **Handout.** 2 random Items to every player in the Match at every deal (`_itemsPerHand` 2), no
   loser bonus. The winner may name themselves for the Colorful to fish for the survivor's Item.
 - **Inventory.** Capacity 5, 1 Item per Street, kept across Hands, cleared when the Match ends.

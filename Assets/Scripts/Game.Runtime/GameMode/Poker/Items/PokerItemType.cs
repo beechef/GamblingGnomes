@@ -23,6 +23,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 		PairLockItems = 16,
 		PairLockFold = 17,
 		RateShift = 18,
-		TableReveal = 19
+		TableReveal = 19,
+		JokerCard = 20
 	}
 }

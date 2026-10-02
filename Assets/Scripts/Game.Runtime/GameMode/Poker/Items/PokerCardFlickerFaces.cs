@@ -4,6 +4,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 	public enum PokerCardFlickerFaces : byte
 	{
 		Suits = 0,
-		OwnHand = 1
+		OwnHand = 1,
+		Joker = 2
 	}
 }

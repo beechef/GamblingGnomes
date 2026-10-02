@@ -91,6 +91,13 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		{
 			_faces.Clear();
 
+			if (faces == PokerCardFlickerFaces.Joker)
+			{
+				_faces.Add(CardData.Joker);
+				_faces.Add(card);
+				return;
+			}
+
 			if (faces == PokerCardFlickerFaces.Suits)
 			{
 				for (var suit = 0; suit < SuitCount; suit++)
