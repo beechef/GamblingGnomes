@@ -43,8 +43,8 @@ Words follow `CONTEXT.md` and `docs/items-design.md` (Match, Hand, Street, Bet, 
 
 ## Items
 
-- **Pool.** Fifteen Items in `PokerItemDatabase_Main`, all weight 1. Show Together, Suit Count,
-  Lock and Raise are left out of this database only; the other modes keep them.
+- **Pool.** Thirteen Items in `PokerItemDatabase_Main`, all weight 1. Show Together, Suit Count,
+  Lock, Raise, Peek and Spike are left out of this database only; the other modes keep them.
 
   | Group | Asset | Name | Effect |
   |---|---|---|---|
@@ -58,8 +58,8 @@ Words follow `CONTEXT.md` and `docs/items-design.md` (Match, Hand, Street, Bet, 
   | Death rate | `HalfDose` | Half Dose | A chosen player (you included) halves their Death Rate, then Death Rolls. |
   | Death rate | `RateShift` | Rate Shift | A chosen player's Death Rate goes up or down by 20 (`_amount`), drawn 50/50; the table is told which. A raise stops one short of the ceiling. |
   | Death rate | `SharedRoll` | Shared Roll | You and a chosen player Death Roll together. |
-  | Death rate | `MushroomDose` | Spike | A chosen player's next 2 mushrooms (`_caps`) do nothing or hit twice as hard, drawn 50/50 (`_nullifyWeight`/`_doubleWeight`), Colorful roll included. Kept across Hands until eaten; the table is told which. |
-  | Disturb | `PeekHand` | Peek | See one card of a chosen player, who is told which. |
+  | Death rate | `MushroomDose` | Spike (out of the pool) | A chosen player's next 2 mushrooms (`_caps`) do nothing or hit twice as hard, drawn 50/50 (`_nullifyWeight`/`_doubleWeight`), Colorful roll included. Kept across Hands until eaten; the table is told which. |
+  | Disturb | `PeekHand` | Peek (out of the pool) | See one card of a chosen player, who is told which. |
   | Disturb | `PairLockItems` | No Items | You and a chosen player cannot play Items on the next Street. |
   | Disturb | `PairLockFold` | Chained | You and a chosen player cannot Fold on the next Street. |
   | Disturb | `TableReveal` | Exposure | Every player still in the Hand shows one random hidden card over their head this Street (`_shownStreets`). |
