@@ -811,7 +811,7 @@ namespace Game.Runtime.GameMode.Poker
 			ServerEndMatchIfDecided();
 		}
 
-		// A death mid-hand that leaves one player in the match ends it there and then, rather than playing the
+		// A death or a departure mid-hand that leaves one player in the match ends it there and then, rather than playing the
 		// hand out to a showdown nobody can lose. The match-over stage resets pot, cards and stats.
 		private void ServerEndMatchIfDecided()
 		{
@@ -1015,6 +1015,8 @@ namespace Game.Runtime.GameMode.Poker
 			{
 				if (module) module.OnPlayerLeftSeat(clientId);
 			}
+
+			ServerEndMatchIfDecided();
 		}
 
 		private void HandleClientDisconnected(ulong clientId)
@@ -1039,6 +1041,8 @@ namespace Game.Runtime.GameMode.Poker
 			// Clearing the turn is not enough on its own — a street waiting on a player who has gone
 			// waits forever, and the table freezes for everyone still in it.
 			if (CurrentStage) CurrentStage.HandlePlayerLeft(clientId, seatIndex);
+
+			ServerEndMatchIfDecided();
 		}
 
 		public void BeginTurn(ulong clientId, float duration)
