@@ -9,8 +9,8 @@ namespace Game.Runtime.Player
 {
 	// One body a player can be drawn as, and everything that decides what goes in each slot of it: the
 	// meshes the body is cut into, its outfits, and a look per version for both. A new character is a new
-	// asset — nothing in the prefab changes, because every model is exported against the same skeleton
-	// and only the meshes change hands.
+	// asset — nothing in the prefab changes, because every model is skinned to bones of the same skeleton,
+	// named, and only the meshes change hands.
 	//
 	// Asked for by name and answered here: a caller says which outfit and which version, and this decides
 	// what that means for this body. That is what lets an outfit or a version be requested of a model that
@@ -23,8 +23,12 @@ namespace Game.Runtime.Player
 		{
 			public PlayerSlot Slot;
 
-			[Tooltip("Must be skinned to the shared skeleton, in its bone order — it is dropped onto a renderer already bound to those bones.")]
+			[Tooltip("Skinned to any subset of the shared skeleton's bones, in any order: the renderer is rebound by Bones.")]
 			public Mesh Mesh;
+
+			[Tooltip("The mesh's bones by name, in its bindpose order. Read off the model the mesh was imported from whenever this asset changes.")]
+			[ReadOnly]
+			public string[] Bones;
 		}
 
 		[Serializable]
@@ -94,64 +98,55 @@ namespace Game.Runtime.Player
 		}
 
 		[Header("Eyes")]
-		[Tooltip("Where the eyes are drawn: the face whose texture carries the pupils. Another kind of eyes is another material painted here. Empty: this body's eyes cannot be swapped.")]
-		[SerializeField] private List<SubmeshRef> _face = new();
-
-		[Tooltip("The whites of the eyes, cut out on their own so they can be tinted without the face. Empty: nothing to tint.")]
+		[Tooltip("The eye submeshes, pupils included, cut out on their own so the eyes are painted and tinted without the face. Empty: this body's eyes cannot be swapped or tinted.")]
 		[FormerlySerializedAs("_eyes")]
 		[SerializeField] private List<SubmeshRef> _eyes = new();
 
 		[Serializable]
-		public struct EyeLook
+		public struct EyeMask
 		{
 			public PlayerEyeKind Eyes;
-			public PlayerLookVersion Version;
-
-			[Tooltip("The face painted on Face for these eyes in this version.")]
-			public Material Face;
+			public Material Material;
 		}
 
-		[Tooltip("This body's face for each other kind of eyes, per version. A version with none takes Cartoon's; a kind with none keeps the default eyes.")]
-		[SerializeField] private List<EyeLook> _eyeLooks = new();
+		[Tooltip("One mask per kind of eyes, painted on Eyes in every version. A kind with none takes Default's; no Default keeps the version's own paint.")]
+		[SerializeField] private List<EyeMask> _eyeMasks = new();
 
-		public IReadOnlyList<SubmeshRef> Face => _face;
-
-		public Material FaceFor(PlayerEyeKind eyes, PlayerLookVersion version)
+		public Material EyeMaskFor(PlayerEyeKind eyes)
 		{
-			if (eyes == PlayerEyeKind.Default) return null;
-
-			Material cartoon = null;
-			foreach (var look in _eyeLooks)
+			Material fallback = null;
+			foreach (var mask in _eyeMasks)
 			{
-				if (look.Eyes != eyes || !look.Face) continue;
-				if (look.Version == version) return look.Face;
-				if (look.Version == PlayerLookVersion.Cartoon) cartoon = look.Face;
+				if (!mask.Material) continue;
+				if (mask.Eyes == eyes) return mask.Material;
+				if (mask.Eyes == PlayerEyeKind.Default) fallback = mask.Material;
 			}
 
-			return cartoon;
+			return fallback;
 		}
+
 		public IReadOnlyList<SubmeshRef> Eyes => _eyes;
 
 		// The body's own parts come first, so an outfit cannot take a slot the body already fills. Materials
 		// come back one per submesh; a submesh the version leaves empty takes Cartoon's, and one neither
 		// names is null so the caller can tell.
-		public void Resolve(PlayerSlot slot, PlayerOutfitId outfitId, PlayerLookVersion version, out Mesh mesh, List<Material> materials)
+		public void Resolve(PlayerSlot slot, PlayerOutfitId outfitId, PlayerLookVersion version, out Part part, List<Material> materials)
 		{
 			materials.Clear();
 
-			if (TryFind(_parts, slot, out mesh))
+			if (TryFind(_parts, slot, out part))
 			{
-				Pick(_looks, slot, version, mesh.subMeshCount, materials);
+				Pick(_looks, slot, version, part.Mesh.subMeshCount, materials);
 				return;
 			}
 
-			if (TryGetOutfit(outfitId, out var outfit) && TryFind(outfit.Parts, slot, out mesh))
+			if (TryGetOutfit(outfitId, out var outfit) && TryFind(outfit.Parts, slot, out part))
 			{
-				Pick(outfit.Looks, slot, version, mesh.subMeshCount, materials);
+				Pick(outfit.Looks, slot, version, part.Mesh.subMeshCount, materials);
 				return;
 			}
 
-			mesh = null;
+			part = default;
 		}
 
 		private bool TryGetOutfit(PlayerOutfitId id, out Outfit outfit)
@@ -168,7 +163,7 @@ namespace Game.Runtime.Player
 			return _outfits.Count > 0;
 		}
 
-		private static bool TryFind(List<Part> parts, PlayerSlot slot, out Mesh mesh)
+		private static bool TryFind(List<Part> parts, PlayerSlot slot, out Part found)
 		{
 			if (parts != null)
 			{
@@ -176,12 +171,12 @@ namespace Game.Runtime.Player
 				{
 					if (part.Slot != slot || !part.Mesh) continue;
 
-					mesh = part.Mesh;
+					found = part;
 					return true;
 				}
 			}
 
-			mesh = null;
+			found = default;
 			return false;
 		}
 
@@ -244,7 +239,9 @@ namespace Game.Runtime.Player
 
 				foreach (var paint in look.Paints)
 				{
-					if (!TryFind(parts, paint.Slot, out var mesh)) continue;
+					if (!TryFind(parts, paint.Slot, out var part)) continue;
+
+					var mesh = part.Mesh;
 
 					var count = paint.Materials?.Count ?? 0;
 					if (count == mesh.subMeshCount) continue;
@@ -253,5 +250,46 @@ namespace Game.Runtime.Player
 				}
 			}
 		}
+
+#if UNITY_EDITOR
+		private void OnValidate()
+		{
+			BakeBones(_parts);
+			foreach (var outfit in _outfits) BakeBones(outfit.Parts);
+		}
+
+		private void BakeBones(List<Part> parts)
+		{
+			if (parts == null) return;
+
+			for (var i = 0; i < parts.Count; i++)
+			{
+				var part = parts[i];
+				part.Bones = BonesOf(part.Mesh);
+				parts[i] = part;
+			}
+		}
+
+		private string[] BonesOf(Mesh mesh)
+		{
+			if (!mesh) return Array.Empty<string>();
+
+			var path = UnityEditor.AssetDatabase.GetAssetPath(mesh);
+			if (UnityEditor.AssetDatabase.LoadMainAssetAtPath(path) is GameObject source)
+			{
+				foreach (var renderer in source.GetComponentsInChildren<SkinnedMeshRenderer>(true))
+				{
+					if (renderer.sharedMesh != mesh) continue;
+
+					var bones = new string[renderer.bones.Length];
+					for (var i = 0; i < bones.Length; i++) bones[i] = renderer.bones[i] ? renderer.bones[i].name : string.Empty;
+					return bones;
+				}
+			}
+
+			Debug.LogWarning($"{name}: no skinned renderer in {path} draws {mesh.name}, so its bones cannot be named.", this);
+			return Array.Empty<string>();
+		}
+#endif
 	}
 }
