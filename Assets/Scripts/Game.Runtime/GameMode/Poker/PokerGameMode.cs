@@ -798,12 +798,33 @@ namespace Game.Runtime.GameMode.Poker
 		// theirs, by the same path as a player leaving the table.
 		public void ServerFoldOutOfHand(PokerPlayer player)
 		{
-			if (!IsServer || !player || !player.Data || !player.Data.IsInHand) return;
+			if (!IsServer || !player || !player.Data) return;
 
-			player.ServerFold();
+			if (player.Data.IsInHand)
+			{
+				player.ServerFold();
 
-			if (_data.CurrentTurnClientId.Value == player.ClientId && CurrentStage)
-				CurrentStage.HandlePlayerLeft(player.ClientId, player.Data.SeatIndex.Value);
+				if (_data.CurrentTurnClientId.Value == player.ClientId && CurrentStage)
+					CurrentStage.HandlePlayerLeft(player.ClientId, player.Data.SeatIndex.Value);
+			}
+
+			ServerEndMatchIfDecided();
+		}
+
+		// A death mid-hand that leaves one player in the match ends it there and then, rather than playing the
+		// hand out to a showdown nobody can lose. The match-over stage resets pot, cards and stats.
+		private void ServerEndMatchIfDecided()
+		{
+			var phase = _data.Phase.Value;
+			if (MatchPlayerCount > 1 || phase == PokerPhase.Waiting || phase == PokerPhase.MatchOver) return;
+
+			foreach (var stage in _stageMachine.Stages)
+			{
+				if (stage is not PokerMatchOverStage) continue;
+
+				if (CurrentStage != stage) GoToStage(stage);
+				return;
+			}
 		}
 
 		// Who opens this hand: every street starts from them and a tie at the showdown is broken toward them.
