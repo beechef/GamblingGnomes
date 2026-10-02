@@ -46,6 +46,9 @@ namespace Game.Runtime.UI.Poker
 		[Tooltip("Shown only where folding is allowed — by the street and by whatever items are in play. What the rules forbid is hidden, not greyed.")]
 		[SerializeField] private UIButton _foldButton;
 
+		[Tooltip("Shown over the Fold button while an item forbids folding on a street that allows it. The button stays up, locked.")]
+		[SerializeField] private GameObject _foldLock;
+
 		[Tooltip("Shown only on a street that allows going all in.")]
 		[SerializeField] private UIButton _allInButton;
 
@@ -194,7 +197,16 @@ namespace Game.Runtime.UI.Poker
 			var acting = IsActing && IsAlive;
 
 			if (_betButton) _betButton.gameObject.SetActive(acting);
-			if (_foldButton) _foldButton.gameObject.SetActive(acting && _stage.CanFold(LocalData));
+			// A street without folding hides the button; an item forbidding it leaves it up, locked, so the lock reads.
+			var foldShown = acting && _stage.AllowsFold;
+			var foldLocked = foldShown && !_stage.CanFold(LocalData);
+			if (_foldButton)
+			{
+				_foldButton.gameObject.SetActive(foldShown);
+				_foldButton.IsInteractable = !foldLocked;
+			}
+
+			if (_foldLock) _foldLock.SetActive(foldLocked);
 			if (_allInButton) _allInButton.gameObject.SetActive(acting && _stage.AllowAllIn);
 			if (_betLabel && acting) _betLabel.text = _stage.IsCall(LocalData) ? _callText : _betText;
 

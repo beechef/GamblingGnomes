@@ -87,6 +87,9 @@ namespace Game.Runtime.GameMode.Poker.Items
 		// saw. The swap itself is written once they land.
 		public event Action<PokerCardPlace, PokerCardPlace, bool> OnCardsExchanging;
 
+		// An item played, on every peer: user, item, and whom it was aimed at (NoTurn for nobody). For props.
+		public event Action<ulong, PokerItemType, ulong> OnItemUsed;
+
 		// A card about to be rewritten in place, and which faces it flickers through on the way.
 		public event Action<PokerCardPlace, PokerCardFlickerFaces> OnCardRewriting;
 
@@ -510,8 +513,11 @@ namespace Game.Runtime.GameMode.Poker.Items
 				if (item.HallucinationCost > 0) user.Data.ServerChangeHallucination(item.HallucinationCost);
 
 				var target = GameMode.FindSeatedPlayerAtSeat(request.TargetSeat);
+				var targetClientId = target ? target.ClientId : PokerGameData.NoTurn;
 				if (GameMode.Notices && !item.AnnouncesOutcome)
-					GameMode.Notices.ServerAnnounce(PokerNotice.ForItemUsed(clientId, request.Item, target ? target.ClientId : PokerGameData.NoTurn));
+					GameMode.Notices.ServerAnnounce(PokerNotice.ForItemUsed(clientId, request.Item, targetClientId));
+
+				PlayItemUsedRPC(clientId, request.Item, targetClientId);
 
 				await item.UseServerAsync(context, request, ct);
 			}
@@ -634,6 +640,9 @@ namespace Game.Runtime.GameMode.Poker.Items
 			holder.Data.ServerReplaceHoleCard(slot, card);
 			ServerForget(PokerCardPlace.InHand(holder.ClientId, slot));
 		}
+
+		[Rpc(SendTo.Everyone)]
+		private void PlayItemUsedRPC(ulong user, PokerItemType item, ulong target) => OnItemUsed?.Invoke(user, item, target);
 
 		[Rpc(SendTo.Everyone)]
 		private void PlayCardRewriteRPC(PokerCardPlace place, PokerCardFlickerFaces faces) => OnCardRewriting?.Invoke(place, faces);
