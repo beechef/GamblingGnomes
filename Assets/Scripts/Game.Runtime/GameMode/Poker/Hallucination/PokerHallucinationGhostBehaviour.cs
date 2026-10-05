@@ -45,7 +45,7 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 		}
 
 		private readonly List<Source> _sources = new();
-		private readonly List<Transform> _resolved = new();
+		private readonly List<Transform> _resolved = new();	
 
 		private GameObject _container;
 		private Tween _tween;
