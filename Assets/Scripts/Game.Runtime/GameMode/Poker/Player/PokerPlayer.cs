@@ -141,6 +141,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 		// noparse, so a name can never carry rich text of its own.
 		public string ColoredName => Colorize(DisplayName, Color);
 
+		// The name in the label's own colour, for boards that keep their art's look (ranking, self pick).
+		public string PlainName => $"<noparse>{DisplayName}</noparse>";
+
 		public static string ColoredNameOf(ulong clientId)
 		{
 			var player = Find(clientId);
