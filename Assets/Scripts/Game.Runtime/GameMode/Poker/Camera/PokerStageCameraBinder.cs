@@ -34,6 +34,9 @@ namespace Game.Runtime.GameMode.Poker.Camera
 		[Tooltip("On, this shot is only for somebody with a place in the running match. A player who took a chair mid match has no row of cards and no cap of their own, so a shot about their own seat would park their view on an empty patch of table. Off for anything about the table or about somebody else, which a viewer watches like everybody else.")]
 		[SerializeField] private bool _requiresPlaceInMatch;
 
+		[Tooltip("On, this shot is only up while the table is watching somebody (FocusClientId set). A beat that only sometimes points the room at one player, like everyone eating at once with the camera turning to whoever rolls, leaves the view free the rest of the time.")]
+		[SerializeField] private bool _requiresFocus;
+
 		[Header("References")]
 		[SerializeField] private PokerPlayerData _data;
 
@@ -42,6 +45,7 @@ namespace Game.Runtime.GameMode.Poker.Camera
 		private int _handle;
 		private FixedString32Bytes _lastStageId;
 		private bool _lastEligible;
+		private bool _lastFocused;
 
 		public override void OnNetworkSpawn()
 		{
@@ -78,11 +82,13 @@ namespace Game.Runtime.GameMode.Poker.Camera
 			var mode = PokerGameMode.Instance;
 			var stageId = mode && mode.Data ? mode.Data.StageId.Value : default;
 			var eligible = !_requiresPlaceInMatch || (_data && _data.InMatch.Value);
+			var focused = !_requiresFocus || (mode && mode.Data && mode.Data.FocusClientId.Value != PokerGameData.NoTurn);
 
-			if (stageId.Equals(_lastStageId) && eligible == _lastEligible) return;
+			if (stageId.Equals(_lastStageId) && eligible == _lastEligible && focused == _lastFocused) return;
 
 			_lastStageId = stageId;
 			_lastEligible = eligible;
+			_lastFocused = focused;
 
 			Refresh();
 		}
@@ -100,6 +106,7 @@ namespace Game.Runtime.GameMode.Poker.Camera
 
 			var mode = PokerGameMode.Instance;
 			if (!mode || !mode.Data) return false;
+			if (_requiresFocus && mode.Data.FocusClientId.Value == PokerGameData.NoTurn) return false;
 
 			var running = mode.Data.StageId.Value;
 

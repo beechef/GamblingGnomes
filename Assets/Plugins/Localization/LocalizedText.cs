@@ -40,7 +40,8 @@ namespace Localization
 			// Resolved here rather than only in Awake: a clone of a disabled template never gets
 			// Awake until something activates it.
 			if (!_label) _label = GetComponent<TMP_Text>();
-			if (!_label || string.IsNullOrEmpty(_key)) return;
+			// Before the language is loaded there is nothing to show; Initialize raises OnLocaleChanged and this runs again.
+			if (!_label || string.IsNullOrEmpty(_key) || !Localizer.IsInitialized) return;
 
 			_label.text = ProcessText(Localizer.Get(_key));
 		}
