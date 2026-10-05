@@ -1132,22 +1132,30 @@ namespace Game.Runtime.GameMode.Poker
 		[Rpc(SendTo.Server)]
 		public void SubmitActionRPC(PokerActionType action, int amount, RpcParams rpcParams = default)
 		{
-			var senderClientId = rpcParams.Receive.SenderClientId;
+			ServerSubmitAction(rpcParams.Receive.SenderClientId, action, amount);
+		}
+
+		// The one door every answer comes through, whether a client sent it or a bot gave it on the server.
+		public bool ServerSubmitAction(ulong clientId, PokerActionType action, int amount)
+		{
+			if (!IsServer) return false;
 
 			foreach (var module in _modules)
 			{
-				if (module && !module.CanPlayerAct(senderClientId, action, amount)) return;
+				if (module && !module.CanPlayerAct(clientId, action, amount)) return false;
 			}
 
-			if (!CurrentStage || !CurrentStage.HandleAction(senderClientId, action, amount)) return;
+			if (!CurrentStage || !CurrentStage.HandleAction(clientId, action, amount)) return false;
 
 			// A stage whose answers are sealed tells nobody who answered what.
-			if (CurrentStage.AnnouncesActions && _notices) _notices.ServerAnnounce(PokerNotice.ForAction(senderClientId, action));
+			if (CurrentStage.AnnouncesActions && _notices) _notices.ServerAnnounce(PokerNotice.ForAction(clientId, action));
 
 			foreach (var module in _modules)
 			{
-				if (module) module.OnPlayerActed(senderClientId, action, amount);
+				if (module) module.OnPlayerActed(clientId, action, amount);
 			}
+
+			return true;
 		}
 
 		[Rpc(SendTo.Server)]

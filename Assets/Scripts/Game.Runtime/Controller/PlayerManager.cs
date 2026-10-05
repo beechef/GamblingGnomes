@@ -33,6 +33,26 @@ namespace Game.Runtime.Controller
 		// everybody in the first few colours instead of drifting off the end of the palette.
 		private readonly HashSet<int> _claimedColorIndices = new();
 
+		// Bodies with no connection, newest last so removal takes the latest.
+		private readonly List<ulong> _botClientIds = new();
+		private ulong _nextBotClientId = PlayerBot.FirstClientId;
+
+		public static PlayerManager Instance { get; private set; }
+
+		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+		private static void ResetStatics() => Instance = null;
+
+		private void Awake()
+		{
+			if (Instance && Instance != this)
+			{
+				Destroy(gameObject);
+				return;
+			}
+
+			Instance = this;
+		}
+
 		private readonly struct PlayerEntry
 		{
 			public PlayerEntry(NetworkObject player, int colorIndex)
@@ -90,6 +110,39 @@ namespace Game.Runtime.Controller
 			base.OnNetworkDespawn();
 		}
 
+		public override void OnDestroy()
+		{
+			if (Instance == this) Instance = null;
+
+			base.OnDestroy();
+		}
+
+		public bool ServerAddBot(NetworkObject botPrefab)
+		{
+			if (!IsHost || !botPrefab) return false;
+
+			var clientId = _nextBotClientId++;
+			var player = SpawnPlayer(clientId, botPrefab, isPlayerObject: false);
+
+			var data = player.GetComponent<PlayerData>();
+			if (data) data.ServerSetIdentity(clientId, $"Bot {clientId - PlayerBot.FirstClientId + 1}");
+
+			_botClientIds.Add(clientId);
+			return true;
+		}
+
+		public bool ServerRemoveBot()
+		{
+			if (!IsHost || _botClientIds.Count == 0) return false;
+
+			var clientId = _botClientIds[^1];
+			_botClientIds.RemoveAt(_botClientIds.Count - 1);
+
+			// Leaves the way a disconnecting player does, so the table cleans up after it the same way.
+			HandlePlayerDisconnected(clientId);
+			return true;
+		}
+
 		private void HandleNewPlayer(ulong clientId)
 		{
 			if (!IsHost) return;
@@ -98,10 +151,16 @@ namespace Game.Runtime.Controller
 			// through the callback — without this it would be dealt two bodies.
 			if (_players.ContainsKey(clientId)) return;
 
+			SpawnPlayer(clientId, SelectedPlayerPrefab, isPlayerObject: true);
+		}
+
+		// A bot is not a player object: Netcode only gives those to connected clients.
+		private NetworkObject SpawnPlayer(ulong clientId, NetworkObject prefab, bool isPlayerObject)
+		{
 			var spawnPoint = GetRandomSpawnPoint();
-			var player = NetworkManager.SpawnManager.InstantiateAndSpawn(SelectedPlayerPrefab,
+			var player = NetworkManager.SpawnManager.InstantiateAndSpawn(prefab,
 				ownerClientId: clientId,
-				isPlayerObject: true,
+				isPlayerObject: isPlayerObject,
 				position: spawnPoint ? spawnPoint.transform.position : Vector3.zero,
 				rotation: spawnPoint ? spawnPoint.transform.rotation : Quaternion.identity);
 
@@ -114,6 +173,7 @@ namespace Game.Runtime.Controller
 
 			Players.Add(player);
 			_players[clientId] = new PlayerEntry(player, colorIndex);
+			return player;
 		}
 
 		// A mode whose players carry different pieces (Indian Poker wears its cards on the head) names its own body.
@@ -160,6 +220,7 @@ namespace Game.Runtime.Controller
 			}
 
 			_players.Clear();
+			_botClientIds.Clear();
 			Players.Clear();
 			_claimedColorIndices.Clear();
 		}

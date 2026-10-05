@@ -4,6 +4,7 @@ namespace Game.Runtime.Player
 {
 	public class OwnerNetworkTransform : NetworkTransform
 	{
-		protected override bool OnIsServerAuthoritative() => false;
+		// A bot's owner never connects, so the server moves its body.
+		protected override bool OnIsServerAuthoritative() => PlayerBot.IsBot(OwnerClientId);
 	}
 }

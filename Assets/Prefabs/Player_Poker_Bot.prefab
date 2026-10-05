@@ -1,0 +1,133 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &650220045865057885
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 145393382136701529}
+  - component: {fileID: 545319678328190690}
+  m_Layer: 0
+  m_Name: Bot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &145393382136701529
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 650220045865057885}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8676040045178919037}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &545319678328190690
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 650220045865057885}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4caad0b9ae9b401daa0a54fd87dceb22, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Player.PokerBotController
+  ShowTopMostFoldoutHeaderGroup: 1
+  _player: {fileID: 5961408687035526636}
+  _answerDelay: 1
+--- !u!1001 &1566947571693958087
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 2128442599610525971, guid: 59e5ab48b33564b4e9e607ac9d457a0d, type: 3}
+      propertyPath: GlobalObjectIdHash
+      value: 1084862964
+      objectReference: {fileID: 0}
+    - target: {fileID: 2128442599610525971, guid: 59e5ab48b33564b4e9e607ac9d457a0d, type: 3}
+      propertyPath: InScenePlacedSourceGlobalObjectIdHash
+      value: 3585866065
+      objectReference: {fileID: 0}
+    - target: {fileID: 7915523810459036602, guid: 59e5ab48b33564b4e9e607ac9d457a0d, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7915523810459036602, guid: 59e5ab48b33564b4e9e607ac9d457a0d, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7915523810459036602, guid: 59e5ab48b33564b4e9e607ac9d457a0d, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7915523810459036602, guid: 59e5ab48b33564b4e9e607ac9d457a0d, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7915523810459036602, guid: 59e5ab48b33564b4e9e607ac9d457a0d, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7915523810459036602, guid: 59e5ab48b33564b4e9e607ac9d457a0d, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7915523810459036602, guid: 59e5ab48b33564b4e9e607ac9d457a0d, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7915523810459036602, guid: 59e5ab48b33564b4e9e607ac9d457a0d, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7915523810459036602, guid: 59e5ab48b33564b4e9e607ac9d457a0d, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7915523810459036602, guid: 59e5ab48b33564b4e9e607ac9d457a0d, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 8336770729751643675, guid: 59e5ab48b33564b4e9e607ac9d457a0d, type: 3}
+      propertyPath: m_Name
+      value: Player_Poker_Bot
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 7915523810459036602, guid: 59e5ab48b33564b4e9e607ac9d457a0d, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 145393382136701529}
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 59e5ab48b33564b4e9e607ac9d457a0d, type: 3}
+--- !u!114 &5961408687035526636 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5117715483773410859, guid: 59e5ab48b33564b4e9e607ac9d457a0d, type: 3}
+  m_PrefabInstance: {fileID: 1566947571693958087}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5da168a7cbcfbfe458c00c141ebe32db, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Player.PokerPlayer
+--- !u!4 &8676040045178919037 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 7915523810459036602, guid: 59e5ab48b33564b4e9e607ac9d457a0d, type: 3}
+  m_PrefabInstance: {fileID: 1566947571693958087}
+  m_PrefabAsset: {fileID: 0}

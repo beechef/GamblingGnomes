@@ -79,6 +79,7 @@ GameObject:
   - component: {fileID: 7373537335293292376}
   - component: {fileID: -9007372877243146254}
   - component: {fileID: 1010059874106853844}
+  - component: {fileID: 8603986454461082823}
   m_Layer: 0
   m_Name: GameMode_Poker
   m_TagString: Untagged
@@ -295,3 +296,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.PokerNoticeChannel
   ShowTopMostFoldoutHeaderGroup: 1
+--- !u!114 &8603986454461082823
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7894337194493779765}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e840125f1dc04a8081f2f193815481b4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.PokerBotSpawner
+  ShowTopMostFoldoutHeaderGroup: 1
+  _allowBots: 1
+  _botPrefab: {fileID: 592036192478993108, guid: 4a9d57fd57c39d149aaf7ecfaf3b8a60, type: 3}
