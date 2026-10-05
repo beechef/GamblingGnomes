@@ -6,8 +6,8 @@ using UnityEngine.InputSystem;
 
 namespace Game.Runtime.GameMode.Poker
 {
-	// Solo playtesting: host-only keys [ and ] add and remove bots. The keys are built here rather than in
-	// the action asset so they never show up for rebinding.
+	// Solo playtesting: host-only keys [ and ] add and remove bots, never more bodies than the table lays
+	// chairs. The keys are built here rather than in the action asset so they never show up for rebinding.
 	public class PokerBotSpawner : NetworkBehaviour
 	{
 		[Tooltip("On, the host can add bots with [ and remove them with ].")]
@@ -17,8 +17,14 @@ namespace Game.Runtime.GameMode.Poker
 		[Required, ShowIf(nameof(_allowBots))]
 		[SerializeField] private NetworkObject _botPrefab;
 
+		private PokerGameMode _gameMode;
 		private InputAction _addBotAction;
 		private InputAction _removeBotAction;
+
+		private void Awake()
+		{
+			_gameMode = GetComponent<PokerGameMode>();
+		}
 
 		public override void OnNetworkSpawn()
 		{
@@ -54,6 +60,14 @@ namespace Game.Runtime.GameMode.Poker
 			if (!players)
 			{
 				Debug.LogWarning("Bot not added: no PlayerManager in the loaded gameplay scene.");
+				return;
+			}
+
+			// A body with no chair would stand around the table for the whole match.
+			var seats = _gameMode && _gameMode.Data ? _gameMode.Data.ActiveSeatCount.Value : 0;
+			if (players.Players.Count >= seats)
+			{
+				Debug.LogWarning($"Bot not added: all {seats} chairs are taken.");
 				return;
 			}
 
