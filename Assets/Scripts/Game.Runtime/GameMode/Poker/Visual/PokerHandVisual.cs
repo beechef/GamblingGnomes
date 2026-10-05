@@ -63,6 +63,9 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 		private readonly List<PokerCardVisual> _cards = new();
 
+		// The holder's own record of who peeked at which of their cards; only the owner receives it.
+		private PokerItemKnowledge _knowledge;
+
 		public IReadOnlyList<PokerCardVisual> Cards => _cards;
 
 		// Where picked-up cards are held: the fan in the hand (or the row on the head).
@@ -100,6 +103,10 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			_data.OnHoleCardsChanged += HandleHoleCardsChanged;
 			_data.OnHoleCardPresentationChanged += HandlePresentationChanged;
 
+			var player = GetComponentInParent<PokerPlayer>();
+			_knowledge = player ? player.ItemKnowledge : null;
+			if (_knowledge) _knowledge.OnKnowledgeChanged += MarkExposed;
+
 			// Late join: whatever is already in this hand, shown as it stands.
 			RebuildAll();
 		}
@@ -107,6 +114,9 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		public override void OnNetworkDespawn()
 		{
 			if (!_data) return;
+
+			if (_knowledge) _knowledge.OnKnowledgeChanged -= MarkExposed;
+			_knowledge = null;
 
 			_data.OnHoleCardsChanged -= HandleHoleCardsChanged;
 			_data.OnHoleCardPresentationChanged -= HandlePresentationChanged;
@@ -451,7 +461,8 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			HandOver(index, animate);
 		}
 
-		// The holder sees which of their own cards the table is shown (the row over their head).
+		// The holder sees which of their own cards somebody else has seen, shown to the table or peeked at in
+		// private: the seen mark on the card.
 		private void MarkExposed()
 		{
 			for (var i = 0; i < _cards.Count; i++)
@@ -460,7 +471,19 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			}
 		}
 
-		private bool IsExposed(int index) => _data && _data.IsOwner && _data.IsHoleCardShown(index);
+		private bool IsExposed(int index) => _data && _data.IsOwner && (_data.IsHoleCardShown(index) || IsPeeked(index));
+
+		private bool IsPeeked(int index)
+		{
+			if (!_knowledge) return false;
+
+			foreach (var exposed in _knowledge.ExposedCards)
+			{
+				if (exposed.Slot == index) return true;
+			}
+
+			return false;
+		}
 
 		private void RemoveCard(int index)
 		{

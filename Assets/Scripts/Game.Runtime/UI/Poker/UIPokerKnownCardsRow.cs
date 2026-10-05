@@ -6,13 +6,13 @@ using UnityEngine;
 
 namespace Game.Runtime.UI.Poker
 {
-	// The cards of one player this screen knows before the showdown. Over somebody else's head: what they
-	// turned up for the table and what this player peeked at. In the local player's own items panel: which of
-	// their cards are out, and who has seen them.
+	// The cards of one player this screen knows before the showdown, over their head: what they turned up for
+	// the table and what this player peeked at. The holder reads their own shown cards off the seen mark on the
+	// card itself (PokerCardVisual.SetExposed).
 	//
-	// Binds itself: a row inside a player's body is about that player, a row outside one (the HUD) is about
-	// the local player. Either way what this screen knows is read from the local player's own item knowledge,
-	// which only they receive.
+	// Binds itself: a row inside a player's body is about that player, a row outside one is about the local
+	// player. Either way what this screen knows is read from the local player's own item knowledge, which only
+	// they receive.
 	public class UIPokerKnownCardsRow : MonoBehaviour
 	{
 		[Tooltip("Shown while there is at least one card to show. A child, so this row keeps listening while hidden.")]
@@ -23,10 +23,6 @@ namespace Game.Runtime.UI.Poker
 
 		[Tooltip("One exposed card (UI_PokerKnownCard).")]
 		[SerializeField] private UIPokerKnownCardEntry _entryPrefab;
-
-		[Header("Labels")]
-		[SerializeField] private string _shownLabel = "SHOWN";
-		[SerializeField] private string _peekedLabel = "PEEKED";
 
 		private readonly List<UIPokerKnownCardEntry> _entries = new();
 
@@ -108,19 +104,19 @@ namespace Game.Runtime.UI.Poker
 
 				for (var slot = 0; slot < data.CardCount; slot++)
 				{
-					if (data.IsHoleCardShown(slot)) Place(ref used, data.HoleCards[slot], _shownLabel);
+					if (data.IsHoleCardShown(slot)) Place(ref used, data.HoleCards[slot]);
 				}
 
 				var knowledge = _local ? _local.ItemKnowledge : null;
 				if (knowledge && _subject == _local)
 				{
-					foreach (var exposed in knowledge.ExposedCards) Place(ref used, exposed.Card, PokerPlayer.ColoredNameOf(exposed.OtherClientId));
+					foreach (var exposed in knowledge.ExposedCards) Place(ref used, exposed.Card);
 				}
 				else if (knowledge)
 				{
 					foreach (var known in knowledge.KnownCards)
 					{
-						if (known.OtherClientId == _subject.ClientId) Place(ref used, known.Card, _peekedLabel);
+						if (known.OtherClientId == _subject.ClientId) Place(ref used, known.Card);
 					}
 				}
 			}
@@ -131,7 +127,7 @@ namespace Game.Runtime.UI.Poker
 		}
 
 		// Views already made are re-bound rather than rebuilt, so the row never flashes.
-		private void Place(ref int used, CardData card, string label)
+		private void Place(ref int used, CardData card)
 		{
 			if (!_entryPrefab || !_row) return;
 
@@ -139,7 +135,7 @@ namespace Game.Runtime.UI.Poker
 
 			var entry = _entries[used++];
 			entry.gameObject.SetActive(true);
-			entry.Bind(card, label);
+			entry.Bind(card);
 		}
 	}
 }
