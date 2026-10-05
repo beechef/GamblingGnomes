@@ -16,6 +16,10 @@ namespace Game.Runtime.UI.Settings
 		private static readonly FullScreenMode[] WindowModes =
 			{ FullScreenMode.ExclusiveFullScreen, FullScreenMode.FullScreenWindow, FullScreenMode.Windowed };
 
+		// The common 16:9 sizes, offered up to what the display can show, rather than every mode it reports.
+		private static readonly Vector2Int[] ResolutionPresets =
+			{ new(1280, 720), new(1600, 900), new(1920, 1080), new(2560, 1440), new(3840, 2160) };
+
 		private static readonly int[] FrameRates = { 30, 60, 120, 144, 165, 240, GameSettings.UncappedFrameRate };
 
 		[Header("Graphics")]
@@ -81,10 +85,13 @@ namespace Game.Runtime.UI.Settings
 				Math.Max(0, Array.IndexOf(WindowModes, GameSettings.WindowMode)));
 
 			_resolutions.Clear();
-			_resolutions.AddRange(Screen.resolutions.Select(r => new Vector2Int(r.width, r.height)).Distinct().OrderBy(r => r.x).ThenBy(r => r.y));
+			var display = Screen.currentResolution;
+			_resolutions.AddRange(ResolutionPresets.Where(r => r.x <= display.width && r.y <= display.height));
 
 			var current = new Vector2Int(Screen.width, Screen.height);
+			// A window dragged to another size still shows what it is.
 			if (!_resolutions.Contains(current)) _resolutions.Add(current);
+			_resolutions.Sort((a, b) => a.x != b.x ? a.x.CompareTo(b.x) : a.y.CompareTo(b.y));
 
 			_resolution.SetOptions(_resolutions.Select(r => $"{r.x} × {r.y}"), _resolutions.IndexOf(current));
 

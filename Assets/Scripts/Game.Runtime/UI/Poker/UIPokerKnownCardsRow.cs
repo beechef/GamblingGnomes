@@ -25,6 +25,7 @@ namespace Game.Runtime.UI.Poker
 		[SerializeField] private UIPokerKnownCardEntry _entryPrefab;
 
 		private readonly List<UIPokerKnownCardEntry> _entries = new();
+		private readonly HashSet<int> _placedSlots = new();
 
 		private PokerPlayer _bodyOwner;
 		private PokerPlayer _subject;
@@ -97,6 +98,7 @@ namespace Game.Runtime.UI.Poker
 		private void Rebuild()
 		{
 			var used = 0;
+			_placedSlots.Clear();
 
 			if (_subject && _subject.Data)
 			{
@@ -104,19 +106,19 @@ namespace Game.Runtime.UI.Poker
 
 				for (var slot = 0; slot < data.CardCount; slot++)
 				{
-					if (data.IsHoleCardShown(slot)) Place(ref used, data.HoleCards[slot]);
+					if (data.IsHoleCardShown(slot)) Place(ref used, slot, data.HoleCards[slot]);
 				}
 
 				var knowledge = _local ? _local.ItemKnowledge : null;
 				if (knowledge && _subject == _local)
 				{
-					foreach (var exposed in knowledge.ExposedCards) Place(ref used, exposed.Card);
+					foreach (var exposed in knowledge.ExposedCards) Place(ref used, exposed.Slot, exposed.Card);
 				}
 				else if (knowledge)
 				{
 					foreach (var known in knowledge.KnownCards)
 					{
-						if (known.OtherClientId == _subject.ClientId) Place(ref used, known.Card);
+						if (known.OtherClientId == _subject.ClientId) Place(ref used, known.Slot, known.Card);
 					}
 				}
 			}
@@ -126,10 +128,11 @@ namespace Game.Runtime.UI.Poker
 			if (_content) _content.SetActive(used > 0);
 		}
 
-		// Views already made are re-bound rather than rebuilt, so the row never flashes.
-		private void Place(ref int used, CardData card)
+		// Views already made are re-bound rather than rebuilt, so the row never flashes. One entry per slot: a card
+		// shown to the table that this player also peeked at, or that two players peeked at, is still one card.
+		private void Place(ref int used, int slot, CardData card)
 		{
-			if (!_entryPrefab || !_row) return;
+			if (!_entryPrefab || !_row || !_placedSlots.Add(slot)) return;
 
 			if (used == _entries.Count) _entries.Add(Instantiate(_entryPrefab, _row));
 

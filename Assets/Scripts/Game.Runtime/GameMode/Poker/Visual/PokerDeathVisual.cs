@@ -10,8 +10,9 @@ namespace Game.Runtime.GameMode.Poker.Visual
 {
 	// The head goes on the frame it bursts: when the death clip's cue spawns the burst effect, its mesh is
 	// switched off through PlayerVisual, the one writer of what a body draws, and switched back on when the
-	// rate comes down. Only the mesh — the bones stay as they are, so the owner's camera and everything else
-	// hung on the head keep their place.
+	// rate comes down. Whatever hangs off the head bone goes with it (a dung hat, a cone, a non-gnome hat),
+	// through forceRenderingOff, which nothing else writes, so a prop shown or hidden by an effect meanwhile
+	// keeps its own state. Only meshes — the bones stay as they are, so the owner's camera keeps its place.
 	//
 	// The burst is the one clock; the pacing's head delay plus a margin is only the backstop for a rig that
 	// never fires it (not drawn, culled, or a clip with no cue).
@@ -37,6 +38,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		[SerializeField] private PokerDeathPoseController _pose;
 
 		private readonly List<AnimationVfxPlayer> _vfxPlayers = new();
+		private readonly List<Renderer> _headProps = new();
 
 		private bool _hidden;
 		private bool _awaitingBurst;
@@ -109,6 +111,15 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			_hidden = true;
 
 			foreach (var slot in _hiddenSlots) _visual.SetSlotHidden(this, slot, true);
+
+			// Inactive ones too: an effect may switch a hat on after the head is gone. Meshes only — the burst
+			// itself is spawned on the head bone, and its particles must still be seen.
+			var head = _rig && _rig.FullBodyRig ? _rig.FullBodyRig.Get(PlayerBone.Head) : null;
+			if (!head) return;
+
+			head.GetComponentsInChildren(true, _headProps);
+			_headProps.RemoveAll(prop => prop is not (MeshRenderer or SkinnedMeshRenderer));
+			foreach (var prop in _headProps) prop.forceRenderingOff = true;
 		}
 
 		private void Restore()
@@ -124,6 +135,13 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			if (!_visual) return;
 
 			foreach (var slot in _hiddenSlots) _visual.SetSlotHidden(this, slot, false);
+
+			foreach (var prop in _headProps)
+			{
+				if (prop) prop.forceRenderingOff = false;
+			}
+
+			_headProps.Clear();
 		}
 	}
 }
