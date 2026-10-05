@@ -16,6 +16,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		private PokerPlayer _player;
 		private PokerPlayerData _data;
 		private PokerGameMode _gameMode;
+		private PokerItemKnowledge _localKnowledge;
 		private bool _started;
 
 		public IReadOnlyList<PokerPlayerEffect> Active => _active;
@@ -56,10 +57,16 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 			PokerGameMode.OnInstanceChanged += HandleGameModeChanged;
 			BindGameMode(PokerGameMode.Instance);
+
+			PokerPlayer.OnLocalPlayerChanged += BindLocal;
+			BindLocal(PokerPlayer.Local);
 		}
 
 		private void Unbind()
 		{
+			BindLocal(null);
+			PokerPlayer.OnLocalPlayerChanged -= BindLocal;
+
 			BindGameMode(null);
 			PokerGameMode.OnInstanceChanged -= HandleGameModeChanged;
 
@@ -93,6 +100,18 @@ namespace Game.Runtime.GameMode.Poker.Player
 			Refresh();
 		}
 
+		// A card this screen saw in private reads as exposed too, the same as the known-cards row over the head.
+		private void BindLocal(PokerPlayer local)
+		{
+			if (_localKnowledge) _localKnowledge.OnKnowledgeChanged -= Refresh;
+
+			_localKnowledge = local ? local.ItemKnowledge : null;
+
+			if (_localKnowledge) _localKnowledge.OnKnowledgeChanged += Refresh;
+
+			Refresh();
+		}
+
 		// Whether an item's fold lock covers this moment hangs on which stage is running.
 		private void HandleStageChanged(FixedString32Bytes previous, FixedString32Bytes current) => Refresh();
 
@@ -110,8 +129,23 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 		private void Collect(List<PokerPlayerEffect> effects)
 		{
-			if (_data.ShownHoleCards.Value != 0 && !_data.HandRevealed.Value) effects.Add(PokerPlayerEffect.CardShown);
+			if (IsAnyCardExposed() && !_data.HandRevealed.Value) effects.Add(PokerPlayerEffect.CardShown);
 			if (_data.IsInHand && _gameMode && !_gameMode.IsActionAllowed(_data, PokerActionType.Fold)) effects.Add(PokerPlayerEffect.FoldLocked);
+		}
+
+		private bool IsAnyCardExposed()
+		{
+			if (_data.ShownHoleCards.Value != 0) return true;
+			if (!_localKnowledge) return false;
+
+			if (_localKnowledge == _player.ItemKnowledge) return _localKnowledge.ExposedCards.Count > 0;
+
+			foreach (var known in _localKnowledge.KnownCards)
+			{
+				if (known.OtherClientId == _player.ClientId) return true;
+			}
+
+			return false;
 		}
 
 		private bool SameAsActive(List<PokerPlayerEffect> effects)

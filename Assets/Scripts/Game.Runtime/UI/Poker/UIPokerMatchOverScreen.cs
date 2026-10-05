@@ -105,7 +105,7 @@ namespace Game.Runtime.UI.Poker
 			var survivor = PokerPlayer.Find(Data.SurvivorClientId.Value);
 
 			if (_titleLabel) _titleLabel.text = survivor ? _survivorTitle : _nobodyTitle;
-			if (_nameLabel) _nameLabel.text = survivor ? survivor.ColoredName : string.Empty;
+			if (_nameLabel) _nameLabel.text = survivor ? survivor.PlainName : string.Empty;
 			if (_namePlank) _namePlank.SetActive(survivor);
 		}
 
