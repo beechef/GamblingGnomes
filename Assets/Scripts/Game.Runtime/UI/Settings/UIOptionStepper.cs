@@ -7,7 +7,7 @@ using UnityEngine;
 namespace Game.Runtime.UI.Settings
 {
 	// One choice out of a list, stepped between two buttons with the chosen option's words between them.
-	// The arrows dim at either end rather than wrapping, the way the match config steppers do.
+	// Stepping past either end wraps round to the other.
 	public class UIOptionStepper : MonoBehaviour
 	{
 		[SerializeField] private UIButton _previousButton;
@@ -57,10 +57,9 @@ namespace Game.Runtime.UI.Settings
 
 		private void Step(int direction)
 		{
-			var next = Index + direction;
-			if (!_isInteractable || next < 0 || next >= _options.Count) return;
+			if (!_isInteractable || _options.Count < 2) return;
 
-			Index = next;
+			Index = (Index + direction + _options.Count) % _options.Count;
 			Refresh();
 			OnIndexChanged?.Invoke(Index);
 		}
@@ -68,8 +67,9 @@ namespace Game.Runtime.UI.Settings
 		private void Refresh()
 		{
 			if (_valueLabel) _valueLabel.text = Index < _options.Count ? _options[Index] : string.Empty;
-			if (_previousButton) _previousButton.IsInteractable = _isInteractable && Index > 0;
-			if (_nextButton) _nextButton.IsInteractable = _isInteractable && Index < _options.Count - 1;
+			var steppable = _isInteractable && _options.Count > 1;
+			if (_previousButton) _previousButton.IsInteractable = steppable;
+			if (_nextButton) _nextButton.IsInteractable = steppable;
 		}
 	}
 }
