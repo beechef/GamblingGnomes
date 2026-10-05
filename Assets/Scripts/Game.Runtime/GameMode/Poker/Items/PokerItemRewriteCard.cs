@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using Game.Runtime.GameMode.Poker.Player;
+using Localization;
 using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker.Items
@@ -20,18 +21,18 @@ namespace Game.Runtime.GameMode.Poker.Items
 		}
 
 		public override string GetTargetPrompt(PokerItemTargetKind kind) =>
-			kind == PokerItemTargetKind.OwnCard ? "POINT AT THE CARD TO CHANGE" : base.GetTargetPrompt(kind);
+			kind == PokerItemTargetKind.OwnCard ? Localizer.Get(LocalizationKeys.Item.RandomSuit.Prompt) : base.GetTargetPrompt(kind);
 
 		protected override PokerItemAvailability OnGetAvailability(in PokerItemContext context)
 		{
-			if (!context.User || !context.User.Data.IsInHand) return PokerItemAvailability.Dimmed("You are not in this hand.");
+			if (!context.User || !context.User.Data.IsInHand) return PokerItemAvailability.Dimmed(Localizer.Get(LocalizationKeys.Item.Reason.NotInHand));
 
 			for (var slot = 0; slot < context.User.Data.CardCount; slot++)
 			{
 				if (AcceptsOwnCard(context, slot)) return PokerItemAvailability.Usable;
 			}
 
-			return PokerItemAvailability.Dimmed("None of your cards can be changed.");
+			return PokerItemAvailability.Dimmed(Localizer.Get(LocalizationKeys.Item.Reason.CantChange));
 		}
 
 		public override bool AcceptsOwnCard(in PokerItemContext context, int slot)

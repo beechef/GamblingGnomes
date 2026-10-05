@@ -13,14 +13,13 @@ MonoBehaviour:
   m_Name: PokerItem_CopyCard
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Items.PokerItemCopyCard
   _type: 14
-  _displayName: Copy
-  _description: 35% chance that one of your cards becomes a copy of another card
-    in your hand.
+  _nameKey: item.copy_card.name
+  _descriptionKey: item.copy_card.description
   _icon: {fileID: 21300000, guid: cf43f7f8c654a0a458cec4e60bc7be4c, type: 3}
   _hallucinationCost: 0
-  _noticeVerb: TRIED A COPY
-  _privateNoticeVerb: 
+  _noticeKey: item.copy_card.notice
+  _privateNoticeKey: 
   _cardChoice: 0
   _chance: 35
-  _copiedVerb: COPIED
-  _failedVerb: COPY FAILED
+  _copiedKey: item.copy_card.copied
+  _failedKey: item.copy_card.failed

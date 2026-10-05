@@ -5,6 +5,7 @@ using Game.Runtime.GameMode.Config;
 using Game.Runtime.GameMode.Poker.Modules;
 using Game.Runtime.GameMode.Poker.Player;
 using Game.Runtime.GameMode.Poker.Stages;
+using Localization;
 using Sirenix.OdinInspector;
 using Unity.Netcode;
 using UnityEngine;
@@ -162,17 +163,17 @@ namespace Game.Runtime.GameMode.Poker.Items
 		// The one answer to "may this player play this item now", for the picker and the server alike.
 		public PokerItemAvailability GetAvailability(PokerPlayer user, PokerItemType type)
 		{
-			if (!TryGetItem(type, out var item)) return PokerItemAvailability.Hidden("This table does not deal it.");
-			if (!user || !user.ItemInventory || !user.ItemInventory.Holds(type)) return PokerItemAvailability.Hidden("Not in your hand.");
-			if (!GameMode || !GameMode.IsPlayingThisMatch(user.Data)) return PokerItemAvailability.Dimmed("You are out of this match.");
-			if (!IsStreetCurrent) return PokerItemAvailability.Dimmed("Only on a betting street.");
-			if (Data.CurrentTurnClientId.Value != user.ClientId) return PokerItemAvailability.Dimmed("Only on your turn.");
-			if (HasRule(PokerItemTableRuleKind.NoItemsSelf, StreetSerial.Value, user.ClientId)) return PokerItemAvailability.Dimmed("Locked out of items this street.");
-			if (HasSpentStreetUses(user)) return PokerItemAvailability.Dimmed(UsesPerStreet == 1 ? "Already played an item this street." : $"Already played {UsesPerStreet} items this street.");
-			if (PendingResponse.Value.IsPending) return PokerItemAvailability.Dimmed("Waiting on another item.");
+			if (!TryGetItem(type, out var item)) return PokerItemAvailability.Hidden(Localizer.Get(LocalizationKeys.Item.Reason.NotDealt));
+			if (!user || !user.ItemInventory || !user.ItemInventory.Holds(type)) return PokerItemAvailability.Hidden(Localizer.Get(LocalizationKeys.Item.Reason.NotHeld));
+			if (!GameMode || !GameMode.IsPlayingThisMatch(user.Data)) return PokerItemAvailability.Dimmed(Localizer.Get(LocalizationKeys.Item.Reason.OutOfMatch));
+			if (!IsStreetCurrent) return PokerItemAvailability.Dimmed(Localizer.Get(LocalizationKeys.Item.Reason.StreetOnly));
+			if (Data.CurrentTurnClientId.Value != user.ClientId) return PokerItemAvailability.Dimmed(Localizer.Get(LocalizationKeys.Item.Reason.TurnOnly));
+			if (HasRule(PokerItemTableRuleKind.NoItemsSelf, StreetSerial.Value, user.ClientId)) return PokerItemAvailability.Dimmed(Localizer.Get(LocalizationKeys.Item.Reason.LockedOut));
+			if (HasSpentStreetUses(user)) return PokerItemAvailability.Dimmed(UsesPerStreet == 1 ? Localizer.Get(LocalizationKeys.Item.Reason.UsedOne) : Localizer.Format(LocalizationKeys.Item.Reason.UsedMany, UsesPerStreet));
+			if (PendingResponse.Value.IsPending) return PokerItemAvailability.Dimmed(Localizer.Get(LocalizationKeys.Item.Reason.WaitingOther));
 
 			if (item.NeedsResponse && IsResponseTimed && Data.HasTurnClock && Data.TurnRemaining < ResponseDuration)
-				return PokerItemAvailability.Dimmed("Not enough time left for them to answer.");
+				return PokerItemAvailability.Dimmed(Localizer.Get(LocalizationKeys.Item.Reason.NoTime));
 
 			return item.GetAvailability(ContextFor(user));
 		}
@@ -742,11 +743,11 @@ namespace Game.Runtime.GameMode.Poker.Items
 
 		protected override void OnCollectConfigEntries(List<MatchConfigEntry> entries)
 		{
-			entries.Add(new MatchConfigInt(ModuleId, "Items", "ItemsPerHand", "Items Per Hand", 0, 5, 1,
+			entries.Add(new MatchConfigInt(ModuleId, LocalizationKeys.Config.Section.Items, "ItemsPerHand", LocalizationKeys.Config.ItemsPerHand, 0, 5, 1,
 				() => _itemsPerHand, value => _itemsPerHand = value));
-			entries.Add(new MatchConfigInt(ModuleId, "Items", "LoserBonus", "Loser Bonus", 0, 3, 1,
+			entries.Add(new MatchConfigInt(ModuleId, LocalizationKeys.Config.Section.Items, "LoserBonus", LocalizationKeys.Config.LoserBonus, 0, 3, 1,
 				() => _loserBonus, value => _loserBonus = value));
-			entries.Add(new MatchConfigInt(ModuleId, "Items", "Capacity", "Item Capacity", 1, 10, 1,
+			entries.Add(new MatchConfigInt(ModuleId, LocalizationKeys.Config.Section.Items, "Capacity", LocalizationKeys.Config.ItemCapacity, 1, 10, 1,
 				() => _capacity, value => _capacity = value));
 		}
 

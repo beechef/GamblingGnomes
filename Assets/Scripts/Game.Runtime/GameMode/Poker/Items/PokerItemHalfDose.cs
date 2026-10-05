@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Game.Runtime.GameMode.Poker.Player;
+using Localization;
 using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker.Items
@@ -14,7 +15,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 		protected override void OnCollectTargetSteps(List<PokerItemTargetKind> steps) => steps.Add(PokerItemTargetKind.Player);
 
 		public override string GetTargetPrompt(PokerItemTargetKind kind) =>
-			kind == PokerItemTargetKind.Player ? "POINT AT WHOSE DOSE YOU HALVE" : base.GetTargetPrompt(kind);
+			kind == PokerItemTargetKind.Player ? Localizer.Get(LocalizationKeys.Item.HalfDose.Prompt) : base.GetTargetPrompt(kind);
 
 		protected override PokerItemAvailability OnGetAvailability(in PokerItemContext context)
 		{
@@ -23,7 +24,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 				if (AcceptsPlayer(context, player)) return PokerItemAvailability.Usable;
 			}
 
-			return PokerItemAvailability.Dimmed("Nobody has anything to halve.");
+			return PokerItemAvailability.Dimmed(Localizer.Get(LocalizationKeys.Item.Reason.NobodyToHalve));
 		}
 
 		public override bool AcceptsPlayer(in PokerItemContext context, PokerPlayer target) =>

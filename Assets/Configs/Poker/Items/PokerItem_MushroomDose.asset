@@ -13,15 +13,14 @@ MonoBehaviour:
   m_Name: PokerItem_MushroomDose
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Items.PokerItemMushroomDose
   _type: 15
-  _displayName: Spike
-  _description: A chosen player's next 2 mushrooms either do nothing or hit twice
-    as hard, 50/50.
+  _nameKey: item.mushroom_dose.name
+  _descriptionKey: item.mushroom_dose.description
   _icon: {fileID: 21300000, guid: 2c6ad9de95e08b940881e7160b25e3e1, type: 3}
   _hallucinationCost: 0
-  _noticeVerb: SPIKED
-  _privateNoticeVerb: 
+  _noticeKey: item.mushroom_dose.notice
+  _privateNoticeKey: 
   _caps: 2
   _nullifyWeight: 50
   _doubleWeight: 50
-  _nullifiedVerb: EMPTIED {0} CAPS OF
-  _doubledVerb: DOUBLED {0} CAPS OF
+  _nullifiedKey: item.mushroom_dose.nullified
+  _doubledKey: item.mushroom_dose.doubled

@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
+using Localization;
 using Sirenix.OdinInspector;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Game.Runtime.GameMode
 {
@@ -19,7 +21,11 @@ namespace Game.Runtime.GameMode
 			[InfoBox("This scene is not in Build Settings, so the mode will fail to load.", InfoMessageType.Error, nameof(IsSceneMissing))]
 			public string SceneName;
 
-			public string DisplayName;
+			[LocalizationKey]
+			[FormerlySerializedAs("DisplayName")]
+			public string NameKey;
+
+			public string DisplayName => Localizer.Get(NameKey);
 
 			[Tooltip("Mode prefab the room screen reads match settings from before any scene is loaded. Left empty, the mode simply offers none.")]
 			public GameObject ModePrefab;

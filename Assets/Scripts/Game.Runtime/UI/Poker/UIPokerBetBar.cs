@@ -1,12 +1,13 @@
 using System.Collections.Generic;
 using DG.Tweening;
-using Unity.Collections;
 using Game.Runtime.GameMode.Poker;
 using Game.Runtime.GameMode.Poker.Items;
 using Game.Runtime.GameMode.Poker.Player;
 using Game.Runtime.GameMode.Poker.Stages;
 using Game.Runtime.UI.Button;
+using Localization;
 using TMPro;
+using Unity.Collections;
 using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
@@ -46,8 +47,6 @@ namespace Game.Runtime.UI.Poker
 		[Tooltip("The Bet button's label. Reads the bet text for whoever opens the street and the call text once somebody still in the hand has bet on it.")]
 		[SerializeField] private TMP_Text _betLabel;
 
-		[SerializeField] private string _betText = "BET";
-		[SerializeField] private string _callText = "CALL";
 
 		[Tooltip("Shown only where folding is allowed — by the street and by whatever items are in play. What the rules forbid is hidden, not greyed.")]
 		[SerializeField] private UIButton _foldButton;
@@ -237,7 +236,7 @@ namespace Game.Runtime.UI.Poker
 			if (foldLocked && !_wasFoldLocked) PlayFoldLockAlert();
 			_wasFoldLocked = foldLocked;
 			if (_allInButton) _allInButton.gameObject.SetActive(acting && _stage.AllowAllIn);
-			if (_betLabel && acting) _betLabel.text = _stage.IsCall(LocalData) ? _callText : _betText;
+			if (_betLabel && acting) _betLabel.text = Localizer.Get(_stage.IsCall(LocalData) ? LocalizationKeys.Poker.Action.Call : LocalizationKeys.Poker.Action.Bet);
 
 			if (!_itemsButton) return;
 

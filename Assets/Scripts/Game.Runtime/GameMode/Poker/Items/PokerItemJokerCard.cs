@@ -1,6 +1,8 @@
 using Game.Runtime.GameMode.Poker.Player;
+using Localization;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Game.Runtime.GameMode.Poker.Items
 {
@@ -15,14 +17,18 @@ namespace Game.Runtime.GameMode.Poker.Items
 		[SerializeField] private int _chance = 50;
 
 		[Tooltip("What the user reads when the card becomes a Joker.")]
-		[SerializeField] private string _jokerVerb = "GOT A JOKER";
+		[LocalizationKey]
+		[FormerlySerializedAs("_jokerVerb")]
+		[SerializeField] private string _jokerKey = LocalizationKeys.Item.JokerCard.Joker;
 
 		[Tooltip("What the user reads when it does not.")]
-		[SerializeField] private string _failedVerb = "NO JOKER";
+		[LocalizationKey]
+		[FormerlySerializedAs("_failedVerb")]
+		[SerializeField] private string _failedKey = LocalizationKeys.Item.JokerCard.Failed;
 
 		protected override PokerCardFlickerFaces FlickerFaces => PokerCardFlickerFaces.Joker;
 
-		public override string GetOutcomeVerb(int outcome) => outcome != 0 ? _jokerVerb : _failedVerb;
+		public override string GetOutcomeVerb(int outcome) => Localizer.Get(outcome != 0 ? _jokerKey : _failedKey);
 
 		protected override bool TryRewrite(PokerPlayerData holder, int slot, out CardData card)
 		{

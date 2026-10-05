@@ -12,13 +12,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e6d7a50b6f999c14995902876718d9f9, type: 3}
   m_Name: Hand_ThreeOfAKind
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Hands.PokerHandThreeOfAKind
-  _displayName: Three of a Kind
+  _nameKey: hand.three_of_a_kind.name
   _tier: 3
-  _description: Three cards of the same value.
+  _isHouseHand: 0
+  _descriptionKey: hand.three_of_a_kind.description
   _exampleCards:
-  - _rank: 8
+  - _isJoker: 0
+    _rank: 8
     _suit: 3
-  - _rank: 8
+  - _isJoker: 0
+    _rank: 8
     _suit: 2
-  - _rank: 8
+  - _isJoker: 0
+    _rank: 8
     _suit: 0

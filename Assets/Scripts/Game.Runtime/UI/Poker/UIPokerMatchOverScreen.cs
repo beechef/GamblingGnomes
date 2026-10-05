@@ -2,6 +2,7 @@ using DG.Tweening;
 using Game.Runtime.GameMode.Poker;
 using Game.Runtime.GameMode.Poker.Player;
 using Game.Runtime.GameMode.Poker.Stages;
+using Localization;
 using TMPro;
 using UnityEngine;
 
@@ -22,8 +23,6 @@ namespace Game.Runtime.UI.Poker
 		[Tooltip("What the name is written on. Hidden when nobody survived, so an empty board is never shown.")]
 		[SerializeField] private GameObject _namePlank;
 
-		[SerializeField] private string _survivorTitle = "LAST GNOME STANDING";
-		[SerializeField] private string _nobodyTitle = "NOBODY MADE IT";
 		[SerializeField] private float _announceFadeDuration = 0.4f;
 		[SerializeField] private Ease _announceEase = Ease.OutQuad;
 
@@ -104,7 +103,7 @@ namespace Game.Runtime.UI.Poker
 		{
 			var survivor = PokerPlayer.Find(Data.SurvivorClientId.Value);
 
-			if (_titleLabel) _titleLabel.text = survivor ? _survivorTitle : _nobodyTitle;
+			if (_titleLabel) _titleLabel.text = Localizer.Get(survivor ? LocalizationKeys.Poker.MatchOver.Survivor : LocalizationKeys.Poker.MatchOver.Nobody);
 			if (_nameLabel) _nameLabel.text = survivor ? survivor.PlainName : string.Empty;
 			if (_namePlank) _namePlank.SetActive(survivor);
 		}

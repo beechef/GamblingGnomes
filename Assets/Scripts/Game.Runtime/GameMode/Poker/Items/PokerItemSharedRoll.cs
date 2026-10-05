@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using Game.Runtime.GameMode.Poker.Player;
+using Localization;
 using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker.Items
@@ -12,18 +13,18 @@ namespace Game.Runtime.GameMode.Poker.Items
 		protected override void OnCollectTargetSteps(List<PokerItemTargetKind> steps) => steps.Add(PokerItemTargetKind.Player);
 
 		public override string GetTargetPrompt(PokerItemTargetKind kind) =>
-			kind == PokerItemTargetKind.Player ? "POINT AT WHO ROLLS WITH YOU" : base.GetTargetPrompt(kind);
+			kind == PokerItemTargetKind.Player ? Localizer.Get(LocalizationKeys.Item.SharedRoll.Prompt) : base.GetTargetPrompt(kind);
 
 		protected override PokerItemAvailability OnGetAvailability(in PokerItemContext context)
 		{
-			if (!context.User || !context.User.Data.IsAlive) return PokerItemAvailability.Dimmed("You are already under.");
+			if (!context.User || !context.User.Data.IsAlive) return PokerItemAvailability.Dimmed(Localizer.Get(LocalizationKeys.Item.Reason.AlreadyUnder));
 
 			foreach (var player in context.GameMode.SeatedPlayers)
 			{
 				if (AcceptsPlayer(context, player)) return PokerItemAvailability.Usable;
 			}
 
-			return PokerItemAvailability.Dimmed("Nobody else is left to roll.");
+			return PokerItemAvailability.Dimmed(Localizer.Get(LocalizationKeys.Item.Reason.NobodyToRoll));
 		}
 
 		public override bool AcceptsPlayer(in PokerItemContext context, PokerPlayer target) =>

@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using Game.Runtime.GameMode.Poker.Player;
+using Localization;
 using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker.Items
@@ -25,24 +26,24 @@ namespace Game.Runtime.GameMode.Poker.Items
 
 		public override string GetTargetPrompt(PokerItemTargetKind kind) => kind switch
 		{
-			PokerItemTargetKind.OwnCard => "POINT AT THE CARD YOU GIVE",
-			PokerItemTargetKind.Player => "POINT AT WHO YOU SWAP WITH",
+			PokerItemTargetKind.OwnCard => Localizer.Get(LocalizationKeys.Item.SwapHand.PromptOwn),
+			PokerItemTargetKind.Player => Localizer.Get(LocalizationKeys.Item.SwapHand.PromptPlayer),
 			_ => base.GetTargetPrompt(kind)
 		};
 
-		public override string GetResponsePrompt() => "swaps a card with you - choose one to swap";
+		public override string GetResponsePrompt() => Localizer.Get(LocalizationKeys.Item.SwapHand.Response);
 
 		protected override PokerItemAvailability OnGetAvailability(in PokerItemContext context)
 		{
-			if (!context.User || !context.User.Data.IsInHand) return PokerItemAvailability.Dimmed("You are not in this hand.");
-			if (!HasTradeableCard(context.User)) return PokerItemAvailability.Dimmed("You have no card left to give.");
+			if (!context.User || !context.User.Data.IsInHand) return PokerItemAvailability.Dimmed(Localizer.Get(LocalizationKeys.Item.Reason.NotInHand));
+			if (!HasTradeableCard(context.User)) return PokerItemAvailability.Dimmed(Localizer.Get(LocalizationKeys.Item.Reason.NoCardToGive));
 
 			foreach (var player in context.GameMode.SeatedPlayers)
 			{
 				if (AcceptsPlayer(context, player)) return PokerItemAvailability.Usable;
 			}
 
-			return PokerItemAvailability.Dimmed("Nobody else has a card to swap.");
+			return PokerItemAvailability.Dimmed(Localizer.Get(LocalizationKeys.Item.Reason.NobodyToSwap));
 		}
 
 		public override bool AcceptsOwnCard(in PokerItemContext context, int slot) => IsTradeable(context.User, slot);

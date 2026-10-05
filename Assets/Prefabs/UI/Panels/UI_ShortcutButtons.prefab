@@ -80,8 +80,6 @@ MonoBehaviour:
   _content: {fileID: 5908243626959808192}
   _button: {fileID: 3240121925817143497}
   _label: {fileID: 4963049843252107818}
-  _standLabel: '[VIEW BOARD]'
-  _layLabel: '[LAY BOARD]'
 --- !u!1001 &2897524907176529749
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -384,6 +382,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 8775369202157300117, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2344207196111472274}
+    - targetCorrespondingSourceObject: {fileID: 4871544217483404129, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5281102901931834818}
   m_SourcePrefab: {fileID: 100100000, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
 --- !u!1 &945158186729384958 stripped
 GameObject:
@@ -424,6 +425,24 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Poker.UIPokerHandHelperButton
   _button: {fileID: 8076244563366256119}
   _helper: {fileID: 0}
+--- !u!1 &3985276861902446858 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4871544217483404129, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
+  m_PrefabInstance: {fileID: 8418845735242662507}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &5281102901931834818
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3985276861902446858}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e5e0742a948570940b3a78c357d3442c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Localization::Localization.LocalizedText
+  _key: poker.button.helper
 --- !u!224 &4063805849119887040 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 5525976618167798955, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}

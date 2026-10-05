@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Game.Runtime.GameMode.Poker;
 using Game.Runtime.GameMode.Poker.Player;
 using Game.Runtime.UI.Button;
+using Localization;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
@@ -117,8 +118,10 @@ namespace Game.Runtime.UI.Poker
 				// A host who has gone under may still press, and the hint says so rather than announcing a count
 				// that does not match the button beside it.
 				_hintLabel.text = canStart
-					? (LocalData.IsAlive ? $"{readyCount} players ready" : "Start for the table")
-					: $"Waiting for players ({readyCount}/{required})";
+					? (LocalData.IsAlive
+						? Localizer.Format(LocalizationKeys.Poker.Start.Ready, readyCount)
+						: Localizer.Get(LocalizationKeys.Poker.Start.ForTable))
+					: Localizer.Format(LocalizationKeys.Poker.Start.Waiting, readyCount, required);
 			}
 		}
 

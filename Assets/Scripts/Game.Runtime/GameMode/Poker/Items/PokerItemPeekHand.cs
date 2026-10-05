@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Game.Runtime.GameMode.Poker.Player;
+using Localization;
 using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker.Items
@@ -23,7 +24,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 				if (AcceptsPlayer(context, player)) return PokerItemAvailability.Usable;
 			}
 
-			return PokerItemAvailability.Dimmed("Nobody has a card you have not seen.");
+			return PokerItemAvailability.Dimmed(Localizer.Get(LocalizationKeys.Item.Reason.NobodyUnseen));
 		}
 
 		public override bool AcceptsPlayer(in PokerItemContext context, PokerPlayer target)

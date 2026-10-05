@@ -13,13 +13,12 @@ MonoBehaviour:
   m_Name: PokerItem_SwapBoard
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Items.PokerItemSwapBoard
   _type: 6
-  _displayName: Board Swap
-  _description: A face-down board card is turned up for everyone, then traded with
-    one of your cards, which stays face up on the board.
+  _nameKey: item.swap_board.name
+  _descriptionKey: item.swap_board.description
   _icon: {fileID: 21300000, guid: 873aa146f960208488984bf25c2a1b50, type: 3}
   _hallucinationCost: 0
-  _noticeVerb: SWAPPED BOARD
-  _privateNoticeVerb: 
+  _noticeKey: item.swap_board.notice
+  _privateNoticeKey: 
   _ownChoice: 0
   _slotChoice: 1
   _revealHold: 1.2

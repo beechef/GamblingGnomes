@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using System.Threading;
 using Game.Runtime.GameMode.Poker.Player;
+using Localization;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Game.Runtime.GameMode.Poker.Items
 {
@@ -20,10 +22,13 @@ namespace Game.Runtime.GameMode.Poker.Items
 		[Tooltip("What replicates. Must be unique within a database.")]
 		[SerializeField] private PokerItemType _type;
 
-		[SerializeField] private string _displayName;
+		[LocalizationKey]
+		[FormerlySerializedAs("_displayName")]
+		[SerializeField] private string _nameKey;
 
-		[TextArea(2, 5)]
-		[SerializeField] private string _description;
+		[LocalizationKey]
+		[FormerlySerializedAs("_description")]
+		[SerializeField] private string _descriptionKey;
 
 		[SerializeField] private Sprite _icon;
 
@@ -33,19 +38,26 @@ namespace Game.Runtime.GameMode.Poker.Items
 		[SerializeField] private int _hallucinationCost;
 
 		[Header("Notice")]
-		[Tooltip("What the whole table reads after the user's name, e.g. \"COUNTED THE DECK\". An item aimed at somebody shows their name after it.")]
-		[SerializeField] private string _noticeVerb;
+		[Tooltip("What the whole table reads after the user's name, e.g. \"COUNTED THE DECK\". An item aimed at somebody shows their name after it. Empty reads \"USED <name>\".")]
+		[LocalizationKey]
+		[FormerlySerializedAs("_noticeVerb")]
+		[SerializeField] private string _noticeKey;
 
 		[Tooltip("What the player an item was used on reads after the user's name, told to them alone. {0} is the card. Empty tells them nothing beyond the public notice.")]
-		[SerializeField] private string _privateNoticeVerb;
+		[LocalizationKey]
+		[FormerlySerializedAs("_privateNoticeVerb")]
+		[SerializeField] private string _privateNoticeKey;
 
 		public PokerItemType Type => _type;
-		public string DisplayName => string.IsNullOrEmpty(_displayName) ? name : _displayName;
-		public string Description => _description;
+		public string DisplayName => string.IsNullOrEmpty(_nameKey) ? name : Localizer.Get(_nameKey);
+		public string Description => Localizer.Get(_descriptionKey);
 		public Sprite Icon => _icon;
 		public int HallucinationCost => Mathf.Max(0, _hallucinationCost);
-		public string NoticeVerb => string.IsNullOrEmpty(_noticeVerb) ? $"USED {DisplayName.ToUpperInvariant()}" : _noticeVerb;
-		public string PrivateNoticeVerb => _privateNoticeVerb;
+		public string NoticeVerb => string.IsNullOrEmpty(_noticeKey)
+			? Localizer.Format(LocalizationKeys.Poker.Notice.ItemUsed, DisplayName.ToUpperInvariant())
+			: Localizer.Get(_noticeKey);
+
+		public string PrivateNoticeVerb => string.IsNullOrEmpty(_privateNoticeKey) ? null : Localizer.Get(_privateNoticeKey);
 
 		// Whether playing it makes another player answer, which the turn clock has to leave room for.
 		public virtual bool NeedsResponse => false;
@@ -61,10 +73,10 @@ namespace Game.Runtime.GameMode.Poker.Items
 
 		public virtual string GetTargetPrompt(PokerItemTargetKind kind) => kind switch
 		{
-			PokerItemTargetKind.Player => "POINT AT A PLAYER",
-			PokerItemTargetKind.OpponentCard => "POINT AT ANOTHER PLAYER'S CARD",
-			PokerItemTargetKind.OwnCard => "POINT AT ONE OF YOUR CARDS",
-			_ => "POINT AT A FACE-DOWN BOARD CARD"
+			PokerItemTargetKind.Player => Localizer.Get(LocalizationKeys.Item.Prompt.Player),
+			PokerItemTargetKind.OpponentCard => Localizer.Get(LocalizationKeys.Item.Prompt.OpponentCard),
+			PokerItemTargetKind.OwnCard => Localizer.Get(LocalizationKeys.Item.Prompt.OwnCard),
+			_ => Localizer.Get(LocalizationKeys.Item.Prompt.BoardCard)
 		};
 
 		// What the table reads after the user's name once a chance-driven item has come out; null tells nothing.
@@ -75,7 +87,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 		public virtual bool AnnouncesOutcome => false;
 
 		// What the player this item asks to answer reads, after the user's name.
-		public virtual string GetResponsePrompt() => "POINT AT ONE OF YOUR CARDS";
+		public virtual string GetResponsePrompt() => Localizer.Get(LocalizationKeys.Item.Prompt.OwnCard);
 
 		public virtual bool AcceptsPlayer(in PokerItemContext context, PokerPlayer target) => false;
 		public virtual bool AcceptsOpponentCard(in PokerItemContext context, PokerPlayer target, int slot) => false;

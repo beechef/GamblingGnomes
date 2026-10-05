@@ -1,6 +1,7 @@
 using Game.Runtime.GameMode.Poker;
 using Game.Runtime.Player;
 using Game.Runtime.UI.Progress;
+using Localization;
 using TMPro;
 using Unity.Collections;
 using UnityEngine;
@@ -110,8 +111,9 @@ namespace Game.Runtime.UI.Poker
 			if (!_titleLabel) return;
 
 			_titleLabel.text = turnClientId == LocalClientId
-				? "YOUR TURN"
-				: $"{(turnPlayer ? turnPlayer.ColoredName : "Player")}'S TURN";
+				? Localizer.Get(LocalizationKeys.Poker.Turn.Yours)
+				: Localizer.Format(LocalizationKeys.Poker.Turn.Other,
+					turnPlayer ? turnPlayer.ColoredName : Localizer.Get(LocalizationKeys.Poker.Player.Fallback));
 		}
 
 		private void RefreshStage()
@@ -120,8 +122,23 @@ namespace Game.Runtime.UI.Poker
 
 			if (!_titleLabel) return;
 
-			_titleLabel.text = Data.Phase.Value == PokerPhase.AllIn ? "ALL IN" : Data.Phase.Value.ToString().ToUpperInvariant();
+			_titleLabel.text = Localizer.Get(PhaseKey(Data.Phase.Value));
 		}
+
+		private static string PhaseKey(PokerPhase phase) => phase switch
+		{
+			PokerPhase.Dealing => LocalizationKeys.Poker.Phase.Dealing,
+			PokerPhase.FirstStreet => LocalizationKeys.Poker.Phase.FirstStreet,
+			PokerPhase.SecondStreet => LocalizationKeys.Poker.Phase.SecondStreet,
+			PokerPhase.Looking => LocalizationKeys.Poker.Phase.Looking,
+			PokerPhase.Eating => LocalizationKeys.Poker.Phase.Eating,
+			PokerPhase.Showdown => LocalizationKeys.Poker.Phase.Showdown,
+			PokerPhase.Finished => LocalizationKeys.Poker.Phase.Finished,
+			PokerPhase.MatchOver => LocalizationKeys.Poker.Phase.MatchOver,
+			PokerPhase.AllIn => LocalizationKeys.Poker.Phase.AllIn,
+			PokerPhase.Ante => LocalizationKeys.Poker.Phase.Ante,
+			_ => LocalizationKeys.Poker.Phase.Waiting
+		};
 
 		protected override void OnTick()
 		{

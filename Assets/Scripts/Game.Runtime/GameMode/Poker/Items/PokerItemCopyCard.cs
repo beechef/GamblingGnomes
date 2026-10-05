@@ -1,6 +1,8 @@
 using Game.Runtime.GameMode.Poker.Player;
+using Localization;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Game.Runtime.GameMode.Poker.Items
 {
@@ -15,12 +17,16 @@ namespace Game.Runtime.GameMode.Poker.Items
 		[SerializeField] private int _chance = 35;
 
 		[Tooltip("What the user reads when the copy takes.")]
-		[SerializeField] private string _copiedVerb = "COPIED";
+		[LocalizationKey]
+		[FormerlySerializedAs("_copiedVerb")]
+		[SerializeField] private string _copiedKey = LocalizationKeys.Item.CopyCard.Copied;
 
 		[Tooltip("What the user reads when it does not.")]
-		[SerializeField] private string _failedVerb = "COPY FAILED";
+		[LocalizationKey]
+		[FormerlySerializedAs("_failedVerb")]
+		[SerializeField] private string _failedKey = LocalizationKeys.Item.CopyCard.Failed;
 
-		public override string GetOutcomeVerb(int outcome) => outcome != 0 ? _copiedVerb : _failedVerb;
+		public override string GetOutcomeVerb(int outcome) => Localizer.Get(outcome != 0 ? _copiedKey : _failedKey);
 
 		protected override PokerCardFlickerFaces FlickerFaces => PokerCardFlickerFaces.OwnHand;
 

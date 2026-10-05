@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Text;
 using Game.Runtime.GameMode.Poker;
 using Game.Runtime.GameMode.Poker.BetItems;
+using Localization;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
@@ -55,7 +56,7 @@ namespace Game.Runtime.UI.Poker
 			if (_panel && _panel.activeSelf != visible) _panel.SetActive(visible);
 			if (!visible) return;
 
-			if (_potLabel) _potLabel.text = $"Pot: {pot}";
+			if (_potLabel) _potLabel.text = Localizer.Format(LocalizationKeys.Poker.Pot, pot);
 			if (_breakdownLabel) _breakdownLabel.text = BuildBreakdown();
 		}
 

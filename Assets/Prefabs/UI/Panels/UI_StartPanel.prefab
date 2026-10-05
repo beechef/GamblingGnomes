@@ -88,6 +88,7 @@ MonoBehaviour:
   _panel: {fileID: 3019325247616785890}
   _startButton: {fileID: 4534723318239897487}
   _hintLabel: {fileID: 0}
+  _inviteButton: {fileID: 0}
 --- !u!1001 &4192773051912108051
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -211,7 +212,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 4871544217483404129, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8416826631038062265}
   m_SourcePrefab: {fileID: 100100000, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
 --- !u!114 &4534723318239897487 stripped
 MonoBehaviour:
@@ -229,3 +233,21 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 5525976618167798955, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
   m_PrefabInstance: {fileID: 4192773051912108051}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &8769787515243191154 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4871544217483404129, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
+  m_PrefabInstance: {fileID: 4192773051912108051}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &8416826631038062265
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8769787515243191154}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e5e0742a948570940b3a78c357d3442c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Localization::Localization.LocalizedText
+  _key: poker.button.start

@@ -13,11 +13,10 @@ MonoBehaviour:
   m_Name: PokerItem_PeekHand
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Items.PokerItemPeekHand
   _type: 1
-  _displayName: Peek
-  _description: See one card of a player still in the hand. They are told which card
-    you saw.
+  _nameKey: item.peek_hand.name
+  _descriptionKey: item.peek_hand.description
   _icon: {fileID: 21300000, guid: 0ab50aa258787334cbccb811460679de, type: 3}
   _hallucinationCost: 0
-  _noticeVerb: PEEKED AT
-  _privateNoticeVerb: SAW YOUR {0}
+  _noticeKey: item.peek_hand.notice
+  _privateNoticeKey: item.peek_hand.private
   _cardChoice: 1

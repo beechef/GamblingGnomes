@@ -1,5 +1,6 @@
 using Game.Runtime.GameMode.Poker.Visual;
 using Game.Runtime.UI.Button;
+using Localization;
 using TMPro;
 using UnityEngine;
 
@@ -16,8 +17,6 @@ namespace Game.Runtime.UI.Poker
 		[SerializeField] private UIButton _button;
 		[SerializeField] private TMP_Text _label;
 
-		[SerializeField] private string _standLabel = "[VIEW BOARD]";
-		[SerializeField] private string _layLabel = "[LAY BOARD]";
 
 		private PokerBoardVisual _board;
 
@@ -66,7 +65,7 @@ namespace Game.Runtime.UI.Poker
 			var show = _board && _board.HasCards;
 			if (_content && _content.activeSelf != show) _content.SetActive(show);
 
-			if (_label) _label.text = _board && _board.IsStanding ? _layLabel : _standLabel;
+			if (_label) _label.text = Localizer.Get(_board && _board.IsStanding ? LocalizationKeys.Poker.Button.LayBoard : LocalizationKeys.Poker.Button.ViewBoard);
 		}
 	}
 }

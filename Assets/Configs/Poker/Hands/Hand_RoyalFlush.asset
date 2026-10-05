@@ -12,17 +12,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ef56517ab6f1dd770cd5451a7a872fd7, type: 3}
   m_Name: Hand_RoyalFlush
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Hands.PokerHandRoyalFlush
-  _displayName: Royal Flush
+  _nameKey: hand.royal_flush.name
   _tier: 9
-  _description: An ace, king, queen, jack and ten, all the same suit.
+  _isHouseHand: 0
+  _descriptionKey: hand.royal_flush.description
   _exampleCards:
-  - _rank: 14
+  - _isJoker: 0
+    _rank: 14
     _suit: 3
-  - _rank: 13
+  - _isJoker: 0
+    _rank: 13
     _suit: 3
-  - _rank: 12
+  - _isJoker: 0
+    _rank: 12
     _suit: 3
-  - _rank: 11
+  - _isJoker: 0
+    _rank: 11
     _suit: 3
-  - _rank: 10
+  - _isJoker: 0
+    _rank: 10
     _suit: 3

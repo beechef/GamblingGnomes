@@ -1,4 +1,5 @@
 using Game.Runtime.UI.Button;
+using Localization;
 using TMPro;
 using UnityEngine;
 
@@ -24,7 +25,7 @@ namespace Game.Runtime.UI.Config
 		{
 			var on = Entry != null && Access != null && Access.GetValue(Entry) >= 0.5f;
 
-			if (_valueLabel) _valueLabel.text = on ? "On" : "Off";
+			if (_valueLabel) _valueLabel.text = Localizer.Get(on ? LocalizationKeys.Common.On : LocalizationKeys.Common.Off);
 			if (_toggleButton) _toggleButton.IsInteractable = IsEditable;
 		}
 

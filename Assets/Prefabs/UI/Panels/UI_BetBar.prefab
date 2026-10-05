@@ -1270,8 +1270,6 @@ MonoBehaviour:
   _targetingPrompt: {fileID: 801006322672557965}
   _betButton: {fileID: 6940300453463829182}
   _betLabel: {fileID: 596608535289208925}
-  _betText: BET
-  _callText: CALL
   _foldButton: {fileID: 4634110423696912974}
   _foldCrossline: {fileID: 3682053535489587443}
   _foldIcon: {fileID: 3374767529028393133}
@@ -1309,6 +1307,7 @@ GameObject:
   - component: {fileID: 2708813423299379580}
   - component: {fileID: 1196364817295205676}
   - component: {fileID: 7796686220142432788}
+  - component: {fileID: 7090142253708794540}
   m_Layer: 5
   m_Name: Hint
   m_TagString: Untagged
@@ -1435,6 +1434,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &7090142253708794540
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8331706777591933344}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e5e0742a948570940b3a78c357d3442c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Localization::Localization.LocalizedText
+  _key: poker.targeting.hint
 --- !u!1 &8441113100566164892
 GameObject:
   m_ObjectHideFlags: 0
@@ -1881,7 +1893,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Poker.UIPokerItemCount
   _content: {fileID: 0}
   _countLabel: {fileID: 4861895219120104095}
-  _format: ITEM ({0})
 --- !u!114 &8420137657239867348
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2022,6 +2033,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 8775369202157300117, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
       insertIndex: -1
       addedObject: {fileID: 4773575014143557068}
+    - targetCorrespondingSourceObject: {fileID: 4871544217483404129, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7101939872520206787}
   m_SourcePrefab: {fileID: 100100000, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
 --- !u!114 &3471559043088675755 stripped
 MonoBehaviour:
@@ -2059,6 +2073,24 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
+--- !u!1 &8608469185808240470 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4871544217483404129, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
+  m_PrefabInstance: {fileID: 3813527141078527031}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &7101939872520206787
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8608469185808240470}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e5e0742a948570940b3a78c357d3442c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Localization::Localization.LocalizedText
+  _key: poker.button.all_in
 --- !u!224 &8672922216553930908 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 5525976618167798955, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
@@ -2182,12 +2214,33 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 8775369202157300117, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
       insertIndex: -1
       addedObject: {fileID: 8804196259241541892}
+    - targetCorrespondingSourceObject: {fileID: 4871544217483404129, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 4598632734526309396}
   m_SourcePrefab: {fileID: 100100000, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
 --- !u!224 &92305544323077631 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 5028673275121449005, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
   m_PrefabInstance: {fileID: 4940027489615359442}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &510511442190192307 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4871544217483404129, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
+  m_PrefabInstance: {fileID: 4940027489615359442}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &4598632734526309396
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 510511442190192307}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e5e0742a948570940b3a78c357d3442c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Localization::Localization.LocalizedText
+  _key: poker.action.fold
 --- !u!224 &594113002394984825 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 5525976618167798955, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
@@ -2360,12 +2413,33 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 8775369202157300117, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
       insertIndex: -1
       addedObject: {fileID: 3525826719626946969}
+    - targetCorrespondingSourceObject: {fileID: 4871544217483404129, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1890683734341356979}
   m_SourcePrefab: {fileID: 100100000, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
 --- !u!224 &516777436922582457 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 5525976618167798955, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
   m_PrefabInstance: {fileID: 5448159433218890002}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &576728501336439411 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4871544217483404129, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
+  m_PrefabInstance: {fileID: 5448159433218890002}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1890683734341356979
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 576728501336439411}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e5e0742a948570940b3a78c357d3442c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Localization::Localization.LocalizedText
+  _key: poker.button.choose
 --- !u!1 &3626417944613466247 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 8775369202157300117, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}

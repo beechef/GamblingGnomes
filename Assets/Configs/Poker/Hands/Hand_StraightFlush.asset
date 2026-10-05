@@ -12,17 +12,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 72fa71e64429b8b47a210be9cd0fae75, type: 3}
   m_Name: Hand_StraightFlush
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Hands.PokerHandStraightFlush
-  _displayName: Straight Flush
+  _nameKey: hand.straight_flush.name
   _tier: 8
-  _description: Five cards in consecutive rank, all the same suit.
+  _isHouseHand: 0
+  _descriptionKey: hand.straight_flush.description
   _exampleCards:
-  - _rank: 9
+  - _isJoker: 0
+    _rank: 9
     _suit: 2
-  - _rank: 10
+  - _isJoker: 0
+    _rank: 10
     _suit: 2
-  - _rank: 11
+  - _isJoker: 0
+    _rank: 11
     _suit: 2
-  - _rank: 12
+  - _isJoker: 0
+    _rank: 12
     _suit: 2
-  - _rank: 13
+  - _isJoker: 0
+    _rank: 13
     _suit: 2

@@ -12,17 +12,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 87a96934bffc0bc4f9a9f97c6c2cf564, type: 3}
   m_Name: Hand_FullHouse
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Hands.PokerHandFullHouse
-  _displayName: Full House
+  _nameKey: hand.full_house.name
   _tier: 6
-  _description: Three cards of the same value, with two other cards of the same value.
+  _isHouseHand: 0
+  _descriptionKey: hand.full_house.description
   _exampleCards:
-  - _rank: 13
+  - _isJoker: 0
+    _rank: 13
     _suit: 3
-  - _rank: 13
+  - _isJoker: 0
+    _rank: 13
     _suit: 2
-  - _rank: 13
+  - _isJoker: 0
+    _rank: 13
     _suit: 1
-  - _rank: 7
+  - _isJoker: 0
+    _rank: 7
     _suit: 0
-  - _rank: 7
+  - _isJoker: 0
+    _rank: 7
     _suit: 2

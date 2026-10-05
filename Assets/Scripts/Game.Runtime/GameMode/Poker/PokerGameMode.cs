@@ -553,7 +553,7 @@ namespace Game.Runtime.GameMode.Poker
 
 		private void CollectModeConfigEntries(List<MatchConfigEntry> entries)
 		{
-			entries.Add(new MatchConfigInt("Match", "Match", "StartingHealth", "Starting Health", 1, 8, 1,
+			entries.Add(new MatchConfigInt("Match", LocalizationKeys.Config.Section.Match, "StartingHealth", LocalizationKeys.Config.StartingHealth, 1, 8, 1,
 				() => _startingHealth,
 				value =>
 				{

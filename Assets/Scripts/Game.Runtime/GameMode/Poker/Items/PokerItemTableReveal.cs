@@ -1,4 +1,5 @@
 using Game.Runtime.GameMode.Poker.Player;
+using Localization;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -21,7 +22,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 				if (HasHiddenCard(player)) return PokerItemAvailability.Usable;
 			}
 
-			return PokerItemAvailability.Dimmed("Every card is already face up.");
+			return PokerItemAvailability.Dimmed(Localizer.Get(LocalizationKeys.Item.Reason.AllFaceUp));
 		}
 
 		protected override void OnUseServer(in PokerItemContext context, in PokerItemUseRequest request)

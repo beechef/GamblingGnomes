@@ -13,12 +13,11 @@ MonoBehaviour:
   m_Name: PokerItem_MutualReveal
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Items.PokerItemMutualReveal
   _type: 3
-  _displayName: Show Together
-  _description: You and a player you pick each turn one card face up for the whole
-    table until the hand ends. They choose which of theirs.
+  _nameKey: item.mutual_reveal.name
+  _descriptionKey: item.mutual_reveal.description
   _icon: {fileID: 21300000, guid: bd4686ac22691d64f80ee4f5a2f0c96a, type: 3}
   _hallucinationCost: 0
-  _noticeVerb: SHOWS WITH
-  _privateNoticeVerb: 
+  _noticeKey: item.mutual_reveal.notice
+  _privateNoticeKey: 
   _ownChoice: 0
   _shownStreets: 1

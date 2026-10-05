@@ -2,6 +2,7 @@ using System;
 using Game.Runtime.Controller;
 using Game.Runtime.UI.FindLobby;
 using Game.Runtime.UI.Selection;
+using Game.Runtime.UI.Settings;
 using Sirenix.OdinInspector;
 using Unity.Netcode;
 using UnityEngine;
@@ -44,7 +45,7 @@ namespace Game.Runtime.UI.MainMenu
 		[SerializeField] private UIFindLobby _findLobbyUI;
 
 		[Tooltip("Left empty, the Option entry greys out — an entry that does nothing should look like one.")]
-		[SerializeField] private GameObject _optionScreen;
+		[SerializeField] private UISettingsScreen _settingsScreen;
 
 		[Header("Quick Start")]
 		[Tooltip("On, Host goes straight in on the settings the network manager already carries. A shortcut for getting to a table while it is being built — turn it off to get the room setup screen back. Find Lobby always goes through its browser, which refreshes and filters on its own.")]
@@ -59,7 +60,7 @@ namespace Game.Runtime.UI.MainMenu
 			_rootGroup.OnSubmitted += HandleRootSubmitted;
 			_playGroup.OnSubmitted += HandlePlaySubmitted;
 
-			if (_optionItem) _optionItem.Button.IsInteractable = _optionScreen;
+			if (_optionItem) _optionItem.Button.IsInteractable = _settingsScreen;
 
 			ShowRootMenu();
 		}
@@ -138,6 +139,7 @@ namespace Game.Runtime.UI.MainMenu
 
 			if (_roomSettingUI) _roomSettingUI.gameObject.SetActive(false);
 			if (_findLobbyUI) _findLobbyUI.gameObject.SetActive(false);
+			CloseSettings();
 
 			ShowRootMenu();
 		}
@@ -146,7 +148,7 @@ namespace Game.Runtime.UI.MainMenu
 		{
 			if (_roomSettingUI) _roomSettingUI.gameObject.SetActive(false);
 			if (_findLobbyUI) _findLobbyUI.gameObject.SetActive(false);
-			if (_optionScreen) _optionScreen.SetActive(false);
+			CloseSettings();
 
 			gameObject.SetActive(false);
 		}
@@ -226,10 +228,26 @@ namespace Game.Runtime.UI.MainMenu
 
 		private void ShowOptions()
 		{
-			if (!_optionScreen) return;
+			if (!_settingsScreen) return;
 
 			gameObject.SetActive(false);
-			_optionScreen.SetActive(true);
+			_settingsScreen.OnClosed += HandleSettingsClosed;
+			_settingsScreen.Open();
+		}
+
+		private void HandleSettingsClosed()
+		{
+			_settingsScreen.OnClosed -= HandleSettingsClosed;
+			Show();
+		}
+
+		// Shut without raising OnClosed: whoever shuts it this way is already putting up what comes next.
+		private void CloseSettings()
+		{
+			if (!_settingsScreen) return;
+
+			_settingsScreen.OnClosed -= HandleSettingsClosed;
+			_settingsScreen.gameObject.SetActive(false);
 		}
 
 		private void ShowRootMenu() => SetMenu(true);

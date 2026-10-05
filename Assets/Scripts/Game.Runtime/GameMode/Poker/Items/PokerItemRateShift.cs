@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using Game.Runtime.GameMode.Poker.Player;
+using Localization;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Game.Runtime.GameMode.Poker.Items
 {
@@ -27,17 +29,21 @@ namespace Game.Runtime.GameMode.Poker.Items
 		[SerializeField] private int _lowerWeight = 50;
 
 		[Tooltip("What the table reads when the rate goes up. {0} is the amount.")]
-		[SerializeField] private string _raisedVerb = "+{0} DOSE TO";
+		[LocalizationKey]
+		[FormerlySerializedAs("_raisedVerb")]
+		[SerializeField] private string _raisedKey = LocalizationKeys.Item.RateShift.Raised;
 
 		[Tooltip("What the table reads when the rate goes down. {0} is the amount.")]
-		[SerializeField] private string _loweredVerb = "-{0} DOSE TO";
+		[LocalizationKey]
+		[FormerlySerializedAs("_loweredVerb")]
+		[SerializeField] private string _loweredKey = LocalizationKeys.Item.RateShift.Lowered;
 
 		protected override void OnCollectTargetSteps(List<PokerItemTargetKind> steps) => steps.Add(PokerItemTargetKind.Player);
 
 		public override string GetTargetPrompt(PokerItemTargetKind kind) =>
-			kind == PokerItemTargetKind.Player ? "POINT AT WHOSE DOSE YOU SHAKE" : base.GetTargetPrompt(kind);
+			kind == PokerItemTargetKind.Player ? Localizer.Get(LocalizationKeys.Item.RateShift.Prompt) : base.GetTargetPrompt(kind);
 
-		public override string GetOutcomeVerb(int outcome) => string.Format(outcome == Raised ? _raisedVerb : _loweredVerb, _amount);
+		public override string GetOutcomeVerb(int outcome) => Localizer.Format(outcome == Raised ? _raisedKey : _loweredKey, _amount);
 
 		public override bool AnnouncesOutcome => true;
 
@@ -48,7 +54,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 				if (AcceptsPlayer(context, player)) return PokerItemAvailability.Usable;
 			}
 
-			return PokerItemAvailability.Dimmed("Nobody is left to shake.");
+			return PokerItemAvailability.Dimmed(Localizer.Get(LocalizationKeys.Item.Reason.NobodyToShake));
 		}
 
 		public override bool AcceptsPlayer(in PokerItemContext context, PokerPlayer target) =>

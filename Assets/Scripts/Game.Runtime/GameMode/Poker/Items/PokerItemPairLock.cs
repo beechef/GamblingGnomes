@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Game.Runtime.GameMode.Poker.Player;
+using Localization;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -26,18 +27,18 @@ namespace Game.Runtime.GameMode.Poker.Items
 		protected override void OnCollectTargetSteps(List<PokerItemTargetKind> steps) => steps.Add(PokerItemTargetKind.Player);
 
 		public override string GetTargetPrompt(PokerItemTargetKind kind) =>
-			kind == PokerItemTargetKind.Player ? "POINT AT WHO IS LOCKED WITH YOU" : base.GetTargetPrompt(kind);
+			kind == PokerItemTargetKind.Player ? Localizer.Get(LocalizationKeys.Item.PairLock.Prompt) : base.GetTargetPrompt(kind);
 
 		protected override PokerItemAvailability OnGetAvailability(in PokerItemContext context)
 		{
-			if (!context.Module.HasNextStreet()) return PokerItemAvailability.Hidden("No street is left in this hand.");
+			if (!context.Module.HasNextStreet()) return PokerItemAvailability.Hidden(Localizer.Get(LocalizationKeys.Item.Reason.NoStreetLeft));
 
 			foreach (var player in context.GameMode.SeatedPlayers)
 			{
 				if (AcceptsPlayer(context, player)) return PokerItemAvailability.Usable;
 			}
 
-			return PokerItemAvailability.Dimmed("Nobody else is left in the hand.");
+			return PokerItemAvailability.Dimmed(Localizer.Get(LocalizationKeys.Item.Reason.NobodyInHand));
 		}
 
 		public override bool AcceptsPlayer(in PokerItemContext context, PokerPlayer target) =>

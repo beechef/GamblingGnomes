@@ -1,3 +1,4 @@
+using Localization;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -19,7 +20,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 		protected override PokerItemAvailability OnGetAvailability(in PokerItemContext context) =>
 			context.Module.HasNextStreet()
 				? PokerItemAvailability.Usable
-				: PokerItemAvailability.Hidden("No street is left in this hand.");
+				: PokerItemAvailability.Hidden(Localizer.Get(LocalizationKeys.Item.Reason.NoStreetLeft));
 
 		protected override void OnUseServer(in PokerItemContext context, in PokerItemUseRequest request)
 		{
