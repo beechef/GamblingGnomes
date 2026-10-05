@@ -83,6 +83,7 @@ namespace Localization.Import
 
 				EditorUtility.DisplayProgressBar("Localization", "Reading the source…", 0f);
 				var tabs = await _source.ReadAsync();
+				RefuseSpreadsheetErrors(tabs);
 
 				EditorUtility.DisplayProgressBar("Localization", "Writing sections…", 1f);
 				var keys = Write(tabs);
@@ -251,6 +252,36 @@ namespace Localization.Import
 
 			Debug.Log($"[{nameof(LocalizationImporter)}] Exported {written} sections to {folder}.", this);
 			EditorUtility.RevealInFinder(folder);
+		}
+
+		/// <summary>
+		/// A sheet reads a cell starting with + or = as a formula and exports its error (#ERROR!) in
+		/// place of the text; imported, that error would be the string on screen. The whole import is
+		/// refused instead, naming each cell to fix (start it with an apostrophe).
+		/// </summary>
+		private static void RefuseSpreadsheetErrors(IReadOnlyList<LocalizationTab> tabs)
+		{
+			var broken = new List<string>();
+			foreach (var tab in tabs)
+			{
+				if (tab.Rows == null) continue;
+
+				for (var r = 1; r < tab.Rows.Count; r++)
+				{
+					var row = tab.Rows[r];
+					for (var c = 1; c < row.Length; c++)
+					{
+						var cell = row[c].Trim();
+						// A leading = is a formula typed as text: the apostrophe went in front of the = rather than instead of it.
+						if (cell is "#ERROR!" or "#NAME?" or "#REF!" or "#VALUE!" or "#N/A" or "#DIV/0!" or "#NUM!" || cell.StartsWith("="))
+							broken.Add($"{tab.Name} row {r + 1} ({Cell(row, 0)}): {cell}");
+					}
+				}
+			}
+
+			if (broken.Count > 0)
+				throw new LocalizationSourceException("The source holds formula errors; nothing was imported. Start these cells with an apostrophe:\n  " +
+				                                      string.Join("\n  ", broken));
 		}
 
 		private static int ColumnOf(string[] header, string name)
