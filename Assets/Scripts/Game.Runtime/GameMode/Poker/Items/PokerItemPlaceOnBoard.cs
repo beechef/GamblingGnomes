@@ -73,7 +73,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 				if (_landHold > 0f) await Awaitable.WaitForSecondsAsync(_landHold, ct);
 
 				if (!await context.Module.ServerExchangeCardsAsync(
-					    PokerCardPlace.InHand(user.ClientId, ownSlot), PokerCardPlace.OnBoard(boardSlot), ct, flyFaceDown: true)) return;
+					    PokerCardPlace.InHand(user.ClientId, ownSlot), PokerCardPlace.OnBoard(boardSlot), ct, PokerCardExchangeFlight.FirstFaceUp)) return;
 
 				// The card drawn is the user's own to see; the one laid down is everybody's.
 				user.Data.ServerMarkLookedAt(ownSlot);

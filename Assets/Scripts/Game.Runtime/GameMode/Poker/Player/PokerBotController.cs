@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using Game.Runtime.GameMode.Poker.BetItems;
+using Game.Runtime.GameMode.Poker.Items;
 using Game.Runtime.GameMode.Poker.Stages;
 using Sirenix.OdinInspector;
 using Unity.Netcode;
@@ -20,6 +21,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		[SerializeField] private float _answerDelay = 1f;
 
 		private PokerGameMode _gameMode;
+		private PokerItemModule _itemModule;
 
 		public override void OnNetworkSpawn()
 		{
@@ -41,6 +43,8 @@ namespace Game.Runtime.GameMode.Poker.Player
 		{
 			if (_gameMode == gameMode) return;
 
+			if (_itemModule) _itemModule.OnPendingResponseChanged -= HandlePendingResponseChanged;
+
 			if (_gameMode)
 			{
 				_gameMode.OnStageChanged -= HandleStageChanged;
@@ -48,12 +52,15 @@ namespace Game.Runtime.GameMode.Poker.Player
 			}
 
 			_gameMode = gameMode;
+			_itemModule = _gameMode ? _gameMode.FindModule<PokerItemModule>() : null;
 
 			if (_gameMode)
 			{
 				_gameMode.Data.TurnEndTime.OnValueChanged += HandleTurnBegan;
 				_gameMode.OnStageChanged += HandleStageChanged;
 			}
+
+			if (_itemModule) _itemModule.OnPendingResponseChanged += HandlePendingResponseChanged;
 		}
 
 		// Written by every BeginTurn, even one handing the turn to the same player again, which the turn id
@@ -89,6 +96,26 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 			if (stage is PokerCardLookStage) _player.Data.ServerLookAtEveryHoleCard();
 			else gameMode.ServerSubmitAction(_player.ClientId, PokerActionType.AllIn, 0);
+		}
+
+		// An item somebody played asks this bot to put a card forward (a Swap): any card it may give will do.
+		private void HandlePendingResponseChanged()
+		{
+			var pending = _itemModule.PendingResponse.Value;
+			if (pending.IsPending && pending.ResponderClientId == _player.ClientId) _ = AnswerCardAsync(_itemModule, destroyCancellationToken);
+		}
+
+		private async Awaitable AnswerCardAsync(PokerItemModule module, CancellationToken ct)
+		{
+			if (!await WaitAnswerDelayAsync(ct) || module != _itemModule) return;
+
+			var count = _player.Data.CardCount;
+			var start = UnityEngine.Random.Range(0, Mathf.Max(1, count));
+
+			for (var i = 0; i < count; i++)
+			{
+				if (module.ServerAnswerCard(_player, (start + i) % count)) return;
+			}
 		}
 
 		private async Awaitable<bool> WaitAnswerDelayAsync(CancellationToken ct)

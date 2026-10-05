@@ -35,10 +35,19 @@ namespace Game.Runtime.GameMode.Poker.Items
 
 			[MinValue(0f)] public float AppearDuration;
 			[MinValue(0f)] public float MoveDuration;
+
+			[Tooltip("Seconds held before vanishing. With Hold Until Resolved, the longest it waits for the item to finish.")]
 			[MinValue(0f)] public float HoldDuration;
+
 			[MinValue(0f)] public float VanishDuration;
 
 			public Ease MoveEase;
+
+			[Tooltip("Stays up until the item has finished resolving (an answer, a card flight), then vanishes: a knife held on the target until the cards have changed hands.")]
+			public bool HoldUntilResolved;
+
+			[Tooltip("Degrees the prop turns about its own axes over its move and hold: a die tumbling.")]
+			public Vector3 Spin;
 		}
 
 		[SerializeField] private List<Entry> _entries = new();

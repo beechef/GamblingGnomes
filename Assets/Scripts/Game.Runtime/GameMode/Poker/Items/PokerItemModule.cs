@@ -83,12 +83,16 @@ namespace Game.Runtime.GameMode.Poker.Items
 		// Raised on every peer when the table starts or stops waiting on somebody.
 		public event Action OnPendingResponseChanged;
 
-		// Raised on every peer as two cards set off to change places, with whether they fly face down whatever this screen
-		// saw. The swap itself is written once they land.
-		public event Action<PokerCardPlace, PokerCardPlace, bool> OnCardsExchanging;
+		// Raised on every peer as two cards set off to change places, with how they look in flight. The swap itself
+		// is written once they land.
+		public event Action<PokerCardPlace, PokerCardPlace, PokerCardExchangeFlight> OnCardsExchanging;
 
 		// An item played, on every peer: user, item, and whom it was aimed at (NoTurn for nobody). For props.
 		public event Action<ulong, PokerItemType, ulong> OnItemUsed;
+
+		// The same item done resolving, answers and flights included, on every peer: user, item. For props held
+		// through the whole of it.
+		public event Action<ulong, PokerItemType> OnItemResolved;
 
 		// A card about to be rewritten in place, and which faces it flickers through on the way.
 		public event Action<PokerCardPlace, PokerCardFlickerFaces> OnCardRewriting;
@@ -527,7 +531,14 @@ namespace Game.Runtime.GameMode.Poker.Items
 
 				PlayItemUsedRPC(clientId, request.Item, targetClientId);
 
-				await item.UseServerAsync(context, request, ct);
+				try
+				{
+					await item.UseServerAsync(context, request, ct);
+				}
+				finally
+				{
+					if (IsSpawned) PlayItemResolvedRPC(clientId, request.Item);
+				}
 			}
 			catch (OperationCanceledException)
 			{
@@ -597,26 +608,32 @@ namespace Game.Runtime.GameMode.Poker.Items
 				return;
 			}
 
-			var responder = GameMode.FindSeatedPlayer(sender);
-			var requester = GameMode.FindSeatedPlayer(pending.RequesterClientId);
-
-			if (!TryGetItem(pending.Item, out var item) || !responder || !item.AcceptsResponseCard(ContextFor(requester), responder, slot))
-			{
+			if (!ServerAnswerCard(GameMode.FindSeatedPlayer(sender), slot))
 				Debug.LogWarning($"[{ModuleId}] Card answer from client {sender} refused: slot {slot} is not one they may put forward.");
-				return;
-			}
+		}
+
+		// The one door an answer comes through, a client's RPC or a bot. False when the slot is not one the
+		// responder may put forward, or nobody is asking them.
+		public bool ServerAnswerCard(PokerPlayer responder, int slot)
+		{
+			var pending = PendingResponse.Value;
+			if (!IsServer || !responder || !pending.IsPending || pending.ResponderClientId != responder.ClientId) return false;
+
+			var requester = GameMode.FindSeatedPlayer(pending.RequesterClientId);
+			if (!TryGetItem(pending.Item, out var item) || !item.AcceptsResponseCard(ContextFor(requester), responder, slot)) return false;
 
 			_responseSlot = slot;
+			return true;
 		}
 
 		// Two cards change places. Every screen is told first and flies them; the lists are written once the
 		// flight is over, so no face changes in plain sight. Whatever anybody knew about either card is
 		// forgotten, because the slot now holds something else. False when either card was gone by then.
-		public async Awaitable<bool> ServerExchangeCardsAsync(PokerCardPlace first, PokerCardPlace second, CancellationToken ct, bool flyFaceDown = false)
+		public async Awaitable<bool> ServerExchangeCardsAsync(PokerCardPlace first, PokerCardPlace second, CancellationToken ct, PokerCardExchangeFlight flight = PokerCardExchangeFlight.AsSeen)
 		{
 			if (!IsServer || !TryReadCard(first, out _) || !TryReadCard(second, out _)) return false;
 
-			PlayCardExchangeRPC(first, second, flyFaceDown);
+			PlayCardExchangeRPC(first, second, flight);
 
 			if (_exchangePacing) await Awaitable.WaitForSecondsAsync(_exchangePacing.FlightDuration, ct);
 
@@ -653,10 +670,13 @@ namespace Game.Runtime.GameMode.Poker.Items
 		private void PlayItemUsedRPC(ulong user, PokerItemType item, ulong target) => OnItemUsed?.Invoke(user, item, target);
 
 		[Rpc(SendTo.Everyone)]
+		private void PlayItemResolvedRPC(ulong user, PokerItemType item) => OnItemResolved?.Invoke(user, item);
+
+		[Rpc(SendTo.Everyone)]
 		private void PlayCardRewriteRPC(PokerCardPlace place, PokerCardFlickerFaces faces) => OnCardRewriting?.Invoke(place, faces);
 
 		[Rpc(SendTo.Everyone)]
-		private void PlayCardExchangeRPC(PokerCardPlace first, PokerCardPlace second, bool flyFaceDown) => OnCardsExchanging?.Invoke(first, second, flyFaceDown);
+		private void PlayCardExchangeRPC(PokerCardPlace first, PokerCardPlace second, PokerCardExchangeFlight flight) => OnCardsExchanging?.Invoke(first, second, flight);
 
 		public bool TryReadCard(PokerCardPlace place, out CardData card)
 		{

@@ -72,7 +72,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 			var userPlace = PokerCardPlace.InHand(user.ClientId, ownSlot);
 			var targetPlace = PokerCardPlace.InHand(target.ClientId, targetSlot);
 
-			if (!await context.Module.ServerExchangeCardsAsync(userPlace, targetPlace, ct, flyFaceDown: true)) return;
+			if (!await context.Module.ServerExchangeCardsAsync(userPlace, targetPlace, ct, PokerCardExchangeFlight.FaceDown)) return;
 
 			user.Data.ServerMarkLookedAt(ownSlot);
 			target.Data.ServerMarkLookedAt(targetSlot);

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using DG.Tweening;
 using Game.Runtime.GameMode.Poker.Items;
 using Game.Runtime.GameMode.Poker.Player;
@@ -13,18 +14,38 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		[Required]
 		[SerializeField] private PokerItemPropDatabase _database;
 
+		// Props waiting for their item to finish before they vanish.
+		private struct HeldProp
+		{
+			public ulong User;
+			public PokerItemType Item;
+			public Sequence Sequence;
+			public float VanishAt;
+		}
+
+		private readonly List<HeldProp> _held = new();
+
 		private PokerItemModule _module;
 
 		protected override void OnBind()
 		{
 			_module = GameMode.FindModule<PokerItemModule>();
-			if (_module) _module.OnItemUsed += HandleItemUsed;
+			if (!_module) return;
+
+			_module.OnItemUsed += HandleItemUsed;
+			_module.OnItemResolved += HandleItemResolved;
 		}
 
 		protected override void OnUnbind()
 		{
-			if (_module) _module.OnItemUsed -= HandleItemUsed;
+			if (_module)
+			{
+				_module.OnItemResolved -= HandleItemResolved;
+				_module.OnItemUsed -= HandleItemUsed;
+			}
+
 			_module = null;
+			_held.Clear();
 		}
 
 		private void HandleItemUsed(ulong userClientId, PokerItemType item, ulong targetClientId)
@@ -37,22 +58,35 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			switch (entry.Place)
 			{
 				case PokerItemPropPlace.User:
-					Play(entry, user, user, target);
+					Play(entry, userClientId, item, user, user, target);
 					break;
 				case PokerItemPropPlace.Target:
-					Play(entry, target, user, target);
+					Play(entry, userClientId, item, target, user, target);
 					break;
 				case PokerItemPropPlace.UserAndTarget:
-					Play(entry, user, user, target);
-					if (target != user) Play(entry, target, user, user);
+					Play(entry, userClientId, item, user, user, target);
+					if (target != user) Play(entry, userClientId, item, target, user, user);
 					break;
 				case PokerItemPropPlace.LastFaceDownBoardCard:
-					Play(entry, LastFaceDownBoardCard(), user, target);
+					Play(entry, userClientId, item, LastFaceDownBoardCard(), user, target);
 					break;
 			}
 		}
 
-		private void Play(in PokerItemPropDatabase.Entry entry, Transform place, Transform user, Transform faced)
+		// The hold is cut short: the prop goes as soon as its item is done.
+		private void HandleItemResolved(ulong userClientId, PokerItemType item)
+		{
+			for (var i = _held.Count - 1; i >= 0; i--)
+			{
+				var held = _held[i];
+				if (held.User != userClientId || held.Item != item) continue;
+
+				_held.RemoveAt(i);
+				if (held.Sequence.IsActive() && held.Sequence.Elapsed() < held.VanishAt) held.Sequence.Goto(held.VanishAt, true);
+			}
+		}
+
+		private void Play(in PokerItemPropDatabase.Entry entry, ulong userClientId, PokerItemType item, Transform place, Transform user, Transform faced)
 		{
 			if (!place) return;
 
@@ -65,13 +99,23 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 			if (entry.FaceTarget && faced) prop.transform.rotation = Quaternion.LookRotation(faced.position - start);
 
-			DOTween.Sequence()
+			var vanishAt = entry.AppearDuration + entry.MoveDuration + entry.HoldDuration;
+
+			var sequence = DOTween.Sequence()
 				.Append(prop.transform.DOScale(restScale, entry.AppearDuration).SetEase(Ease.OutBack))
 				.Append(prop.transform.DOMove(end, entry.MoveDuration).SetEase(entry.MoveEase))
 				.AppendInterval(entry.HoldDuration)
 				.Append(prop.transform.DOScale(Vector3.zero, entry.VanishDuration).SetEase(Ease.InBack))
 				.OnComplete(() => Destroy(prop))
 				.SetLink(prop);
+
+			if (entry.Spin != Vector3.zero && vanishAt > entry.AppearDuration)
+			{
+				sequence.Insert(entry.AppearDuration,
+					prop.transform.DOLocalRotate(entry.Spin, vanishAt - entry.AppearDuration, RotateMode.LocalAxisAdd).SetEase(Ease.OutCubic));
+			}
+
+			if (entry.HoldUntilResolved) _held.Add(new HeldProp { User = userClientId, Item = item, Sequence = sequence, VanishAt = vanishAt });
 		}
 
 		// A prop about you sits where your own eye can see it; about anybody else, on their body.

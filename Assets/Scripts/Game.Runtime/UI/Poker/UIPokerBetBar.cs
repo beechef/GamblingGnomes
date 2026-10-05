@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using DG.Tweening;
 using Unity.Collections;
 using Game.Runtime.GameMode.Poker;
 using Game.Runtime.GameMode.Poker.Items;
@@ -60,6 +61,16 @@ namespace Game.Runtime.UI.Poker
 
 		[SerializeField] private Sprite _foldLockedIcon;
 
+		[Tooltip("Seconds the Fold button shakes and pulses when folding becomes forbidden while it is up, so the lock is noticed.")]
+		[Min(0f)]
+		[SerializeField] private float _foldLockAlertDuration = 0.5f;
+
+		[Tooltip("How much bigger the Fold button punches at the lock, as a share of its size.")]
+		[SerializeField] private float _foldLockPunch = 0.25f;
+
+		[Tooltip("Degrees the Fold button shakes either way at the lock.")]
+		[SerializeField] private float _foldLockShakeAngle = 12f;
+
 		[Tooltip("Shown only on a street that allows going all in.")]
 		[SerializeField] private UIButton _allInButton;
 
@@ -78,6 +89,8 @@ namespace Game.Runtime.UI.Poker
 		private readonly List<PokerPlayerData> _watched = new();
 
 		private Sprite _foldIconSprite;
+		private Tween _foldLockAlert;
+		private bool _wasFoldLocked;
 
 		private void Awake()
 		{
@@ -139,6 +152,8 @@ namespace Game.Runtime.UI.Poker
 
 			CloseAll();
 
+			_foldLockAlert?.Kill(true);
+			_wasFoldLocked = false;
 			_itemModule = null;
 		}
 
@@ -219,6 +234,8 @@ namespace Game.Runtime.UI.Poker
 			if (_foldButton) _foldButton.gameObject.SetActive(foldShown);
 			if (_foldCrossline) _foldCrossline.SetActive(foldLocked);
 			if (_foldIcon && _foldLockedIcon) _foldIcon.sprite = foldLocked ? _foldLockedIcon : _foldIconSprite;
+			if (foldLocked && !_wasFoldLocked) PlayFoldLockAlert();
+			_wasFoldLocked = foldLocked;
 			if (_allInButton) _allInButton.gameObject.SetActive(acting && _stage.AllowAllIn);
 			if (_betLabel && acting) _betLabel.text = _stage.IsCall(LocalData) ? _callText : _betText;
 
@@ -228,6 +245,20 @@ namespace Game.Runtime.UI.Poker
 			var hasItems = _itemModule && LocalPlayer.ItemInventory && _itemPicker && Data.Phase.Value != PokerPhase.Waiting && IsAlive;
 			_itemsButton.gameObject.SetActive(hasItems);
 			if (hasItems) _itemsButton.IsInteractable = AnyItemHeld();
+		}
+
+		// The root turns and scales; no layout places either, and the button's own visuals move its Content.
+		private void PlayFoldLockAlert()
+		{
+			if (!_foldButton || _foldLockAlertDuration <= 0f) return;
+
+			var button = _foldButton.transform;
+			_foldLockAlert?.Kill(true);
+			_foldLockAlert = DOTween.Sequence()
+				.Join(button.DOPunchScale(Vector3.one * _foldLockPunch, _foldLockAlertDuration, 4, 0.5f))
+				.Join(button.DOShakeRotation(_foldLockAlertDuration, new Vector3(0f, 0f, _foldLockShakeAngle), 20, 0f))
+				.SetUpdate(true)
+				.SetLink(_foldButton.gameObject);
 		}
 
 		private void WatchSeatedPlayers()

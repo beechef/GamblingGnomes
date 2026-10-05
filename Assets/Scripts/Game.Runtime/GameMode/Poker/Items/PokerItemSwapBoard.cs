@@ -101,7 +101,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 			var taken = data.CommunityCards[boardSlot];
 
 			if (!await context.Module.ServerExchangeCardsAsync(
-				    PokerCardPlace.InHand(user.ClientId, ownSlot), PokerCardPlace.OnBoard(boardSlot), ct, flyFaceDown: true)) return;
+				    PokerCardPlace.InHand(user.ClientId, ownSlot), PokerCardPlace.OnBoard(boardSlot), ct, PokerCardExchangeFlight.FaceDown)) return;
 
 			user.Data.ServerMarkLookedAt(ownSlot);
 
