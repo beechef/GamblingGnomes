@@ -64,12 +64,16 @@ Hold code to an industry-standard bar; check whether this codebase or the indust
 
 `Bootstrap.unity` is persistent; `Gameplay_*.unity` is loaded additively and disposable.
 
-- Bootstrap owns `NetworkManager`, `GameNetworkManager`, `SteamController`, `GameCamera` + Cinemachine brain, `UIManager`'s canvas. Gameplay owns mode, table, seats, players.
+- Bootstrap owns `NetworkManager`, `GameNetworkManager`, `SteamController`, `GameCamera` + Cinemachine brain, `UIManager`'s canvas, `AudioManager`. Gameplay owns mode, table, seats, players.
 - **Bootstrap code must not reference gameplay types.** Gameplay consumes bootstrap services through their instance or an interface.
 - Gameplay survives unload/reload: every `+=` in a spawn/enable hook has its `-=` in the mirror hook; every stateful static resets under `[RuntimeInitializeOnLoadMethod]`.
 - Never assume gameplay is loaded; use the async load path. Networked scene ops go through `NetworkManager.SceneManager`.
 - **A mode is a prefab the server spawns from the lobby's pick; the gameplay scene holds no mode.** `GameModeController` spawns the `GameModeDatabase` entry's `ModePrefab` (a variant of `GameMode_Poker`: own `_sequence`, `_rules`, `_betItemDatabase`, `_hudPrefab`) from `OnInSceneObjectsSpawned`, never `OnNetworkSpawn`, since the mode lays the table from seats registered at spawn. A scene `NetworkBehaviour` needs a `NetworkObject` on itself or a parent (`PlayerManager` is under `GameModeController`).
 - Exactly one **base** `Camera` + `CinemachineBrain`, in bootstrap; everything else (first-person rigs, cutscene rigs) is a `CinemachineCamera`. Never hand-drive `Camera.transform`. The only other `Camera` is `Bootstrap/UICamera`, a URP **Overlay** camera in the base stack, UI only, no brain.
+
+## Audio
+
+- **Every sound is an `AudioEvent` asset played through `AudioManager`; never an `AudioSource` or FMOD call in game code.** The asset names the FMOD `EventReference`; `AudioManager` plays it through its `IAudioBackend` (`FmodAudioBackend`, the only one), so callers and cues never name FMOD. Edit-mode listening is `Game.Editor.Audio.AudioPreview` (FMOD's editor preview banks), also on the `AudioEvent` inspector.
 
 ## Netcode rules
 

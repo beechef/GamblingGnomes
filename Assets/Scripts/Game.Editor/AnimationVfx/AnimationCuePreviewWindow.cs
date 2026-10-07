@@ -1,18 +1,21 @@
 using System.Collections.Generic;
 using System.Linq;
+using Game.Editor.Audio;
 using Game.Runtime.AnimationVfx;
+using Game.Runtime.Audio;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.VFX;
 
 namespace Game.Editor.AnimationVfx
 {
-	// Scrubs a clip on a character in the open scene and plays its effects at the frames they are set to,
+	// Scrubs a clip on a character in the open scene and plays its effects and sounds at the frames they are set to,
 	// without entering Play mode. The pose goes through AnimationMode — the sampling the Animation window
 	// itself uses — so closing the preview hands the character back exactly as it was and nothing in the
 	// scene is dirtied. The effects are spawned by AnimationVfxCue.Spawn, the same call AnimationVfxPlayer
 	// makes in game, and simulated forward to the scrubbed time, so what lines up here lines up in play.
-	public class AnimationVfxPreviewWindow : EditorWindow
+	// Sounds play through AudioPreview as playback crosses their frame, or when a cue is jumped to.
+	public class AnimationCuePreviewWindow : EditorWindow
 	{
 		private const float SimulationStep = 1f / 60f;
 
@@ -22,6 +25,8 @@ namespace Game.Editor.AnimationVfx
 		[SerializeField] private float _time;
 		[SerializeField] private bool _loop = true;
 		[SerializeField] private int _selectedCue = -1;
+		[SerializeField] private AnimationAudioCueDatabase _audioDatabase;
+		[SerializeField] private int _selectedSound = -1;
 
 		private readonly List<Spawned> _spawned = new();
 
@@ -29,6 +34,7 @@ namespace Game.Editor.AnimationVfx
 		private bool _playing;
 		private double _lastTick;
 		private float _simulatedTo = -1f;
+		private float _soundsHeardTo = -1f;
 		private string[] _boneNames = { "(root)" };
 		private Vector2 _scroll;
 
@@ -39,8 +45,8 @@ namespace Game.Editor.AnimationVfx
 			public float BornAt;
 		}
 
-		[MenuItem("Tools/Animation VFX Preview")]
-		private static void Open() => GetWindow<AnimationVfxPreviewWindow>("Animation VFX");
+		[MenuItem("Tools/Animation Cue Preview")]
+		private static void Open() => GetWindow<AnimationCuePreviewWindow>("Animation Cues");
 
 		private float FrameRate => _clip && _clip.frameRate > 0f ? _clip.frameRate : 30f;
 		private int CurrentFrame => Mathf.RoundToInt(_time * FrameRate);
@@ -78,7 +84,8 @@ namespace Game.Editor.AnimationVfx
 		{
 			EditorGUI.BeginChangeCheck();
 
-			_database = (AnimationVfxCueDatabase)EditorGUILayout.ObjectField("Cue Database", _database, typeof(AnimationVfxCueDatabase), false);
+			_database = (AnimationVfxCueDatabase)EditorGUILayout.ObjectField("VFX Cue Database", _database, typeof(AnimationVfxCueDatabase), false);
+			_audioDatabase = (AnimationAudioCueDatabase)EditorGUILayout.ObjectField("Audio Cue Database", _audioDatabase, typeof(AnimationAudioCueDatabase), false);
 			_target = (Animator)EditorGUILayout.ObjectField(new GUIContent("Character", "An animator in the open scene. Its pose is borrowed while previewing and handed back afterwards."), _target, typeof(Animator), true);
 			DrawClipPicker();
 
@@ -86,13 +93,14 @@ namespace Game.Editor.AnimationVfx
 			{
 				_boneNames = CollectBoneNames();
 				_selectedCue = -1;
+				_selectedSound = -1;
 				_time = Mathf.Min(_time, _clip ? _clip.length : 0f);
 				Refresh();
 			}
 
 			if (EditorApplication.isPlayingOrWillChangePlaymode)
 			{
-				EditorGUILayout.HelpBox("The preview runs in edit mode. In Play mode the cues fire from AnimationVfxPlayer instead.", MessageType.Info);
+				EditorGUILayout.HelpBox("The preview runs in edit mode. In Play mode the cues fire from AnimationVfxPlayer and AnimationAudioPlayer instead.", MessageType.Info);
 				return;
 			}
 
@@ -108,6 +116,8 @@ namespace Game.Editor.AnimationVfx
 
 			_scroll = EditorGUILayout.BeginScrollView(_scroll);
 			DrawCues();
+			EditorGUILayout.Space();
+			DrawSounds();
 			EditorGUILayout.EndScrollView();
 		}
 
@@ -137,9 +147,14 @@ namespace Game.Editor.AnimationVfx
 			{
 				if (GUILayout.Button(_playing ? "Pause" : "Play", GUILayout.Width(60)))
 				{
-					_playing = !_playing;
+					var play = !_playing;
+					if (play && _time >= _clip.length) SetTime(0f);
+
+					_playing = play;
 					_lastTick = EditorApplication.timeSinceStartup;
-					if (_playing && _time >= _clip.length) SetTime(0f);
+
+					// Just behind the head, so a sound on the frame playback starts from is heard.
+					_soundsHeardTo = _time - 0.0001f;
 				}
 
 				if (GUILayout.Button("|<", GUILayout.Width(28))) SetTime(0f);
@@ -158,7 +173,8 @@ namespace Game.Editor.AnimationVfx
 			EditorGUILayout.LabelField($"{_time:F3}s of {_clip.length:F3}s at {FrameRate:0.##} fps — {totalFrames} frames", EditorStyles.miniLabel);
 		}
 
-		// A strip under the slider with one tick per cue, so a clip's effects read at a glance.
+		// A strip under the slider with one tick per cue, so a clip's effects (top, red) and sounds (bottom,
+		// blue) read at a glance.
 		private void DrawCueMarkers(int totalFrames)
 		{
 			var rect = GUILayoutUtility.GetRect(0f, 8f, GUILayout.ExpandWidth(true));
@@ -174,7 +190,18 @@ namespace Game.Editor.AnimationVfx
 				{
 					var x = rect.x + rect.width * Mathf.Clamp01(cues[i].Frame / (float)totalFrames);
 					var colour = i == _selectedCue ? new Color(1f, 0.8f, 0.2f) : new Color(1f, 0.35f, 0.35f);
-					EditorGUI.DrawRect(new Rect(x - 1f, rect.y, 3f, rect.height), colour);
+					EditorGUI.DrawRect(new Rect(x - 1f, rect.y, 3f, rect.height * 0.5f), colour);
+				}
+			}
+
+			var sounds = _audioDatabase ? _audioDatabase.CuesFor(_clip) : null;
+			if (sounds != null)
+			{
+				for (var i = 0; i < sounds.Count; i++)
+				{
+					var x = rect.x + rect.width * Mathf.Clamp01(sounds[i].Frame / (float)totalFrames);
+					var colour = i == _selectedSound ? new Color(1f, 0.8f, 0.2f) : new Color(0.35f, 0.65f, 1f);
+					EditorGUI.DrawRect(new Rect(x - 1f, rect.y + rect.height * 0.5f, 3f, rect.height * 0.5f), colour);
 				}
 			}
 
@@ -293,6 +320,100 @@ namespace Game.Editor.AnimationVfx
 			if (picked != index) bone.stringValue = picked == 0 ? string.Empty : _boneNames[picked];
 		}
 
+		private void DrawSounds()
+		{
+			if (!_audioDatabase)
+			{
+				EditorGUILayout.HelpBox("Assign an audio cue database to add sounds to this clip.", MessageType.Info);
+				return;
+			}
+
+			var serialized = new SerializedObject(_audioDatabase);
+			var clips = serialized.FindProperty("_clips");
+			var entryIndex = FindEntry(clips);
+
+			if (GUILayout.Button($"Add sound at frame {CurrentFrame}"))
+			{
+				if (entryIndex < 0)
+				{
+					clips.InsertArrayElementAtIndex(clips.arraySize);
+					entryIndex = clips.arraySize - 1;
+
+					var entry = clips.GetArrayElementAtIndex(entryIndex);
+					entry.FindPropertyRelative(nameof(AnimationAudioCueDatabase.ClipCues.Clip)).objectReferenceValue = _clip;
+					entry.FindPropertyRelative(nameof(AnimationAudioCueDatabase.ClipCues.Cues)).ClearArray();
+				}
+
+				var list = clips.GetArrayElementAtIndex(entryIndex).FindPropertyRelative(nameof(AnimationAudioCueDatabase.ClipCues.Cues));
+				list.InsertArrayElementAtIndex(list.arraySize);
+
+				var cue = list.GetArrayElementAtIndex(list.arraySize - 1);
+				cue.FindPropertyRelative(nameof(AnimationAudioCue.Frame)).intValue = CurrentFrame;
+				cue.FindPropertyRelative(nameof(AnimationAudioCue.Event)).objectReferenceValue = null;
+				cue.FindPropertyRelative(nameof(AnimationAudioCue.Bone)).stringValue = string.Empty;
+				cue.FindPropertyRelative(nameof(AnimationAudioCue.FollowBone)).boolValue = true;
+
+				_selectedSound = list.arraySize - 1;
+			}
+
+			if (entryIndex >= 0)
+			{
+				var list = clips.GetArrayElementAtIndex(entryIndex).FindPropertyRelative(nameof(AnimationAudioCueDatabase.ClipCues.Cues));
+
+				for (var i = 0; i < list.arraySize; i++)
+				{
+					if (DrawSound(list, i)) break;
+				}
+			}
+
+			if (serialized.ApplyModifiedProperties()) Repaint();
+		}
+
+		// True when the cue was deleted, so the caller stops walking a list that just got shorter.
+		private bool DrawSound(SerializedProperty list, int index)
+		{
+			var cue = list.GetArrayElementAtIndex(index);
+			var frame = cue.FindPropertyRelative(nameof(AnimationAudioCue.Frame));
+			var sound = cue.FindPropertyRelative(nameof(AnimationAudioCue.Event));
+			var selected = index == _selectedSound;
+
+			using (new EditorGUILayout.VerticalScope(EditorStyles.helpBox))
+			{
+				using (new EditorGUILayout.HorizontalScope())
+				{
+					var title = $"{(sound.objectReferenceValue ? sound.objectReferenceValue.name : "(no sound)")} @ {frame.intValue}";
+					if (GUILayout.Toggle(selected, title, EditorStyles.foldout) != selected) _selectedSound = selected ? -1 : index;
+
+					if (GUILayout.Button("Play", GUILayout.Width(40))) AudioPreview.Play(sound.objectReferenceValue as AudioEvent);
+
+					if (GUILayout.Button("Go", GUILayout.Width(36)))
+					{
+						SetTime(frame.intValue / FrameRate);
+						AudioPreview.Play(sound.objectReferenceValue as AudioEvent);
+					}
+
+					if (GUILayout.Button("Set here", GUILayout.Width(64))) frame.intValue = CurrentFrame;
+
+					if (GUILayout.Button("X", GUILayout.Width(22)))
+					{
+						list.DeleteArrayElementAtIndex(index);
+						if (_selectedSound == index) _selectedSound = -1;
+						return true;
+					}
+				}
+
+				if (!selected) return false;
+
+				EditorGUILayout.PropertyField(frame);
+				EditorGUILayout.PropertyField(sound);
+				DrawBonePopup(cue.FindPropertyRelative(nameof(AnimationAudioCue.Bone)));
+				EditorGUILayout.PropertyField(cue.FindPropertyRelative(nameof(AnimationAudioCue.FollowBone)));
+			}
+
+			return false;
+		}
+
+		// Both databases key their entries on a field named Clip.
 		private int FindEntry(SerializedProperty clips)
 		{
 			for (var i = 0; i < clips.arraySize; i++)
@@ -366,10 +487,28 @@ namespace Game.Editor.AnimationVfx
 				}
 			}
 
+			PlaySoundsBetween(_soundsHeardTo, wrapped ? _clip.length : next);
+			if (wrapped) PlaySoundsBetween(-1f, next);
+			_soundsHeardTo = next;
+
 			_time = next;
 			Sample();
 			UpdateEffects(!wrapped);
 			Repaint();
+		}
+
+		private void PlaySoundsBetween(float from, float to)
+		{
+			var cues = _audioDatabase ? _audioDatabase.CuesFor(_clip) : null;
+			if (cues == null) return;
+
+			foreach (var cue in cues)
+			{
+				if (cue == null || !cue.Event) continue;
+
+				var at = cue.TimeIn(_clip);
+				if (from < at && at <= to) AudioPreview.Play(cue.Event);
+			}
 		}
 
 		private void SetTime(float time)
@@ -491,6 +630,7 @@ namespace Game.Editor.AnimationVfx
 		{
 			_playing = false;
 			ClearEffects();
+			AudioPreview.StopAll();
 
 			if (_driver && AnimationMode.InAnimationMode(_driver)) AnimationMode.StopAnimationMode(_driver);
 
@@ -501,7 +641,7 @@ namespace Game.Editor.AnimationVfx
 		{
 			if (!_target) return null;
 
-			var bone = AnimationVfxCue.FindBone(_target.transform, name);
+			var bone = AnimationCueDatabase.FindBone(_target.transform, name);
 			return bone ? bone : _target.transform;
 		}
 

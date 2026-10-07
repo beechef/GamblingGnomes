@@ -1,0 +1,50 @@
+using Sirenix.OdinInspector;
+using UnityEngine;
+
+namespace Game.Runtime.Audio
+{
+	// The one door every sound goes through. Callers name an AudioEvent; the backend decides how it plays.
+	public class AudioManager : MonoBehaviour
+	{
+		public static AudioManager Instance { get; private set; }
+
+		[Tooltip("The camera the game is heard from. The backend puts its listener on it.")]
+		[Required]
+		[SerializeField] private GameObject _listener;
+
+		private IAudioBackend _backend;
+
+		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+		private static void ResetStatics() => Instance = null;
+
+		private void Awake()
+		{
+			if (Instance && Instance != this)
+			{
+				Destroy(gameObject);
+				return;
+			}
+
+			Instance = this;
+			_backend = new FmodAudioBackend(_listener);
+		}
+
+		private void OnDestroy()
+		{
+			if (Instance == this) Instance = null;
+		}
+
+		public void PlayOneShot(AudioEvent audioEvent, Vector3 position)
+		{
+			if (audioEvent && _backend != null) _backend.PlayOneShot(audioEvent, position);
+		}
+
+		public void PlayOneShotAttached(AudioEvent audioEvent, Transform target)
+		{
+			if (!audioEvent || _backend == null) return;
+
+			if (target) _backend.PlayOneShotAttached(audioEvent, target);
+			else _backend.PlayOneShot(audioEvent, transform.position);
+		}
+	}
+}
