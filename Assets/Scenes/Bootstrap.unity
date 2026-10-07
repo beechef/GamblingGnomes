@@ -436,6 +436,7 @@ GameObject:
   - component: {fileID: 570211707}
   - component: {fileID: 570211706}
   - component: {fileID: 570211705}
+  - component: {fileID: 570211710}
   m_Layer: 0
   m_Name: NetworkManager
   m_TagString: Untagged
@@ -569,6 +570,22 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &570211710
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 570211704}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6f71d5254283ad44f802af2f15c9adf9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Controller.MatchmakingController
+  _network: {fileID: 570211705}
+  _networkManager: {fileID: 570211708}
+  _targetPlayers: 4
+  _maxJoinAttempts: 5
 --- !u!1 &1011165995
 GameObject:
   m_ObjectHideFlags: 0
