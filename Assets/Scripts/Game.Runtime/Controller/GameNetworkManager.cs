@@ -343,7 +343,17 @@ namespace Game.Runtime.Controller
 
 			ct.ThrowIfCancellationRequested();
 
-			return lobbies ?? Array.Empty<ILobby>();
+			if (lobbies == null) return Array.Empty<ILobby>();
+
+			// A matchmaking room is only entered through quick match: joined by hand, nobody in it would wait
+			// for the room to fill or hear that it started.
+			var hosted = new List<ILobby>(lobbies.Count);
+			foreach (var lobby in lobbies)
+			{
+				if (lobby.GetData(LobbyConstant.MatchmakingKey) != LobbyConstant.MatchmakingValue) hosted.Add(lobby);
+			}
+
+			return hosted;
 		}
 
 		// Whether this player has a room friends can be asked into.
