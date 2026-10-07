@@ -2,15 +2,14 @@ using Game.Runtime.Controller;
 using Sirenix.OdinInspector;
 using Unity.Netcode;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace Game.Runtime.GameMode.Poker
 {
-	// Solo playtesting: host-only keys [ and ] add and remove bots, never more bodies than the table lays
-	// chairs. The keys are built here rather than in the action asset so they never show up for rebinding.
+	// Fills empty chairs with bots for the host, never more bodies than the table lays chairs. Driven by the
+	// host's Add Bot and Clear Bot buttons (UIPokerBotButtons).
 	public class PokerBotSpawner : NetworkBehaviour
 	{
-		[Tooltip("On, the host can add bots with [ and remove them with ].")]
+		[Tooltip("On, the host is offered Add Bot and Clear Bot at this table.")]
 		[SerializeField] private bool _allowBots;
 
 		[Tooltip("Body a bot is spawned as; carries the bot's own logic.")]
@@ -18,66 +17,40 @@ namespace Game.Runtime.GameMode.Poker
 		[SerializeField] private NetworkObject _botPrefab;
 
 		private PokerGameMode _gameMode;
-		private InputAction _addBotAction;
-		private InputAction _removeBotAction;
+
+		public bool AllowsBots => _allowBots && _botPrefab;
+
+		// A body with no chair would stand around the table for the whole match.
+		public bool CanAddBot
+		{
+			get
+			{
+				var players = PlayerManager.Instance;
+				var seats = _gameMode && _gameMode.Data ? _gameMode.Data.ActiveSeatCount.Value : 0;
+				return IsHost && AllowsBots && players && players.Players.Count < seats;
+			}
+		}
+
+		public bool HasBots => IsHost && PlayerManager.Instance && PlayerManager.Instance.BotCount > 0;
 
 		private void Awake()
 		{
 			_gameMode = GetComponent<PokerGameMode>();
 		}
 
-		public override void OnNetworkSpawn()
+		public void ServerAddBot()
 		{
-			if (!IsHost || !_allowBots) return;
+			if (!CanAddBot) return;
 
-			_addBotAction = new InputAction("AddBot", binding: "<Keyboard>/leftBracket");
-			_removeBotAction = new InputAction("RemoveBot", binding: "<Keyboard>/rightBracket");
-
-			_addBotAction.performed += HandleAddBotPerformed;
-			_removeBotAction.performed += HandleRemoveBotPerformed;
-
-			_addBotAction.Enable();
-			_removeBotAction.Enable();
+			PlayerManager.Instance.ServerAddBot(_botPrefab);
 		}
 
-		public override void OnNetworkDespawn()
-		{
-			if (_addBotAction == null) return;
-
-			_removeBotAction.performed -= HandleRemoveBotPerformed;
-			_addBotAction.performed -= HandleAddBotPerformed;
-
-			_removeBotAction.Dispose();
-			_addBotAction.Dispose();
-
-			_removeBotAction = null;
-			_addBotAction = null;
-		}
-
-		private void HandleAddBotPerformed(InputAction.CallbackContext context)
+		public void ServerClearBots()
 		{
 			var players = PlayerManager.Instance;
-			if (!players)
-			{
-				Debug.LogWarning("Bot not added: no PlayerManager in the loaded gameplay scene.");
-				return;
-			}
+			if (!IsHost || !players) return;
 
-			// A body with no chair would stand around the table for the whole match.
-			var seats = _gameMode && _gameMode.Data ? _gameMode.Data.ActiveSeatCount.Value : 0;
-			if (players.Players.Count >= seats)
-			{
-				Debug.LogWarning($"Bot not added: all {seats} chairs are taken.");
-				return;
-			}
-
-			players.ServerAddBot(_botPrefab);
-		}
-
-		private void HandleRemoveBotPerformed(InputAction.CallbackContext context)
-		{
-			var players = PlayerManager.Instance;
-			if (players) players.ServerRemoveBot();
+			while (players.ServerRemoveBot()) { }
 		}
 	}
 }
