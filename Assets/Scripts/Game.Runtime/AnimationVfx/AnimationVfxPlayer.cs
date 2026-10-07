@@ -58,7 +58,7 @@ namespace Game.Runtime.AnimationVfx
 			if (string.IsNullOrEmpty(name)) return transform;
 			if (_bones.TryGetValue(name, out var bone) && bone) return bone;
 
-			bone = AnimationVfxCue.FindBone(transform, name);
+			bone = AnimationCueDatabase.FindBone(transform, name);
 			if (!bone)
 			{
 				Debug.LogWarning($"{nameof(AnimationVfxPlayer)}: no bone '{name}' under {transform.name}; the effect is spawned at the rig's root.", this);

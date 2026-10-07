@@ -1,14 +1,15 @@
 using System;
 using System.Collections.Generic;
+using Game.Runtime.AnimationVfx;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
-namespace Game.Runtime.AnimationVfx
+namespace Game.Runtime.Audio
 {
-	// Which effects a clip fires, and when. Edited through Tools > Animation Cue Preview, where the frame
-	// can be seen. Installing and cleaning up the events is AnimationCueDatabase's half.
-	[CreateAssetMenu(fileName = "AnimationVfxCueDatabase", menuName = "Game/Animation/VFX Cue Database")]
-	public class AnimationVfxCueDatabase : AnimationCueDatabase
+	// Which sounds a clip fires, and when. Edited through Tools > Animation Cue Preview, where the frame can
+	// be seen and heard. Installing and cleaning up the events is AnimationCueDatabase's half.
+	[CreateAssetMenu(fileName = "AnimationAudioCueDatabase", menuName = "Game/Animation/Audio Cue Database")]
+	public class AnimationAudioCueDatabase : AnimationCueDatabase
 	{
 		[Serializable]
 		public class ClipCues
@@ -16,14 +17,14 @@ namespace Game.Runtime.AnimationVfx
 			[Required]
 			public AnimationClip Clip;
 
-			public List<AnimationVfxCue> Cues = new();
+			public List<AnimationAudioCue> Cues = new();
 		}
 
 		[SerializeField] private List<ClipCues> _clips = new();
 
 		public IReadOnlyList<ClipCues> Clips => _clips;
 
-		public override string EventFunction => AnimationVfxPlayer.EventFunction;
+		public override string EventFunction => AnimationAudioPlayer.EventFunction;
 
 		protected override IEnumerable<AnimationClip> TargetClips
 		{
@@ -33,7 +34,7 @@ namespace Game.Runtime.AnimationVfx
 			}
 		}
 
-		public List<AnimationVfxCue> CuesFor(AnimationClip clip)
+		public List<AnimationAudioCue> CuesFor(AnimationClip clip)
 		{
 			foreach (var entry in _clips)
 			{
@@ -43,15 +44,12 @@ namespace Game.Runtime.AnimationVfx
 			return null;
 		}
 
-		public AnimationVfxCue CueAt(AnimationClip clip, int index)
+		public AnimationAudioCue CueAt(AnimationClip clip, int index)
 		{
 			var cues = CuesFor(clip);
 			return cues != null && index >= 0 && index < cues.Count ? cues[index] : null;
 		}
 
-		// The cue is named by its index rather than by the clip, so a player looks the row up again on the
-		// clip the animator says is playing and an event some other database installed is never mistaken
-		// for one of ours.
 		protected override void BuildEvents(AnimationClip clip, List<AnimationEvent> into)
 		{
 			var cues = CuesFor(clip);
@@ -60,7 +58,7 @@ namespace Game.Runtime.AnimationVfx
 			for (var i = 0; i < cues.Count; i++)
 			{
 				var cue = cues[i];
-				if (cue == null || !cue.Prefab) continue;
+				if (cue == null || !cue.Event) continue;
 
 				var animationEvent = CueEvent(clip, cue.TimeIn(clip));
 				animationEvent.intParameter = i;

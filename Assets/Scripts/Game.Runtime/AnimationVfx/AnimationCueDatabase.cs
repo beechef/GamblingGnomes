@@ -77,6 +77,29 @@ namespace Game.Runtime.AnimationVfx
 			messageOptions = SendMessageOptions.DontRequireReceiver
 		};
 
+		// Cues name their bone, so one cue lands on whichever rig is drawn — both carry the same skeleton.
+		// Null when a named bone is not there, so the caller can say so rather than quietly using the root.
+		public static Transform FindBone(Transform root, string name)
+		{
+			if (!root) return null;
+			if (string.IsNullOrEmpty(name)) return root;
+
+			return FindChild(root, name);
+		}
+
+		private static Transform FindChild(Transform parent, string name)
+		{
+			if (parent.name == name) return parent;
+
+			for (var i = 0; i < parent.childCount; i++)
+			{
+				var found = FindChild(parent.GetChild(i), name);
+				if (found) return found;
+			}
+
+			return null;
+		}
+
 		private void CollectForeignEvents(AnimationClip clip)
 		{
 			_eventBuffer.Clear();

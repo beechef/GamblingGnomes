@@ -4,6 +4,8 @@ paths:
   - "Assets/Scripts/Game.Runtime/GameMode/Poker/Player/**"
   - "Assets/Scripts/Game.Runtime/GameMode/Poker/Camera/**"
   - "Assets/Scripts/Game.Runtime/AnimationVfx/**"
+  - "Assets/Scripts/Game.Runtime/Audio/**"
+  - "Assets/Scripts/Game.Editor/AnimationVfx/**"
   - "Assets/Scripts/Game.Editor/Player/**"
   - "Assets/Art/Character/**"
   - "Assets/Prefabs/Player*"
@@ -54,7 +56,7 @@ paths:
   - `Anim_Bet_NoCard` and `Anim_Bet` BetGrab@14 / BetRelease@26
   - `Anim_AnNam` EatGrab@2 / EatSwallow@27 / EatShake@84
   - `Anim_BungTay` SnapServe@42; `Anim_Impact` ImpactShake@1; `Anim_Smile` SmileShake@0
-- **A VFX tied to an animation moment is a cue row in `AnimationVfxCueDatabase`**, installed as runtime events (`InstallEvents` strips previous first, `DontRequireReceiver`, removed on `Application.quitting`), previewed through the same spawn call; one `AnimationVfxPlayer` per animator, gated on an enabled renderer. Fixture: `Assets/Tests/AnimationVfx/AnimationVfxTest.prefab`. Fold base `AnimationCueDatabase` into its one subclass next time it's touched.
+- **A VFX tied to an animation moment is a cue row in `AnimationVfxCueDatabase`**, installed as runtime events (`InstallEvents` strips previous first, `DontRequireReceiver`, removed on `Application.quitting`), previewed through the same spawn call; one `AnimationVfxPlayer` per animator, gated on an enabled renderer. Fixture: `Assets/Tests/AnimationVfx/AnimationVfxTest.prefab`. A sound at an animation moment is the same shape: a row in `AnimationAudioCueDatabase`, one `AnimationAudioPlayer` per animator, played through `AudioManager`. Both databases derive from `AnimationCueDatabase` (install/strip, `FindBone`) and are edited and heard in `Tools/Animation Cue Preview` (`AnimationCuePreviewWindow`).
 - **Hand-IK weight lives in `PlayerHandIkController._states`**, one curve per gesture over normalized time. Release markers go on the frame the hand is at the spot; `PokerBetItemCarryController` grabs/releases on markers.
 - **A contact frame is measured inside the clip carrying the marker**, sampling with `clip.SampleAnimation` on the animator's own object; ask when it must leave to land when the hand is ready. `CardPickUp` frame 28 of 30 lands on the still `Anim_CamBaiIdle` hold (exit 0.9 + 0.05 s, state ends at normalized 0.94); `PokerHandVisual._cueTimeout` 3 s vs cue ~1.43 s. A perfectly still bone is unfinished art or a beat elsewhere (`Anim_Show` right wrist).
 - **Measure seated timing/fit with the Animator running**: instantiate `Player_Poker`, `Animator.Play("Sit")`, `SetBool`/`CrossFade`, step `Update(1/48)`; `SampleAnimation` leaves the root at bind pose (17 cm off).
