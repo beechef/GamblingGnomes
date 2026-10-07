@@ -107,10 +107,9 @@ InitTestScene*.unity*
 
 # IDE configure
 /.idea/*
-# Claude Code local session state
-/.claude/*
-!/.claude/rules/
-!/.claude/skills/
+# Claude Code: shared config is tracked; only per-machine state stays local
+/.claude/state/
+/.claude/settings.local.json
 
 # Never ignore DLLs in the FMOD subfolder.
 !/[Aa]ssets/Plugins/FMOD/**/lib/*
