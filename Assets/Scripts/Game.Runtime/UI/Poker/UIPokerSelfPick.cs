@@ -1,5 +1,4 @@
 using Game.Runtime.GameMode.Poker;
-using Game.Runtime.GameMode.Poker.Items;
 using Game.Runtime.GameMode.Poker.Player;
 using Game.Runtime.GameMode.Poker.Stages;
 using Game.Runtime.UI.Button;
@@ -27,15 +26,6 @@ namespace Game.Runtime.UI.Poker
 
 		[Tooltip("Space around the name the button answers the pointer in. The button is sized to the name plus this, so only the name is hit.")]
 		[SerializeField] private Vector2 _hitPadding = new(24f, 8f);
-
-		[Header("Colorful Reward")]
-		[Tooltip("The items you would be handed for surviving the Colorful (PokerItemModule.ColorfulSurvivorItems), whether or not your hand has room for them, shown over your name while you may name yourself. Hidden for an item's pick and at tables that hand none.")]
-		[SerializeField] private GameObject _reward;
-
-		[SerializeField] private TMP_Text _rewardLabel;
-
-		[Tooltip("{0} is how many items.")]
-		[SerializeField] private string _rewardFormat = "+{0}";
 
 		private PokerItemTargetingController _targeting;
 
@@ -99,10 +89,6 @@ namespace Game.Runtime.UI.Poker
 			if (show) FillName(LocalPlayer.PlainName);
 			if (!show) SetBodyLit(false);
 			if (_button && _button.gameObject.activeSelf != show) _button.gameObject.SetActive(show);
-
-			var reward = colorful ? ColorfulReward() : 0;
-			if (reward > 0 && _rewardLabel) _rewardLabel.text = string.Format(_rewardFormat, reward);
-			if (_reward && _reward.activeSelf != reward > 0) _reward.SetActive(reward > 0);
 		}
 
 		// The button is as big as the name it shows, so the pointer has to be on the name to pick it.
@@ -127,12 +113,6 @@ namespace Game.Runtime.UI.Poker
 		{
 			var visual = LocalPlayer ? LocalPlayer.Visual : null;
 			if (visual) visual.SetLocalOutlined(lit);
-		}
-
-		private int ColorfulReward()
-		{
-			var module = GameMode ? GameMode.FindModule<PokerItemModule>() : null;
-			return module ? module.ColorfulSurvivorItems : 0;
 		}
 
 		// The Colorful answer's amount carries an identity rather than a size: a seat index, the same trick

@@ -342,6 +342,22 @@ namespace Game.Runtime
 			public const string Title = "lobby.title";
 		}
 
+		public static class Matchmaking
+		{
+			public const string Failed = "matchmaking.failed";
+			public const string Searching = "matchmaking.searching";
+			public const string Title = "matchmaking.title";
+			public const string Waiting = "matchmaking.waiting";
+
+			public static class Error
+			{
+				public const string Connect = "matchmaking.error.connect";
+				public const string Create = "matchmaking.error.create";
+				public const string Lost = "matchmaking.error.lost";
+				public const string Unavailable = "matchmaking.error.unavailable";
+			}
+		}
+
 		public static class Menu
 		{
 			public const string Back = "menu.back";
@@ -349,6 +365,7 @@ namespace Game.Runtime
 			public const string Host = "menu.host";
 			public const string Option = "menu.option";
 			public const string Play = "menu.play";
+			public const string QuickMatch = "menu.quick_match";
 			public const string Quit = "menu.quit";
 		}
 

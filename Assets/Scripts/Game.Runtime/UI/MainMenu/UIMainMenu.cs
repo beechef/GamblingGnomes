@@ -1,6 +1,7 @@
 using System;
 using Game.Runtime.Controller;
 using Game.Runtime.UI.FindLobby;
+using Game.Runtime.UI.Matchmaking;
 using Game.Runtime.UI.Selection;
 using Game.Runtime.UI.Settings;
 using Sirenix.OdinInspector;
@@ -30,6 +31,9 @@ namespace Game.Runtime.UI.MainMenu
 		[Required]
 		[SerializeField] private UISelectionGroup _playGroup;
 
+		[Tooltip("Left empty, or with no matchmaking popup, the entry greys out.")]
+		[SerializeField] private UISelectionItem _quickMatchItem;
+
 		[Required]
 		[SerializeField] private UISelectionItem _hostItem;
 
@@ -43,6 +47,8 @@ namespace Game.Runtime.UI.MainMenu
 		[SerializeField] private UIRoomSetting _roomSettingUI;
 
 		[SerializeField] private UIFindLobby _findLobbyUI;
+
+		[SerializeField] private UIMatchmakingPopup _matchmakingPopup;
 
 		[Tooltip("Left empty, the Option entry greys out — an entry that does nothing should look like one.")]
 		[SerializeField] private UISettingsScreen _settingsScreen;
@@ -61,6 +67,7 @@ namespace Game.Runtime.UI.MainMenu
 			_playGroup.OnSubmitted += HandlePlaySubmitted;
 
 			if (_optionItem) _optionItem.Button.IsInteractable = _settingsScreen;
+			if (_quickMatchItem) _quickMatchItem.Button.IsInteractable = _matchmakingPopup;
 
 			ShowRootMenu();
 		}
@@ -117,6 +124,8 @@ namespace Game.Runtime.UI.MainMenu
 				GameNetworkManager.Instance.OnGameLeft -= Show;
 				GameNetworkManager.Instance.OnConnectFailed -= HandleConnectFailed;
 			}
+
+			if (_matchmakingPopup) _matchmakingPopup.OnClosed -= HandleMatchmakingClosed;
 		}
 
 		private void HandleConnectFailed(string reason) => Show();
@@ -142,6 +151,23 @@ namespace Game.Runtime.UI.MainMenu
 			CloseSettings();
 
 			ShowRootMenu();
+		}
+
+		// The popup runs the whole wait; the menu steps aside and comes back when the player is choosing again.
+		private void QuickMatch()
+		{
+			if (!_matchmakingPopup || !_matchmakingPopup.CanOpen) return;
+
+			gameObject.SetActive(false);
+			_matchmakingPopup.OnClosed -= HandleMatchmakingClosed;
+			_matchmakingPopup.OnClosed += HandleMatchmakingClosed;
+			_matchmakingPopup.Open();
+		}
+
+		private void HandleMatchmakingClosed()
+		{
+			_matchmakingPopup.OnClosed -= HandleMatchmakingClosed;
+			Show();
 		}
 
 		private void HideAll()
@@ -221,7 +247,8 @@ namespace Game.Runtime.UI.MainMenu
 
 		private void HandlePlaySubmitted(UISelectionItem item)
 		{
-			if (item == _hostItem) CreateLobby();
+			if (item == _quickMatchItem) QuickMatch();
+			else if (item == _hostItem) CreateLobby();
 			else if (item == _findItem) FindLobby();
 			else if (item == _backItem) ShowRootMenu();
 		}

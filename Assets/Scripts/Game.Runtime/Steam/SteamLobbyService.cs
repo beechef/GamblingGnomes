@@ -14,6 +14,9 @@ namespace Game.Runtime.Steam
 	// overlay while running, or "+connect_lobby <id>" when the game was launched by accepting one.
 	public class SteamLobbyService : ILobbyService
 	{
+		// Where the owner is on Steam's relay network, so a searcher can estimate its ping before joining.
+		private const string PingLocationKey = "PingLocation";
+
 		private readonly FacepunchTransport _relayTransport;
 		private readonly UnityTransport _editorTransport;
 		private readonly string _editorAddress;
@@ -24,7 +27,13 @@ namespace Game.Runtime.Steam
 		private bool _bound;
 		private bool _launchInviteRead;
 
+		// Steam reports data changes for every room it has been asked about, searched ones included, so only
+		// the rooms this player is in are passed on.
+		private readonly Dictionary<ulong, Steamworks.Data.Lobby> _joined = new();
+
 		public event Action<ulong> OnInviteAccepted;
+		public event Action<ILobby> OnLobbyChanged;
+		public event Action<ILobby> OnLobbyLost;
 
 		// Two editors on one machine are signed into the same Steam account and cannot relay to themselves,
 		// so in the editor the room is found on Steam but connected over the local transport, at the
@@ -47,6 +56,8 @@ namespace Game.Runtime.Steam
 
 		public string LocalUserName => SteamClient.IsValid ? SteamClient.Name : Environment.UserName;
 
+		public ulong LocalMemberId => SteamClient.IsValid ? SteamClient.SteamId.Value : 0;
+
 		public void Initialize()
 		{
 			SteamController.OnInitialized += Bind;
@@ -61,7 +72,10 @@ namespace Game.Runtime.Steam
 			if (!_bound) return;
 			_bound = false;
 
+			SteamUser.OnSteamServersDisconnected -= HandleServersDisconnected;
 			SteamFriends.OnGameLobbyJoinRequested -= HandleJoinRequested;
+			SteamMatchmaking.OnLobbyDataChanged -= HandleDataChanged;
+			SteamMatchmaking.OnLobbyMemberDisconnected -= HandleMemberLeave;
 			SteamMatchmaking.OnLobbyMemberLeave -= HandleMemberLeave;
 			SteamMatchmaking.OnLobbyMemberJoined -= HandleMemberJoined;
 		}
@@ -73,7 +87,10 @@ namespace Game.Runtime.Steam
 
 			SteamMatchmaking.OnLobbyMemberJoined += HandleMemberJoined;
 			SteamMatchmaking.OnLobbyMemberLeave += HandleMemberLeave;
+			SteamMatchmaking.OnLobbyMemberDisconnected += HandleMemberLeave;
+			SteamMatchmaking.OnLobbyDataChanged += HandleDataChanged;
 			SteamFriends.OnGameLobbyJoinRequested += HandleJoinRequested;
+			SteamUser.OnSteamServersDisconnected += HandleServersDisconnected;
 
 			ReadLaunchInvite();
 		}
@@ -98,6 +115,10 @@ namespace Game.Runtime.Steam
 				foreach (var pair in request.Data) lobby.SetData(pair.Key, pair.Value);
 			}
 
+			var location = SteamNetworkingUtils.LocalPingLocation;
+			if (location.HasValue) lobby.SetData(PingLocationKey, location.Value.ToString());
+
+			_joined[lobby.Id.Value] = lobby;
 			return new SteamLobby(lobby);
 		}
 
@@ -106,7 +127,10 @@ namespace Game.Runtime.Steam
 			if (!IsAvailable) return null;
 
 			var joined = await SteamMatchmaking.JoinLobbyAsync(lobbyId);
-			return joined.HasValue ? new SteamLobby(joined.Value) : null;
+			if (!joined.HasValue) return null;
+
+			_joined[lobbyId] = joined.Value;
+			return new SteamLobby(joined.Value);
 		}
 
 		public async Awaitable<IReadOnlyList<ILobby>> SearchAsync(IReadOnlyList<LobbyData> filters, CancellationToken ct = default)
@@ -133,7 +157,54 @@ namespace Game.Runtime.Steam
 		{
 			// Steam can already be down: nothing orders one OnApplicationQuit against another, and calling into
 			// a shut down client throws from inside Facepunch.
+			if (lobby == null) return;
+
+			_joined.Remove(lobby.Id);
 			if (lobby is SteamLobby steamLobby && SteamClient.IsValid) steamLobby.Lobby.Leave();
+		}
+
+		public void SetData(ILobby lobby, string key, string value)
+		{
+			if (IsOwnedHere(lobby, out var steamLobby)) steamLobby.SetData(key, value);
+		}
+
+		public void SetJoinable(ILobby lobby, bool joinable)
+		{
+			if (IsOwnedHere(lobby, out var steamLobby)) steamLobby.SetJoinable(joinable);
+		}
+
+		// Steam lists members in the order they arrived, so the first one that is not the owner has been
+		// waiting longest.
+		public bool TransferOwnership(ILobby lobby)
+		{
+			if (!IsOwnedHere(lobby, out var steamLobby)) return false;
+
+			foreach (var member in steamLobby.Members)
+			{
+				if (member.Id == SteamClient.SteamId) continue;
+
+				steamLobby.Owner = member;
+				return true;
+			}
+
+			return false;
+		}
+
+		public int EstimatePing(ILobby lobby)
+		{
+			if (!IsAvailable || lobby == null) return -1;
+
+			var location = NetPingLocation.TryParseFromString(lobby.GetData(PingLocationKey));
+			return location.HasValue ? SteamNetworkingUtils.EstimatePingTo(location.Value) : -1;
+		}
+
+		private bool IsOwnedHere(ILobby lobby, out Steamworks.Data.Lobby steamLobby)
+		{
+			steamLobby = default;
+			if (lobby is not SteamLobby wrapped || !SteamClient.IsValid) return false;
+
+			steamLobby = wrapped.Lobby;
+			return steamLobby.IsOwnedBy(SteamClient.SteamId);
 		}
 
 		public bool CanInvite(ILobby lobby) => lobby is SteamLobby && SteamClient.IsValid;
@@ -174,9 +245,35 @@ namespace Game.Runtime.Steam
 
 		private void HandleJoinRequested(Steamworks.Data.Lobby lobby, SteamId friendId) => OnInviteAccepted?.Invoke(lobby.Id.Value);
 
-		private static void HandleMemberJoined(Steamworks.Data.Lobby lobby, Friend friend) => Debug.Log($"[SteamLobbyService] {friend.Name} joined lobby.");
+		private void HandleMemberJoined(Steamworks.Data.Lobby lobby, Friend friend)
+		{
+			Debug.Log($"[SteamLobbyService] {friend.Name} joined lobby.");
+			RaiseChanged(lobby);
+		}
 
-		private static void HandleMemberLeave(Steamworks.Data.Lobby lobby, Friend friend) => Debug.Log($"[SteamLobbyService] {friend.Name} left lobby.");
+		private void HandleMemberLeave(Steamworks.Data.Lobby lobby, Friend friend)
+		{
+			Debug.Log($"[SteamLobbyService] {friend.Name} left lobby.");
+			RaiseChanged(lobby);
+		}
+
+		private void HandleDataChanged(Steamworks.Data.Lobby lobby) => RaiseChanged(lobby);
+
+		private void RaiseChanged(Steamworks.Data.Lobby lobby)
+		{
+			if (_joined.ContainsKey(lobby.Id.Value)) OnLobbyChanged?.Invoke(new SteamLobby(lobby));
+		}
+
+		// Every room this player was in is out of reach once Steam's servers are; each is reported once.
+		private void HandleServersDisconnected()
+		{
+			if (_joined.Count == 0) return;
+
+			var lost = new List<Steamworks.Data.Lobby>(_joined.Values);
+			_joined.Clear();
+
+			foreach (var lobby in lost) OnLobbyLost?.Invoke(new SteamLobby(lobby));
+		}
 
 		// A game started by accepting an invite while it was closed is launched by Steam with
 		// "+connect_lobby <id>" on its command line. Read once, as soon as Steam can answer.

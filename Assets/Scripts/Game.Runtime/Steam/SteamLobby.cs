@@ -14,6 +14,7 @@ namespace Game.Runtime.Steam
 		public ulong Id => Lobby.Id.Value;
 		public int MemberCount => Lobby.MemberCount;
 		public int MaxMembers => Lobby.MaxMembers;
+		public ulong OwnerId => Lobby.Owner.Id.Value;
 
 		public string GetData(string key) => Lobby.GetData(key);
 	}
