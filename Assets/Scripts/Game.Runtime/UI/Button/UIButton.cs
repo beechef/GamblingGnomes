@@ -16,6 +16,9 @@ namespace Game.Runtime.UI.Button
 		public event Action OnHover;
 		public event Action OnUnHover;
 
+		// Asks every visual to play its hover look once and settle back, to draw the eye without the pointer.
+		public event Action OnFlash;
+
 		// Previous and current, so a visual can animate the transition rather than only the destination.
 		public event Action<UIButtonState, UIButtonState> OnStateChanged;
 
@@ -144,6 +147,11 @@ namespace Game.Runtime.UI.Button
 		// It runs the same guard and raises the same event, so nothing downstream can tell the two apart,
 		// and callers never have to reach past this component to the uGUI Button underneath.
 		public void Submit() => Click();
+
+		public void Flash()
+		{
+			if (isActiveAndEnabled && IsInteractable) OnFlash?.Invoke();
+		}
 
 		// Puts the button back to rest and redraws it, whether or not the answer has changed. Anything that
 		// takes the pointer away mid-press calls this — opening a screen, closing a panel, starting a load —

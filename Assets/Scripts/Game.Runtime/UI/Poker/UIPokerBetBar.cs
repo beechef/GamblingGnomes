@@ -90,6 +90,7 @@ namespace Game.Runtime.UI.Poker
 		private Sprite _foldIconSprite;
 		private Tween _foldLockAlert;
 		private bool _wasFoldLocked;
+		private bool _wasActing;
 
 		private void Awake()
 		{
@@ -153,6 +154,7 @@ namespace Game.Runtime.UI.Poker
 
 			_foldLockAlert?.Kill(true);
 			_wasFoldLocked = false;
+			_wasActing = false;
 			_itemModule = null;
 		}
 
@@ -238,12 +240,29 @@ namespace Game.Runtime.UI.Poker
 			if (_allInButton) _allInButton.gameObject.SetActive(acting && _stage.AllowAllIn);
 			if (_betLabel && acting) _betLabel.text = Localizer.Get(_stage.IsCall(LocalData) ? LocalizationKeys.Poker.Action.Call : LocalizationKeys.Poker.Action.Bet);
 
-			if (!_itemsButton) return;
+			if (_itemsButton)
+			{
+				// Nothing is dealt before the match starts, so the waiting room shows no Items button at all.
+				var hasItems = _itemModule && LocalPlayer.ItemInventory && _itemPicker && Data.Phase.Value != PokerPhase.Waiting && IsAlive;
+				_itemsButton.gameObject.SetActive(hasItems);
+				if (hasItems) _itemsButton.IsInteractable = AnyItemHeld();
+			}
 
-			// Nothing is dealt before the match starts, so the waiting room shows no Items button at all.
-			var hasItems = _itemModule && LocalPlayer.ItemInventory && _itemPicker && Data.Phase.Value != PokerPhase.Waiting && IsAlive;
-			_itemsButton.gameObject.SetActive(hasItems);
-			if (hasItems) _itemsButton.IsInteractable = AnyItemHeld();
+			FlashButtonsOnTurnStart(acting);
+		}
+
+		// The turn coming round flashes every answer on the bar once, so it is noticed without a pointer on it.
+		private void FlashButtonsOnTurnStart(bool acting)
+		{
+			if (acting && !_wasActing)
+			{
+				if (_betButton) _betButton.Flash();
+				if (_foldButton) _foldButton.Flash();
+				if (_allInButton) _allInButton.Flash();
+				if (_itemsButton) _itemsButton.Flash();
+			}
+
+			_wasActing = acting;
 		}
 
 		// The root turns and scales; no layout places either, and the button's own visuals move its Content.

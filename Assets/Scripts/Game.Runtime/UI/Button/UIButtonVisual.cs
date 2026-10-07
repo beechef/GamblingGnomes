@@ -1,3 +1,4 @@
+using DG.Tweening;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -12,7 +13,14 @@ namespace Game.Runtime.UI.Button
 		[Required]
 		[SerializeField] private UIButton _button;
 
+		[Header("Flash")]
+		[Tooltip("Seconds a flash holds the hover look before settling back to the button's real state.")]
+		[MinValue(0f)]
+		[SerializeField] private float _flashHold = 0.15f;
+
 		protected UIButton Button => _button;
+
+		private Tween _flash;
 
 		// Non-virtual, so a subclass cannot hide it and leave the button unfilled — the whole point of
 		// the lookup is that a visual may sit on a child of the button, or on another object entirely,
@@ -32,6 +40,7 @@ namespace Game.Runtime.UI.Button
 			if (!_button) return;
 
 			_button.OnStateChanged += HandleStateChanged;
+			_button.OnFlash += HandleFlash;
 
 			// Snapped rather than animated: a button re-enabled mid-hover would otherwise play its way
 			// in from whatever it looked like when it was last switched off.
@@ -40,8 +49,13 @@ namespace Game.Runtime.UI.Button
 
 		private void OnDisable()
 		{
-			if (_button) _button.OnStateChanged -= HandleStateChanged;
+			if (_button)
+			{
+				_button.OnFlash -= HandleFlash;
+				_button.OnStateChanged -= HandleStateChanged;
+			}
 
+			_flash?.Kill();
 			OnDisabled();
 		}
 
@@ -55,7 +69,22 @@ namespace Game.Runtime.UI.Button
 		// when it resets — and there is nothing to animate from, so it snaps. The same reasoning as
 		// UIWheelItemView re-applying on bind: only a real change earns the tween.
 		private void HandleStateChanged(UIButtonState previous, UIButtonState current)
-			=> Apply(current, previous == current);
+		{
+			_flash?.Kill();
+			Apply(current, previous == current);
+		}
+
+		// A real state change kills the flash, so a pointer arriving mid-flash is never undone by it.
+		private void HandleFlash()
+		{
+			if (_button.State != UIButtonState.Normal) return;
+
+			_flash?.Kill();
+			Apply(UIButtonState.Hovered, false);
+			_flash = DOVirtual.DelayedCall(_flashHold, () => Apply(_button.State, false))
+				.SetUpdate(true)
+				.SetLink(gameObject);
+		}
 
 		private void Apply(UIButtonState state, bool instant)
 		{
