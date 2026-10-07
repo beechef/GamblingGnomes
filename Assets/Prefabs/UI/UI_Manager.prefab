@@ -89,6 +89,7 @@ GameObject:
   - component: {fileID: 7400000000000000005}
   - component: {fileID: 7400000000000000006}
   - component: {fileID: 5353986578164599496}
+  - component: {fileID: 5536129742335149738}
   m_Layer: 5
   m_Name: UI_Manager
   m_TagString: Untagged
@@ -213,6 +214,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Localization::Localization.LocalizationBootstrap
   _catalog: {fileID: 11400000, guid: 257b18630493f1942830497c9b112252, type: 2}
+--- !u!114 &5536129742335149738
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7400000000000000001}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7c1e4a9b2d3f4e5a8b6c0d1e2f3a4b5c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.UITextHighlighter
+  _highlightColor: {r: 0.7882353, g: 0.24313726, b: 0.2509804, a: 1}
 --- !u!1 &7400000000000000010
 GameObject:
   m_ObjectHideFlags: 0
