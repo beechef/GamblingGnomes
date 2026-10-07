@@ -212,8 +212,7 @@ namespace Game.Runtime.Controller
 
 		private async Awaitable<ILobby> CreateAsync(ILobbyService service, CancellationToken ct)
 		{
-			var data = _network.BuildLobbyData(service);
-			data.Add(new LobbyData(LobbyConstant.MatchmakingKey, LobbyConstant.MatchmakingValue));
+			var data = _network.BuildLobbyData(service, true);
 			data.Add(new LobbyData(LobbyConstant.MatchStateKey, LobbyConstant.MatchStateGathering));
 
 			var lobby = await service.CreateAsync(new LobbyCreateRequest(_targetPlayers, false, data), ct);

@@ -183,7 +183,7 @@ namespace Game.Runtime.Controller
 			// Raised past the guards, so the only starts announced are the ones that go on to answer.
 			OnConnectStarted?.Invoke();
 
-			var request = new LobbyCreateRequest(LobbySettings.MaxPlayers, LobbySettings.IsPrivate, BuildLobbyData(service));
+			var request = new LobbyCreateRequest(LobbySettings.MaxPlayers, LobbySettings.IsPrivate, BuildLobbyData(service, false));
 			var lobby = await service.CreateAsync(request, ct);
 
 			// A lobby cannot call a request already in flight back, and the room is up by the time this
@@ -256,12 +256,15 @@ namespace Game.Runtime.Controller
 			EnterAsClient(service, lobby);
 		}
 
-		public List<LobbyData> BuildLobbyData(ILobbyService service)
+		// Every room says whether matchmaking opened it, so Find Lobby can ask Steam for hosted rooms only
+		// rather than receiving matchmaking ones and throwing them away.
+		public List<LobbyData> BuildLobbyData(ILobbyService service, bool matchmaking)
 		{
 			var data = new List<LobbyData>
 			{
 				new(LobbyConstant.RoomNameKey, service.LocalUserName),
-				new(LobbyConstant.GameModeKey, LobbySettings.SelectedGameMode.ToString())
+				new(LobbyConstant.GameModeKey, LobbySettings.SelectedGameMode.ToString()),
+				new(LobbyConstant.MatchmakingKey, matchmaking ? LobbyConstant.MatchmakingValue : LobbyConstant.HostedValue)
 			};
 
 			data.AddRange(LobbySettings.GameSearchStrings);
@@ -339,21 +342,18 @@ namespace Game.Runtime.Controller
 		{
 			ct.ThrowIfCancellationRequested();
 
-			var lobbies = await ResolveLobbyService().SearchAsync(LobbySettings.GameSearchStrings, ct);
+			// A matchmaking room is only entered through quick match: joined by hand, nobody in it would wait
+			// for the room to fill or hear that it started.
+			var filters = new List<LobbyData>(LobbySettings.GameSearchStrings)
+			{
+				new(LobbyConstant.MatchmakingKey, LobbyConstant.HostedValue)
+			};
+
+			var lobbies = await ResolveLobbyService().SearchAsync(filters, ct);
 
 			ct.ThrowIfCancellationRequested();
 
-			if (lobbies == null) return Array.Empty<ILobby>();
-
-			// A matchmaking room is only entered through quick match: joined by hand, nobody in it would wait
-			// for the room to fill or hear that it started.
-			var hosted = new List<ILobby>(lobbies.Count);
-			foreach (var lobby in lobbies)
-			{
-				if (lobby.GetData(LobbyConstant.MatchmakingKey) != LobbyConstant.MatchmakingValue) hosted.Add(lobby);
-			}
-
-			return hosted;
+			return lobbies ?? Array.Empty<ILobby>();
 		}
 
 		// Whether this player has a room friends can be asked into.
