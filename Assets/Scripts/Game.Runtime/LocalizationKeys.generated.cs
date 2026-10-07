@@ -397,8 +397,10 @@ namespace Game.Runtime
 
 			public static class Button
 			{
+				public const string AddBot = "poker.button.add_bot";
 				public const string AllIn = "poker.button.all_in";
 				public const string Choose = "poker.button.choose";
+				public const string ClearBot = "poker.button.clear_bot";
 				public const string Fold = "poker.button.fold";
 				public const string Helper = "poker.button.helper";
 				public const string Invite = "poker.button.invite";

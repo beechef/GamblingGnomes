@@ -117,17 +117,21 @@ namespace Game.Runtime.Controller
 			base.OnDestroy();
 		}
 
+		public int BotCount => _botClientIds.Count;
+
 		public bool ServerAddBot(NetworkObject botPrefab)
 		{
 			if (!IsHost || !botPrefab) return false;
 
 			var clientId = _nextBotClientId++;
+
+			// Counted before the spawn: the spawn raises the roster change, and whoever hears it asks BotCount.
+			_botClientIds.Add(clientId);
 			var player = SpawnPlayer(clientId, botPrefab, isPlayerObject: false);
 
 			var data = player.GetComponent<PlayerData>();
 			if (data) data.ServerSetIdentity(clientId, $"Bot {clientId - PlayerBot.FirstClientId + 1}");
 
-			_botClientIds.Add(clientId);
 			return true;
 		}
 
