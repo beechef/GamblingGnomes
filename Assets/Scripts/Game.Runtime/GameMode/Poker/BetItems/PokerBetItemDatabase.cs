@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using Localization;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Game.Runtime.GameMode.Poker.BetItems
 {
@@ -20,7 +22,10 @@ namespace Game.Runtime.GameMode.Poker.BetItems
 			[Tooltip("Which kind this row describes. Named on the row rather than taken from its position, so reordering the list is a tidy-up rather than a silent re-typing of every stake already dealt.")]
 			[SerializeField] private PokerBetItemType _type = PokerBetItemType.Green;
 
-			[SerializeField] private string _displayName;
+			[LocalizationKey]
+			[FormerlySerializedAs("_displayName")]
+			[SerializeField] private string _nameKey;
+
 			[Tooltip("Small mark for the kind — the row of kinds already eaten under a hallucination bar.")]
 			[SerializeField] private Sprite _icon;
 
@@ -40,7 +45,7 @@ namespace Game.Runtime.GameMode.Poker.BetItems
 			[SerializeField] private bool _bettable = true;
 
 			public PokerBetItemType Type => _type;
-			public string DisplayName => _displayName;
+			public string DisplayName => Localizer.Get(_nameKey);
 			public Sprite Icon => _icon;
 			public Color Color => _color;
 			public GameObject WorldPrefab => _worldPrefab;

@@ -1,0 +1,271 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 48cfa9c17f2bc884ba9c1aad02a042a1, type: 3}
+  m_Name: Locale_EN_Items
+  m_EditorClassIdentifier: Localization::Localization.LocaleSection
+  _entries:
+  - Key: item.prompt.player
+    Value: POINT AT A PLAYER
+  - Key: item.prompt.opponent_card
+    Value: POINT AT ANOTHER PLAYER'S CARD
+  - Key: item.prompt.own_card
+    Value: POINT AT ONE OF YOUR CARDS
+  - Key: item.prompt.board_card
+    Value: POINT AT A FACE-DOWN BOARD CARD
+  - Key: item.reason.not_dealt
+    Value: This table does not deal it.
+  - Key: item.reason.not_held
+    Value: Not in your hand.
+  - Key: item.reason.out_of_match
+    Value: You are out of this match.
+  - Key: item.reason.street_only
+    Value: Only on a betting street.
+  - Key: item.reason.turn_only
+    Value: Only on your turn.
+  - Key: item.reason.locked_out
+    Value: Locked out of items this street.
+  - Key: item.reason.used_one
+    Value: Already played an item this street.
+  - Key: item.reason.used_many
+    Value: Already played {0} items this street.
+  - Key: item.reason.waiting_other
+    Value: Waiting on another item.
+  - Key: item.reason.no_time
+    Value: Not enough time left for them to answer.
+  - Key: item.reason.not_in_hand
+    Value: You are not in this hand.
+  - Key: item.reason.hand_full
+    Value: Your hand is full.
+  - Key: item.reason.deck_empty
+    Value: The deck is empty.
+  - Key: item.reason.no_street_left
+    Value: No street is left in this hand.
+  - Key: item.reason.no_board
+    Value: This table deals no board.
+  - Key: item.reason.last_board_seen
+    Value: The last board card is already face up to you.
+  - Key: item.reason.board_seen
+    Value: Every board card is already face up to you.
+  - Key: item.reason.board_face_up
+    Value: Every board card is already face up.
+  - Key: item.reason.board_full
+    Value: The board is full.
+  - Key: item.reason.no_card_to_lay
+    Value: You have no card to lay down.
+  - Key: item.reason.no_card_to_give
+    Value: You have no card left to give.
+  - Key: item.reason.cards_face_up
+    Value: Your cards are already face up.
+  - Key: item.reason.all_face_up
+    Value: Every card is already face up.
+  - Key: item.reason.cant_change
+    Value: None of your cards can be changed.
+  - Key: item.reason.already_under
+    Value: You are already under.
+  - Key: item.reason.no_count_place
+    Value: Nowhere to keep the count.
+  - Key: item.reason.already_counted
+    Value: You already counted this hand.
+  - Key: item.reason.nobody_to_halve
+    Value: Nobody has anything to halve.
+  - Key: item.reason.nobody_to_spike
+    Value: Nobody is left to spike.
+  - Key: item.reason.nobody_to_show
+    Value: Nobody else has a card left to show.
+  - Key: item.reason.nobody_in_hand
+    Value: Nobody else is left in the hand.
+  - Key: item.reason.nobody_unseen
+    Value: Nobody has a card you have not seen.
+  - Key: item.reason.nobody_to_shake
+    Value: Nobody is left to shake.
+  - Key: item.reason.nobody_to_roll
+    Value: Nobody else is left to roll.
+  - Key: item.reason.nobody_to_swap
+    Value: Nobody else has a card to swap.
+  - Key: item.copy_card.name
+    Value: Copy
+  - Key: item.copy_card.description
+    Value: 35% chance that one of your cards becomes a copy of another card in your
+      hand.
+  - Key: item.copy_card.notice
+    Value: TRIED A COPY
+  - Key: item.copy_card.copied
+    Value: COPIED
+  - Key: item.copy_card.failed
+    Value: COPY FAILED
+  - Key: item.deck_count.name
+    Value: Suit Count
+  - Key: item.deck_count.description
+    Value: See how many cards of each suit, and how many Jokers where the deck has
+      them, are still in the undealt deck. Only you see the count, and it stays with
+      you until the hand ends.
+  - Key: item.deck_count.notice
+    Value: COUNTED DECK
+  - Key: item.extra_draw.name
+    Value: Extra Draw
+  - Key: item.extra_draw.description
+    Value: Draw one more card from the deck. You cannot fold for the rest of this
+      hand.
+  - Key: item.extra_draw.notice
+    Value: DREW EXTRA
+  - Key: item.half_dose.name
+    Value: Half Dose
+  - Key: item.half_dose.description
+    Value: 'Choose a player: their death rate is halved, then they roll against what
+      is left.'
+  - Key: item.half_dose.notice
+    Value: HALVED
+  - Key: item.half_dose.prompt
+    Value: POINT AT WHOSE DOSE YOU HALVE
+  - Key: item.joker_card.name
+    Value: Wild Card
+  - Key: item.joker_card.description
+    Value: 50% chance that a chosen card in your hand becomes a Joker. Only you learn
+      whether it took.
+  - Key: item.joker_card.joker
+    Value: GOT A JOKER
+  - Key: item.joker_card.failed
+    Value: NO JOKER
+  - Key: item.lock_fold.name
+    Value: Lock
+  - Key: item.lock_fold.description
+    Value: Nobody can fold on the next street, you included.
+  - Key: item.lock_fold.notice
+    Value: LOCKED FOLD
+  - Key: item.mushroom_dose.name
+    Value: Spike
+  - Key: item.mushroom_dose.description
+    Value: A chosen player's next 2 mushrooms either do nothing or hit twice as hard,
+      50/50.
+  - Key: item.mushroom_dose.notice
+    Value: SPIKED
+  - Key: item.mushroom_dose.nullified
+    Value: EMPTIED {0} CAPS OF
+  - Key: item.mushroom_dose.doubled
+    Value: DOUBLED {0} CAPS OF
+  - Key: item.mushroom_dose.prompt
+    Value: POINT AT WHOSE MUSHROOMS YOU SPIKE
+  - Key: item.mutual_reveal.name
+    Value: Show Together
+  - Key: item.mutual_reveal.description
+    Value: You and a player you pick each turn one card face up for the whole table
+      until the hand ends. They choose which of theirs.
+  - Key: item.mutual_reveal.notice
+    Value: SHOWS WITH
+  - Key: item.mutual_reveal.prompt_own
+    Value: POINT AT THE CARD YOU WILL SHOW
+  - Key: item.mutual_reveal.prompt_player
+    Value: POINT AT WHO SHOWS ONE WITH YOU
+  - Key: item.mutual_reveal.response
+    Value: 'WANTS YOU TO SHOW A CARD: POINT AT ONE'
+  - Key: item.pair_lock_fold.name
+    Value: Chained
+  - Key: item.pair_lock_fold.description
+    Value: You and a chosen player cannot fold on the next street.
+  - Key: item.pair_lock_fold.notice
+    Value: CHAINED
+  - Key: item.pair_lock_items.name
+    Value: No Items
+  - Key: item.pair_lock_items.description
+    Value: You and a chosen player cannot play items on the next street.
+  - Key: item.pair_lock_items.notice
+    Value: BLOCKED ITEMS OF
+  - Key: item.pair_lock.prompt
+    Value: POINT AT WHO IS LOCKED WITH YOU
+  - Key: item.peek_board.name
+    Value: Scry
+  - Key: item.peek_board.description
+    Value: See one board card before it is turned. You cannot fold this street.
+  - Key: item.peek_board.notice
+    Value: PEEKED BOARD
+  - Key: item.peek_board_main.description
+    Value: See the last board card before it is turned. You cannot fold this street.
+  - Key: item.peek_hand.name
+    Value: Peek
+  - Key: item.peek_hand.description
+    Value: See one card of a player still in the hand. They are told which card you
+      saw.
+  - Key: item.peek_hand.notice
+    Value: PEEKED AT
+  - Key: item.peek_hand.private
+    Value: SAW YOUR {0}
+  - Key: item.place_on_board.name
+    Value: Lay Down
+  - Key: item.place_on_board.description
+    Value: Lay one of your cards face up on the board for everyone, and draw a new
+      card from the deck in its place.
+  - Key: item.place_on_board.notice
+    Value: LAID A CARD
+  - Key: item.place_on_board.prompt
+    Value: POINT AT THE CARD YOU LAY ON THE BOARD
+  - Key: item.raise_stakes.name
+    Value: Raise
+  - Key: item.raise_stakes.description
+    Value: Every bet on the next street puts up one more cap, yours included.
+  - Key: item.raise_stakes.notice
+    Value: RAISED STAKES
+  - Key: item.random_suit.name
+    Value: Repaint
+  - Key: item.random_suit.description
+    Value: One of your cards keeps its value and takes a random other suit.
+  - Key: item.random_suit.notice
+    Value: REPAINTED
+  - Key: item.random_suit.prompt
+    Value: POINT AT THE CARD TO CHANGE
+  - Key: item.rate_shift.name
+    Value: Rate Shift
+  - Key: item.rate_shift.description
+    Value: 'Choose a player: their death rate goes up or down by 20, at random.'
+  - Key: item.rate_shift.raised
+    Value: +{0} DOSE TO
+  - Key: item.rate_shift.lowered
+    Value: -{0} DOSE TO
+  - Key: item.rate_shift.prompt
+    Value: POINT AT WHOSE DOSE YOU SHAKE
+  - Key: item.shared_roll.name
+    Value: Shared Roll
+  - Key: item.shared_roll.description
+    Value: You and a player you choose each roll against your own death rate, at
+      the same time.
+  - Key: item.shared_roll.notice
+    Value: ROLLED WITH
+  - Key: item.shared_roll.prompt
+    Value: POINT AT WHO ROLLS WITH YOU
+  - Key: item.swap_board.name
+    Value: Board Swap
+  - Key: item.swap_board.description
+    Value: A face-down board card is turned up for everyone, then traded with one
+      of your cards, which stays face up on the board.
+  - Key: item.swap_board.notice
+    Value: SWAPPED BOARD
+  - Key: item.swap_board.prompt
+    Value: POINT AT THE CARD YOU PUT ON THE BOARD
+  - Key: item.swap_hand.name
+    Value: Swap
+  - Key: item.swap_hand.description
+    Value: Trade one of your cards with a player still in the hand. They choose which
+      of theirs to give.
+  - Key: item.swap_hand.notice
+    Value: SWAPPED WITH
+  - Key: item.swap_hand.prompt_own
+    Value: POINT AT THE CARD YOU GIVE
+  - Key: item.swap_hand.prompt_player
+    Value: POINT AT WHO YOU SWAP WITH
+  - Key: item.swap_hand.response
+    Value: swaps a card with you - choose one to swap
+  - Key: item.table_reveal.name
+    Value: Exposure
+  - Key: item.table_reveal.description
+    Value: Every player still in the hand shows one random card to the whole table
+      this street.
+  - Key: item.table_reveal.notice
+    Value: EXPOSED ALL

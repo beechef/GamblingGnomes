@@ -492,7 +492,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 4871544217483404129, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 9137678790865073205}
   m_SourcePrefab: {fileID: 100100000, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
 --- !u!114 &538920775448842283 stripped
 MonoBehaviour:
@@ -505,6 +508,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 84f47ffb0cc60f8409595baa4eeeef58, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Button.UIButton
+--- !u!1 &4620895545493531862 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4871544217483404129, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
+  m_PrefabInstance: {fileID: 268962137704452023}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &9137678790865073205
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4620895545493531862}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e5e0742a948570940b3a78c357d3442c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Localization::Localization.LocalizedText
+  _key: poker.button.match_settings
 --- !u!224 &5695854886749913884 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 5525976618167798955, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
@@ -617,7 +638,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 4871544217483404129, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6131255417007082842}
   m_SourcePrefab: {fileID: 100100000, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
 --- !u!114 &2160618212641139390 stripped
 MonoBehaviour:
@@ -635,6 +659,24 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 5525976618167798955, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
   m_PrefabInstance: {fileID: 1818650392756843810}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &6531933882727634499 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4871544217483404129, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
+  m_PrefabInstance: {fileID: 1818650392756843810}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &6131255417007082842
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6531933882727634499}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e5e0742a948570940b3a78c357d3442c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Localization::Localization.LocalizedText
+  _key: common.close
 --- !u!1001 &4519868251337754948
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -742,8 +784,29 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 8414142637135690088, guid: f60c5cdc9f4a7d84b96bc9a34cb40db5, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2286075198210318552}
   m_SourcePrefab: {fileID: 100100000, guid: f60c5cdc9f4a7d84b96bc9a34cb40db5, type: 3}
+--- !u!1 &5367382695846178860 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8414142637135690088, guid: f60c5cdc9f4a7d84b96bc9a34cb40db5, type: 3}
+  m_PrefabInstance: {fileID: 4519868251337754948}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &2286075198210318552
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5367382695846178860}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e5e0742a948570940b3a78c357d3442c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Localization::Localization.LocalizedText
+  _key: config.title
 --- !u!224 &8759161931884841580 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 5131578427707704104, guid: f60c5cdc9f4a7d84b96bc9a34cb40db5, type: 3}

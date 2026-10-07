@@ -38,7 +38,7 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 		private int _queuedRateAfter;
 
 		private float _rollEndsAt;
-		private int _rolledRate;
+		private float _outcomeEndsAt;
 
 		// Raised on every client, host included: lead-in, sweep and hold in seconds, then the number it stops on.
 		public event Action<float, float, float, int> OnRollStarted;
@@ -55,18 +55,9 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 		public bool ServerRollFatal { get; private set; }
 
 		// How long the table still owes this roll and what it set off: the sweep and the hold, then the whole
-		// death when it was fatal, so whatever follows never lands on top of the fall.
-		public float ServerOutcomeRemaining
-		{
-			get
-			{
-				var remaining = ServerRollRemaining;
-				if (remaining <= 0f) return 0f;
-				if (!ServerRollFatal || !_deathPose) return remaining;
-
-				return remaining + _deathPose.DeathWait(_rolledRate, PokerPlayerData.MaxHallucination);
-			}
-		}
+		// death when it was fatal, so whatever follows never lands on top of the fall. Fixed when the roll starts:
+		// read after the sweep it must still count the death, which is when a camera watching the roller asks.
+		public float ServerOutcomeRemaining => Mathf.Max(0f, _outcomeEndsAt - Time.time);
 
 		private void Awake()
 		{
@@ -123,8 +114,8 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 			var total = leadIn + sweep + hold;
 
 			ServerRollFatal = _queuedFatal;
-			_rolledRate = _queuedRateAfter;
 			_rollEndsAt = Time.time + total;
+			_outcomeEndsAt = _rollEndsAt + (_queuedFatal && _deathPose ? _deathPose.DeathWait(_queuedRateAfter, PokerPlayerData.MaxHallucination) : 0f);
 
 			RollRPC(leadIn, sweep, hold, _queuedRoll, _queuedFatal);
 

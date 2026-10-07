@@ -12,15 +12,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e172c57d23c2f2b4aa2291d5aeaad22a, type: 3}
   m_Name: Hand_TwoPair
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Hands.PokerHandTwoPair
-  _displayName: Two Pair
+  _nameKey: hand.two_pair.name
   _tier: 2
-  _description: Two different pairs of cards with the same value.
+  _isHouseHand: 0
+  _descriptionKey: hand.two_pair.description
   _exampleCards:
-  - _rank: 12
+  - _isJoker: 0
+    _rank: 12
     _suit: 2
-  - _rank: 12
+  - _isJoker: 0
+    _rank: 12
     _suit: 0
-  - _rank: 4
+  - _isJoker: 0
+    _rank: 4
     _suit: 3
-  - _rank: 4
+  - _isJoker: 0
+    _rank: 4
     _suit: 1

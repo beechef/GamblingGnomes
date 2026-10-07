@@ -2,6 +2,7 @@ using System;
 using Game.Runtime.Controller;
 using Game.Runtime.Player;
 using Game.Runtime.UI.Button;
+using Game.Runtime.UI.Settings;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -21,7 +22,11 @@ namespace Game.Runtime.UI.Pause
 
 		[Header("Buttons")]
 		[SerializeField] private UIButton _resumeButton;
+		[SerializeField] private UIButton _settingsButton;
 		[SerializeField] private UIButton _leaveButton;
+
+		[Tooltip("Opened over the table by the settings button; the pause panel comes back when it closes.")]
+		[SerializeField] private UISettingsScreen _settingsScreen;
 		[SerializeField] private UIButton _quitButton;
 
 		public bool IsOpen { get; private set; }
@@ -43,6 +48,7 @@ namespace Game.Runtime.UI.Pause
 			}
 
 			if (_resumeButton) _resumeButton.OnClick += Close;
+			if (_settingsButton) _settingsButton.OnClick += HandleSettingsClicked;
 			if (_leaveButton) _leaveButton.OnClick += HandleLeaveClicked;
 			if (_quitButton) _quitButton.OnClick += HandleQuitClicked;
 		}
@@ -68,6 +74,7 @@ namespace Game.Runtime.UI.Pause
 			}
 
 			if (_resumeButton) _resumeButton.OnClick -= Close;
+			if (_settingsButton) _settingsButton.OnClick -= HandleSettingsClicked;
 			if (_leaveButton) _leaveButton.OnClick -= HandleLeaveClicked;
 			if (_quitButton) _quitButton.OnClick -= HandleQuitClicked;
 
@@ -76,17 +83,12 @@ namespace Game.Runtime.UI.Pause
 
 		private void HandlePausePressed(InputAction.CallbackContext ctx)
 		{
-			if (IsOpen)
-			{
-				Close();
-				return;
-			}
-
-			// Escape closes the newest thing that is open before it opens anything of its own — this menu is
-			// what the key falls through to, not what it always means.
+			// Escape closes the newest thing that is open before it opens or closes anything of its own — this
+			// menu is what the key falls through to, not what it always means.
 			if (UIEscapeStack.DismissTop()) return;
 
-			Open();
+			if (IsOpen) Close();
+			else Open();
 		}
 
 		public void Open()
@@ -130,11 +132,32 @@ namespace Game.Runtime.UI.Pause
 
 			IsOpen = false;
 			if (_panel) _panel.SetActive(false);
+
+			if (_settingsScreen)
+			{
+				_settingsScreen.OnClosed -= HandleSettingsClosed;
+				_settingsScreen.gameObject.SetActive(false);
+			}
 		}
 
 		// The table is already gone by now, and so is the player we would have restored — closing the
 		// panel is all that is left to do.
 		private void HandleGameLeft() => ClosePanel();
+
+		private void HandleSettingsClicked()
+		{
+			if (!_settingsScreen) return;
+
+			if (_panel) _panel.SetActive(false);
+			_settingsScreen.OnClosed += HandleSettingsClosed;
+			_settingsScreen.Open();
+		}
+
+		private void HandleSettingsClosed()
+		{
+			_settingsScreen.OnClosed -= HandleSettingsClosed;
+			if (IsOpen && _panel) _panel.SetActive(true);
+		}
 
 		private async void HandleLeaveClicked()
 		{

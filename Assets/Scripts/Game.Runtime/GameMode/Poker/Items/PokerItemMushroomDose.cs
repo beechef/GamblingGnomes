@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using Game.Runtime.GameMode.Poker.Player;
+using Localization;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Game.Runtime.GameMode.Poker.Items
 {
@@ -27,18 +29,22 @@ namespace Game.Runtime.GameMode.Poker.Items
 		[SerializeField] private int _doubleWeight = 50;
 
 		[Tooltip("What the table reads when the caps come out empty. {0} is how many.")]
-		[SerializeField] private string _nullifiedVerb = "NULLIFIED THE NEXT {0} MUSHROOMS OF";
+		[LocalizationKey]
+		[FormerlySerializedAs("_nullifiedVerb")]
+		[SerializeField] private string _nullifiedKey = LocalizationKeys.Item.MushroomDose.Nullified;
 
 		[Tooltip("What the table reads when the caps come out doubled. {0} is how many.")]
-		[SerializeField] private string _doubledVerb = "DOUBLED THE NEXT {0} MUSHROOMS OF";
+		[LocalizationKey]
+		[FormerlySerializedAs("_doubledVerb")]
+		[SerializeField] private string _doubledKey = LocalizationKeys.Item.MushroomDose.Doubled;
 
 		protected override void OnCollectTargetSteps(List<PokerItemTargetKind> steps) => steps.Add(PokerItemTargetKind.Player);
 
 		public override string GetTargetPrompt(PokerItemTargetKind kind) =>
-			kind == PokerItemTargetKind.Player ? "POINT AT WHOSE MUSHROOMS YOU SPIKE" : base.GetTargetPrompt(kind);
+			kind == PokerItemTargetKind.Player ? Localizer.Get(LocalizationKeys.Item.MushroomDose.Prompt) : base.GetTargetPrompt(kind);
 
 		public override string GetOutcomeVerb(int outcome) =>
-			string.Format(outcome == Nullified ? _nullifiedVerb : _doubledVerb, Mathf.Max(1, _caps));
+			Localizer.Format(outcome == Nullified ? _nullifiedKey : _doubledKey, Mathf.Max(1, _caps));
 
 		public override bool AnnouncesOutcome => true;
 
@@ -49,7 +55,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 				if (AcceptsPlayer(context, player)) return PokerItemAvailability.Usable;
 			}
 
-			return PokerItemAvailability.Dimmed("Nobody is left to spike.");
+			return PokerItemAvailability.Dimmed(Localizer.Get(LocalizationKeys.Item.Reason.NobodyToSpike));
 		}
 
 		// Yourself included: doubling or emptying your own next caps is a gamble worth taking.

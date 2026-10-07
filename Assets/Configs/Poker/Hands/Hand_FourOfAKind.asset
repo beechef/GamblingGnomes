@@ -12,15 +12,20 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 232f23127a11fc94b8f2e0db3cb190cd, type: 3}
   m_Name: Hand_FourOfAKind
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Hands.PokerHandFourOfAKind
-  _displayName: Four of a Kind
+  _nameKey: hand.four_of_a_kind.name
   _tier: 7
-  _description: Four cards of the same value.
+  _isHouseHand: 0
+  _descriptionKey: hand.four_of_a_kind.description
   _exampleCards:
-  - _rank: 14
+  - _isJoker: 0
+    _rank: 14
     _suit: 3
-  - _rank: 14
+  - _isJoker: 0
+    _rank: 14
     _suit: 2
-  - _rank: 14
+  - _isJoker: 0
+    _rank: 14
     _suit: 1
-  - _rank: 14
+  - _isJoker: 0
+    _rank: 14
     _suit: 0

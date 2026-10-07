@@ -11,6 +11,7 @@ namespace Game.Runtime.GameMode.Poker.Hands
 
 		public bool IsValid => HandType;
 		public string DisplayName => HandType ? HandType.DisplayName : string.Empty;
+		public string NameKey => HandType ? HandType.NameKey : string.Empty;
 
 		public PokerHandResult(PokerHandType handType, long score)
 		{

@@ -29,6 +29,7 @@ namespace Game.Runtime.Player
 		{
 			DisplayName.OnValueChanged += HandleNameChanged;
 			PlayerId.OnValueChanged += HandleIdChanged;
+			ColorIndex.OnValueChanged += HandleColorIndexChanged;
 
 			// Steam only knows whoever is signed in at this machine, so each player reports their own
 			// name and id. The server cannot ask on their behalf: the transport hands it a bare number,
@@ -68,6 +69,7 @@ namespace Game.Runtime.Player
 
 		public override void OnNetworkDespawn()
 		{
+			ColorIndex.OnValueChanged -= HandleColorIndexChanged;
 			DisplayName.OnValueChanged -= HandleNameChanged;
 			PlayerId.OnValueChanged -= HandleIdChanged;
 		}
@@ -93,5 +95,8 @@ namespace Game.Runtime.Player
 
 		private void HandleNameChanged(FixedString64Bytes previous, FixedString64Bytes current) => OnIdentityChanged?.Invoke();
 		private void HandleIdChanged(ulong previous, ulong current) => OnIdentityChanged?.Invoke();
+
+		// The colour is part of how a name is printed, so a late index redraws every line naming this player.
+		private void HandleColorIndexChanged(int previous, int current) => OnIdentityChanged?.Invoke();
 	}
 }

@@ -1,4 +1,5 @@
 using Game.Runtime.GameMode.Config;
+using Localization;
 using TMPro;
 using UnityEngine;
 
@@ -20,7 +21,7 @@ namespace Game.Runtime.UI.Config
 			Entry = entry;
 			Access = access;
 
-			if (_label) _label.text = entry?.Label ?? string.Empty;
+			if (_label) _label.text = entry != null ? Localizer.Get(entry.Label) : string.Empty;
 
 			OnBind();
 			Refresh();

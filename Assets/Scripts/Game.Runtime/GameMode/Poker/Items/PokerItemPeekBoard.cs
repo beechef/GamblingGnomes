@@ -1,10 +1,11 @@
 using System.Collections.Generic;
+using Localization;
 using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker.Items
 {
-	// See one board card the streets have not turned yet, at the price of not folding on the street it is
-	// played on. Only the user sees it; the table hears that a board card was looked at.
+	// See one board card the streets have not turned yet, for the street it is played on only (it turns back
+	// down when that street ends), at the price of not folding on that street. Only the user sees it; the table hears that a board card was looked at.
 	[CreateAssetMenu(fileName = "PokerItem_PeekBoard", menuName = "Game/Poker/Items/Peek Board")]
 	public class PokerItemPeekBoard : PokerItem
 	{
@@ -20,13 +21,13 @@ namespace Game.Runtime.GameMode.Poker.Items
 		protected override PokerItemAvailability OnGetAvailability(in PokerItemContext context)
 		{
 			var board = context.Data.CommunityCards;
-			if (board.Count == 0) return PokerItemAvailability.Hidden("This table deals no board.");
+			if (board.Count == 0) return PokerItemAvailability.Hidden(Localizer.Get(LocalizationKeys.Item.Reason.NoBoard));
 
 			if (_slotChoice == PokerBoardPeekSlot.LastFaceDown)
 			{
 				return AcceptsBoardCard(context, LastFaceDownSlot(context.Data))
 					? PokerItemAvailability.Usable
-					: PokerItemAvailability.Hidden("The last board card is already face up to you.");
+					: PokerItemAvailability.Hidden(Localizer.Get(LocalizationKeys.Item.Reason.LastBoardSeen));
 			}
 
 			for (var slot = 0; slot < board.Count; slot++)
@@ -34,7 +35,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 				if (AcceptsBoardCard(context, slot)) return PokerItemAvailability.Usable;
 			}
 
-			return PokerItemAvailability.Hidden("Every board card is already face up to you.");
+			return PokerItemAvailability.Hidden(Localizer.Get(LocalizationKeys.Item.Reason.BoardSeen));
 		}
 
 		public override bool AcceptsBoardCard(in PokerItemContext context, int slot)

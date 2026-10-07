@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using Game.Runtime.Controller;
+using Localization;
 using Sirenix.OdinInspector;
 using Unity.Netcode;
 using UnityEngine;
@@ -16,11 +17,6 @@ namespace Game.Runtime.UI.Loading
 		[Header("References")]
 		[Required]
 		[SerializeField] private UILoadingScreen _screen;
-
-		[Header("Text")]
-		[SerializeField] private string _connectingTitle = "CONNECTING";
-		[SerializeField] private string _loadingTitle = "LOADING";
-		[SerializeField] private string _leavingTitle = "LEAVING";
 
 		[Tooltip("How far the bar has come by the time the scene itself starts loading — the wait before that has no number to report.")]
 		[Range(0f, 1f)]
@@ -71,11 +67,11 @@ namespace Game.Runtime.UI.Loading
 
 		// The click itself, before Steam has been asked. Nothing here has a number to report yet — the bar
 		// starts from empty and only moves once the answer comes back.
-		private void HandleConnectStarted() => _screen.Show(_connectingTitle);
+		private void HandleConnectStarted() => _screen.Show(Localizer.Get(LocalizationKeys.Loading.Connecting));
 
 		private void HandleConnected()
 		{
-			_screen.Show(_connectingTitle);
+			_screen.Show(Localizer.Get(LocalizationKeys.Loading.Connecting));
 			_screen.SetProgress(_connectingProgress);
 
 			BindSceneManager();
@@ -83,7 +79,7 @@ namespace Game.Runtime.UI.Loading
 
 		// Covers the walk out as well as the walk in: the teardown unloads the gameplay scene, so without
 		// this the table blinks out and the menu appears over whatever is left of the frame.
-		private void HandleGameLeaving() => _screen.Show(_leavingTitle);
+		private void HandleGameLeaving() => _screen.Show(Localizer.Get(LocalizationKeys.Loading.Leaving));
 
 		private void HandleConnectFailed(string reason) => _screen.Hide();
 
@@ -132,7 +128,7 @@ namespace Game.Runtime.UI.Loading
 		{
 			if (clientId != NetworkManager.Singleton.LocalClientId) return;
 
-			_screen.Show(_loadingTitle);
+			_screen.Show(Localizer.Get(LocalizationKeys.Loading.Scene));
 			ReportProgress(operation).LogExceptionsAndForget();
 		}
 

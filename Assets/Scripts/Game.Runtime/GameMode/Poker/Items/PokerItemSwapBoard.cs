@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using Game.Runtime.GameMode.Poker.Player;
+using Localization;
 using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker.Items
@@ -34,30 +35,30 @@ namespace Game.Runtime.GameMode.Poker.Items
 
 		public override string GetTargetPrompt(PokerItemTargetKind kind) => kind switch
 		{
-			PokerItemTargetKind.OwnCard => "POINT AT THE CARD YOU PUT ON THE BOARD",
+			PokerItemTargetKind.OwnCard => Localizer.Get(LocalizationKeys.Item.SwapBoard.Prompt),
 			_ => base.GetTargetPrompt(kind)
 		};
 
 		protected override PokerItemAvailability OnGetAvailability(in PokerItemContext context)
 		{
 			var data = context.Data;
-			if (!data || data.CommunityCards.Count == 0) return PokerItemAvailability.Hidden("This table deals no board.");
-			if (!context.User || !context.User.Data.IsInHand) return PokerItemAvailability.Dimmed("You are not in this hand.");
+			if (!data || data.CommunityCards.Count == 0) return PokerItemAvailability.Hidden(Localizer.Get(LocalizationKeys.Item.Reason.NoBoard));
+			if (!context.User || !context.User.Data.IsInHand) return PokerItemAvailability.Dimmed(Localizer.Get(LocalizationKeys.Item.Reason.NotInHand));
 
-			if (FirstFaceDown(data) < 0) return PokerItemAvailability.Hidden("Every board card is already face up.");
+			if (FirstFaceDown(data) < 0) return PokerItemAvailability.Hidden(Localizer.Get(LocalizationKeys.Item.Reason.BoardFaceUp));
 
 			for (var slot = 0; slot < context.User.Data.CardCount; slot++)
 			{
 				if (AcceptsOwnCard(context, slot)) return PokerItemAvailability.Usable;
 			}
 
-			return PokerItemAvailability.Dimmed("You have no card left to give.");
+			return PokerItemAvailability.Dimmed(Localizer.Get(LocalizationKeys.Item.Reason.NoCardToGive));
 		}
 
 		public override bool AcceptsOwnCard(in PokerItemContext context, int slot)
 		{
 			var data = context.User ? context.User.Data : null;
-			return data && data.IsInHand && slot >= 0 && slot < data.CardCount && !data.IsHoleCardShown(slot);
+			return data && data.IsInHand && slot >= 0 && slot < data.CardCount;
 		}
 
 		public override bool AcceptsBoardCard(in PokerItemContext context, int slot)
@@ -101,7 +102,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 			var taken = data.CommunityCards[boardSlot];
 
 			if (!await context.Module.ServerExchangeCardsAsync(
-				    PokerCardPlace.InHand(user.ClientId, ownSlot), PokerCardPlace.OnBoard(boardSlot), ct, flyFaceDown: true)) return;
+				    PokerCardPlace.InHand(user.ClientId, ownSlot), PokerCardPlace.OnBoard(boardSlot), ct, PokerCardExchangeFlight.FaceDown)) return;
 
 			user.Data.ServerMarkLookedAt(ownSlot);
 

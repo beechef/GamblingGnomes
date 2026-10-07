@@ -1,5 +1,6 @@
 using Game.Runtime.GameMode.Poker;
 using Game.Runtime.GameMode.Poker.Items;
+using Localization;
 using UnityEngine;
 
 namespace Game.Runtime.UI.Poker
@@ -9,29 +10,8 @@ namespace Game.Runtime.UI.Poker
 	// Every notice names who it is about ("BOB ALL IN").
 	public class UIPokerActionNoticeFeed : UIPokerNoticeFeed
 	{
-		[Header("Actions")]
-		[SerializeField] private string _betText = "BET";
-		[SerializeField] private string _foldText = "FOLD";
-		[SerializeField] private string _allInText = "ALL IN";
-
-		[Header("Items")]
-		[Tooltip("Read after the name when somebody is dealt extra items for losing the last hand.")]
-		[SerializeField] private string _itemBonusVerb = "LOST LAST HAND: +{0} ITEM";
-
-		[Tooltip("Read after the name when somebody survives the Colorful they were fed and is handed items for it.")]
-		[SerializeField] private string _itemRewardVerb = "SURVIVED: +{0} ITEM";
-
-		[Tooltip("Told only to a player whose items were full, so what they were handed was lost.")]
-		[SerializeField] private string _itemsLostVerb = "ITEMS FULL: {0} LOST";
-
 		[Header("Match")]
-		[Tooltip("Read on top when the first hand of a match is about to be dealt.")]
-		[SerializeField] private string _matchStartedTitle = "MATCH START";
-
-		[Tooltip("Read under it. {0} is how many are playing.")]
-		[SerializeField] private string _matchStartedText = "{0} PLAYERS";
-
-		[Tooltip("Seconds it stands. Negative uses the feed's own.")]
+		[Tooltip("Seconds the match start notice stands. Negative uses the feed's own.")]
 		[SerializeField] private float _matchStartedLifetime = 3f;
 
 		private PokerNoticeChannel _channel;
@@ -65,19 +45,19 @@ namespace Game.Runtime.UI.Poker
 					break;
 
 				case PokerNoticeKind.MatchStarted:
-					Announce(_matchStartedTitle, string.Format(_matchStartedText, notice.Amount), _matchStartedLifetime);
+					Announce(Localizer.Get(LocalizationKeys.Poker.Notice.MatchStarted), Localizer.Format(LocalizationKeys.Poker.Notice.MatchPlayers, notice.Amount), _matchStartedLifetime);
 					break;
 
 				case PokerNoticeKind.ItemBonus:
-					Announce(NameOf(notice.ActorClientId), string.Format(_itemBonusVerb, notice.Amount));
+					Announce(NameOf(notice.ActorClientId), Localizer.Format(LocalizationKeys.Poker.Notice.ItemBonus, notice.Amount));
 					break;
 
 				case PokerNoticeKind.ItemReward:
-					Announce(NameOf(notice.ActorClientId), string.Format(_itemRewardVerb, notice.Amount));
+					Announce(NameOf(notice.ActorClientId), Localizer.Format(LocalizationKeys.Poker.Notice.ItemReward, notice.Amount));
 					break;
 
 				case PokerNoticeKind.ItemsLost:
-					Announce(NameOf(notice.ActorClientId), string.Format(_itemsLostVerb, notice.Amount));
+					Announce(NameOf(notice.ActorClientId), Localizer.Format(LocalizationKeys.Poker.Notice.ItemsLost, notice.Amount));
 					break;
 
 				case PokerNoticeKind.ItemOutcome:
@@ -100,9 +80,9 @@ namespace Game.Runtime.UI.Poker
 
 		private string ActionText(PokerActionType action) => action switch
 		{
-			PokerActionType.Bet => _betText,
-			PokerActionType.Fold => _foldText,
-			PokerActionType.AllIn => _allInText,
+			PokerActionType.Bet => Localizer.Get(LocalizationKeys.Poker.Action.Bet),
+			PokerActionType.Fold => Localizer.Get(LocalizationKeys.Poker.Action.Fold),
+			PokerActionType.AllIn => Localizer.Get(LocalizationKeys.Poker.Action.AllIn),
 			_ => action.ToString().ToUpperInvariant()
 		};
 

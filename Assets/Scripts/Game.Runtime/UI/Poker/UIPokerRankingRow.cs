@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Game.Runtime.GameMode.Poker;
 using Game.Runtime.GameMode.Poker.Player;
+using Localization;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
@@ -51,10 +52,10 @@ namespace Game.Runtime.UI.Poker
 			_snapshotRevealed = false;
 
 			if (_placeLabel) _placeLabel.text = Ordinal(entry.Rank);
-			if (_handLabel) _handLabel.text = entry.HandName.ToString();
+			if (_handLabel) _handLabel.text = Localizer.Get(entry.HandKey.ToString());
 			if (_crown) _crown.SetActive(entry.Rank == 1);
 
-			if (_nameLabel) _nameLabel.text = player ? player.DisplayName : $"Player {entry.ClientId}";
+			if (_nameLabel) _nameLabel.text = player ? player.PlainName : $"Player {entry.ClientId}";
 
 			RebuildCards();
 		}
@@ -125,18 +126,18 @@ namespace Game.Runtime.UI.Poker
 
 		private static string Ordinal(int rank)
 		{
-			var suffix = rank switch
+			var key = rank switch
 			{
-				1 => "st",
-				2 => "nd",
-				3 => "rd",
-				_ => "th"
+				1 => LocalizationKeys.Poker.Ranking.Place.St,
+				2 => LocalizationKeys.Poker.Ranking.Place.Nd,
+				3 => LocalizationKeys.Poker.Ranking.Place.Rd,
+				_ => LocalizationKeys.Poker.Ranking.Place.Th
 			};
 
 			// The teens all take "th" however they end.
-			if (rank % 100 is >= 11 and <= 13) suffix = "th";
+			if (rank % 100 is >= 11 and <= 13) key = LocalizationKeys.Poker.Ranking.Place.Th;
 
-			return rank + suffix;
+			return Localizer.Format(key, rank);
 		}
 	}
 }

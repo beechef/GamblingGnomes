@@ -26,7 +26,12 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		[Tooltip("On, every card a player may see goes into their hand as the stage opens, for a round where there is nothing to choose. The settle duration then has to cover the pick-up flight.")]
 		[SerializeField] private bool _putEveryCardInHand;
 
+		[Tooltip("With Put Every Card In Hand: seconds the dealt cards lie on the table before everybody picks them up, so the pick-up reads as its own beat.")]
+		[MinValue(0f)]
+		[SerializeField] private float _pickUpDelay;
+
 		private bool _settling;
+		private float _pickUpTimer;
 
 		// Whether anybody is asked which cards to turn. A round that picks them up for everyone offers nothing
 		// to point at, so no screen opens the table for picking.
@@ -38,14 +43,9 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			GameMode.ClearTurn();
 
 			_settling = false;
+			_pickUpTimer = _putEveryCardInHand ? _pickUpDelay : 0f;
 
-			if (_putEveryCardInHand)
-			{
-				foreach (var player in GameMode.SeatedPlayers)
-				{
-					if (IsWaitedOn(player)) player.Data.ServerLookAtEveryHoleCard();
-				}
-			}
+			if (_putEveryCardInHand && _pickUpTimer <= 0f) PickUpEveryCard();
 
 			// Nobody was dealt a hand they may look at — a table configured without a look limit, or one
 			// where everybody has already folded out. There is nothing to wait for.
@@ -65,6 +65,13 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		// short buys nothing but a set of handlers to leak. The check is a walk of four seats.
 		protected override void OnTickStage(float deltaTime)
 		{
+			if (_pickUpTimer > 0f)
+			{
+				_pickUpTimer -= deltaTime;
+				if (_pickUpTimer <= 0f) PickUpEveryCard();
+				return;
+			}
+
 			if (_settling)
 			{
 				if (GameMode.IsStageTimerExpired()) FinishStage();
@@ -80,6 +87,14 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			}
 
 			if (EveryoneDone()) Settle();
+		}
+
+		private void PickUpEveryCard()
+		{
+			foreach (var player in GameMode.SeatedPlayers)
+			{
+				if (IsWaitedOn(player)) player.Data.ServerLookAtEveryHoleCard();
+			}
 		}
 
 		private void Settle()

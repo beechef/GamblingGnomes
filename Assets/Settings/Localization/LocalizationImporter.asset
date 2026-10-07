@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a124654379649404993cdff69c98b009, type: 3}
+  m_Name: LocalizationImporter
+  m_EditorClassIdentifier: Localization::Localization.Import.LocalizationImporter
+  _source:
+    rid: 4213679419060650182
+  _catalog: {fileID: 11400000, guid: 257b18630493f1942830497c9b112252, type: 2}
+  _sectionsFolder: Assets/Settings/Localization
+  _exportFolder: LocalizationExport
+  references:
+    version: 2
+    RefIds:
+    - rid: 4213679419060650182
+      type: {class: GoogleSheetSource, ns: Localization.Import, asm: Localization}
+      data:
+        _spreadsheetUrl: https://docs.google.com/spreadsheets/d/1nZ3rieqKx-bH4XhGTT6UJyV3y2dcfpHw8GohrLzvYGg/edit?usp=sharing
+        _tabs:
+        - Name: UI
+          Gid: 749430488
+        - Name: Hands
+          Gid: 0
+        - Name: Poker
+          Gid: 1815408400
+        - Name: Items
+          Gid: 2039807141

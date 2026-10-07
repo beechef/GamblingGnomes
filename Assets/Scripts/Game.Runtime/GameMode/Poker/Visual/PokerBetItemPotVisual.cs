@@ -146,7 +146,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			cap.transform.DOLocalMove(resting, _dropDuration).SetEase(_dropEase);
 		}
 
-		private static bool IsStakedOnStreet(PokerPotEntry item) => item.Phase is PokerPhase.FirstStreet or PokerPhase.SecondStreet or PokerPhase.AllIn;
+		private static bool IsStakedOnStreet(PokerPotEntry item) => item.Phase is PokerPhase.Ante or PokerPhase.FirstStreet or PokerPhase.SecondStreet or PokerPhase.AllIn;
 
 		// The staker's own carry controller, which knows which rig this client draws for them and hears that
 		// rig's animation cues.

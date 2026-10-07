@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading;
+using Localization;
 using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker.Items
@@ -24,23 +25,23 @@ namespace Game.Runtime.GameMode.Poker.Items
 		}
 
 		public override string GetTargetPrompt(PokerItemTargetKind kind) =>
-			kind == PokerItemTargetKind.OwnCard ? "POINT AT THE CARD YOU LAY ON THE BOARD" : base.GetTargetPrompt(kind);
+			kind == PokerItemTargetKind.OwnCard ? Localizer.Get(LocalizationKeys.Item.PlaceOnBoard.Prompt) : base.GetTargetPrompt(kind);
 
 		protected override PokerItemAvailability OnGetAvailability(in PokerItemContext context)
 		{
 			var data = context.Data;
-			if (!data || data.CommunityCards.Count == 0) return PokerItemAvailability.Hidden("This table deals no board.");
-			if (!context.User || !context.User.Data.IsInHand) return PokerItemAvailability.Dimmed("You are not in this hand.");
-			if (data.CommunityCards.Count >= 31) return PokerItemAvailability.Dimmed("The board is full.");
+			if (!data || data.CommunityCards.Count == 0) return PokerItemAvailability.Hidden(Localizer.Get(LocalizationKeys.Item.Reason.NoBoard));
+			if (!context.User || !context.User.Data.IsInHand) return PokerItemAvailability.Dimmed(Localizer.Get(LocalizationKeys.Item.Reason.NotInHand));
+			if (data.CommunityCards.Count >= 31) return PokerItemAvailability.Dimmed(Localizer.Get(LocalizationKeys.Item.Reason.BoardFull));
 			// The replicated count: the deck itself is on the server only.
-			if (data.DeckRemaining.Value <= 0) return PokerItemAvailability.Dimmed("The deck is empty.");
+			if (data.DeckRemaining.Value <= 0) return PokerItemAvailability.Dimmed(Localizer.Get(LocalizationKeys.Item.Reason.DeckEmpty));
 
 			for (var slot = 0; slot < context.User.Data.CardCount; slot++)
 			{
 				if (AcceptsOwnCard(context, slot)) return PokerItemAvailability.Usable;
 			}
 
-			return PokerItemAvailability.Dimmed("You have no card to lay down.");
+			return PokerItemAvailability.Dimmed(Localizer.Get(LocalizationKeys.Item.Reason.NoCardToLay));
 		}
 
 		public override bool AcceptsOwnCard(in PokerItemContext context, int slot)
@@ -73,7 +74,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 				if (_landHold > 0f) await Awaitable.WaitForSecondsAsync(_landHold, ct);
 
 				if (!await context.Module.ServerExchangeCardsAsync(
-					    PokerCardPlace.InHand(user.ClientId, ownSlot), PokerCardPlace.OnBoard(boardSlot), ct, flyFaceDown: true)) return;
+					    PokerCardPlace.InHand(user.ClientId, ownSlot), PokerCardPlace.OnBoard(boardSlot), ct, PokerCardExchangeFlight.FirstFaceUp)) return;
 
 				// The card drawn is the user's own to see; the one laid down is everybody's.
 				user.Data.ServerMarkLookedAt(ownSlot);

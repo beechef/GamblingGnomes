@@ -68,12 +68,12 @@ afford it).
 | `PokerItem_SwapHand` | Swap | Exchange one card with a chosen player. Choices: own = Random, target's = Chosen by the target. Both cards land face up to their new owner and count as looked at. | both |
 | `PokerItem_SwapBoard` | Board Swap | A random unrevealed community card is turned face up for everyone, turned back down, then exchanged with one of your cards. Your old card flies face down on every screen, yours included, and stays face down on the board; the table knows the card you took from the row over your head. Hidden once all five are revealed. Choices: own = Chosen, slot = Random. | Liar |
 | `PokerItem_ExtraDraw` | Extra Draw | Draw one card from the undealt deck; you cannot Fold until the Hand ends. Showdown still scores the best five. | both |
-| `PokerItem_HalfDose` | Half Dose | Halve your Death Rate (round down), then Death Roll against the new rate. | both |
+| `PokerItem_HalfDose` | Half Dose | A chosen player (you included) halves their Death Rate (round down), then Death Rolls against the new rate. | both |
 | `PokerItem_SharedRoll` | Shared Roll | You and a chosen player each Death Roll against your own rate, at the same time. | both |
 | `PokerItem_LockFold` | Lock | Nobody may Fold on the next Street (`_streets` streets from there, default 1). `_affectsAllIn` toggles whether the All-in stage is locked too. | both |
 | `PokerItem_RaiseStakes` | Raise | Every Bet on the next Street stakes +1 cap (`_streets` streets from there, default 1). Stacks. Never applies to All-in. | both |
 
-Baccarat Poker adds six more (Lay Down, Repaint, Copy, Spike, No Items, Chained); they are described in
+Baccarat Poker adds eight more (Lay Down, Repaint, Copy, Spike, Rate Shift, Exposure, No Items, Chained); they are described in
 `docs/baccarat-poker-design.md`, which also lists which of the eleven that mode leaves out.
 
 Default targets: card Items target players still `IsInHand`, not yourself; Shared Roll targets

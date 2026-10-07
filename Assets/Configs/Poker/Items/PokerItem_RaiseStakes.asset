@@ -13,11 +13,11 @@ MonoBehaviour:
   m_Name: PokerItem_RaiseStakes
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Items.PokerItemRaiseStakes
   _type: 11
-  _displayName: Raise
-  _description: Every bet on the next street puts up one more cap, yours included.
+  _nameKey: item.raise_stakes.name
+  _descriptionKey: item.raise_stakes.description
   _icon: {fileID: 21300000, guid: bd55c06809931574e989aac1bab02a14, type: 3}
   _hallucinationCost: 0
-  _noticeVerb: RAISED THE NEXT STREET
-  _privateNoticeVerb: 
+  _noticeKey: item.raise_stakes.notice
+  _privateNoticeKey: 
   _extraStake: 1
   _streets: 1

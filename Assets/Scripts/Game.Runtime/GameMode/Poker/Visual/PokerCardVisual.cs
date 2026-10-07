@@ -34,6 +34,9 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		[Min(1)]
 		[SerializeField] private int _hoverSortingOrder = 2;
 
+		[Tooltip("The seen mark at the card's top edge, switched on while the table can see the holder's own card. Under the art, so it lifts, flips and hides with it; its sprites draw above every card's sorting order.")]
+		[SerializeField] private GameObject _exposedMark;
+
 		private Renderer _hoverOutlineRenderer;
 
 		[Header("Flip")]
@@ -64,6 +67,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		private Tween _moveTween;
 		private Tween _liftTween;
 		private bool _initialized;
+		private bool _highlighted;
 
 		// When the card leaves where it lies — its turn in the deal, or its turn among cards picked up
 		// together — and, for a deal, how it travels. Until then every placement and flip waits, so a layout
@@ -340,10 +344,23 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 		public void SetHighlighted(bool highlighted)
 		{
-			if (_hoverOutline && _hoverOutline.activeSelf != highlighted) _hoverOutline.SetActive(highlighted);
+			_highlighted = highlighted;
 
 			if (_renderer) _renderer.sortingOrder = highlighted ? _hoverSortingOrder : 0;
 			if (_hoverOutlineRenderer) _hoverOutlineRenderer.sortingOrder = _hoverSortingOrder - 1;
+
+			ApplyRim();
+		}
+
+		// The holder's own card the table can see.
+		public void SetExposed(bool exposed)
+		{
+			if (_exposedMark && _exposedMark.activeSelf != exposed) _exposedMark.SetActive(exposed);
+		}
+
+		private void ApplyRim()
+		{
+			if (_hoverOutline && _hoverOutline.activeSelf != _highlighted) _hoverOutline.SetActive(_highlighted);
 		}
 
 		public void SetLift(float lift)

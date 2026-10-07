@@ -13,10 +13,10 @@ MonoBehaviour:
   m_Name: PokerItem_PeekBoard
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Items.PokerItemPeekBoard
   _type: 2
-  _displayName: Scry
-  _description: See one board card before it is turned. You cannot fold this street.
+  _nameKey: item.peek_board.name
+  _descriptionKey: item.peek_board.description
   _icon: {fileID: 21300000, guid: dbe1b5e4846684d44965d907c783f835, type: 3}
   _hallucinationCost: 0
-  _noticeVerb: LOOKED AT A BOARD CARD
-  _privateNoticeVerb: 
+  _noticeKey: item.peek_board.notice
+  _privateNoticeKey: 
   _slotChoice: 1

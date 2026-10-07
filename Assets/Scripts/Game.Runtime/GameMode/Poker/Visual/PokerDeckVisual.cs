@@ -16,6 +16,9 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		[Tooltip("The top of the stack: where a dealt card starts, lying face down.")]
 		[SerializeField] private Transform _top;
 
+		[Tooltip("Where a card an item draws into a hand starts: above the table, so it drops down into the hand. Empty: the top of the stack.")]
+		[SerializeField] private Transform _itemDrawFrom;
+
 		[Tooltip("The card drawn as the deck. Only its back is ever shown.")]
 		[SerializeField] private PokerCardVisual _stack;
 
@@ -55,10 +58,10 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 			var deal = RunningDeal();
 
-			// A card handed out mid-hand, by an item, takes no turn in any deal: it leaves at once.
+			// A card handed out mid-hand, by an item, takes no turn in any deal: it drops in from above at once.
 			if (!deal)
 			{
-				card.DealFrom(_top ? _top : transform, 0f, _controller);
+				card.DealFrom(_itemDrawFrom ? _itemDrawFrom : _top ? _top : transform, 0f, _controller);
 				return;
 			}
 

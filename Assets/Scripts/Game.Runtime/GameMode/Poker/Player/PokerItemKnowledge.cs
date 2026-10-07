@@ -142,6 +142,17 @@ namespace Game.Runtime.GameMode.Poker.Player
 			}
 		}
 
+		// A board card seen by a peek is only seen for the street it was played on.
+		public void ServerForgetBoard()
+		{
+			if (!IsServer) return;
+
+			for (var i = KnownCards.Count - 1; i >= 0; i--)
+			{
+				if (KnownCards[i].IsBoard) KnownCards.RemoveAt(i);
+			}
+		}
+
 		public void ServerForgetExposure(int slot)
 		{
 			if (!IsServer) return;

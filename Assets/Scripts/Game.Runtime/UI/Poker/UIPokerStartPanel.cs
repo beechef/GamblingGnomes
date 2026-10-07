@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Game.Runtime.GameMode.Poker;
 using Game.Runtime.GameMode.Poker.Player;
 using Game.Runtime.UI.Button;
+using Localization;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
@@ -16,6 +17,9 @@ namespace Game.Runtime.UI.Poker
 		[SerializeField] private GameObject _panel;
 		[SerializeField] private UIButton _startButton;
 		[SerializeField] private TextMeshProUGUI _hintLabel;
+
+		[Tooltip("Shown only in the waiting room before a match, for everybody, alongside the start button.")]
+		[SerializeField] private GameObject _inviteButton;
 
 		// Every seat this panel is counting. It reads who is still conscious off other players' objects, so it
 		// has to hear those change — the seated list only says who is at the table, never what they are
@@ -52,6 +56,7 @@ namespace Game.Runtime.UI.Poker
 			LocalData.SeatIndex.OnValueChanged -= HandleSeatChanged;
 
 			if (_panel) _panel.SetActive(false);
+			if (_inviteButton) _inviteButton.SetActive(true);
 		}
 
 		private void HandlePhaseChanged(PokerPhase previous, PokerPhase current) => Refresh();
@@ -91,7 +96,10 @@ namespace Game.Runtime.UI.Poker
 			var isHost = NetworkManager.Singleton && NetworkManager.Singleton.IsHost;
 			// Between two rounds of a match still in progress the idle table deals the next one itself, so the
 			// button is only offered once a match is over and everything has been put back.
-			var visible = isHost && LocalData.IsSeated && Data.Phase.Value == PokerPhase.Waiting && !GameMode.CanDealAnotherHand;
+			var waitingRoom = Data.Phase.Value == PokerPhase.Waiting && !GameMode.CanDealAnotherHand;
+			var visible = isHost && LocalData.IsSeated && waitingRoom;
+
+			if (_inviteButton && _inviteButton.activeSelf != waitingRoom) _inviteButton.SetActive(waitingRoom);
 
 			if (_panel && _panel.activeSelf != visible) _panel.SetActive(visible);
 			if (!visible) return;
@@ -110,8 +118,10 @@ namespace Game.Runtime.UI.Poker
 				// A host who has gone under may still press, and the hint says so rather than announcing a count
 				// that does not match the button beside it.
 				_hintLabel.text = canStart
-					? (LocalData.IsAlive ? $"{readyCount} players ready" : "Start for the table")
-					: $"Waiting for players ({readyCount}/{required})";
+					? (LocalData.IsAlive
+						? Localizer.Format(LocalizationKeys.Poker.Start.Ready, readyCount)
+						: Localizer.Get(LocalizationKeys.Poker.Start.ForTable))
+					: Localizer.Format(LocalizationKeys.Poker.Start.Waiting, readyCount, required);
 			}
 		}
 

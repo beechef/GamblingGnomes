@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using Localization;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Game.Runtime.GameMode.Poker.Hands
 {
@@ -12,7 +14,9 @@ namespace Game.Runtime.GameMode.Poker.Hands
 	public abstract class PokerHandType : ScriptableObject
 	{
 		[Header("Hand")]
-		[SerializeField] private string _displayName;
+		[LocalizationKey]
+		[FormerlySerializedAs("_displayName")]
+		[SerializeField] private string _nameKey;
 
 		[Tooltip("Higher beats lower. Standard hands run 0 (high card) to 9 (royal flush).")]
 		[SerializeField] private int _tier;
@@ -21,19 +25,21 @@ namespace Game.Runtime.GameMode.Poker.Hands
 		[SerializeField] private bool _isHouseHand;
 
 		[Header("Helper")]
-		[TextArea]
-		[SerializeField] private string _description;
+		[LocalizationKey]
+		[FormerlySerializedAs("_description")]
+		[SerializeField] private string _descriptionKey;
 
 		[Tooltip("The cards that make the hand, in the order they are shown.")]
 		[SerializeField] private List<PokerHandExampleCard> _exampleCards = new();
 
-		public string DisplayName => string.IsNullOrEmpty(_displayName) ? name : _displayName;
+		public string NameKey => _nameKey;
+		public string DisplayName => string.IsNullOrEmpty(_nameKey) ? name : Localizer.Get(_nameKey);
 		public int Tier => _tier;
 		public bool IsHouseHand => _isHouseHand;
 
 		public string GetName() => DisplayName;
 
-		public string GetDescription() => _description;
+		public string GetDescription() => Localizer.Get(_descriptionKey);
 
 		public void GetExampleCards(List<CardData> cards)
 		{

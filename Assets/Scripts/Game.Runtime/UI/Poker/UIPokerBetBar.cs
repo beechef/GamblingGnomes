@@ -1,20 +1,25 @@
 using System.Collections.Generic;
-using Unity.Collections;
+using DG.Tweening;
 using Game.Runtime.GameMode.Poker;
 using Game.Runtime.GameMode.Poker.Items;
 using Game.Runtime.GameMode.Poker.Player;
 using Game.Runtime.GameMode.Poker.Stages;
 using Game.Runtime.UI.Button;
+using Localization;
 using TMPro;
+using Unity.Collections;
 using UnityEngine;
+using UnityEngine.Serialization;
+using UnityEngine.UI;
 
 namespace Game.Runtime.UI.Poker
 {
 	// What the player can do on their own betting turn: bet, fold, go all in, or play an item. Where the
 	// player picks the kind, betting does not put a cap up by itself — it opens the picker, because the kind
 	// is the actual decision — and the menu and the pickers are panels of one group, so only one is ever up.
-	// Where the table draws the kind, the press is the whole answer. The Items button lives in the shortcut
-	// column (UI_ShortcutButtons), outside the menu, so held items can be read at any time; the picker greys each one with the reason.
+	// Where the table draws the kind, the press is the whole answer. The Items button sits above the menu, outside
+	// it, so held items can be read at any time; its picker drops up beside the menu in a group of its own, and
+	// greys each item with the reason.
 	//
 	// This component stays on an object that is always active and only switches the panels, or it would
 	// switch itself off with the menu and never hear the turn come round again.
@@ -26,8 +31,10 @@ namespace Game.Runtime.UI.Poker
 		[SerializeField] private GameObject _pickerPanel;
 		[SerializeField] private UIPokerBetPicker _picker;
 
-		[Tooltip("Optional. Opened by the Items button; a table without PokerItemModule never shows it.")]
+		[Tooltip("Optional. Opened by the Items button; a table without PokerItemModule never shows it. The only panel of Item Panels, so it opens beside the menu rather than in its place.")]
 		[SerializeField] private GameObject _itemPickerPanel;
+
+		[SerializeField] private UIPanelStateGroup _itemPanels;
 		[SerializeField] private UIPokerItemPicker _itemPicker;
 
 		[Tooltip("Up while an item is being aimed: says what to point at. Escape puts the item back and returns to the menu.")]
@@ -40,16 +47,33 @@ namespace Game.Runtime.UI.Poker
 		[Tooltip("The Bet button's label. Reads the bet text for whoever opens the street and the call text once somebody still in the hand has bet on it.")]
 		[SerializeField] private TMP_Text _betLabel;
 
-		[SerializeField] private string _betText = "BET";
-		[SerializeField] private string _callText = "CALL";
 
 		[Tooltip("Shown only where folding is allowed — by the street and by whatever items are in play. What the rules forbid is hidden, not greyed.")]
 		[SerializeField] private UIButton _foldButton;
 
+		[Tooltip("Drawn across the Fold label while an item forbids folding on a street that allows it. The button stays up, undimmed, and refuses the press.")]
+		[FormerlySerializedAs("_foldLock")]
+		[SerializeField] private GameObject _foldCrossline;
+
+		[Tooltip("The Fold button's icon. Wears Fold Locked Icon while folding is forbidden, its authored sprite otherwise.")]
+		[SerializeField] private Image _foldIcon;
+
+		[SerializeField] private Sprite _foldLockedIcon;
+
+		[Tooltip("Seconds the Fold button shakes and pulses when folding becomes forbidden while it is up, so the lock is noticed.")]
+		[Min(0f)]
+		[SerializeField] private float _foldLockAlertDuration = 0.5f;
+
+		[Tooltip("How much bigger the Fold button punches at the lock, as a share of its size.")]
+		[SerializeField] private float _foldLockPunch = 0.25f;
+
+		[Tooltip("Degrees the Fold button shakes either way at the lock.")]
+		[SerializeField] private float _foldLockShakeAngle = 12f;
+
 		[Tooltip("Shown only on a street that allows going all in.")]
 		[SerializeField] private UIButton _allInButton;
 
-		[Tooltip("In the shortcut column (UI_ShortcutButtons), not the menu (wired on UI_Poker). Shown only at a table that deals items; greyed while nothing is held.")]
+		[Tooltip("Above the menu, not in it. Shown only at a table that deals items; greyed while nothing is held.")]
 		[SerializeField] private UIButton _itemsButton;
 
 		[Header("Overlays")]
@@ -63,9 +87,15 @@ namespace Game.Runtime.UI.Poker
 		// bet can reach this client after the turn that follows it.
 		private readonly List<PokerPlayerData> _watched = new();
 
+		private Sprite _foldIconSprite;
+		private Tween _foldLockAlert;
+		private bool _wasFoldLocked;
+
 		private void Awake()
 		{
 			if (_panels) _panels.HideAll();
+			if (_itemPanels) _itemPanels.HideAll();
+			if (_foldIcon) _foldIconSprite = _foldIcon.sprite;
 		}
 
 		protected override void OnBind()
@@ -121,6 +151,8 @@ namespace Game.Runtime.UI.Poker
 
 			CloseAll();
 
+			_foldLockAlert?.Kill(true);
+			_wasFoldLocked = false;
 			_itemModule = null;
 		}
 
@@ -154,13 +186,13 @@ namespace Game.Runtime.UI.Poker
 			// with a bet picker or an aim left over from the turn; an item picker the player opened stays.
 			if (!IsActing)
 			{
-				if (_panels && !_panels.IsShowing(_itemPickerPanel)) CloseAll();
+				CloseTurn();
 				RefreshMenuButtons();
 				return;
 			}
 
 			// Whichever picker the player is on stays up; otherwise the menu.
-			if (_panels && (_panels.IsShowing(_pickerPanel) || _panels.IsShowing(_itemPickerPanel) || _panels.IsShowing(_targetingPanel))) return;
+			if (_panels && (_panels.IsShowing(_pickerPanel) || _panels.IsShowing(_targetingPanel))) return;
 
 			if (_panels && _panels.IsShowing(_menuPanel)) RefreshMenuButtons();
 			else ShowMenu();
@@ -172,12 +204,13 @@ namespace Game.Runtime.UI.Poker
 		// Held items can be read at any moment, so a player can study them before their turn comes.
 		private bool CanReadItems => _itemModule && _itemPicker && LocalPlayer && LocalPlayer.ItemInventory && LocalPlayer.ItemInventory.Items.Count > 0;
 
+		private bool IsItemPickerOpen => _itemPanels && _itemPanels.IsShowing(_itemPickerPanel);
+
 		private void ShowMenu()
 		{
 			if (_picker) _picker.Close();
-			if (_itemPicker) _itemPicker.Close();
 
-			// Off the turn there is no menu to go back to, so stepping back from the item picker puts it all away.
+			// Off the turn there is no menu to go back to, so stepping back puts it all away.
 			if (_panels)
 			{
 				if (IsActing) _panels.Show(_menuPanel);
@@ -194,9 +227,16 @@ namespace Game.Runtime.UI.Poker
 			var acting = IsActing && IsAlive;
 
 			if (_betButton) _betButton.gameObject.SetActive(acting);
-			if (_foldButton) _foldButton.gameObject.SetActive(acting && _stage.CanFold(LocalData));
+			// A street without folding hides the button; an item forbidding it leaves it up, locked, so the lock reads.
+			var foldShown = acting && _stage.AllowsFold;
+			var foldLocked = foldShown && !_stage.CanFold(LocalData);
+			if (_foldButton) _foldButton.gameObject.SetActive(foldShown);
+			if (_foldCrossline) _foldCrossline.SetActive(foldLocked);
+			if (_foldIcon && _foldLockedIcon) _foldIcon.sprite = foldLocked ? _foldLockedIcon : _foldIconSprite;
+			if (foldLocked && !_wasFoldLocked) PlayFoldLockAlert();
+			_wasFoldLocked = foldLocked;
 			if (_allInButton) _allInButton.gameObject.SetActive(acting && _stage.AllowAllIn);
-			if (_betLabel && acting) _betLabel.text = _stage.IsCall(LocalData) ? _callText : _betText;
+			if (_betLabel && acting) _betLabel.text = Localizer.Get(_stage.IsCall(LocalData) ? LocalizationKeys.Poker.Action.Call : LocalizationKeys.Poker.Action.Bet);
 
 			if (!_itemsButton) return;
 
@@ -204,6 +244,20 @@ namespace Game.Runtime.UI.Poker
 			var hasItems = _itemModule && LocalPlayer.ItemInventory && _itemPicker && Data.Phase.Value != PokerPhase.Waiting && IsAlive;
 			_itemsButton.gameObject.SetActive(hasItems);
 			if (hasItems) _itemsButton.IsInteractable = AnyItemHeld();
+		}
+
+		// The root turns and scales; no layout places either, and the button's own visuals move its Content.
+		private void PlayFoldLockAlert()
+		{
+			if (!_foldButton || _foldLockAlertDuration <= 0f) return;
+
+			var button = _foldButton.transform;
+			_foldLockAlert?.Kill(true);
+			_foldLockAlert = DOTween.Sequence()
+				.Join(button.DOPunchScale(Vector3.one * _foldLockPunch, _foldLockAlertDuration, 4, 0.5f))
+				.Join(button.DOShakeRotation(_foldLockAlertDuration, new Vector3(0f, 0f, _foldLockShakeAngle), 20, 0f))
+				.SetUpdate(true)
+				.SetLink(_foldButton.gameObject);
 		}
 
 		private void WatchSeatedPlayers()
@@ -244,6 +298,8 @@ namespace Game.Runtime.UI.Poker
 		{
 			if (_stage == null || !IsLocalTurn || IsHandHelperOpen) return;
 
+			CloseItemPicker();
+
 			if (!_stage.PicksKind)
 			{
 				GameMode.SubmitActionRPC(PokerActionType.Bet, 0);
@@ -273,21 +329,25 @@ namespace Game.Runtime.UI.Poker
 			if (!_itemModule || !_itemPicker || IsHandHelperOpen || !IsAlive) return;
 
 			// The button toggles: pressed again it steps back exactly as Escape does.
-			if (_panels && _panels.IsShowing(_itemPickerPanel))
+			if (IsItemPickerOpen)
 			{
-				_itemPicker.Close();
-				ShowMenu();
+				CloseItemPicker();
 				return;
 			}
 
-			if (_panels) _panels.Show(_itemPickerPanel);
-			_itemPicker.Open(GameMode, LocalPlayer, _itemModule, ShowMenu, HandleItemChosen);
+			// The bet picker answers the same turn, so it steps back to the menu while the items are open.
+			if (_panels && _panels.IsShowing(_pickerPanel)) ShowMenu();
+
+			if (_itemPanels) _itemPanels.Show(_itemPickerPanel);
+			_itemPicker.Open(GameMode, LocalPlayer, _itemModule, CloseItemPicker, HandleItemChosen);
 		}
 
 		// An item that points at nothing is sent at once; one that does is aimed first, with the menu put away
 		// so the pointer is free to reach the table.
 		private void HandleItemChosen(PokerItem item)
 		{
+			if (_itemPanels) _itemPanels.HideAll();
+
 			var targeting = LocalPlayer ? LocalPlayer.ItemTargeting : null;
 			if (!targeting)
 			{
@@ -343,16 +403,28 @@ namespace Game.Runtime.UI.Poker
 			if (targeting) targeting.OnTargetingChanged -= HandleTargetingChanged;
 		}
 
-		private void CloseAll()
+		private void CloseItemPicker()
+		{
+			if (_itemPicker) _itemPicker.Close();
+			if (_itemPanels) _itemPanels.HideAll();
+		}
+
+		// Everything that answers the turn: the menu, the bet picker and an item being aimed.
+		private void CloseTurn()
 		{
 			if (_picker) _picker.Close();
-			if (_itemPicker) _itemPicker.Close();
 
 			var targeting = LocalPlayer ? LocalPlayer.ItemTargeting : null;
 			EndTargeting();
 			if (targeting) targeting.Cancel();
 
 			if (_panels) _panels.HideAll();
+		}
+
+		private void CloseAll()
+		{
+			CloseItemPicker();
+			CloseTurn();
 		}
 	}
 }

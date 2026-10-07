@@ -1,5 +1,6 @@
 using System;
 using DG.Tweening;
+using Game.Runtime.GameMode.Poker;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -34,12 +35,16 @@ namespace Game.Runtime.UI.Poker
 		protected override void OnBind()
 		{
 			Data.OnShowdownChanged += Refresh;
+			Data.Phase.OnValueChanged += HandlePhaseChanged;
+			LocalData.OnHallucinationChanged += HandleHallucinationChanged;
 
 			Refresh();
 		}
 
 		protected override void OnUnbind()
 		{
+			LocalData.OnHallucinationChanged -= HandleHallucinationChanged;
+			Data.Phase.OnValueChanged -= HandlePhaseChanged;
 			Data.OnShowdownChanged -= Refresh;
 
 			SetState(UIPokerHudState.Playing, true);
@@ -47,7 +52,20 @@ namespace Game.Runtime.UI.Poker
 
 		private void OnDestroy() => _fade?.Kill();
 
-		private void Refresh() => SetState(Data.Showdown.Count > 0 ? UIPokerHudState.Ranking : UIPokerHudState.Playing, false);
+		private void HandlePhaseChanged(PokerPhase previous, PokerPhase current) => Refresh();
+		private void HandleHallucinationChanged(int previous, int current) => Refresh();
+
+		private void Refresh()
+		{
+			var state = Data.Showdown.Count > 0 ? UIPokerHudState.Ranking
+				: IsOut ? UIPokerHudState.Out
+				: UIPokerHudState.Playing;
+
+			SetState(state, false);
+		}
+
+		// Gone under keeps the HUD down until the waiting room between matches, where the host still needs start.
+		private bool IsOut => !LocalData.IsAlive && !(Data.Phase.Value == PokerPhase.Waiting && !GameMode.CanDealAnotherHand);
 
 		private void SetState(UIPokerHudState state, bool instant)
 		{

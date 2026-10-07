@@ -12,16 +12,14 @@ namespace Game.Runtime.Player
 	[CreateAssetMenu(fileName = "PlayerColorDatabase", menuName = "Game/Player/Color Database")]
 	public class PlayerColorDatabase : ScriptableObject
 	{
-		[Tooltip("Handed out in order, lowest free index first. Order is meaningful: the first player at a table always wears the first colour.")]
+		[Tooltip("Handed out in order, lowest free index first. Order is meaningful: the first player at a table always wears the first colour. The four suit icons' colours: heart red, club teal, spade purple, diamond gold.")]
 		[SerializeField]
 		private List<Color> _colors = new()
 		{
-			new Color(0.85f, 0.24f, 0.24f),
-			new Color(0.27f, 0.51f, 0.88f),
-			new Color(0.36f, 0.74f, 0.36f),
-			new Color(0.93f, 0.76f, 0.25f),
-			new Color(0.65f, 0.39f, 0.82f),
-			new Color(0.95f, 0.55f, 0.20f)
+			new Color(0.831f, 0.220f, 0.220f),
+			new Color(0.157f, 0.533f, 0.455f),
+			new Color(0.298f, 0.220f, 0.580f),
+			new Color(0.706f, 0.533f, 0.173f)
 		};
 
 		public int Count => _colors.Count;

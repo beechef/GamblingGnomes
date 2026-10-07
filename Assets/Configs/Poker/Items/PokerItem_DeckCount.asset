@@ -13,11 +13,9 @@ MonoBehaviour:
   m_Name: PokerItem_DeckCount
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Items.PokerItemSuitCount
   _type: 4
-  _displayName: Suit Count
-  _description: See how many cards of each suit, and how many Jokers where the deck
-    has them, are still in the undealt deck. Only you see the count, and it stays
-    with you until the hand ends.
+  _nameKey: item.deck_count.name
+  _descriptionKey: item.deck_count.description
   _icon: {fileID: 21300000, guid: f885b8126e6679e4e877812a8dfcde74, type: 3}
   _hallucinationCost: 0
-  _noticeVerb: COUNTED THE DECK
-  _privateNoticeVerb: 
+  _noticeKey: item.deck_count.notice
+  _privateNoticeKey: 

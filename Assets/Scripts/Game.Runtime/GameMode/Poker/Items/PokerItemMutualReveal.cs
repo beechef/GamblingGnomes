@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using Game.Runtime.GameMode.Poker.Player;
+using Localization;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -30,24 +31,24 @@ namespace Game.Runtime.GameMode.Poker.Items
 
 		public override string GetTargetPrompt(PokerItemTargetKind kind) => kind switch
 		{
-			PokerItemTargetKind.OwnCard => "POINT AT THE CARD YOU WILL SHOW",
-			PokerItemTargetKind.Player => "POINT AT WHO SHOWS ONE WITH YOU",
+			PokerItemTargetKind.OwnCard => Localizer.Get(LocalizationKeys.Item.MutualReveal.PromptOwn),
+			PokerItemTargetKind.Player => Localizer.Get(LocalizationKeys.Item.MutualReveal.PromptPlayer),
 			_ => base.GetTargetPrompt(kind)
 		};
 
-		public override string GetResponsePrompt() => "WANTS YOU TO SHOW A CARD: POINT AT ONE";
+		public override string GetResponsePrompt() => Localizer.Get(LocalizationKeys.Item.MutualReveal.Response);
 
 		protected override PokerItemAvailability OnGetAvailability(in PokerItemContext context)
 		{
-			if (!context.User || !context.User.Data.IsInHand) return PokerItemAvailability.Dimmed("You are not in this hand.");
-			if (!HasHiddenCard(context.User)) return PokerItemAvailability.Dimmed("Your cards are already face up.");
+			if (!context.User || !context.User.Data.IsInHand) return PokerItemAvailability.Dimmed(Localizer.Get(LocalizationKeys.Item.Reason.NotInHand));
+			if (!HasHiddenCard(context.User)) return PokerItemAvailability.Dimmed(Localizer.Get(LocalizationKeys.Item.Reason.CardsFaceUp));
 
 			foreach (var player in context.GameMode.SeatedPlayers)
 			{
 				if (AcceptsPlayer(context, player)) return PokerItemAvailability.Usable;
 			}
 
-			return PokerItemAvailability.Dimmed("Nobody else has a card left to show.");
+			return PokerItemAvailability.Dimmed(Localizer.Get(LocalizationKeys.Item.Reason.NobodyToShow));
 		}
 
 		public override bool AcceptsOwnCard(in PokerItemContext context, int slot) => IsHidden(context.User, slot);

@@ -103,6 +103,9 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		// What a bet here puts up right now: the street's own size, as the table's modules have changed it.
 		public int StakeSize => GameMode ? GameMode.ModifyStakeSize(this, Mathf.Max(1, _stakeSize)) : Mathf.Max(1, _stakeSize);
 
+		// The street's own rule alone, before any module narrows it: whether folding is part of this street at all.
+		public bool AllowsFold => _allowFold;
+
 		// The street's own rule, narrowed by whatever the modules forbid. The bar and the server both ask here.
 		public bool CanFold(PokerPlayerData player) =>
 			_allowFold && GameMode && GameMode.IsActionAllowed(player, PokerActionType.Fold);

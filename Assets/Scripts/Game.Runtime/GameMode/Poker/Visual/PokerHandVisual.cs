@@ -63,7 +63,13 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 		private readonly List<PokerCardVisual> _cards = new();
 
+		// The holder's own record of who peeked at which of their cards; only the owner receives it.
+		private PokerItemKnowledge _knowledge;
+
 		public IReadOnlyList<PokerCardVisual> Cards => _cards;
+
+		// Where picked-up cards are held: the fan in the hand (or the row on the head).
+		public Transform HandAnchor => _hand ? _hand.Anchor : null;
 
 		// Cards are torn down and dealt again every round, so anything drawing on them has to be told
 		// rather than resolving once. Static because the things that care are about every hand at the
@@ -97,6 +103,10 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			_data.OnHoleCardsChanged += HandleHoleCardsChanged;
 			_data.OnHoleCardPresentationChanged += HandlePresentationChanged;
 
+			var player = GetComponentInParent<PokerPlayer>();
+			_knowledge = player ? player.ItemKnowledge : null;
+			if (_knowledge) _knowledge.OnKnowledgeChanged += MarkExposed;
+
 			// Late join: whatever is already in this hand, shown as it stands.
 			RebuildAll();
 		}
@@ -104,6 +114,9 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		public override void OnNetworkDespawn()
 		{
 			if (!_data) return;
+
+			if (_knowledge) _knowledge.OnKnowledgeChanged -= MarkExposed;
+			_knowledge = null;
 
 			_data.OnHoleCardsChanged -= HandleHoleCardsChanged;
 			_data.OnHoleCardPresentationChanged -= HandlePresentationChanged;
@@ -151,6 +164,8 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		private void HandlePresentationChanged()
 		{
 			if (!_data) return;
+
+			MarkExposed();
 
 			var faceUp = CurrentFaceUpMask();
 			var inHand = CurrentInHandMask();
@@ -319,6 +334,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 			_shownFaceUpMask = CurrentFaceUpMask();
 			_shownInHandMask = CurrentInHandMask();
+			MarkExposed();
 
 			for (var i = 0; i < _cards.Count && i < 31; i++)
 			{
@@ -440,8 +456,33 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 			_shownFaceUpMask = CurrentFaceUpMask();
 			_shownInHandMask = CurrentInHandMask();
+			visual.SetExposed(IsExposed(index));
 
 			HandOver(index, animate);
+		}
+
+		// The holder sees which of their own cards somebody else has seen, shown to the table or peeked at in
+		// private: the seen mark on the card.
+		private void MarkExposed()
+		{
+			for (var i = 0; i < _cards.Count; i++)
+			{
+				if (_cards[i]) _cards[i].SetExposed(IsExposed(i));
+			}
+		}
+
+		private bool IsExposed(int index) => _data && _data.IsOwner && (_data.IsHoleCardShown(index) || IsPeeked(index));
+
+		private bool IsPeeked(int index)
+		{
+			if (!_knowledge) return false;
+
+			foreach (var exposed in _knowledge.ExposedCards)
+			{
+				if (exposed.Slot == index) return true;
+			}
+
+			return false;
 		}
 
 		private void RemoveCard(int index)

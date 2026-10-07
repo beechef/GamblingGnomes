@@ -1,3 +1,4 @@
+using Localization;
 using TMPro;
 using UnityEngine;
 
@@ -9,7 +10,7 @@ namespace Game.Runtime.UI.Config
 
 		public void SetLabel(string label)
 		{
-			if (_label) _label.text = label;
+			if (_label) _label.text = Localizer.Get(label);
 		}
 	}
 }

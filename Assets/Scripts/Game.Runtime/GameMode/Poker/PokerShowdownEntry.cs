@@ -14,19 +14,19 @@ namespace Game.Runtime.GameMode.Poker
 		// 1-based, and shared by players who tied — two firsts are followed by a third, not a second.
 		public int Rank;
 
-		public FixedString32Bytes HandName;
+		public FixedString32Bytes HandKey;
 
 		public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
 		{
 			serializer.SerializeValue(ref ClientId);
 			serializer.SerializeValue(ref Rank);
-			serializer.SerializeValue(ref HandName);
+			serializer.SerializeValue(ref HandKey);
 		}
 
 		public bool Equals(PokerShowdownEntry other) =>
-			ClientId == other.ClientId && Rank == other.Rank && HandName.Equals(other.HandName);
+			ClientId == other.ClientId && Rank == other.Rank && HandKey.Equals(other.HandKey);
 
 		public override bool Equals(object obj) => obj is PokerShowdownEntry other && Equals(other);
-		public override int GetHashCode() => HashCode.Combine(ClientId, Rank, HandName);
+		public override int GetHashCode() => HashCode.Combine(ClientId, Rank, HandKey);
 	}
 }

@@ -36,6 +36,16 @@ namespace Game.Runtime.UI.Poker
 		[MinValue(0f)]
 		[SerializeField] private float _fadeDuration = 0.2f;
 
+		[Header("Appear")]
+		[Tooltip("Scale the notice pops in from, up to its authored scale, as it fades in.")]
+		[Range(0f, 1f)]
+		[SerializeField] private float _popFromScale = 0.6f;
+
+		[Min(0f)]
+		[SerializeField] private float _popDuration = 0.35f;
+
+		[SerializeField] private Ease _popEase = Ease.OutBack;
+
 		private void Reset()
 		{
 			_group = GetComponent<CanvasGroup>();
@@ -104,10 +114,14 @@ namespace Game.Runtime.UI.Poker
 		{
 			var hold = Mathf.Max(0f, lifetime - _fadeDuration * 2f);
 
-			// Unscaled and linked, like every HUD tween: the table can be paused under it.
+			// Unscaled and linked, like every HUD tween: the table can be paused under it. The pop scales the
+			// notice itself, which its layout group sizes but never scales.
+			var rest = transform.localScale;
+			transform.localScale = rest * _popFromScale;
 			_group.alpha = 0f;
 			DOTween.Sequence()
 				.Append(DOTween.To(() => _group.alpha, alpha => _group.alpha = alpha, 1f, _fadeDuration))
+				.Join(transform.DOScale(rest, _popDuration).SetEase(_popEase))
 				.AppendInterval(hold)
 				.Append(DOTween.To(() => _group.alpha, alpha => _group.alpha = alpha, 0f, _fadeDuration))
 				.AppendCallback(() => Destroy(gameObject))

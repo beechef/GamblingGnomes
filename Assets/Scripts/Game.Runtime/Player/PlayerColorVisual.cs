@@ -28,6 +28,9 @@ namespace Game.Runtime.Player
 
 		private MaterialPropertyBlock _block;
 
+		// The colour this player wears, as every client resolves it from the replicated index. White until handed one.
+		public Color Color => _database && _data ? _database.Get(_data.ColorIndex.Value) : Color.white;
+
 		public override void OnNetworkSpawn()
 		{
 			if (!_data) _data = NetworkObject.GetComponent<PlayerData>();

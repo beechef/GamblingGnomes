@@ -1,3 +1,4 @@
+using Localization;
 using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker.Items
@@ -10,10 +11,10 @@ namespace Game.Runtime.GameMode.Poker.Items
 		protected override PokerItemAvailability OnGetAvailability(in PokerItemContext context)
 		{
 			var knowledge = context.User ? context.User.ItemKnowledge : null;
-			if (!knowledge) return PokerItemAvailability.Hidden("Nowhere to keep the count.");
+			if (!knowledge) return PokerItemAvailability.Hidden(Localizer.Get(LocalizationKeys.Item.Reason.NoCountPlace));
 
 			return knowledge.SuitCounts.Value.IsKnown
-				? PokerItemAvailability.Dimmed("You already counted this hand.")
+				? PokerItemAvailability.Dimmed(Localizer.Get(LocalizationKeys.Item.Reason.AlreadyCounted))
 				: PokerItemAvailability.Usable;
 		}
 

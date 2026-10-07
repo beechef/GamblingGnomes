@@ -194,16 +194,16 @@ namespace Game.Runtime.GameMode.Poker.Stages
 				var (player, rankGroup) = _contenders[i];
 				var result = _ranking[i].Result;
 
-				// The name travels in a fixed buffer, so an overlong one is cut rather than allowed to
-				// throw on the way out.
-				var handName = result.DisplayName ?? string.Empty;
-				if (handName.Length > 28) handName = handName[..28];
+				// The key travels, not the words: each screen reads it in its own language. A fixed buffer, so
+				// an overlong key is cut rather than allowed to throw on the way out.
+				var handKey = result.NameKey ?? string.Empty;
+				if (handKey.Length > 28) handKey = handKey[..28];
 
 				Data.Showdown.Add(new PokerShowdownEntry
 				{
 					ClientId = player.ClientId,
 					Rank = rankGroup,
-					HandName = handName
+					HandKey = handKey
 				});
 			}
 		}

@@ -13,12 +13,11 @@ MonoBehaviour:
   m_Name: PokerItem_PlaceOnBoard
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Items.PokerItemPlaceOnBoard
   _type: 12
-  _displayName: Lay Down
-  _description: Lay one of your cards face up on the board for everyone, and draw
-    a new card from the deck in its place.
+  _nameKey: item.place_on_board.name
+  _descriptionKey: item.place_on_board.description
   _icon: {fileID: 21300000, guid: 25fbc50cfd58de54da682e28b589cc39, type: 3}
   _hallucinationCost: 0
-  _noticeVerb: LAID A CARD ON THE BOARD
-  _privateNoticeVerb: 
+  _noticeKey: item.place_on_board.notice
+  _privateNoticeKey: 
   _ownChoice: 0
   _landHold: 0.8

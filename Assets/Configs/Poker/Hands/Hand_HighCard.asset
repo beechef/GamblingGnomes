@@ -12,9 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4dc86b84ba8691049b4e567ab52a9991, type: 3}
   m_Name: Hand_HighCard
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Hands.PokerHandHighCard
-  _displayName: High Card
+  _nameKey: hand.high_card.name
   _tier: 0
-  _description: Five unconnected cards that don't make another hand combination.
+  _isHouseHand: 0
+  _descriptionKey: hand.high_card.description
   _exampleCards:
-  - _rank: 14
+  - _isJoker: 0
+    _rank: 14
     _suit: 2

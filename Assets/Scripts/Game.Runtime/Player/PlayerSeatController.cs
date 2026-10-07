@@ -29,7 +29,9 @@ namespace Game.Runtime.Player
 
 		public bool IsSeated => CurrentSeat.Value.TryGet(out SeatInteractable _);
 
-		public SeatInteractable Seat => CurrentSeat.Value.TryGet(out SeatInteractable seat) ? seat : null;
+		private bool HasBodyAuthority => IsOwner || (IsServer && PlayerBot.IsBot(OwnerClientId));
+
+		public SeatInteractable Seat =>CurrentSeat.Value.TryGet(out SeatInteractable seat) ? seat : null;
 
 		public override void OnNetworkSpawn()
 		{
@@ -130,7 +132,7 @@ namespace Game.Runtime.Player
 			// watching would see a seated player swivel their chest while the player themselves did not.
 			_playerController.SetBodyAnchored(true);
 
-			if (!IsOwner) return;
+			if (!HasBodyAuthority) return;
 
 			// The seat only says where to sit and how to pose. How far the head may turn once there is the
 			// player controller's to decide, and nobody else's.
@@ -150,7 +152,7 @@ namespace Game.Runtime.Player
 			// on the one belonging to whoever stood up.
 			_playerController.SetBodyAnchored(false);
 
-			if (!IsOwner) return;
+			if (!HasBodyAuthority) return;
 
 			_playerController.ResetLook();
 			_playerController.SetMovementEnabled(true);

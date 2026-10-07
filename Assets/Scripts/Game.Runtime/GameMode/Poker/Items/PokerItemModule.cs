@@ -5,6 +5,7 @@ using Game.Runtime.GameMode.Config;
 using Game.Runtime.GameMode.Poker.Modules;
 using Game.Runtime.GameMode.Poker.Player;
 using Game.Runtime.GameMode.Poker.Stages;
+using Localization;
 using Sirenix.OdinInspector;
 using Unity.Netcode;
 using UnityEngine;
@@ -83,9 +84,19 @@ namespace Game.Runtime.GameMode.Poker.Items
 		// Raised on every peer when the table starts or stops waiting on somebody.
 		public event Action OnPendingResponseChanged;
 
-		// Raised on every peer as two cards set off to change places, with whether they fly face down whatever this screen
-		// saw. The swap itself is written once they land.
-		public event Action<PokerCardPlace, PokerCardPlace, bool> OnCardsExchanging;
+		// Raised on every peer as two cards set off to change places, with how they look in flight. The swap itself
+		// is written once they land.
+		public event Action<PokerCardPlace, PokerCardPlace, PokerCardExchangeFlight> OnCardsExchanging;
+
+		// An item played, on every peer: user, item, and whom it was aimed at (NoTurn for nobody). For props.
+		public event Action<ulong, PokerItemType, ulong> OnItemUsed;
+
+		// The same item done resolving, answers and flights included, on every peer: user, item. For props held
+		// through the whole of it.
+		public event Action<ulong, PokerItemType> OnItemResolved;
+
+		// A card about to be rewritten in place, and which faces it flickers through on the way.
+		public event Action<PokerCardPlace, PokerCardFlickerFaces> OnCardRewriting;
 
 		public PokerCardExchangePacing ExchangePacing => _exchangePacing;
 
@@ -152,17 +163,17 @@ namespace Game.Runtime.GameMode.Poker.Items
 		// The one answer to "may this player play this item now", for the picker and the server alike.
 		public PokerItemAvailability GetAvailability(PokerPlayer user, PokerItemType type)
 		{
-			if (!TryGetItem(type, out var item)) return PokerItemAvailability.Hidden("This table does not deal it.");
-			if (!user || !user.ItemInventory || !user.ItemInventory.Holds(type)) return PokerItemAvailability.Hidden("Not in your hand.");
-			if (!GameMode || !GameMode.IsPlayingThisMatch(user.Data)) return PokerItemAvailability.Dimmed("You are out of this match.");
-			if (!IsStreetCurrent) return PokerItemAvailability.Dimmed("Only on a betting street.");
-			if (Data.CurrentTurnClientId.Value != user.ClientId) return PokerItemAvailability.Dimmed("Only on your turn.");
-			if (HasRule(PokerItemTableRuleKind.NoItemsSelf, StreetSerial.Value, user.ClientId)) return PokerItemAvailability.Dimmed("Locked out of items this street.");
-			if (HasSpentStreetUses(user)) return PokerItemAvailability.Dimmed(UsesPerStreet == 1 ? "Already played an item this street." : $"Already played {UsesPerStreet} items this street.");
-			if (PendingResponse.Value.IsPending) return PokerItemAvailability.Dimmed("Waiting on another item.");
+			if (!TryGetItem(type, out var item)) return PokerItemAvailability.Hidden(Localizer.Get(LocalizationKeys.Item.Reason.NotDealt));
+			if (!user || !user.ItemInventory || !user.ItemInventory.Holds(type)) return PokerItemAvailability.Hidden(Localizer.Get(LocalizationKeys.Item.Reason.NotHeld));
+			if (!GameMode || !GameMode.IsPlayingThisMatch(user.Data)) return PokerItemAvailability.Dimmed(Localizer.Get(LocalizationKeys.Item.Reason.OutOfMatch));
+			if (!IsStreetCurrent) return PokerItemAvailability.Dimmed(Localizer.Get(LocalizationKeys.Item.Reason.StreetOnly));
+			if (Data.CurrentTurnClientId.Value != user.ClientId) return PokerItemAvailability.Dimmed(Localizer.Get(LocalizationKeys.Item.Reason.TurnOnly));
+			if (HasRule(PokerItemTableRuleKind.NoItemsSelf, StreetSerial.Value, user.ClientId)) return PokerItemAvailability.Dimmed(Localizer.Get(LocalizationKeys.Item.Reason.LockedOut));
+			if (HasSpentStreetUses(user)) return PokerItemAvailability.Dimmed(UsesPerStreet == 1 ? Localizer.Get(LocalizationKeys.Item.Reason.UsedOne) : Localizer.Format(LocalizationKeys.Item.Reason.UsedMany, UsesPerStreet));
+			if (PendingResponse.Value.IsPending) return PokerItemAvailability.Dimmed(Localizer.Get(LocalizationKeys.Item.Reason.WaitingOther));
 
 			if (item.NeedsResponse && IsResponseTimed && Data.HasTurnClock && Data.TurnRemaining < ResponseDuration)
-				return PokerItemAvailability.Dimmed("Not enough time left for them to answer.");
+				return PokerItemAvailability.Dimmed(Localizer.Get(LocalizationKeys.Item.Reason.NoTime));
 
 			return item.GetAvailability(ContextFor(user));
 		}
@@ -313,6 +324,14 @@ namespace Game.Runtime.GameMode.Poker.Items
 
 				case PokerBetItemConsumeStage:
 					ServerRewardColorfulSurvivor();
+					break;
+
+				case PokerStreetStage:
+					foreach (var player in PokerPlayer.All)
+					{
+						if (player && player.ItemKnowledge) player.ItemKnowledge.ServerForgetBoard();
+					}
+
 					break;
 			}
 		}
@@ -507,10 +526,20 @@ namespace Game.Runtime.GameMode.Poker.Items
 				if (item.HallucinationCost > 0) user.Data.ServerChangeHallucination(item.HallucinationCost);
 
 				var target = GameMode.FindSeatedPlayerAtSeat(request.TargetSeat);
+				var targetClientId = target ? target.ClientId : PokerGameData.NoTurn;
 				if (GameMode.Notices && !item.AnnouncesOutcome)
-					GameMode.Notices.ServerAnnounce(PokerNotice.ForItemUsed(clientId, request.Item, target ? target.ClientId : PokerGameData.NoTurn));
+					GameMode.Notices.ServerAnnounce(PokerNotice.ForItemUsed(clientId, request.Item, targetClientId));
 
-				await item.UseServerAsync(context, request, ct);
+				PlayItemUsedRPC(clientId, request.Item, targetClientId);
+
+				try
+				{
+					await item.UseServerAsync(context, request, ct);
+				}
+				finally
+				{
+					if (IsSpawned) PlayItemResolvedRPC(clientId, request.Item);
+				}
 			}
 			catch (OperationCanceledException)
 			{
@@ -580,26 +609,32 @@ namespace Game.Runtime.GameMode.Poker.Items
 				return;
 			}
 
-			var responder = GameMode.FindSeatedPlayer(sender);
-			var requester = GameMode.FindSeatedPlayer(pending.RequesterClientId);
-
-			if (!TryGetItem(pending.Item, out var item) || !responder || !item.AcceptsResponseCard(ContextFor(requester), responder, slot))
-			{
+			if (!ServerAnswerCard(GameMode.FindSeatedPlayer(sender), slot))
 				Debug.LogWarning($"[{ModuleId}] Card answer from client {sender} refused: slot {slot} is not one they may put forward.");
-				return;
-			}
+		}
+
+		// The one door an answer comes through, a client's RPC or a bot. False when the slot is not one the
+		// responder may put forward, or nobody is asking them.
+		public bool ServerAnswerCard(PokerPlayer responder, int slot)
+		{
+			var pending = PendingResponse.Value;
+			if (!IsServer || !responder || !pending.IsPending || pending.ResponderClientId != responder.ClientId) return false;
+
+			var requester = GameMode.FindSeatedPlayer(pending.RequesterClientId);
+			if (!TryGetItem(pending.Item, out var item) || !item.AcceptsResponseCard(ContextFor(requester), responder, slot)) return false;
 
 			_responseSlot = slot;
+			return true;
 		}
 
 		// Two cards change places. Every screen is told first and flies them; the lists are written once the
 		// flight is over, so no face changes in plain sight. Whatever anybody knew about either card is
 		// forgotten, because the slot now holds something else. False when either card was gone by then.
-		public async Awaitable<bool> ServerExchangeCardsAsync(PokerCardPlace first, PokerCardPlace second, CancellationToken ct, bool flyFaceDown = false)
+		public async Awaitable<bool> ServerExchangeCardsAsync(PokerCardPlace first, PokerCardPlace second, CancellationToken ct, PokerCardExchangeFlight flight = PokerCardExchangeFlight.AsSeen)
 		{
 			if (!IsServer || !TryReadCard(first, out _) || !TryReadCard(second, out _)) return false;
 
-			PlayCardExchangeRPC(first, second, flyFaceDown);
+			PlayCardExchangeRPC(first, second, flight);
 
 			if (_exchangePacing) await Awaitable.WaitForSecondsAsync(_exchangePacing.FlightDuration, ct);
 
@@ -614,17 +649,35 @@ namespace Game.Runtime.GameMode.Poker.Items
 			return true;
 		}
 
-		// One of a player's cards turned into another in place. Whatever anybody knew of the old face is forgotten.
-		public void ServerRewriteHoleCard(PokerPlayer holder, int slot, CardData card)
+		// One of a player's cards turned into another in place. Every screen is told first and flickers it;
+		// the new face is written once the flicker is over. An invalid card leaves the old face, after the
+		// same flicker, so a gamble that failed looks like one that took. Whatever anybody knew of a
+		// rewritten face is forgotten.
+		public async Awaitable ServerRewriteHoleCardAsync(PokerPlayer holder, int slot, CardData card, PokerCardFlickerFaces faces, CancellationToken ct)
 		{
-			if (!IsServer || !holder || !holder.Data || slot < 0 || slot >= holder.Data.CardCount || !card.IsValid) return;
+			if (!IsServer || !holder || !holder.Data || slot < 0 || slot >= holder.Data.CardCount) return;
+
+			PlayCardRewriteRPC(PokerCardPlace.InHand(holder.ClientId, slot), faces);
+
+			if (_exchangePacing) await Awaitable.WaitForSecondsAsync(_exchangePacing.RewriteDuration, ct);
+
+			if (!card.IsValid || !holder || !holder.Data || slot >= holder.Data.CardCount) return;
 
 			holder.Data.ServerReplaceHoleCard(slot, card);
 			ServerForget(PokerCardPlace.InHand(holder.ClientId, slot));
 		}
 
 		[Rpc(SendTo.Everyone)]
-		private void PlayCardExchangeRPC(PokerCardPlace first, PokerCardPlace second, bool flyFaceDown) => OnCardsExchanging?.Invoke(first, second, flyFaceDown);
+		private void PlayItemUsedRPC(ulong user, PokerItemType item, ulong target) => OnItemUsed?.Invoke(user, item, target);
+
+		[Rpc(SendTo.Everyone)]
+		private void PlayItemResolvedRPC(ulong user, PokerItemType item) => OnItemResolved?.Invoke(user, item);
+
+		[Rpc(SendTo.Everyone)]
+		private void PlayCardRewriteRPC(PokerCardPlace place, PokerCardFlickerFaces faces) => OnCardRewriting?.Invoke(place, faces);
+
+		[Rpc(SendTo.Everyone)]
+		private void PlayCardExchangeRPC(PokerCardPlace first, PokerCardPlace second, PokerCardExchangeFlight flight) => OnCardsExchanging?.Invoke(first, second, flight);
 
 		public bool TryReadCard(PokerCardPlace place, out CardData card)
 		{
@@ -690,11 +743,11 @@ namespace Game.Runtime.GameMode.Poker.Items
 
 		protected override void OnCollectConfigEntries(List<MatchConfigEntry> entries)
 		{
-			entries.Add(new MatchConfigInt(ModuleId, "Items", "ItemsPerHand", "Items Per Hand", 0, 5, 1,
+			entries.Add(new MatchConfigInt(ModuleId, LocalizationKeys.Config.Section.Items, "ItemsPerHand", LocalizationKeys.Config.ItemsPerHand, 0, 5, 1,
 				() => _itemsPerHand, value => _itemsPerHand = value));
-			entries.Add(new MatchConfigInt(ModuleId, "Items", "LoserBonus", "Loser Bonus", 0, 3, 1,
+			entries.Add(new MatchConfigInt(ModuleId, LocalizationKeys.Config.Section.Items, "LoserBonus", LocalizationKeys.Config.LoserBonus, 0, 3, 1,
 				() => _loserBonus, value => _loserBonus = value));
-			entries.Add(new MatchConfigInt(ModuleId, "Items", "Capacity", "Item Capacity", 1, 10, 1,
+			entries.Add(new MatchConfigInt(ModuleId, LocalizationKeys.Config.Section.Items, "Capacity", LocalizationKeys.Config.ItemCapacity, 1, 10, 1,
 				() => _capacity, value => _capacity = value));
 		}
 

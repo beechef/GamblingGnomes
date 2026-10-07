@@ -12,17 +12,23 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 22d96bd45a7f1844e8108274ef78a09b, type: 3}
   m_Name: Hand_Straight
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Hands.PokerHandStraight
-  _displayName: Straight
+  _nameKey: hand.straight.name
   _tier: 4
-  _description: Five cards in consecutive rank.
+  _isHouseHand: 0
+  _descriptionKey: hand.straight.description
   _exampleCards:
-  - _rank: 5
+  - _isJoker: 0
+    _rank: 5
     _suit: 0
-  - _rank: 6
+  - _isJoker: 0
+    _rank: 6
     _suit: 2
-  - _rank: 7
+  - _isJoker: 0
+    _rank: 7
     _suit: 3
-  - _rank: 8
+  - _isJoker: 0
+    _rank: 8
     _suit: 1
-  - _rank: 9
+  - _isJoker: 0
+    _rank: 9
     _suit: 0

@@ -553,7 +553,7 @@ namespace Game.Runtime.GameMode.Poker
 
 		private void CollectModeConfigEntries(List<MatchConfigEntry> entries)
 		{
-			entries.Add(new MatchConfigInt("Match", "Match", "StartingHealth", "Starting Health", 1, 8, 1,
+			entries.Add(new MatchConfigInt("Match", LocalizationKeys.Config.Section.Match, "StartingHealth", LocalizationKeys.Config.StartingHealth, 1, 8, 1,
 				() => _startingHealth,
 				value =>
 				{
@@ -798,12 +798,33 @@ namespace Game.Runtime.GameMode.Poker
 		// theirs, by the same path as a player leaving the table.
 		public void ServerFoldOutOfHand(PokerPlayer player)
 		{
-			if (!IsServer || !player || !player.Data || !player.Data.IsInHand) return;
+			if (!IsServer || !player || !player.Data) return;
 
-			player.ServerFold();
+			if (player.Data.IsInHand)
+			{
+				player.ServerFold();
 
-			if (_data.CurrentTurnClientId.Value == player.ClientId && CurrentStage)
-				CurrentStage.HandlePlayerLeft(player.ClientId, player.Data.SeatIndex.Value);
+				if (_data.CurrentTurnClientId.Value == player.ClientId && CurrentStage)
+					CurrentStage.HandlePlayerLeft(player.ClientId, player.Data.SeatIndex.Value);
+			}
+
+			ServerEndMatchIfDecided();
+		}
+
+		// A death or a departure mid-hand that leaves one player in the match ends it there and then, rather than playing the
+		// hand out to a showdown nobody can lose. The match-over stage resets pot, cards and stats.
+		private void ServerEndMatchIfDecided()
+		{
+			var phase = _data.Phase.Value;
+			if (MatchPlayerCount > 1 || phase == PokerPhase.Waiting || phase == PokerPhase.MatchOver) return;
+
+			foreach (var stage in _stageMachine.Stages)
+			{
+				if (stage is not PokerMatchOverStage) continue;
+
+				if (CurrentStage != stage) GoToStage(stage);
+				return;
+			}
 		}
 
 		// Who opens this hand: every street starts from them and a tie at the showdown is broken toward them.
@@ -994,6 +1015,8 @@ namespace Game.Runtime.GameMode.Poker
 			{
 				if (module) module.OnPlayerLeftSeat(clientId);
 			}
+
+			ServerEndMatchIfDecided();
 		}
 
 		private void HandleClientDisconnected(ulong clientId)
@@ -1018,6 +1041,8 @@ namespace Game.Runtime.GameMode.Poker
 			// Clearing the turn is not enough on its own — a street waiting on a player who has gone
 			// waits forever, and the table freezes for everyone still in it.
 			if (CurrentStage) CurrentStage.HandlePlayerLeft(clientId, seatIndex);
+
+			ServerEndMatchIfDecided();
 		}
 
 		public void BeginTurn(ulong clientId, float duration)
@@ -1107,22 +1132,30 @@ namespace Game.Runtime.GameMode.Poker
 		[Rpc(SendTo.Server)]
 		public void SubmitActionRPC(PokerActionType action, int amount, RpcParams rpcParams = default)
 		{
-			var senderClientId = rpcParams.Receive.SenderClientId;
+			ServerSubmitAction(rpcParams.Receive.SenderClientId, action, amount);
+		}
+
+		// The one door every answer comes through, whether a client sent it or a bot gave it on the server.
+		public bool ServerSubmitAction(ulong clientId, PokerActionType action, int amount)
+		{
+			if (!IsServer) return false;
 
 			foreach (var module in _modules)
 			{
-				if (module && !module.CanPlayerAct(senderClientId, action, amount)) return;
+				if (module && !module.CanPlayerAct(clientId, action, amount)) return false;
 			}
 
-			if (!CurrentStage || !CurrentStage.HandleAction(senderClientId, action, amount)) return;
+			if (!CurrentStage || !CurrentStage.HandleAction(clientId, action, amount)) return false;
 
 			// A stage whose answers are sealed tells nobody who answered what.
-			if (CurrentStage.AnnouncesActions && _notices) _notices.ServerAnnounce(PokerNotice.ForAction(senderClientId, action));
+			if (CurrentStage.AnnouncesActions && _notices) _notices.ServerAnnounce(PokerNotice.ForAction(clientId, action));
 
 			foreach (var module in _modules)
 			{
-				if (module) module.OnPlayerActed(senderClientId, action, amount);
+				if (module) module.OnPlayerActed(clientId, action, amount);
 			}
+
+			return true;
 		}
 
 		[Rpc(SendTo.Server)]

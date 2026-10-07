@@ -155,7 +155,7 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 		public float BlinkReopenTime => _pacing ? _pacing.ReopenTime : 0f;
 
 		// How long a beat about this player waits for the blink a change between these rates sets off, which
-		// is none at all when no rung is crossed.
+		// is none at all when no rung is crossed and nobody goes under.
 		public float BlinkWait(int previousRate, int currentRate) =>
 			CrossesRung(previousRate, currentRate) ? TransitionDuration : 0f;
 
@@ -169,6 +169,8 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 		// the alternative is a second copy of the thresholds somewhere that only ever drifts.
 		public bool CrossesRung(int previousRate, int currentRate)
 		{
+			// Going under is a blink of its own, even past the last rung: the eye closes on the way out.
+			if (CrossesDeath(previousRate, currentRate)) return true;
 			if (!_tiers) return false;
 
 			var rungs = _tiers.Rungs;
@@ -182,6 +184,9 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 
 			return false;
 		}
+
+		private static bool CrossesDeath(int previousRate, int currentRate) =>
+			previousRate >= PokerPlayerData.MaxHallucination != currentRate >= PokerPlayerData.MaxHallucination;
 
 		public event Action OnTransitionStarted;
 
@@ -212,16 +217,16 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 #endif
 		}
 
-		private void HandleChanged(int previous, int current) => Refresh();
+		private void HandleChanged(int previous, int current) => Refresh(CrossesDeath(previous, current));
 
 		// The blink is there to cover the swap, so the rungs are not allowed to land while the eye is open.
 		// A change arriving mid-blink is folded into the one already running rather than queued behind it:
 		// ApplyRungs reads the rate at the moment it runs, so the later change is what lands anyway, and a
 		// queue would spend a second blink saying nothing new.
-		private void Refresh()
+		private void Refresh(bool blinkAnyway = false)
 		{
 			if (!_tiers || !_data) return;
-			if (!AnyRungWouldChange()) return;
+			if (!blinkAnyway && !AnyRungWouldChange()) return;
 
 			if (TransitionDuration <= 0f)
 			{

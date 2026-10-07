@@ -295,7 +295,10 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 4871544217483404129, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 169359819192237372}
   m_SourcePrefab: {fileID: 100100000, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
 --- !u!114 &3290489901279826260 stripped
 MonoBehaviour:
@@ -313,6 +316,24 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 5525976618167798955, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
   m_PrefabInstance: {fileID: 2984480367829372616}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &7705714705690275241 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4871544217483404129, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
+  m_PrefabInstance: {fileID: 2984480367829372616}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &169359819192237372
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7705714705690275241}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e5e0742a948570940b3a78c357d3442c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Localization::Localization.LocalizedText
+  _key: poker.button.all_in
 --- !u!1001 &6863459013980800302
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -424,13 +445,34 @@ PrefabInstance:
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 4871544217483404129, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1980188094018560213}
   m_SourcePrefab: {fileID: 100100000, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
 --- !u!224 &1409576033786972549 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 5525976618167798955, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
   m_PrefabInstance: {fileID: 6863459013980800302}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &2064007884822521423 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4871544217483404129, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
+  m_PrefabInstance: {fileID: 6863459013980800302}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1980188094018560213
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2064007884822521423}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e5e0742a948570940b3a78c357d3442c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Localization::Localization.LocalizedText
+  _key: poker.button.fold
 --- !u!114 &6628961854374075058 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 342601452257255324, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
