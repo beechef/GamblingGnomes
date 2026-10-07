@@ -1,0 +1,26 @@
+---
+paths:
+  - "Assets/Shaders/**"
+  - "Assets/Art/VFX/**"
+  - "Assets/Settings/**"
+  - "**/*.shadergraph"
+  - "**/*.shader"
+  - "**/*.vfx"
+  - "**/*.mat"
+---
+
+# Shaders and screen effects
+
+### Shaders and screen effects
+- **Build shaders in Shader Graph; full-screen effects are Fullscreen Shader Graphs on a `Full Screen Pass Renderer Feature`.** HLSL only for custom blend/stencil.
+- **A custom uGUI shader keeps the stencil block and `UNITY_UI_CLIP_RECT`** (from `UI-Default`).
+- **A UI overlay blends via blend state (`UI/Blend`), never by reading the backdrop** (no grab pass). Separable modes only (Normal, Multiply, Screen, Additive, Subtract, Darken, Lighten), picked by `UIBlendShaderGUI`; a stroke is the last sibling of `Content`, `raycastTarget` off. Alpha written separately (`Add`, `One OneMinusSrcAlpha`); fades lerp toward `_BlendNeutral`.
+- **With exactly one image behind an overlay, sample both in `UI/Blend Overlay`** (sprite `_MainTex`, stroke `_OverlayTex`), enabling Overlay/Soft Light/Dodge/Burn masked by the base's alpha.
+- **Match Photoshop by blending in gamma** (`LinearToGammaSpace`/`GammaToLinearSpace`; project is Linear) and verify by reading pixels back. Only Darken/Lighten match without conversion.
+- **Textures for shaders come from the team's VFX sources first**: [Textures for VFX Database](https://simonschreibt.notion.site/Textures-for-VFX-Database-2c72eccccfa84a0eae927d778ad746cc), [Texture Packs](https://simonschreibt.notion.site/Texture-Packs-418b5afc18404414b45ecb1af0e5fee8). Name file, source and licence to the person before downloading; keep the licence beside it under `Assets/Art/VFX/Texture/`, not `Assets/Textures/`.
+- **A full-screen effect's renderer feature is off until seen.** `PokerHallucinationFullscreenEffect` enables it, clones the material, fades one float from zero, and zero must be the untouched screen (`Hallucination_Pixelate` lerps columns from `_ScreenParams.x` to `_Cells`, samples cell centres). Adding a feature from script needs `AddObjectToAsset` plus `m_RendererFeatures` and `m_RendererFeatureMap`. Full-screen passes share the `Hallucination_PostProcess` group (Wave, Pixelate, VideoDistort 1–4) so one runs; Volume effects each touch their own override (Bloom, LensDistortion, ChromaticAberration, ColorCurves, MotionBlur) and stack. A look URP grading makes is a Volume effect: `Hallucination_FilmNegative` = Color Curves (`Volume_FilmNegative`, LDR), master 1 → 0, RGB curves lifting into orange mask. A pass needing more than strength binds in `PokerHallucinationFullscreenBehaviour.OnPassStarting`, frees in `OnPassDisposed`: `PokerHallucinationVideoBehaviour` loops a `VideoClip` into its own sRGB `RenderTexture`; `Hallucination_VideoTint` blends it in gamma; `Hallucination_VideoDistort` samples at `saturate(y + red × _Strength × _MeltAmount)`. Clips in `Assets/Art/VFX/Video/`.
+- **A screen-space distortion tapers to zero at the frame edge.** `Hallucination_Wave`: `sin(PI * x)`, `lerp(uv, 0.5, _EdgeInset)`, `Clamp` only as a net.
+- **Hand-written Shader Graph JSON**: no blank line inside an object; generate from C#, not a shell heredoc. The slot type is part of the node (`MultiplyNode` → `DynamicValueMaterialSlot`, `AddNode` → `DynamicVectorMaterialSlot`); a wrong type silently uses defaults. Slot ids: Multiply `A=0 B=1 Out=2`, Sine `In=0 Out=1`, Split `In=0 R=1 G=2 B=3 A=4`, Vector2 `Out=0 X=1 Y=2`, URP Sample Buffer `UV=0 Output=2`. Mesh targets need `VertexDescription.Position`/`Normal`/`Tangent` blocks (URP's `MotionVectors` pass). Verify: `ShaderUtil.ShaderHasError`, resolve every edge, `pass.CompileVariant` on every pass, and read `ShaderUtil.GetShaderData(...).GetPass(0).SourceCode` for operands. `Card_Face`, `Card_Wave`, `Card_Rainbow`
+- **A VFX Graph is laid out like `VFX_HallucinationGhost`**: contexts in one column at x 0, exposed parameters at x ≈ −210 beside their slot. A variant is a copy with nodes removed and rows moved up (`VFX_HallucinationAfterImage`). A second system (a GPU event's) is its own column to the right (`VFX_Rain`: drops, killed by a ground plane, `Trigger Event: On Collide` → splash).
+- **Particles that must stop on scene geometry collide with the depth buffer, backed by a ground plane**: `Collide with Depth Buffer` (Main camera, Custom surface thickness 0.6 — Infinite kills everything hidden behind a surface), needing Depth Texture on the URP asset (`PC_RPAsset` on, `Mobile_RPAsset` off). It only knows what the main camera sees from the front: off-screen or under an overhang it falls through, so keep the plane. `VFX_Rain`
+- **A new VFX Graph is built through the package's model API, never hand-written YAML**: a throwaway editor asmdef named `Unity.Testing.VisualEffectGraph.Editor` (one of the package's `InternalsVisibleTo` names) holding a menu-item builder — `CreateNewAsset`, `GetOrCreateGraph`, contexts/blocks via `CreateInstance` + `AddChild`/`LinkFrom`, settings via `SetSettingValue`, slot `.value` (vectors wrap in `UnityEditor.VFX.Vector`), `WriteAssetWithSubAssets` — deleted once the asset exists; rebuilding replaces the guid, so re-point holders. **VFX only simulates in Play mode**: judge a graph there (a camera with a target texture, render after a few seconds); an edit-mode `Camera.Render` shows nothing. `Prefabs/Environment/Rain`
