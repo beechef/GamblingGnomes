@@ -34,7 +34,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 0, y: -85}
+  m_AnchoredPosition: {x: 0, y: -125}
   m_SizeDelta: {x: 150, y: 150}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &8023865555459886571
@@ -64,6 +64,7 @@ GameObject:
   - component: {fileID: 2808834114439144769}
   - component: {fileID: 3123643243070875855}
   - component: {fileID: 2711130639356017132}
+  - component: {fileID: 3734496473244797588}
   m_Layer: 5
   m_Name: Label
   m_TagString: Untagged
@@ -190,6 +191,19 @@ MonoBehaviour:
   m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
+--- !u!114 &3734496473244797588
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1877757183512992420}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e5e0742a948570940b3a78c357d3442c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Localization::Localization.LocalizedText
+  _key: 
 --- !u!1 &1943743984865291481
 GameObject:
   m_ObjectHideFlags: 0
@@ -305,6 +319,8 @@ GameObject:
   - component: {fileID: 6947487102965482267}
   - component: {fileID: 4584926326501316336}
   - component: {fileID: 566988515968206774}
+  - component: {fileID: 4367760176929060309}
+  - component: {fileID: 8390098694493645588}
   m_Layer: 5
   m_Name: Button_Model
   m_TagString: Untagged
@@ -473,3 +489,32 @@ MonoBehaviour:
   _disabledScale: 1
   _duration: 0.12
   _ease: 27
+--- !u!114 &4367760176929060309
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6331741170717614518}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 079785f07d7a8464fac5ffa446dab0a4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Selection.UISelectionItem
+  _pointerAnchor: {fileID: 7666761210065894971}
+--- !u!114 &8390098694493645588
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6331741170717614518}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5d2a7c9e1f3b4a6c8e0d2f4a6b8c1e3f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Button.UIButtonPropVariantVisual
+  _button: {fileID: 6947487102965482267}
+  _flashHold: 0.15
+  _model: {fileID: 8023865555459886571}
+  _variant: 1

@@ -1,7 +1,9 @@
 using System;
 using Game.Runtime.Controller;
 using Game.Runtime.Lobby;
-using Game.Runtime.UI.MainMenu;
+using Game.Runtime.UI.Button;
+using Localization;
+using TMPro;
 using UnityEngine;
 
 namespace Game.Runtime.UI.FindLobby
@@ -10,14 +12,38 @@ namespace Game.Runtime.UI.FindLobby
 	{
 		[SerializeField] private UIFindLobbyItem _itemPrefab;
 		[SerializeField] private RectTransform _itemContainer;
-		[SerializeField] private UIMainMenu _mainMenuUI;
+		[Tooltip("The close cross: out of the whole play menu.")]
+		[SerializeField] private UIButton _closeButton;
+
+		[Tooltip("Back to the play choices.")]
+		[SerializeField] private UIButton _backButton;
+
+		[Tooltip("Searches again.")]
+		[SerializeField] private UIButton _refreshButton;
+
+		[Tooltip("Shown in place of the rows while searching, and when the search finds no room.")]
+		[SerializeField] private TMP_Text _statusLabel;
+
+		public event Action OnCloseRequested;
+		public event Action OnBackRequested;
 
 		private bool _isRefreshing;
 		private bool _joiningLobby;
 
 		private void OnEnable()
 		{
+			if (_closeButton) _closeButton.OnClick += HandleClose;
+			if (_backButton) _backButton.OnClick += HandleBack;
+			if (_refreshButton) _refreshButton.OnClick += Refresh;
+
 			Refresh();
+		}
+
+		private void OnDisable()
+		{
+			if (_refreshButton) _refreshButton.OnClick -= Refresh;
+			if (_backButton) _backButton.OnClick -= HandleBack;
+			if (_closeButton) _closeButton.OnClick -= HandleClose;
 		}
 
 		// async void because a UI callback has nowhere to hand a task back to — so it catches its own
@@ -29,6 +55,9 @@ namespace Game.Runtime.UI.FindLobby
 			_isRefreshing = true;
 
 			ClearItems();
+			ShowStatus(LocalizationKeys.Lobby.Searching);
+
+			var found = 0;
 
 			try
 			{
@@ -36,7 +65,10 @@ namespace Game.Runtime.UI.FindLobby
 				foreach (var lobby in lobbies)
 				{
 					AddItem(lobby);
+					found++;
 				}
+
+				ShowStatus(found == 0 ? LocalizationKeys.Lobby.Empty : null);
 			}
 			catch (OperationCanceledException)
 			{
@@ -44,6 +76,7 @@ namespace Game.Runtime.UI.FindLobby
 			catch (Exception exception)
 			{
 				Debug.LogException(exception);
+				ShowStatus(found == 0 ? LocalizationKeys.Lobby.Empty : null);
 			}
 			finally
 			{
@@ -51,11 +84,18 @@ namespace Game.Runtime.UI.FindLobby
 			}
 		}
 
-		public void Close()
+		// The list's empty state: what the search is doing, or that it found nothing. Null hides it.
+		private void ShowStatus(string key)
 		{
-			gameObject.SetActive(false);
-			_mainMenuUI.Show();
+			if (!_statusLabel) return;
+
+			_statusLabel.gameObject.SetActive(key != null);
+			if (key != null) _statusLabel.text = Localizer.Get(key);
 		}
+
+		private void HandleClose() => OnCloseRequested?.Invoke();
+
+		private void HandleBack() => OnBackRequested?.Invoke();
 
 		private void ClearItems()
 		{
@@ -82,8 +122,6 @@ namespace Game.Runtime.UI.FindLobby
 			try
 			{
 				await GameNetworkManager.Instance.JoinLobby(lobby, destroyCancellationToken);
-
-				gameObject.SetActive(false);
 			}
 			catch (OperationCanceledException)
 			{

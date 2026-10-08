@@ -9,6 +9,9 @@ namespace Game.Runtime.Controller
 	public struct LobbySettings
 	{
 		public int MaxPlayers;
+
+		// Left empty, the room is named after the host.
+		public string RoomName;
 		public bool IsPrivate;
 		public GameModeType SelectedGameMode;
 		public List<LobbyData> GameSearchStrings;
@@ -17,6 +20,7 @@ namespace Game.Runtime.Controller
 		public LobbySettings(int maxPlayers, bool isPrivate, GameModeType selectedGameMode, List<LobbyData> gameSearchStrings, List<LobbyData> lobbyData)
 		{
 			MaxPlayers = maxPlayers;
+			RoomName = null;
 			IsPrivate = isPrivate;
 			SelectedGameMode = selectedGameMode;
 			GameSearchStrings = gameSearchStrings;

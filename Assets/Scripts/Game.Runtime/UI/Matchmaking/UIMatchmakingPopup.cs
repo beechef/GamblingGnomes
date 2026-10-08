@@ -9,8 +9,8 @@ using UnityEngine;
 namespace Game.Runtime.UI.Matchmaking
 {
 	// What the player looks at while quick match runs: the search, then the count until the room is full,
-	// with Cancel (and Escape) to walk out. A failure stays up with its reason until closed. The root stays
-	// active and toggles _content, because a failure can arrive after the popup has stepped aside for the
+	// with Cancel to walk out (Escape presses whichever cross is up). A failure stays up with its reason until
+	// closed. The root stays active and toggles _content, because a failure can arrive after the popup has stepped aside for the
 	// loading screen. Whoever opened it hears OnClosed when the player is back to choosing.
 	public class UIMatchmakingPopup : MonoBehaviour
 	{
@@ -23,6 +23,13 @@ namespace Game.Runtime.UI.Matchmaking
 		[Required]
 		[SerializeField] private TMP_Text _status;
 
+		[Tooltip("Who is in the room so far, under the status; shown only while waiting for it to fill.")]
+		[Required]
+		[SerializeField] private TMP_Text _count;
+
+		[Tooltip("Colour of the members already in, against the target.")]
+		[SerializeField] private Color _joinedColor = new(0.788f, 0.243f, 0.251f);
+
 		[Required]
 		[SerializeField] private UIButton _cancelButton;
 
@@ -34,7 +41,20 @@ namespace Game.Runtime.UI.Matchmaking
 
 		public event Action OnClosed;
 
-		private void Awake() => _content.SetActive(false);
+		// Raised whenever the popup comes up, including a failure arriving after the menu stepped aside, so
+		// whoever holds it can bring the screen around it back.
+		public event Action OnOpened;
+
+		public bool IsOpen { get; private set; }
+
+		// The content's own fade, if it has one; the content is switched off only once it has played.
+		private UIPopInVisual _transition;
+
+		private void Awake()
+		{
+			_transition = _content.GetComponentInChildren<UIPopInVisual>(true);
+			_content.SetActive(false);
+		}
 
 		private void OnEnable()
 		{
@@ -66,8 +86,6 @@ namespace Game.Runtime.UI.Matchmaking
 		private void OnDestroy()
 		{
 			Localizer.OnLocaleChanged -= Redraw;
-			UIEscapeStack.Remove(HandleCancel);
-			UIEscapeStack.Remove(Close);
 
 			if (!_matchmaking) return;
 
@@ -122,26 +140,39 @@ namespace Game.Runtime.UI.Matchmaking
 
 		private void Show()
 		{
+			IsOpen = true;
+
+			// Brought back mid-fade: switching off first cancels the fade and lets the pop-in play again.
+			if (_content.activeSelf && _transition && _transition.IsHiding) _content.SetActive(false);
 			_content.SetActive(true);
+
+			OnOpened?.Invoke();
 			Redraw();
 		}
 
 		private void Hide()
 		{
-			UIEscapeStack.Remove(HandleCancel);
-			UIEscapeStack.Remove(Close);
-			_content.SetActive(false);
+			if (!IsOpen) return;
+			IsOpen = false;
+
+			if (_transition) _transition.Hide(SwitchOffIfStillHidden);
+			else _content.SetActive(false);
+		}
+
+		private void SwitchOffIfStillHidden()
+		{
+			if (!IsOpen) _content.SetActive(false);
 		}
 
 		private void Redraw()
 		{
-			if (!_content.activeSelf || !_matchmaking) return;
+			if (!IsOpen || !_matchmaking) return;
 
 			_cancelButton.gameObject.SetActive(!_showingFailure);
 			_closeButton.gameObject.SetActive(_showingFailure);
 
-			UIEscapeStack.Remove(_showingFailure ? HandleCancel : Close);
-			UIEscapeStack.Push(_showingFailure ? Close : HandleCancel);
+			var waiting = !_showingFailure && _matchmaking.State == MatchmakingState.Waiting;
+			_count.gameObject.SetActive(waiting);
 
 			if (_showingFailure)
 			{
@@ -150,9 +181,12 @@ namespace Game.Runtime.UI.Matchmaking
 			}
 
 			_title.text = Localizer.Get(LocalizationKeys.Matchmaking.Title);
-			_status.text = _matchmaking.State == MatchmakingState.Waiting
-				? Localizer.Format(LocalizationKeys.Matchmaking.Waiting, _matchmaking.MemberCount, _matchmaking.TargetPlayers)
-				: Localizer.Get(LocalizationKeys.Matchmaking.Searching);
+			_status.text = Localizer.Get(LocalizationKeys.Matchmaking.Searching);
+
+			if (waiting)
+			{
+				_count.text = $"<color=#{ColorUtility.ToHtmlStringRGB(_joinedColor)}>{_matchmaking.MemberCount}</color>/{_matchmaking.TargetPlayers}";
+			}
 		}
 
 		private static string FailureKey(MatchmakingFailure failure) => failure switch

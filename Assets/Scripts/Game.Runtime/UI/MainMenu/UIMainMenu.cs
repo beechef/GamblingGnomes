@@ -1,5 +1,6 @@
 using System;
 using Game.Runtime.Controller;
+using Game.Runtime.UI.Button;
 using Game.Runtime.UI.FindLobby;
 using Game.Runtime.UI.Matchmaking;
 using Game.Runtime.UI.Selection;
@@ -10,9 +11,9 @@ using UnityEngine;
 
 namespace Game.Runtime.UI.MainMenu
 {
-	// The front door. Two lists rather than two screens: Play swaps the entries under the logo for the
-	// ways into a table and back again, so the title never leaves the screen and there is nothing to
-	// fade between.
+	// The front door. One screen: the logo and root entries, and over the same backdrop the play panels — the
+	// ways into a table (Start), hosting, the room list and the quick-match wait — swapped through one panel
+	// group, so moving between them is a panel changing on paper rather than one screen replacing another.
 	public class UIMainMenu : MonoBehaviour
 	{
 		[Header("Root Menu")]
@@ -24,10 +25,24 @@ namespace Game.Runtime.UI.MainMenu
 
 		[SerializeField] private UISelectionItem _optionItem;
 
+		[Tooltip("Greyed until there is a credits screen to open.")]
+		[SerializeField] private UISelectionItem _creditItem;
+
 		[Required]
 		[SerializeField] private UISelectionItem _quitItem;
 
+		[Tooltip("What the play panels cover: the logo and the root entries.")]
+		[Required]
+		[SerializeField] private GameObject _rootMenu;
+
 		[Header("Play Menu")]
+		[Tooltip("Start, Create Room and Join Room. Quick match is the popup's own panel, shown beside the group.")]
+		[Required]
+		[SerializeField] private UIPanelStateGroup _playPanels;
+
+		[Required]
+		[SerializeField] private GameObject _startPanel;
+
 		[Required]
 		[SerializeField] private UISelectionGroup _playGroup;
 
@@ -40,22 +55,24 @@ namespace Game.Runtime.UI.MainMenu
 		[Required]
 		[SerializeField] private UISelectionItem _findItem;
 
-		[Required]
-		[SerializeField] private UISelectionItem _backItem;
+		[Tooltip("The Start panel's close cross: back to the root menu.")]
+		[SerializeField] private UIButton _playCloseButton;
 
-		[Header("Screens")]
+		[Required]
 		[SerializeField] private UIRoomSetting _roomSettingUI;
 
+		[Required]
 		[SerializeField] private UIFindLobby _findLobbyUI;
 
 		[SerializeField] private UIMatchmakingPopup _matchmakingPopup;
 
+		[Header("Screens")]
 		[Tooltip("Left empty, the Option entry greys out — an entry that does nothing should look like one.")]
 		[SerializeField] private UISettingsScreen _settingsScreen;
 
 		[Header("Quick Start")]
-		[Tooltip("On, Host goes straight in on the settings the network manager already carries. A shortcut for getting to a table while it is being built — turn it off to get the room setup screen back. Find Lobby always goes through its browser, which refreshes and filters on its own.")]
-		[SerializeField] private bool _hostWithoutSetup = true;
+		[Tooltip("On, Host goes straight in on the settings the network manager already carries. A shortcut for getting to a table while it is being built — turn it off to get the room setup panel back. Join always goes through its list, which refreshes and filters on its own.")]
+		[SerializeField] private bool _hostWithoutSetup;
 
 		// One way in at a time. Released in finally, or a throw would leave the menu refusing every later
 		// attempt with nothing on screen to explain why.
@@ -65,8 +82,14 @@ namespace Game.Runtime.UI.MainMenu
 		{
 			_rootGroup.OnSubmitted += HandleRootSubmitted;
 			_playGroup.OnSubmitted += HandlePlaySubmitted;
+			if (_playCloseButton) _playCloseButton.OnClick += ShowRootMenu;
+			_roomSettingUI.OnCloseRequested += ShowRootMenu;
+			_roomSettingUI.OnBackRequested += ShowPlayMenu;
+			_findLobbyUI.OnCloseRequested += ShowRootMenu;
+			_findLobbyUI.OnBackRequested += ShowPlayMenu;
 
 			if (_optionItem) _optionItem.Button.IsInteractable = _settingsScreen;
+			if (_creditItem) _creditItem.Button.IsInteractable = false;
 			if (_quickMatchItem) _quickMatchItem.Button.IsInteractable = _matchmakingPopup;
 
 			ShowRootMenu();
@@ -74,6 +97,11 @@ namespace Game.Runtime.UI.MainMenu
 
 		private void OnDisable()
 		{
+			_findLobbyUI.OnBackRequested -= ShowPlayMenu;
+			_findLobbyUI.OnCloseRequested -= ShowRootMenu;
+			_roomSettingUI.OnBackRequested -= ShowPlayMenu;
+			_roomSettingUI.OnCloseRequested -= ShowRootMenu;
+			if (_playCloseButton) _playCloseButton.OnClick -= ShowRootMenu;
 			_rootGroup.OnSubmitted -= HandleRootSubmitted;
 			_playGroup.OnSubmitted -= HandlePlaySubmitted;
 		}
@@ -98,12 +126,20 @@ namespace Game.Runtime.UI.MainMenu
 			{
 				GameNetworkManager.Instance.OnGameLeft += Show;
 
-				// A way into a table can start from outside the menu (a Steam invite), with any of its screens up.
+				// A way into a table can start from outside the menu (a Steam invite), with any of its panels up.
 				GameNetworkManager.Instance.OnConnectStarted += HideAll;
 
 				// A failed attempt does not always tear anything down, so OnGameLeft can never arrive — and
 				// the menu hid itself on the way in. Without this the player is left looking at nothing.
 				GameNetworkManager.Instance.OnConnectFailed += HandleConnectFailed;
+			}
+
+			// A matchmaking failure can arrive after the menu stepped aside for the loading screen; the popup
+			// sits inside the menu, so the menu comes back around it.
+			if (_matchmakingPopup)
+			{
+				_matchmakingPopup.OnOpened += HandleMatchmakingOpened;
+				_matchmakingPopup.OnClosed += ShowPlayMenu;
 			}
 		}
 
@@ -125,7 +161,11 @@ namespace Game.Runtime.UI.MainMenu
 				GameNetworkManager.Instance.OnConnectFailed -= HandleConnectFailed;
 			}
 
-			if (_matchmakingPopup) _matchmakingPopup.OnClosed -= HandleMatchmakingClosed;
+			if (_matchmakingPopup)
+			{
+				_matchmakingPopup.OnClosed -= ShowPlayMenu;
+				_matchmakingPopup.OnOpened -= HandleMatchmakingOpened;
+			}
 		}
 
 		private void HandleConnectFailed(string reason) => Show();
@@ -140,42 +180,39 @@ namespace Game.Runtime.UI.MainMenu
 			Show();
 		}
 
-		// Also closes the sub-screens: they replace the menu rather than stacking on it, so their
-		// opaque backgrounds never blend together.
+		// Back to the root entries — unless the quick-match popup is up with something to say, which keeps the
+		// screen until it is closed.
 		public void Show()
 		{
 			gameObject.SetActive(true);
-
-			if (_roomSettingUI) _roomSettingUI.gameObject.SetActive(false);
-			if (_findLobbyUI) _findLobbyUI.gameObject.SetActive(false);
 			CloseSettings();
+
+			if (_matchmakingPopup && _matchmakingPopup.IsOpen)
+			{
+				HandleMatchmakingOpened();
+				return;
+			}
 
 			ShowRootMenu();
 		}
 
-		// The popup runs the whole wait; the menu steps aside and comes back when the player is choosing again.
 		private void QuickMatch()
 		{
 			if (!_matchmakingPopup || !_matchmakingPopup.CanOpen) return;
 
-			gameObject.SetActive(false);
-			_matchmakingPopup.OnClosed -= HandleMatchmakingClosed;
-			_matchmakingPopup.OnClosed += HandleMatchmakingClosed;
 			_matchmakingPopup.Open();
 		}
 
-		private void HandleMatchmakingClosed()
+		private void HandleMatchmakingOpened()
 		{
-			_matchmakingPopup.OnClosed -= HandleMatchmakingClosed;
-			Show();
+			gameObject.SetActive(true);
+			_rootMenu.SetActive(false);
+			_playPanels.HideAll();
 		}
 
 		private void HideAll()
 		{
-			if (_roomSettingUI) _roomSettingUI.gameObject.SetActive(false);
-			if (_findLobbyUI) _findLobbyUI.gameObject.SetActive(false);
 			CloseSettings();
-
 			gameObject.SetActive(false);
 		}
 
@@ -187,21 +224,12 @@ namespace Game.Runtime.UI.MainMenu
 				return;
 			}
 
-			if (!_roomSettingUI) return;
-
-			gameObject.SetActive(false);
-			_roomSettingUI.gameObject.SetActive(true);
+			ShowPanel(_roomSettingUI.gameObject);
 		}
 
-		public void FindLobby()
-		{
-			if (!_findLobbyUI) return;
+		public void FindLobby() => ShowPanel(_findLobbyUI.gameObject);
 
-			gameObject.SetActive(false);
-			_findLobbyUI.gameObject.SetActive(true);
-		}
-
-		// Hosts on whatever the network manager is already carrying — the same settings the room screen
+		// Hosts on whatever the network manager is already carrying — the same settings the room panel
 		// would have opened with, rather than a second set of defaults written here to drift from them.
 		private async void StartHostDirectly()
 		{
@@ -250,14 +278,16 @@ namespace Game.Runtime.UI.MainMenu
 			if (item == _quickMatchItem) QuickMatch();
 			else if (item == _hostItem) CreateLobby();
 			else if (item == _findItem) FindLobby();
-			else if (item == _backItem) ShowRootMenu();
 		}
 
+		// Laid over the menu rather than replacing it: the backdrop stays, the logo and the models step aside so
+		// the settings paper sits alone on it.
 		private void ShowOptions()
 		{
 			if (!_settingsScreen) return;
 
-			gameObject.SetActive(false);
+			_rootMenu.SetActive(false);
+			_playPanels.HideAll();
 			_settingsScreen.OnClosed += HandleSettingsClosed;
 			_settingsScreen.Open();
 		}
@@ -277,15 +307,19 @@ namespace Game.Runtime.UI.MainMenu
 			_settingsScreen.gameObject.SetActive(false);
 		}
 
-		private void ShowRootMenu() => SetMenu(true);
-		private void ShowPlayMenu() => SetMenu(false);
-
-		// Switching the object off and on is what re-arms each group: a group picks its first entry as it
-		// appears, so the list always opens with something under the pointer.
-		private void SetMenu(bool root)
+		private void ShowRootMenu()
 		{
-			if (_rootGroup) _rootGroup.gameObject.SetActive(root);
-			if (_playGroup) _playGroup.gameObject.SetActive(!root);
+			_playPanels.HideAll();
+			_rootMenu.SetActive(true);
+		}
+
+		private void ShowPlayMenu() => ShowPanel(_startPanel);
+
+		// Switching a panel on is what re-arms its list: a group picks its first entry as it appears.
+		private void ShowPanel(GameObject panel)
+		{
+			_rootMenu.SetActive(false);
+			_playPanels.Show(panel);
 		}
 	}
 }

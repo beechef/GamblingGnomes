@@ -77,6 +77,7 @@ namespace Game.Runtime.UI.Loading
 		{
 			KillFade();
 			CancelHold();
+			UIScreenCover.Set(this, false);
 
 			// Torn down mid-wait, the devices it switched off would stay off with nothing left to switch
 			// them back on — an unplayable game and no clue why.
@@ -237,6 +238,10 @@ namespace Game.Runtime.UI.Loading
 		private void SetContentActive(bool active)
 		{
 			if (_content && _content.activeSelf != active) _content.SetActive(active);
+
+			// Covering from the first frame it is up to the last frame of its fade-out, so the UI models never
+			// show through it.
+			UIScreenCover.Set(this, active);
 		}
 
 		private void KillFade()

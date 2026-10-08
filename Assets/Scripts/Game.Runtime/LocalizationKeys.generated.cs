@@ -337,8 +337,10 @@ namespace Game.Runtime
 
 		public static class Lobby
 		{
+			public const string Empty = "lobby.empty";
 			public const string Join = "lobby.join";
 			public const string Refresh = "lobby.refresh";
+			public const string Searching = "lobby.searching";
 			public const string Title = "lobby.title";
 		}
 
@@ -361,6 +363,7 @@ namespace Game.Runtime
 		public static class Menu
 		{
 			public const string Back = "menu.back";
+			public const string Credit = "menu.credit";
 			public const string Find = "menu.find";
 			public const string Host = "menu.host";
 			public const string Option = "menu.option";
@@ -501,12 +504,14 @@ namespace Game.Runtime
 			public const string Create = "room.create";
 			public const string GameMode = "room.game_mode";
 			public const string MaxPlayers = "room.max_players";
+			public const string Name = "room.name";
 			public const string Private = "room.private";
 			public const string Title = "room.title";
 		}
 
 		public static class Settings
 		{
+			public const string AudioSection = "settings.audio_section";
 			public const string FpsKey = "settings.fps";
 			public const string Graphics = "settings.graphics";
 			public const string Language = "settings.language";
@@ -515,6 +520,14 @@ namespace Game.Runtime
 			public const string Title = "settings.title";
 			public const string Vsync = "settings.vsync";
 			public const string WindowModeKey = "settings.window_mode";
+
+			public static class Audio
+			{
+				public const string Background = "settings.audio.background";
+				public const string Master = "settings.audio.master";
+				public const string Mute = "settings.audio.mute";
+				public const string Sfx = "settings.audio.sfx";
+			}
 
 			public static class Fps
 			{
