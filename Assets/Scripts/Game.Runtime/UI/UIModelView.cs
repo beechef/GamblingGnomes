@@ -30,11 +30,20 @@ namespace Game.Runtime.UI
 		[Tooltip("The box every model is scaled into, in UI units, centred on the pivot (drawn when selected). One box for all of them, so prefabs authored at different sizes all come out the size this says. A model is scaled uniformly until it touches the box; its width and depth are taken together, because turning about the pivot's Y swaps one for the other.")]
 		[SerializeField] private Vector3 _bounds = new(100f, 100f, 100f);
 
+		[Header("Content")]
+		[Tooltip("Shown on Start when no view has asked for another — a fixed icon, like a menu button's. Empty for a model a view picks at runtime.")]
+		[SerializeField] private GameObject _startPrefab;
+
 		public GameObject Model { get; private set; }
 
 		public event Action<GameObject> OnModelChanged;
 
 		private GameObject _prefab;
+
+		private void Start()
+		{
+			if (_startPrefab && !Model) Show(_startPrefab);
+		}
 
 		// The same prefab again keeps the instance it already has, so re-binding a list never flashes.
 		public void Show(GameObject prefab)
