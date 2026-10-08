@@ -58,9 +58,28 @@ namespace Game.Runtime.UI.Selection
 		// in from wherever it was left reads as a glitch rather than as a choice being made.
 		private bool _snapNextSelection;
 
+		// The pointer is shown and hidden through alpha, never by switching it on and off: it is decided in
+		// PostLayout, and uGUI refuses a Graphic leaving the rebuild list while that loop is running.
+		private CanvasGroup _pointerGroup;
+
 		private void Awake()
 		{
 			if (_items.Count == 0) GetComponentsInChildren(true, _items);
+
+			if (!_pointer) return;
+
+			_pointerGroup = _pointer.GetComponent<CanvasGroup>();
+			if (!_pointerGroup) _pointerGroup = _pointer.gameObject.AddComponent<CanvasGroup>();
+			_pointerGroup.blocksRaycasts = false;
+			_pointerGroup.interactable = false;
+
+			SetPointerShown(false);
+			_pointer.gameObject.SetActive(true);
+		}
+
+		private void SetPointerShown(bool shown)
+		{
+			if (_pointerGroup) _pointerGroup.alpha = shown ? 1f : 0f;
 		}
 
 		private void OnEnable()
@@ -91,7 +110,7 @@ namespace Game.Runtime.UI.Selection
 
 			// Hidden rather than left where it stopped: the next time this list opens it may well open on a
 			// different entry, and a marker sitting at the old one for a frame is the glitch worth avoiding.
-			if (_pointer) _pointer.gameObject.SetActive(false);
+			SetPointerShown(false);
 
 			CanvasUpdateRegistry.UnRegisterCanvasElementForRebuild(this);
 			KillMove();
@@ -250,7 +269,7 @@ namespace Game.Runtime.UI.Selection
 			if (!_pointer) return;
 
 			var shown = Selected != null;
-			if (_pointer.gameObject.activeSelf != shown) _pointer.gameObject.SetActive(shown);
+			SetPointerShown(shown);
 			if (!shown) return;
 
 			var target = PointerPositionFor(Selected);
@@ -281,7 +300,12 @@ namespace Game.Runtime.UI.Selection
 
 			var edge = anchor.TransformPoint(new Vector3(anchor.rect.xMax, anchor.rect.center.y, 0f));
 
-			return (Vector2)parent.InverseTransformPoint(edge) + _pointerOffset;
+			// anchoredPosition is measured from the pointer's anchor, not the parent's pivot; they only agree
+			// while the parent's pivot sits at the pointer's anchor.
+			var rect = parent.rect;
+			var reference = rect.min + Vector2.Scale(rect.size, (_pointer.anchorMin + _pointer.anchorMax) * 0.5f);
+
+			return (Vector2)parent.InverseTransformPoint(edge) - reference + _pointerOffset;
 		}
 
 		private void KillMove()

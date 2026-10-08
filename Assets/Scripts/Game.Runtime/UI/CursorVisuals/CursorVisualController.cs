@@ -45,7 +45,7 @@ namespace Game.Runtime.UI.CursorVisuals
 		}
 
 		private readonly List<Hold> _holds = new();
-		private readonly Dictionary<UIButton, int> _buttonHolds = new();
+		private readonly Dictionary<Object, int> _pointerHolds = new();
 		private int _nextHandle = 1;
 
 		private Canvas _canvas;
@@ -94,6 +94,7 @@ namespace Game.Runtime.UI.CursorVisuals
 			CursorController.OnPointerWantedChanged += Refresh;
 			InputSchemeController.OnSchemeChanged += HandleSchemeChanged;
 			UIButton.OnPointerOverChanged += HandleButtonPointerOverChanged;
+			UISelectableHover.OnPointerOverChanged += HandleSelectablePointerOverChanged;
 
 			Refresh();
 		}
@@ -103,8 +104,9 @@ namespace Game.Runtime.UI.CursorVisuals
 			CursorController.OnLockChanged -= HandleLockChanged;
 			CursorController.OnPointerWantedChanged -= Refresh;
 			InputSchemeController.OnSchemeChanged -= HandleSchemeChanged;
+			UISelectableHover.OnPointerOverChanged -= HandleSelectablePointerOverChanged;
 			UIButton.OnPointerOverChanged -= HandleButtonPointerOverChanged;
-			_buttonHolds.Clear();
+			_pointerHolds.Clear();
 
 			SetArrowHidden(false);
 
@@ -134,15 +136,19 @@ namespace Game.Runtime.UI.CursorVisuals
 			}
 		}
 
-		private void HandleButtonPointerOverChanged(UIButton button, bool over)
+		private void HandleButtonPointerOverChanged(UIButton button, bool over) => SetPointerOver(button, over);
+
+		private void HandleSelectablePointerOverChanged(UISelectableHover control, bool over) => SetPointerOver(control, over);
+
+		private void SetPointerOver(Object control, bool over)
 		{
 			if (over)
 			{
-				if (!_buttonHolds.ContainsKey(button)) _buttonHolds.Add(button, Request(CursorVisualState.Interact));
+				if (!_pointerHolds.ContainsKey(control)) _pointerHolds.Add(control, Request(CursorVisualState.Interact));
 				return;
 			}
 
-			if (!_buttonHolds.Remove(button, out var handle)) return;
+			if (!_pointerHolds.Remove(control, out var handle)) return;
 
 			Release(handle);
 		}

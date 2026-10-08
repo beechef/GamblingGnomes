@@ -41,7 +41,20 @@ namespace Game.Runtime.UI.Matchmaking
 
 		public event Action OnClosed;
 
-		private void Awake() => _content.SetActive(false);
+		// Raised whenever the popup comes up, including a failure arriving after the menu stepped aside, so
+		// whoever holds it can bring the screen around it back.
+		public event Action OnOpened;
+
+		public bool IsOpen { get; private set; }
+
+		// The content's own fade, if it has one; the content is switched off only once it has played.
+		private UIPopInVisual _transition;
+
+		private void Awake()
+		{
+			_transition = _content.GetComponentInChildren<UIPopInVisual>(true);
+			_content.SetActive(false);
+		}
 
 		private void OnEnable()
 		{
@@ -129,7 +142,13 @@ namespace Game.Runtime.UI.Matchmaking
 
 		private void Show()
 		{
+			IsOpen = true;
+
+			// Brought back mid-fade: switching off first cancels the fade and lets the pop-in play again.
+			if (_content.activeSelf && _transition && _transition.IsHiding) _content.SetActive(false);
 			_content.SetActive(true);
+
+			OnOpened?.Invoke();
 			Redraw();
 		}
 
@@ -137,12 +156,22 @@ namespace Game.Runtime.UI.Matchmaking
 		{
 			UIEscapeStack.Remove(HandleCancel);
 			UIEscapeStack.Remove(Close);
-			_content.SetActive(false);
+
+			if (!IsOpen) return;
+			IsOpen = false;
+
+			if (_transition) _transition.Hide(SwitchOffIfStillHidden);
+			else _content.SetActive(false);
+		}
+
+		private void SwitchOffIfStillHidden()
+		{
+			if (!IsOpen) _content.SetActive(false);
 		}
 
 		private void Redraw()
 		{
-			if (!_content.activeSelf || !_matchmaking) return;
+			if (!IsOpen || !_matchmaking) return;
 
 			_cancelButton.gameObject.SetActive(!_showingFailure);
 			_closeButton.gameObject.SetActive(_showingFailure);

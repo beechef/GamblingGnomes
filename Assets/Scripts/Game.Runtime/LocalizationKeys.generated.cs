@@ -337,8 +337,10 @@ namespace Game.Runtime
 
 		public static class Lobby
 		{
+			public const string Empty = "lobby.empty";
 			public const string Join = "lobby.join";
 			public const string Refresh = "lobby.refresh";
+			public const string Searching = "lobby.searching";
 			public const string Title = "lobby.title";
 		}
 

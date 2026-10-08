@@ -87,6 +87,8 @@ GameObject:
   - component: {fileID: 7490093682224676333}
   - component: {fileID: 7136204922291859253}
   - component: {fileID: 4276466926335478736}
+  - component: {fileID: 1741662956857293604}
+  - component: {fileID: 8052167989391481447}
   m_Layer: 5
   m_Name: UI_Checkbox
   m_TagString: Untagged
@@ -176,12 +178,39 @@ MonoBehaviour:
   m_Interactable: 1
   m_TargetGraphic: {fileID: 1253942098041864178}
   toggleTransition: 1
-  graphic: {fileID: 7845368660515396775}
+  graphic: {fileID: 0}
   m_Group: {fileID: 0}
   onValueChanged:
     m_PersistentCalls:
       m_Calls: []
   m_IsOn: 1
+--- !u!114 &1741662956857293604
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7516659832242180157}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 13dc7c58a2ba39d49baea08a0573462f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.UISelectableHover
+--- !u!114 &8052167989391481447
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7516659832242180157}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aca007643b6f6c644bee2cfe0c456dad, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.UIToggleFadeVisual
+  _toggle: {fileID: 4276466926335478736}
+  _mark: {fileID: 7845368660515396775}
+  _duration: 0.05
 --- !u!1 &8722603283573989815
 GameObject:
   m_ObjectHideFlags: 0

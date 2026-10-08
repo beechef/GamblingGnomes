@@ -20,7 +20,6 @@ namespace Game.Runtime.UI.MainMenu
 		[SerializeField] private GameModeDatabase _gameModeDatabase;
 
 		[Header("References")]
-		[SerializeField] private UIMainMenu _mainMenuUI;
 		[SerializeField] private TMP_InputField _maxPlayersField;
 
 		[Tooltip("Optional. Left blank by the player, the room is named after the host.")]
@@ -41,10 +40,14 @@ namespace Game.Runtime.UI.MainMenu
 		[Tooltip("Off, the host is not asked to tune the mode before starting: every stage, module and starting stat plays at whatever the assets say. The list is switched off rather than torn out, so turning it back on is one checkbox.")]
 		[SerializeField] private bool _showModeSettings;
 		[SerializeField] private UIButton _confirmButton;
+		[Tooltip("The close cross: out of the whole play menu.")]
 		[SerializeField] private UIButton _cancelButton;
 
-		[Tooltip("Optional second way out, beside the close cross.")]
+		[Tooltip("Optional. Back to the play choices.")]
 		[SerializeField] private UIButton _backButton;
+
+		public event Action OnCloseRequested;
+		public event Action OnBackRequested;
 
 		private readonly List<GameModeType> _dropdownGameModes = new();
 		private bool _creatingLobby;
@@ -52,8 +55,8 @@ namespace Game.Runtime.UI.MainMenu
 		private void Awake()
 		{
 			_confirmButton.OnClick += OnConfirmClicked;
-			_cancelButton.OnClick += Close;
-			if (_backButton) _backButton.OnClick += Close;
+			_cancelButton.OnClick += HandleClose;
+			if (_backButton) _backButton.OnClick += HandleBack;
 
 			// The room size is fixed, so the field that used to set it is taken off screen rather than left
 			// accepting a number nothing reads — a control that ignores what you type into it is worse than
@@ -63,9 +66,9 @@ namespace Game.Runtime.UI.MainMenu
 
 		private void OnDestroy()
 		{
-			if (_backButton) _backButton.OnClick -= Close;
+			if (_backButton) _backButton.OnClick -= HandleBack;
 			_confirmButton.OnClick -= OnConfirmClicked;
-			_cancelButton.OnClick -= Close;
+			_cancelButton.OnClick -= HandleClose;
 		}
 
 		private void OnEnable()
@@ -74,11 +77,15 @@ namespace Game.Runtime.UI.MainMenu
 
 			if (_gameModeDropdown) _gameModeDropdown.onValueChanged.AddListener(HandleGameModeChanged);
 
+			// Escape steps back the way Back does.
+			UIEscapeStack.Push(HandleBack);
+
 			RebuildConfigList();
 		}
 
 		private void OnDisable()
 		{
+			UIEscapeStack.Remove(HandleBack);
 			if (_gameModeDropdown) _gameModeDropdown.onValueChanged.RemoveListener(HandleGameModeChanged);
 		}
 
@@ -158,8 +165,6 @@ namespace Game.Runtime.UI.MainMenu
 			{
 				GameNetworkManager.Instance.ConfigureLobby(maxPlayers, isPrivate, gameMode, _roomNameField ? _roomNameField.text : null);
 				await GameNetworkManager.Instance.StartHost(destroyCancellationToken);
-
-				gameObject.SetActive(false);
 			}
 			catch (OperationCanceledException)
 			{
@@ -174,10 +179,8 @@ namespace Game.Runtime.UI.MainMenu
 			}
 		}
 
-		public void Close()
-		{
-			gameObject.SetActive(false);
-			_mainMenuUI.Show();
-		}
+		private void HandleClose() => OnCloseRequested?.Invoke();
+
+		private void HandleBack() => OnBackRequested?.Invoke();
 	}
 }

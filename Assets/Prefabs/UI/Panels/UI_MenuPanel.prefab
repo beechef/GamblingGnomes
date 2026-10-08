@@ -86,6 +86,8 @@ GameObject:
   - component: {fileID: 7782786908037928725}
   - component: {fileID: 6638025585985602436}
   - component: {fileID: 4235047824064417852}
+  - component: {fileID: 1519229824609600148}
+  - component: {fileID: 2145841536544845269}
   m_Layer: 5
   m_Name: UI_MenuPanel
   m_TagString: Untagged
@@ -154,6 +156,41 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
+--- !u!225 &1519229824609600148
+CanvasGroup:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1319224330755960034}
+  m_Enabled: 1
+  m_Alpha: 1
+  m_Interactable: 1
+  m_BlocksRaycasts: 1
+  m_IgnoreParentGroups: 0
+--- !u!114 &2145841536544845269
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1319224330755960034}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 57a51f9977b37f6a97ee534aeabdae03, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.UIPopInVisual
+  _target: {fileID: 7782786908037928725}
+  _canvasGroup: {fileID: 1519229824609600148}
+  _fromScale: 0.97
+  _duration: 0.22
+  _scaleEase: 9
+  _fadeDuration: 0.18
+  _fadeOutDuration: 0.15
+  _fadeOutEase: 6
+  _popOut: 0
+  _popOutDuration: 0.2
+  _popOutEase: 26
 --- !u!1 &3460899074996189710
 GameObject:
   m_ObjectHideFlags: 0
