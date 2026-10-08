@@ -3401,6 +3401,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 50276331}
+  - component: {fileID: 50276332}
   m_Layer: 0
   m_Name: B612planet
   m_TagString: Untagged
@@ -3425,6 +3426,24 @@ Transform:
   - {fileID: 1044297590}
   m_Father: {fileID: 105256028}
   m_LocalEulerAnglesHint: {x: 24.378, y: -272.714, z: 31.756}
+--- !u!114 &50276332
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 50276330}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 207315fea0e34fe38f2a063f26e2c1cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.World.WorldMotionLoop
+  _floatAmplitude: {x: 0.22872692, y: 0.76242304, z: 0.22872692}
+  _floatPeriod: 7.8019857
+  _swayAmplitude: {x: 5, y: 0, z: 5}
+  _swayPeriod: 9.006046
+  _spinSpeed: -4.273708
+  _randomPhase: 1
 --- !u!1001 &53153940
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -5697,16 +5716,43 @@ PrefabInstance:
       propertyPath: m_Name
       value: Jupiter
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 3451118302482216456, guid: 633a4c4d206d68344b1580e78290c7e8, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 633a4c4d206d68344b1580e78290c7e8, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 79511890}
   m_SourcePrefab: {fileID: 100100000, guid: 633a4c4d206d68344b1580e78290c7e8, type: 3}
 --- !u!4 &79511888 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 633a4c4d206d68344b1580e78290c7e8, type: 3}
   m_PrefabInstance: {fileID: 79511887}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &79511889 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 633a4c4d206d68344b1580e78290c7e8, type: 3}
+  m_PrefabInstance: {fileID: 79511887}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &79511890
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 79511889}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 207315fea0e34fe38f2a063f26e2c1cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.World.WorldMotionLoop
+  _floatAmplitude: {x: 0.90000004, y: 3, z: 0.90000004}
+  _floatPeriod: 4.858867
+  _swayAmplitude: {x: 5, y: 0, z: 5}
+  _swayPeriod: 9.844862
+  _spinSpeed: 3.9776347
+  _randomPhase: 1
 --- !u!1001 &82950613
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -8279,16 +8325,43 @@ PrefabInstance:
       propertyPath: m_Name
       value: Moon
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 3451118302482216456, guid: 428e782dac38c3544beeec416c3c8d8e, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 428e782dac38c3544beeec416c3c8d8e, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 140873033}
   m_SourcePrefab: {fileID: 100100000, guid: 428e782dac38c3544beeec416c3c8d8e, type: 3}
 --- !u!4 &140873031 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 428e782dac38c3544beeec416c3c8d8e, type: 3}
   m_PrefabInstance: {fileID: 140873030}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &140873032 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 428e782dac38c3544beeec416c3c8d8e, type: 3}
+  m_PrefabInstance: {fileID: 140873030}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &140873033
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 140873032}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 207315fea0e34fe38f2a063f26e2c1cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.World.WorldMotionLoop
+  _floatAmplitude: {x: 0.90000004, y: 3, z: 0.90000004}
+  _floatPeriod: 5.2555494
+  _swayAmplitude: {x: 5, y: 0, z: 5}
+  _swayPeriod: 6.783971
+  _spinSpeed: -2.166983
+  _randomPhase: 1
 --- !u!1001 &141677949
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -10392,16 +10465,43 @@ PrefabInstance:
       propertyPath: m_Name
       value: Moon
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 3451118302482216456, guid: 428e782dac38c3544beeec416c3c8d8e, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 428e782dac38c3544beeec416c3c8d8e, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 174002586}
   m_SourcePrefab: {fileID: 100100000, guid: 428e782dac38c3544beeec416c3c8d8e, type: 3}
 --- !u!4 &174002584 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 428e782dac38c3544beeec416c3c8d8e, type: 3}
   m_PrefabInstance: {fileID: 174002583}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &174002585 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 428e782dac38c3544beeec416c3c8d8e, type: 3}
+  m_PrefabInstance: {fileID: 174002583}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &174002586
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 174002585}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 207315fea0e34fe38f2a063f26e2c1cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.World.WorldMotionLoop
+  _floatAmplitude: {x: 0.036000002, y: 0.12, z: 0.036000002}
+  _floatPeriod: 6.7199965
+  _swayAmplitude: {x: 5, y: 0, z: 5}
+  _swayPeriod: 9.832457
+  _spinSpeed: -13.316683
+  _randomPhase: 1
 --- !u!1 &177322363
 GameObject:
   m_ObjectHideFlags: 0
@@ -15205,16 +15305,43 @@ PrefabInstance:
       propertyPath: m_Name
       value: MatNai_1
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 3451118302482216456, guid: ee949c991c7ad0048a702b42da56e313, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: ee949c991c7ad0048a702b42da56e313, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 285262932}
   m_SourcePrefab: {fileID: 100100000, guid: ee949c991c7ad0048a702b42da56e313, type: 3}
 --- !u!4 &285262930 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: ee949c991c7ad0048a702b42da56e313, type: 3}
   m_PrefabInstance: {fileID: 285262929}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &285262931 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: ee949c991c7ad0048a702b42da56e313, type: 3}
+  m_PrefabInstance: {fileID: 285262929}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &285262932
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 285262931}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 207315fea0e34fe38f2a063f26e2c1cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.World.WorldMotionLoop
+  _floatAmplitude: {x: 0.14903593, y: 0.49678642, z: 0.14903593}
+  _floatPeriod: 4.8749623
+  _swayAmplitude: {x: 5, y: 0, z: 5}
+  _swayPeriod: 9.671203
+  _spinSpeed: -15.599378
+  _randomPhase: 1
 --- !u!1 &285846683
 GameObject:
   m_ObjectHideFlags: 0
@@ -18750,16 +18877,43 @@ PrefabInstance:
       propertyPath: m_Name
       value: MatNai_3
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 3451118302482216456, guid: ee949c991c7ad0048a702b42da56e313, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: ee949c991c7ad0048a702b42da56e313, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 338831104}
   m_SourcePrefab: {fileID: 100100000, guid: ee949c991c7ad0048a702b42da56e313, type: 3}
 --- !u!4 &338831102 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: ee949c991c7ad0048a702b42da56e313, type: 3}
   m_PrefabInstance: {fileID: 338831101}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &338831103 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: ee949c991c7ad0048a702b42da56e313, type: 3}
+  m_PrefabInstance: {fileID: 338831101}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &338831104
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 338831103}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 207315fea0e34fe38f2a063f26e2c1cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.World.WorldMotionLoop
+  _floatAmplitude: {x: 0.038211238, y: 0.12737079, z: 0.038211238}
+  _floatPeriod: 4.16816
+  _swayAmplitude: {x: 5, y: 0, z: 5}
+  _swayPeriod: 7.941624
+  _spinSpeed: 9.267845
+  _randomPhase: 1
 --- !u!1001 &339718078
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -19892,16 +20046,43 @@ PrefabInstance:
       propertyPath: m_Name
       value: MatXanh
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 3451118302482216456, guid: d05c978da722ee044a270eef681a1d5d, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: d05c978da722ee044a270eef681a1d5d, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 362315908}
   m_SourcePrefab: {fileID: 100100000, guid: d05c978da722ee044a270eef681a1d5d, type: 3}
 --- !u!4 &362315906 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: d05c978da722ee044a270eef681a1d5d, type: 3}
   m_PrefabInstance: {fileID: 362315905}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &362315907 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: d05c978da722ee044a270eef681a1d5d, type: 3}
+  m_PrefabInstance: {fileID: 362315905}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &362315908
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 362315907}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 207315fea0e34fe38f2a063f26e2c1cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.World.WorldMotionLoop
+  _floatAmplitude: {x: 0.49786445, y: 1.6595482, z: 0.49786445}
+  _floatPeriod: 7.0647783
+  _swayAmplitude: {x: 5, y: 0, z: 5}
+  _swayPeriod: 8.011577
+  _spinSpeed: 2.4502294
+  _randomPhase: 1
 --- !u!1001 &366313758
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -26685,16 +26866,43 @@ PrefabInstance:
       propertyPath: m_Name
       value: Moon_2
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 3451118302482216456, guid: 428e782dac38c3544beeec416c3c8d8e, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 428e782dac38c3544beeec416c3c8d8e, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 498104714}
   m_SourcePrefab: {fileID: 100100000, guid: 428e782dac38c3544beeec416c3c8d8e, type: 3}
 --- !u!4 &498104712 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 428e782dac38c3544beeec416c3c8d8e, type: 3}
   m_PrefabInstance: {fileID: 498104711}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &498104713 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 428e782dac38c3544beeec416c3c8d8e, type: 3}
+  m_PrefabInstance: {fileID: 498104711}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &498104714
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 498104713}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 207315fea0e34fe38f2a063f26e2c1cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.World.WorldMotionLoop
+  _floatAmplitude: {x: 0.046765387, y: 0.15588462, z: 0.046765387}
+  _floatPeriod: 5.2736464
+  _swayAmplitude: {x: 5, y: 0, z: 5}
+  _swayPeriod: 6.9570003
+  _spinSpeed: 9.344837
+  _randomPhase: 1
 --- !u!1001 &502240259
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -28618,16 +28826,43 @@ PrefabInstance:
       propertyPath: m_Name
       value: MatBiec_3
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 3451118302482216456, guid: 497b95d0b43d2f24391a3a935cbb4643, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 497b95d0b43d2f24391a3a935cbb4643, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 547642238}
   m_SourcePrefab: {fileID: 100100000, guid: 497b95d0b43d2f24391a3a935cbb4643, type: 3}
 --- !u!4 &547642236 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 497b95d0b43d2f24391a3a935cbb4643, type: 3}
   m_PrefabInstance: {fileID: 547642235}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &547642237 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 497b95d0b43d2f24391a3a935cbb4643, type: 3}
+  m_PrefabInstance: {fileID: 547642235}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &547642238
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 547642237}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 207315fea0e34fe38f2a063f26e2c1cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.World.WorldMotionLoop
+  _floatAmplitude: {x: 0.036000002, y: 0.12, z: 0.036000002}
+  _floatPeriod: 6.325279
+  _swayAmplitude: {x: 5, y: 0, z: 5}
+  _swayPeriod: 8.807595
+  _spinSpeed: -8.860519
+  _randomPhase: 1
 --- !u!1001 &549158169
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -29926,16 +30161,43 @@ PrefabInstance:
       propertyPath: m_Name
       value: MatNai
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 3451118302482216456, guid: ee949c991c7ad0048a702b42da56e313, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: ee949c991c7ad0048a702b42da56e313, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 566318890}
   m_SourcePrefab: {fileID: 100100000, guid: ee949c991c7ad0048a702b42da56e313, type: 3}
 --- !u!4 &566318888 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: ee949c991c7ad0048a702b42da56e313, type: 3}
   m_PrefabInstance: {fileID: 566318887}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &566318889 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: ee949c991c7ad0048a702b42da56e313, type: 3}
+  m_PrefabInstance: {fileID: 566318887}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &566318890
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 566318889}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 207315fea0e34fe38f2a063f26e2c1cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.World.WorldMotionLoop
+  _floatAmplitude: {x: 0.12409551, y: 0.41365167, z: 0.12409551}
+  _floatPeriod: 5.843976
+  _swayAmplitude: {x: 5, y: 0, z: 5}
+  _swayPeriod: 7.1074433
+  _spinSpeed: 11.466263
+  _randomPhase: 1
 --- !u!1 &566640438
 GameObject:
   m_ObjectHideFlags: 0
@@ -30498,16 +30760,43 @@ PrefabInstance:
       propertyPath: m_Name
       value: DaiThienThach
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 3451118302482216456, guid: 81abf025e9331374cba00abe2702ab98, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 81abf025e9331374cba00abe2702ab98, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 576315708}
   m_SourcePrefab: {fileID: 100100000, guid: 81abf025e9331374cba00abe2702ab98, type: 3}
 --- !u!4 &576315706 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 81abf025e9331374cba00abe2702ab98, type: 3}
   m_PrefabInstance: {fileID: 576315705}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &576315707 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 81abf025e9331374cba00abe2702ab98, type: 3}
+  m_PrefabInstance: {fileID: 576315705}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &576315708
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 576315707}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 207315fea0e34fe38f2a063f26e2c1cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.World.WorldMotionLoop
+  _floatAmplitude: {x: 0.43788284, y: 1.4596094, z: 0.43788284}
+  _floatPeriod: 4.4950485
+  _swayAmplitude: {x: 5, y: 0, z: 5}
+  _swayPeriod: 8.172034
+  _spinSpeed: 3.7156007
+  _randomPhase: 1
 --- !u!1001 &578774067
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -32659,16 +32948,43 @@ PrefabInstance:
       propertyPath: m_Name
       value: MatXanh_3
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 3451118302482216456, guid: d05c978da722ee044a270eef681a1d5d, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: d05c978da722ee044a270eef681a1d5d, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 628793311}
   m_SourcePrefab: {fileID: 100100000, guid: d05c978da722ee044a270eef681a1d5d, type: 3}
 --- !u!4 &628793309 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: d05c978da722ee044a270eef681a1d5d, type: 3}
   m_PrefabInstance: {fileID: 628793308}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &628793310 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: d05c978da722ee044a270eef681a1d5d, type: 3}
+  m_PrefabInstance: {fileID: 628793308}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &628793311
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 628793310}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 207315fea0e34fe38f2a063f26e2c1cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.World.WorldMotionLoop
+  _floatAmplitude: {x: 0.17094393, y: 0.5698131, z: 0.17094393}
+  _floatPeriod: 4.3292537
+  _swayAmplitude: {x: 5, y: 0, z: 5}
+  _swayPeriod: 8.287265
+  _spinSpeed: 17.560476
+  _randomPhase: 1
 --- !u!1001 &629478683
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -43052,16 +43368,43 @@ PrefabInstance:
       propertyPath: m_Name
       value: MatBiec_1
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 3451118302482216456, guid: 497b95d0b43d2f24391a3a935cbb4643, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 497b95d0b43d2f24391a3a935cbb4643, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 827881667}
   m_SourcePrefab: {fileID: 100100000, guid: 497b95d0b43d2f24391a3a935cbb4643, type: 3}
 --- !u!4 &827881665 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 497b95d0b43d2f24391a3a935cbb4643, type: 3}
   m_PrefabInstance: {fileID: 827881664}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &827881666 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 497b95d0b43d2f24391a3a935cbb4643, type: 3}
+  m_PrefabInstance: {fileID: 827881664}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &827881667
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 827881666}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 207315fea0e34fe38f2a063f26e2c1cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.World.WorldMotionLoop
+  _floatAmplitude: {x: 0.5430354, y: 1.810118, z: 0.5430354}
+  _floatPeriod: 5.3765373
+  _swayAmplitude: {x: 5, y: 0, z: 5}
+  _swayPeriod: 9.041656
+  _spinSpeed: -2.9683342
+  _randomPhase: 1
 --- !u!1 &829513451
 GameObject:
   m_ObjectHideFlags: 0
@@ -48668,6 +49011,16 @@ MonoBehaviour:
       Color: {r: 0.45, g: 0.5, b: 0.58, a: 1}
       Density: 0.04
       Enabled: 0
+  - _variant: 10
+    _objects:
+    - {fileID: 105256027}
+    _skybox: {fileID: 2100000, guid: 8f5d8dfc40960eb45b96d9cba9e6f1f1, type: 2}
+    _hasFog: 0
+    _fog:
+      Mode: 3
+      Color: {r: 0.45, g: 0.5, b: 0.58, a: 1}
+      Density: 0.04
+      Enabled: 0
 --- !u!1001 &938777160
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -50309,16 +50662,43 @@ PrefabInstance:
       propertyPath: m_Name
       value: MatBiec_2
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 3451118302482216456, guid: 497b95d0b43d2f24391a3a935cbb4643, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 497b95d0b43d2f24391a3a935cbb4643, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 974998253}
   m_SourcePrefab: {fileID: 100100000, guid: 497b95d0b43d2f24391a3a935cbb4643, type: 3}
 --- !u!4 &974998251 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 497b95d0b43d2f24391a3a935cbb4643, type: 3}
   m_PrefabInstance: {fileID: 974998250}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &974998252 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 497b95d0b43d2f24391a3a935cbb4643, type: 3}
+  m_PrefabInstance: {fileID: 974998250}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &974998253
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 974998252}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 207315fea0e34fe38f2a063f26e2c1cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.World.WorldMotionLoop
+  _floatAmplitude: {x: 0.036000002, y: 0.12, z: 0.036000002}
+  _floatPeriod: 6.580469
+  _swayAmplitude: {x: 5, y: 0, z: 5}
+  _swayPeriod: 7.885816
+  _spinSpeed: 8.762869
+  _randomPhase: 1
 --- !u!1001 &975015859
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -50650,16 +51030,43 @@ PrefabInstance:
       propertyPath: m_Name
       value: DaiThienThach_2
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 3451118302482216456, guid: 81abf025e9331374cba00abe2702ab98, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 81abf025e9331374cba00abe2702ab98, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 975912409}
   m_SourcePrefab: {fileID: 100100000, guid: 81abf025e9331374cba00abe2702ab98, type: 3}
 --- !u!4 &975912407 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 81abf025e9331374cba00abe2702ab98, type: 3}
   m_PrefabInstance: {fileID: 975912406}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &975912408 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 81abf025e9331374cba00abe2702ab98, type: 3}
+  m_PrefabInstance: {fileID: 975912406}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &975912409
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 975912408}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 207315fea0e34fe38f2a063f26e2c1cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.World.WorldMotionLoop
+  _floatAmplitude: {x: 0.74858254, y: 2.495275, z: 0.74858254}
+  _floatPeriod: 4.278237
+  _swayAmplitude: {x: 5, y: 0, z: 5}
+  _swayPeriod: 6.927274
+  _spinSpeed: -2.037774
+  _randomPhase: 1
 --- !u!1001 &975964222
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -51087,16 +51494,43 @@ PrefabInstance:
       propertyPath: m_Name
       value: CumThienThach_1
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 3451118302482216456, guid: eae8d7e095809494f8365c067a849483, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: eae8d7e095809494f8365c067a849483, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 981472319}
   m_SourcePrefab: {fileID: 100100000, guid: eae8d7e095809494f8365c067a849483, type: 3}
 --- !u!4 &981472317 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: eae8d7e095809494f8365c067a849483, type: 3}
   m_PrefabInstance: {fileID: 981472316}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &981472318 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: eae8d7e095809494f8365c067a849483, type: 3}
+  m_PrefabInstance: {fileID: 981472316}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &981472319
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 981472318}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 207315fea0e34fe38f2a063f26e2c1cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.World.WorldMotionLoop
+  _floatAmplitude: {x: 0.121498846, y: 0.40499613, z: 0.121498846}
+  _floatPeriod: 4.717831
+  _swayAmplitude: {x: 5, y: 0, z: 5}
+  _swayPeriod: 8.40466
+  _spinSpeed: -15.393737
+  _randomPhase: 1
 --- !u!1 &984410144
 GameObject:
   m_ObjectHideFlags: 0
@@ -54276,7 +54710,8 @@ PrefabInstance:
       propertyPath: m_Name
       value: B612Rings
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 3451118302482216456, guid: a5c40dc7607a70242ba19b843639efe7, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
@@ -54598,16 +55033,43 @@ PrefabInstance:
       propertyPath: m_Name
       value: CumThienThach
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 3451118302482216456, guid: eae8d7e095809494f8365c067a849483, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: eae8d7e095809494f8365c067a849483, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1051603968}
   m_SourcePrefab: {fileID: 100100000, guid: eae8d7e095809494f8365c067a849483, type: 3}
 --- !u!4 &1051603966 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: eae8d7e095809494f8365c067a849483, type: 3}
   m_PrefabInstance: {fileID: 1051603965}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1051603967 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: eae8d7e095809494f8365c067a849483, type: 3}
+  m_PrefabInstance: {fileID: 1051603965}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1051603968
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1051603967}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 207315fea0e34fe38f2a063f26e2c1cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.World.WorldMotionLoop
+  _floatAmplitude: {x: 0.21879776, y: 0.72932583, z: 0.21879776}
+  _floatPeriod: 4.7283545
+  _swayAmplitude: {x: 5, y: 0, z: 5}
+  _swayPeriod: 7.9768434
+  _spinSpeed: 4.521274
+  _randomPhase: 1
 --- !u!1001 &1053976649
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -57225,16 +57687,43 @@ PrefabInstance:
       propertyPath: m_Name
       value: Moon_1
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 3451118302482216456, guid: 428e782dac38c3544beeec416c3c8d8e, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 428e782dac38c3544beeec416c3c8d8e, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1097026784}
   m_SourcePrefab: {fileID: 100100000, guid: 428e782dac38c3544beeec416c3c8d8e, type: 3}
 --- !u!4 &1097026782 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 428e782dac38c3544beeec416c3c8d8e, type: 3}
   m_PrefabInstance: {fileID: 1097026781}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1097026783 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 428e782dac38c3544beeec416c3c8d8e, type: 3}
+  m_PrefabInstance: {fileID: 1097026781}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1097026784
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1097026783}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 207315fea0e34fe38f2a063f26e2c1cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.World.WorldMotionLoop
+  _floatAmplitude: {x: 0.036000002, y: 0.12, z: 0.036000002}
+  _floatPeriod: 5.2357817
+  _swayAmplitude: {x: 5, y: 0, z: 5}
+  _swayPeriod: 6.5388236
+  _spinSpeed: 16.78902
+  _randomPhase: 1
 --- !u!1 &1097287630
 GameObject:
   m_ObjectHideFlags: 0
@@ -65057,16 +65546,43 @@ PrefabInstance:
       propertyPath: m_Name
       value: Venus
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 3451118302482216456, guid: ea8c51f252622ac4e9dfdbd92a04f26d, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: ea8c51f252622ac4e9dfdbd92a04f26d, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1230103779}
   m_SourcePrefab: {fileID: 100100000, guid: ea8c51f252622ac4e9dfdbd92a04f26d, type: 3}
 --- !u!4 &1230103777 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: ea8c51f252622ac4e9dfdbd92a04f26d, type: 3}
   m_PrefabInstance: {fileID: 1230103776}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1230103778 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: ea8c51f252622ac4e9dfdbd92a04f26d, type: 3}
+  m_PrefabInstance: {fileID: 1230103776}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1230103779
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1230103778}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 207315fea0e34fe38f2a063f26e2c1cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.World.WorldMotionLoop
+  _floatAmplitude: {x: 0.25146297, y: 0.83820987, z: 0.25146297}
+  _floatPeriod: 4.5824533
+  _swayAmplitude: {x: 5, y: 0, z: 5}
+  _swayPeriod: 7.205675
+  _spinSpeed: -4.045857
+  _randomPhase: 1
 --- !u!1 &1232921015
 GameObject:
   m_ObjectHideFlags: 0
@@ -69322,16 +69838,43 @@ PrefabInstance:
       propertyPath: m_Name
       value: Saturn
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 3451118302482216456, guid: 51856960f85840241a60dcfeb0591d4b, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 51856960f85840241a60dcfeb0591d4b, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1305360718}
   m_SourcePrefab: {fileID: 100100000, guid: 51856960f85840241a60dcfeb0591d4b, type: 3}
 --- !u!4 &1305360716 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 51856960f85840241a60dcfeb0591d4b, type: 3}
   m_PrefabInstance: {fileID: 1305360715}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1305360717 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 51856960f85840241a60dcfeb0591d4b, type: 3}
+  m_PrefabInstance: {fileID: 1305360715}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1305360718
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1305360717}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 207315fea0e34fe38f2a063f26e2c1cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.World.WorldMotionLoop
+  _floatAmplitude: {x: 0.90000004, y: 3, z: 0.90000004}
+  _floatPeriod: 4.2638435
+  _swayAmplitude: {x: 5, y: 0, z: 5}
+  _swayPeriod: 6.7813616
+  _spinSpeed: 4.843655
+  _randomPhase: 1
 --- !u!1001 &1308836409
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -74014,16 +74557,43 @@ PrefabInstance:
       propertyPath: m_Name
       value: DaiThienThach_1
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 3451118302482216456, guid: 81abf025e9331374cba00abe2702ab98, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 81abf025e9331374cba00abe2702ab98, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1405780133}
   m_SourcePrefab: {fileID: 100100000, guid: 81abf025e9331374cba00abe2702ab98, type: 3}
 --- !u!4 &1405780131 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 81abf025e9331374cba00abe2702ab98, type: 3}
   m_PrefabInstance: {fileID: 1405780130}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1405780132 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 81abf025e9331374cba00abe2702ab98, type: 3}
+  m_PrefabInstance: {fileID: 1405780130}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1405780133
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1405780132}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 207315fea0e34fe38f2a063f26e2c1cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.World.WorldMotionLoop
+  _floatAmplitude: {x: 0.72976434, y: 2.4325478, z: 0.72976434}
+  _floatPeriod: 7.549622
+  _swayAmplitude: {x: 5, y: 0, z: 5}
+  _swayPeriod: 8.100948
+  _spinSpeed: -2.5916302
+  _randomPhase: 1
 --- !u!1001 &1408056939
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -80744,11 +81314,20 @@ PrefabInstance:
       propertyPath: m_Name
       value: Sun
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 3451118302482216456, guid: a870a1f509231a142a233d78848ffff6, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: a870a1f509231a142a233d78848ffff6, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5852896029984442332}
   m_SourcePrefab: {fileID: 100100000, guid: a870a1f509231a142a233d78848ffff6, type: 3}
+--- !u!1 &1538937462 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: a870a1f509231a142a233d78848ffff6, type: 3}
+  m_PrefabInstance: {fileID: 1538937461}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1538944080
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -81556,16 +82135,43 @@ PrefabInstance:
       propertyPath: m_Name
       value: MatXanh_1
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 3451118302482216456, guid: d05c978da722ee044a270eef681a1d5d, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: d05c978da722ee044a270eef681a1d5d, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1550397119}
   m_SourcePrefab: {fileID: 100100000, guid: d05c978da722ee044a270eef681a1d5d, type: 3}
 --- !u!4 &1550397117 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: d05c978da722ee044a270eef681a1d5d, type: 3}
   m_PrefabInstance: {fileID: 1550397116}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1550397118 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: d05c978da722ee044a270eef681a1d5d, type: 3}
+  m_PrefabInstance: {fileID: 1550397116}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1550397119
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1550397118}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 207315fea0e34fe38f2a063f26e2c1cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.World.WorldMotionLoop
+  _floatAmplitude: {x: 0.036000002, y: 0.12, z: 0.036000002}
+  _floatPeriod: 6.1503234
+  _swayAmplitude: {x: 5, y: 0, z: 5}
+  _swayPeriod: 9.142104
+  _spinSpeed: -17.616886
+  _randomPhase: 1
 --- !u!1 &1551557388
 GameObject:
   m_ObjectHideFlags: 0
@@ -82376,16 +82982,43 @@ PrefabInstance:
       propertyPath: m_Name
       value: MatBiec
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 3451118302482216456, guid: 497b95d0b43d2f24391a3a935cbb4643, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 497b95d0b43d2f24391a3a935cbb4643, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1563470428}
   m_SourcePrefab: {fileID: 100100000, guid: 497b95d0b43d2f24391a3a935cbb4643, type: 3}
 --- !u!4 &1563470426 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 497b95d0b43d2f24391a3a935cbb4643, type: 3}
   m_PrefabInstance: {fileID: 1563470425}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1563470427 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: 497b95d0b43d2f24391a3a935cbb4643, type: 3}
+  m_PrefabInstance: {fileID: 1563470425}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1563470428
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1563470427}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 207315fea0e34fe38f2a063f26e2c1cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.World.WorldMotionLoop
+  _floatAmplitude: {x: 0.1881663, y: 0.627221, z: 0.1881663}
+  _floatPeriod: 4.7336054
+  _swayAmplitude: {x: 5, y: 0, z: 5}
+  _swayPeriod: 7.1715384
+  _spinSpeed: -4.6078744
+  _randomPhase: 1
 --- !u!1 &1563747299
 GameObject:
   m_ObjectHideFlags: 0
@@ -95400,7 +96033,8 @@ PrefabInstance:
       propertyPath: m_Name
       value: B612
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 3451118302482216456, guid: e00aa620da1857746b1e78b47be656d9, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents: []
@@ -95646,16 +96280,43 @@ PrefabInstance:
       propertyPath: m_Name
       value: MatNai_2
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 3451118302482216456, guid: ee949c991c7ad0048a702b42da56e313, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: ee949c991c7ad0048a702b42da56e313, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1822611200}
   m_SourcePrefab: {fileID: 100100000, guid: ee949c991c7ad0048a702b42da56e313, type: 3}
 --- !u!4 &1822611198 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: ee949c991c7ad0048a702b42da56e313, type: 3}
   m_PrefabInstance: {fileID: 1822611197}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1822611199 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: ee949c991c7ad0048a702b42da56e313, type: 3}
+  m_PrefabInstance: {fileID: 1822611197}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1822611200
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1822611199}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 207315fea0e34fe38f2a063f26e2c1cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.World.WorldMotionLoop
+  _floatAmplitude: {x: 0.036000002, y: 0.12, z: 0.036000002}
+  _floatPeriod: 6.2513556
+  _swayAmplitude: {x: 5, y: 0, z: 5}
+  _swayPeriod: 8.612682
+  _spinSpeed: -9.999898
+  _randomPhase: 1
 --- !u!1 &1822721489
 GameObject:
   m_ObjectHideFlags: 0
@@ -100389,16 +101050,43 @@ PrefabInstance:
       propertyPath: m_Name
       value: MatXanh_2
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 3451118302482216456, guid: d05c978da722ee044a270eef681a1d5d, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: d05c978da722ee044a270eef681a1d5d, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1918738723}
   m_SourcePrefab: {fileID: 100100000, guid: d05c978da722ee044a270eef681a1d5d, type: 3}
 --- !u!4 &1918738721 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: d05c978da722ee044a270eef681a1d5d, type: 3}
   m_PrefabInstance: {fileID: 1918738720}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1918738722 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: d05c978da722ee044a270eef681a1d5d, type: 3}
+  m_PrefabInstance: {fileID: 1918738720}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1918738723
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1918738722}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 207315fea0e34fe38f2a063f26e2c1cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.World.WorldMotionLoop
+  _floatAmplitude: {x: 0.036000002, y: 0.12, z: 0.036000002}
+  _floatPeriod: 4.5587177
+  _swayAmplitude: {x: 5, y: 0, z: 5}
+  _swayPeriod: 7.249596
+  _spinSpeed: -8.04552
+  _randomPhase: 1
 --- !u!1 &1922619632
 GameObject:
   m_ObjectHideFlags: 0
@@ -104039,16 +104727,43 @@ PrefabInstance:
       propertyPath: m_Name
       value: Neptune
       objectReference: {fileID: 0}
-    m_RemovedComponents: []
+    m_RemovedComponents:
+    - {fileID: 3451118302482216456, guid: a0fe650be1bbd474cb38db7827394d55, type: 3}
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: a0fe650be1bbd474cb38db7827394d55, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2003146145}
   m_SourcePrefab: {fileID: 100100000, guid: a0fe650be1bbd474cb38db7827394d55, type: 3}
 --- !u!4 &2003146143 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: a0fe650be1bbd474cb38db7827394d55, type: 3}
   m_PrefabInstance: {fileID: 2003146142}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &2003146144 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 919132149155446097, guid: a0fe650be1bbd474cb38db7827394d55, type: 3}
+  m_PrefabInstance: {fileID: 2003146142}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &2003146145
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2003146144}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 207315fea0e34fe38f2a063f26e2c1cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.World.WorldMotionLoop
+  _floatAmplitude: {x: 0.25429398, y: 0.84764653, z: 0.25429398}
+  _floatPeriod: 6.0286784
+  _swayAmplitude: {x: 5, y: 0, z: 5}
+  _swayPeriod: 8.688258
+  _spinSpeed: 4.9456096
+  _randomPhase: 1
 --- !u!1001 &2005483365
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -112116,6 +112831,24 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: a870a1f509231a142a233d78848ffff6, type: 3}
   m_PrefabInstance: {fileID: 1538937461}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &5852896029984442332
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1538937462}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 207315fea0e34fe38f2a063f26e2c1cf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.World.WorldMotionLoop
+  _floatAmplitude: {x: 0.90000004, y: 3, z: 0.90000004}
+  _floatPeriod: 6.883562
+  _swayAmplitude: {x: 5, y: 0, z: 5}
+  _swayPeriod: 7.1914515
+  _spinSpeed: 3.1597822
+  _randomPhase: 1
 --- !u!33 &5994958622879777266
 MeshFilter:
   m_ObjectHideFlags: 0

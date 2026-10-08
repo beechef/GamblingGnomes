@@ -26,6 +26,8 @@ namespace Game.Runtime.GameMode.Poker
 
 		DancingTavern = 8,
 
-		GalaxyFarm = 9
+		GalaxyFarm = 9,
+
+		SolarSystem = 10
 	}
 }
