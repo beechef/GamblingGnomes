@@ -77,15 +77,22 @@ namespace Game.Runtime.UI.MainMenu
 
 			if (_gameModeDropdown) _gameModeDropdown.onValueChanged.AddListener(HandleGameModeChanged);
 
-			// Escape steps back the way Back does.
-			UIEscapeStack.Push(HandleBack);
+			if (_roomNameField)
+			{
+				_roomNameField.onValueChanged.AddListener(HandleRoomNameChanged);
+
+				// Offered as the player's own name, the room is never nameless unless the player clears it.
+				var network = GameNetworkManager.Instance;
+				_roomNameField.text = network ? network.ResolveLobbyService().LocalUserName : string.Empty;
+				HandleRoomNameChanged(_roomNameField.text);
+			}
 
 			RebuildConfigList();
 		}
 
 		private void OnDisable()
 		{
-			UIEscapeStack.Remove(HandleBack);
+			if (_roomNameField) _roomNameField.onValueChanged.RemoveListener(HandleRoomNameChanged);
 			if (_gameModeDropdown) _gameModeDropdown.onValueChanged.RemoveListener(HandleGameModeChanged);
 		}
 
@@ -152,9 +159,14 @@ namespace Game.Runtime.UI.MainMenu
 			if (_gameModeDropdown) _gameModeDropdown.AddOptions(options);
 		}
 
+		private bool HasRoomName => !_roomNameField || !string.IsNullOrWhiteSpace(_roomNameField.text);
+
+		// A room needs a name of at least one letter; Create refuses until it has one.
+		private void HandleRoomNameChanged(string name) => _confirmButton.IsInteractable = HasRoomName;
+
 		private async void OnConfirmClicked()
 		{
-			if (_creatingLobby) return;
+			if (_creatingLobby || !HasRoomName) return;
 			_creatingLobby = true;
 
 			var maxPlayers = Mathf.Max(2, _fixedMaxPlayers);

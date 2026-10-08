@@ -280,11 +280,14 @@ namespace Game.Runtime.UI.MainMenu
 			else if (item == _findItem) FindLobby();
 		}
 
+		// Laid over the menu rather than replacing it: the backdrop stays, the logo and the models step aside so
+		// the settings paper sits alone on it.
 		private void ShowOptions()
 		{
 			if (!_settingsScreen) return;
 
-			gameObject.SetActive(false);
+			_rootMenu.SetActive(false);
+			_playPanels.HideAll();
 			_settingsScreen.OnClosed += HandleSettingsClosed;
 			_settingsScreen.Open();
 		}

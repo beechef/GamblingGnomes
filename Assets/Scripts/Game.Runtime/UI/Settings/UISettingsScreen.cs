@@ -101,7 +101,6 @@ namespace Game.Runtime.UI.Settings
 			foreach (var button in _closeButtons) if (button) button.OnClick += Close;
 			foreach (var button in _backButtons) if (button) button.OnClick += ShowMenu;
 			Localizer.OnLocaleChanged += Refresh;
-			UIEscapeStack.Push(HandleEscape);
 
 			Refresh();
 			ShowMenu();
@@ -109,7 +108,6 @@ namespace Game.Runtime.UI.Settings
 
 		private void OnDisable()
 		{
-			UIEscapeStack.Remove(HandleEscape);
 			Localizer.OnLocaleChanged -= Refresh;
 			foreach (var button in _backButtons) if (button) button.OnClick -= ShowMenu;
 			foreach (var button in _closeButtons) if (button) button.OnClick -= Close;
@@ -119,19 +117,6 @@ namespace Game.Runtime.UI.Settings
 			_frameRate.OnIndexChanged -= ApplyFrameRate;
 			_resolution.OnIndexChanged -= ApplyResolution;
 			_windowMode.OnIndexChanged -= ApplyWindowMode;
-		}
-
-		// Escape steps back one panel: out of a section to the menu, out of the menu to whoever opened it.
-		private void HandleEscape()
-		{
-			if (_panels.IsShowing(_menuPanel))
-			{
-				Close();
-				return;
-			}
-
-			ShowMenu();
-			UIEscapeStack.Push(HandleEscape);
 		}
 
 		private void ShowMenu() => _panels.Show(_menuPanel);

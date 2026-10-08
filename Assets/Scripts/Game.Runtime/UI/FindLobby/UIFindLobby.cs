@@ -18,6 +18,9 @@ namespace Game.Runtime.UI.FindLobby
 		[Tooltip("Back to the play choices.")]
 		[SerializeField] private UIButton _backButton;
 
+		[Tooltip("Searches again.")]
+		[SerializeField] private UIButton _refreshButton;
+
 		[Tooltip("Shown in place of the rows while searching, and when the search finds no room.")]
 		[SerializeField] private TMP_Text _statusLabel;
 
@@ -31,16 +34,14 @@ namespace Game.Runtime.UI.FindLobby
 		{
 			if (_closeButton) _closeButton.OnClick += HandleClose;
 			if (_backButton) _backButton.OnClick += HandleBack;
-
-			// Escape steps back the way Back does.
-			UIEscapeStack.Push(HandleBack);
+			if (_refreshButton) _refreshButton.OnClick += Refresh;
 
 			Refresh();
 		}
 
 		private void OnDisable()
 		{
-			UIEscapeStack.Remove(HandleBack);
+			if (_refreshButton) _refreshButton.OnClick -= Refresh;
 			if (_backButton) _backButton.OnClick -= HandleBack;
 			if (_closeButton) _closeButton.OnClick -= HandleClose;
 		}

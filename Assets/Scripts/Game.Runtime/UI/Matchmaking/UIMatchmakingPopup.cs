@@ -9,8 +9,8 @@ using UnityEngine;
 namespace Game.Runtime.UI.Matchmaking
 {
 	// What the player looks at while quick match runs: the search, then the count until the room is full,
-	// with Cancel (and Escape) to walk out. A failure stays up with its reason until closed. The root stays
-	// active and toggles _content, because a failure can arrive after the popup has stepped aside for the
+	// with Cancel to walk out (Escape presses whichever cross is up). A failure stays up with its reason until
+	// closed. The root stays active and toggles _content, because a failure can arrive after the popup has stepped aside for the
 	// loading screen. Whoever opened it hears OnClosed when the player is back to choosing.
 	public class UIMatchmakingPopup : MonoBehaviour
 	{
@@ -86,8 +86,6 @@ namespace Game.Runtime.UI.Matchmaking
 		private void OnDestroy()
 		{
 			Localizer.OnLocaleChanged -= Redraw;
-			UIEscapeStack.Remove(HandleCancel);
-			UIEscapeStack.Remove(Close);
 
 			if (!_matchmaking) return;
 
@@ -154,9 +152,6 @@ namespace Game.Runtime.UI.Matchmaking
 
 		private void Hide()
 		{
-			UIEscapeStack.Remove(HandleCancel);
-			UIEscapeStack.Remove(Close);
-
 			if (!IsOpen) return;
 			IsOpen = false;
 
@@ -175,9 +170,6 @@ namespace Game.Runtime.UI.Matchmaking
 
 			_cancelButton.gameObject.SetActive(!_showingFailure);
 			_closeButton.gameObject.SetActive(_showingFailure);
-
-			UIEscapeStack.Remove(_showingFailure ? HandleCancel : Close);
-			UIEscapeStack.Push(_showingFailure ? Close : HandleCancel);
 
 			var waiting = !_showingFailure && _matchmaking.State == MatchmakingState.Waiting;
 			_count.gameObject.SetActive(waiting);
