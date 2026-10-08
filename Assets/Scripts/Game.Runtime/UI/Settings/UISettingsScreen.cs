@@ -3,14 +3,18 @@ using System.Collections.Generic;
 using System.Linq;
 using Game.Runtime.Controller;
 using Game.Runtime.UI.Button;
+using Game.Runtime.UI.Selection;
 using Localization;
 using Sirenix.OdinInspector;
+using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 namespace Game.Runtime.UI.Settings
 {
-	// The player's settings: window mode, resolution, frame rate cap, VSync and language, each applied the
-	// moment it is stepped. Opened from the main menu and the pause menu; whoever opened it hears OnClosed.
+	// The player's settings: a menu of sections, each its own panel. Graphics are window mode, resolution,
+	// frame rate cap and VSync; the language panel lists every locale. Each choice is applied the moment it is
+	// made. Opened from the main menu and the pause menu; whoever opened it hears OnClosed.
 	public class UISettingsScreen : MonoBehaviour
 	{
 		private static readonly FullScreenMode[] WindowModes =
@@ -22,6 +26,41 @@ namespace Game.Runtime.UI.Settings
 
 		private static readonly int[] FrameRates = { 30, 60, 120, 144, 165, 240, GameSettings.UncappedFrameRate };
 
+		[Header("Panels")]
+		[Required]
+		[SerializeField] private UIPanelStateGroup _panels;
+
+		[Required]
+		[SerializeField] private GameObject _menuPanel;
+
+		[Required]
+		[SerializeField] private GameObject _graphicPanel;
+
+		[Required]
+		[SerializeField] private GameObject _audioPanel;
+
+		[Required]
+		[SerializeField] private GameObject _languagePanel;
+
+		[Header("Menu")]
+		[Required]
+		[SerializeField] private UISelectionGroup _menuGroup;
+
+		[Required]
+		[SerializeField] private UISelectionItem _graphicItem;
+
+		[Required]
+		[SerializeField] private UISelectionItem _audioItem;
+
+		[Required]
+		[SerializeField] private UISelectionItem _languageItem;
+
+		[Tooltip("Every way out of the whole screen: each panel's close cross and the menu's Back.")]
+		[SerializeField] private UIButton[] _closeButtons = Array.Empty<UIButton>();
+
+		[Tooltip("Each section's Back, returning to the menu.")]
+		[SerializeField] private UIButton[] _backButtons = Array.Empty<UIButton>();
+
 		[Header("Graphics")]
 		[Required] [SerializeField] private UIOptionStepper _windowMode;
 		[Required] [SerializeField] private UIOptionStepper _resolution;
@@ -29,11 +68,15 @@ namespace Game.Runtime.UI.Settings
 		[Required] [SerializeField] private UIOptionStepper _vSync;
 
 		[Header("Language")]
-		[Required] [SerializeField] private UIOptionStepper _language;
+		[Required]
+		[SerializeField] private UISelectionGroup _languageGroup;
 
-		[SerializeField] private UIButton _closeButton;
+		[Tooltip("One entry per locale, instantiated under the language group (Button_Text).")]
+		[Required]
+		[SerializeField] private UISelectionItem _languageItemPrefab;
 
 		private readonly List<Vector2Int> _resolutions = new();
+		private readonly List<UISelectionItem> _languageItems = new();
 
 		public event Action OnClosed;
 
@@ -53,24 +96,70 @@ namespace Game.Runtime.UI.Settings
 			_resolution.OnIndexChanged += ApplyResolution;
 			_frameRate.OnIndexChanged += ApplyFrameRate;
 			_vSync.OnIndexChanged += ApplyVSync;
-			_language.OnIndexChanged += ApplyLanguage;
-			if (_closeButton) _closeButton.OnClick += Close;
+			_menuGroup.OnSubmitted += HandleMenuSubmitted;
+			_languageGroup.OnSubmitted += HandleLanguageSubmitted;
+			foreach (var button in _closeButtons) if (button) button.OnClick += Close;
+			foreach (var button in _backButtons) if (button) button.OnClick += ShowMenu;
 			Localizer.OnLocaleChanged += Refresh;
-			UIEscapeStack.Push(Close);
+			UIEscapeStack.Push(HandleEscape);
 
 			Refresh();
+			ShowMenu();
 		}
 
 		private void OnDisable()
 		{
-			UIEscapeStack.Remove(Close);
+			UIEscapeStack.Remove(HandleEscape);
 			Localizer.OnLocaleChanged -= Refresh;
-			if (_closeButton) _closeButton.OnClick -= Close;
-			_language.OnIndexChanged -= ApplyLanguage;
+			foreach (var button in _backButtons) if (button) button.OnClick -= ShowMenu;
+			foreach (var button in _closeButtons) if (button) button.OnClick -= Close;
+			_languageGroup.OnSubmitted -= HandleLanguageSubmitted;
+			_menuGroup.OnSubmitted -= HandleMenuSubmitted;
 			_vSync.OnIndexChanged -= ApplyVSync;
 			_frameRate.OnIndexChanged -= ApplyFrameRate;
 			_resolution.OnIndexChanged -= ApplyResolution;
 			_windowMode.OnIndexChanged -= ApplyWindowMode;
+		}
+
+		// Escape steps back one panel: out of a section to the menu, out of the menu to whoever opened it.
+		private void HandleEscape()
+		{
+			if (_panels.IsShowing(_menuPanel))
+			{
+				Close();
+				return;
+			}
+
+			ShowMenu();
+			UIEscapeStack.Push(HandleEscape);
+		}
+
+		private void ShowMenu() => _panels.Show(_menuPanel);
+
+		private void HandleMenuSubmitted(UISelectionItem item)
+		{
+			if (item == _graphicItem) _panels.Show(_graphicPanel);
+			else if (item == _audioItem) _panels.Show(_audioPanel);
+			else if (item == _languageItem) ShowLanguages();
+		}
+
+		private void ShowLanguages()
+		{
+			_panels.Show(_languagePanel);
+
+			// Opened on the language in use, so the list says which one it is before anything is pointed at.
+			var index = Localizer.Locales.ToList().FindIndex(locale => locale.LocaleCode == Localizer.CurrentLocaleCode);
+			if (index < 0 || index >= _languageItems.Count) return;
+
+			var current = _languageItems[index];
+			_languageGroup.Select(current, true);
+			if (EventSystem.current) EventSystem.current.SetSelectedGameObject(current.gameObject);
+		}
+
+		private void HandleLanguageSubmitted(UISelectionItem item)
+		{
+			var index = _languageItems.IndexOf(item);
+			if (index >= 0) GameSettings.SetLanguage(Localizer.Locales[index].LocaleCode);
 		}
 
 		private void Refresh()
@@ -105,9 +194,27 @@ namespace Game.Runtime.UI.Settings
 
 			_vSync.SetOptions(new[] { Localizer.Get(LocalizationKeys.Common.Off), Localizer.Get(LocalizationKeys.Common.On) }, vSync ? 1 : 0);
 
+			RefreshLanguages();
+		}
+
+		// Entries already made are re-labelled rather than rebuilt, so reopening costs nothing new.
+		private void RefreshLanguages()
+		{
 			var locales = Localizer.Locales;
-			_language.SetOptions(locales.Select(locale => locale.DisplayName),
-				locales.ToList().FindIndex(locale => locale.LocaleCode == Localizer.CurrentLocaleCode));
+
+			while (_languageItems.Count < locales.Count)
+			{
+				_languageItems.Add(Instantiate(_languageItemPrefab, _languageGroup.transform));
+			}
+
+			for (var i = 0; i < _languageItems.Count; i++)
+			{
+				var used = i < locales.Count;
+				_languageItems[i].gameObject.SetActive(used);
+				if (used) _languageItems[i].GetComponentInChildren<TMP_Text>().text = locales[i].DisplayName;
+			}
+
+			_languageGroup.SetItems(_languageItems.Take(locales.Count));
 		}
 
 		private static int NearestFrameRateIndex(int target)
@@ -134,7 +241,5 @@ namespace Game.Runtime.UI.Settings
 			GameSettings.VSync = index == 1;
 			_frameRate.IsInteractable = index == 0;
 		}
-
-		private void ApplyLanguage(int index) => GameSettings.SetLanguage(Localizer.Locales[index].LocaleCode);
 	}
 }

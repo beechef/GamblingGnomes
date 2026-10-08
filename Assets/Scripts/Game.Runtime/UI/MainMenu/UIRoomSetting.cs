@@ -22,7 +22,13 @@ namespace Game.Runtime.UI.MainMenu
 		[Header("References")]
 		[SerializeField] private UIMainMenu _mainMenuUI;
 		[SerializeField] private TMP_InputField _maxPlayersField;
+
+		[Tooltip("Optional. Left blank by the player, the room is named after the host.")]
+		[SerializeField] private TMP_InputField _roomNameField;
+
 		[SerializeField] private Toggle _isPrivateToggle;
+
+		[Tooltip("Optional. Left empty, the room hosts the database's first mode.")]
 		[SerializeField] private TMP_Dropdown _gameModeDropdown;
 		[SerializeField] private UIMatchConfigList _configList;
 
@@ -37,6 +43,9 @@ namespace Game.Runtime.UI.MainMenu
 		[SerializeField] private UIButton _confirmButton;
 		[SerializeField] private UIButton _cancelButton;
 
+		[Tooltip("Optional second way out, beside the close cross.")]
+		[SerializeField] private UIButton _backButton;
+
 		private readonly List<GameModeType> _dropdownGameModes = new();
 		private bool _creatingLobby;
 
@@ -44,6 +53,7 @@ namespace Game.Runtime.UI.MainMenu
 		{
 			_confirmButton.OnClick += OnConfirmClicked;
 			_cancelButton.OnClick += Close;
+			if (_backButton) _backButton.OnClick += Close;
 
 			// The room size is fixed, so the field that used to set it is taken off screen rather than left
 			// accepting a number nothing reads — a control that ignores what you type into it is worse than
@@ -53,6 +63,7 @@ namespace Game.Runtime.UI.MainMenu
 
 		private void OnDestroy()
 		{
+			if (_backButton) _backButton.OnClick -= Close;
 			_confirmButton.OnClick -= OnConfirmClicked;
 			_cancelButton.OnClick -= Close;
 		}
@@ -61,14 +72,14 @@ namespace Game.Runtime.UI.MainMenu
 		{
 			PopulateGameModeDropdown();
 
-			_gameModeDropdown.onValueChanged.AddListener(HandleGameModeChanged);
+			if (_gameModeDropdown) _gameModeDropdown.onValueChanged.AddListener(HandleGameModeChanged);
 
 			RebuildConfigList();
 		}
 
 		private void OnDisable()
 		{
-			_gameModeDropdown.onValueChanged.RemoveListener(HandleGameModeChanged);
+			if (_gameModeDropdown) _gameModeDropdown.onValueChanged.RemoveListener(HandleGameModeChanged);
 		}
 
 		public float GetValue(MatchConfigEntry entry) =>
@@ -116,13 +127,13 @@ namespace Game.Runtime.UI.MainMenu
 		}
 
 		private GameModeType SelectedGameMode() => _dropdownGameModes.Count > 0
-			? _dropdownGameModes[Mathf.Clamp(_gameModeDropdown.value, 0, _dropdownGameModes.Count - 1)]
+			? _dropdownGameModes[Mathf.Clamp(_gameModeDropdown ? _gameModeDropdown.value : 0, 0, _dropdownGameModes.Count - 1)]
 			: GameModeType.Main;
 
 		private void PopulateGameModeDropdown()
 		{
 			_dropdownGameModes.Clear();
-			_gameModeDropdown.ClearOptions();
+			if (_gameModeDropdown) _gameModeDropdown.ClearOptions();
 
 			var options = new List<TMP_Dropdown.OptionData>();
 			foreach (var entry in _gameModeDatabase.Entries)
@@ -131,7 +142,7 @@ namespace Game.Runtime.UI.MainMenu
 				options.Add(new TMP_Dropdown.OptionData(entry.DisplayName));
 			}
 
-			_gameModeDropdown.AddOptions(options);
+			if (_gameModeDropdown) _gameModeDropdown.AddOptions(options);
 		}
 
 		private async void OnConfirmClicked()
@@ -145,7 +156,7 @@ namespace Game.Runtime.UI.MainMenu
 
 			try
 			{
-				GameNetworkManager.Instance.ConfigureLobby(maxPlayers, isPrivate, gameMode);
+				GameNetworkManager.Instance.ConfigureLobby(maxPlayers, isPrivate, gameMode, _roomNameField ? _roomNameField.text : null);
 				await GameNetworkManager.Instance.StartHost(destroyCancellationToken);
 
 				gameObject.SetActive(false);

@@ -1,6 +1,7 @@
 using System;
 using Game.Runtime.Controller;
 using Game.Runtime.Lobby;
+using Game.Runtime.UI.Button;
 using Game.Runtime.UI.MainMenu;
 using UnityEngine;
 
@@ -12,12 +13,22 @@ namespace Game.Runtime.UI.FindLobby
 		[SerializeField] private RectTransform _itemContainer;
 		[SerializeField] private UIMainMenu _mainMenuUI;
 
+		[Tooltip("Every way out of the list: the close cross, Back.")]
+		[SerializeField] private UIButton[] _closeButtons = Array.Empty<UIButton>();
+
 		private bool _isRefreshing;
 		private bool _joiningLobby;
 
 		private void OnEnable()
 		{
+			foreach (var button in _closeButtons) if (button) button.OnClick += Close;
+
 			Refresh();
+		}
+
+		private void OnDisable()
+		{
+			foreach (var button in _closeButtons) if (button) button.OnClick -= Close;
 		}
 
 		// async void because a UI callback has nowhere to hand a task back to — so it catches its own

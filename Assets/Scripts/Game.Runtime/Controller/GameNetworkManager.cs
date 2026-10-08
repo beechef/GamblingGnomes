@@ -146,9 +146,10 @@ namespace Game.Runtime.Controller
 			return _localLobby;
 		}
 
-		public void ConfigureLobby(int maxPlayers, bool isPrivate, GameModeType gameMode)
+		public void ConfigureLobby(int maxPlayers, bool isPrivate, GameModeType gameMode, string roomName = null)
 		{
 			var settings = LobbySettings;
+			settings.RoomName = roomName;
 			settings.MaxPlayers = maxPlayers;
 			settings.IsPrivate = isPrivate;
 			settings.SelectedGameMode = gameMode;
@@ -262,7 +263,7 @@ namespace Game.Runtime.Controller
 		{
 			var data = new List<LobbyData>
 			{
-				new(LobbyConstant.RoomNameKey, service.LocalUserName),
+				new(LobbyConstant.RoomNameKey, string.IsNullOrWhiteSpace(LobbySettings.RoomName) ? service.LocalUserName : LobbySettings.RoomName.Trim()),
 				new(LobbyConstant.GameModeKey, LobbySettings.SelectedGameMode.ToString()),
 				new(LobbyConstant.MatchmakingKey, matchmaking ? LobbyConstant.MatchmakingValue : LobbyConstant.HostedValue)
 			};

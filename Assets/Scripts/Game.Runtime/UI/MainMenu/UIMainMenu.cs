@@ -1,5 +1,6 @@
 using System;
 using Game.Runtime.Controller;
+using Game.Runtime.UI.Button;
 using Game.Runtime.UI.FindLobby;
 using Game.Runtime.UI.Matchmaking;
 using Game.Runtime.UI.Selection;
@@ -24,6 +25,9 @@ namespace Game.Runtime.UI.MainMenu
 
 		[SerializeField] private UISelectionItem _optionItem;
 
+		[Tooltip("Greyed until there is a credits screen to open.")]
+		[SerializeField] private UISelectionItem _creditItem;
+
 		[Required]
 		[SerializeField] private UISelectionItem _quitItem;
 
@@ -40,8 +44,17 @@ namespace Game.Runtime.UI.MainMenu
 		[Required]
 		[SerializeField] private UISelectionItem _findItem;
 
+		[Tooltip("The panel's close cross: back to the root menu.")]
+		[SerializeField] private UIButton _playCloseButton;
+
+		[Header("Panels")]
+		[Tooltip("What the play panel covers: the logo and the root entries.")]
 		[Required]
-		[SerializeField] private UISelectionItem _backItem;
+		[SerializeField] private GameObject _rootMenu;
+
+		[Tooltip("The panel holding the play list.")]
+		[Required]
+		[SerializeField] private GameObject _playMenu;
 
 		[Header("Screens")]
 		[SerializeField] private UIRoomSetting _roomSettingUI;
@@ -65,8 +78,10 @@ namespace Game.Runtime.UI.MainMenu
 		{
 			_rootGroup.OnSubmitted += HandleRootSubmitted;
 			_playGroup.OnSubmitted += HandlePlaySubmitted;
+			if (_playCloseButton) _playCloseButton.OnClick += ShowRootMenu;
 
 			if (_optionItem) _optionItem.Button.IsInteractable = _settingsScreen;
+			if (_creditItem) _creditItem.Button.IsInteractable = false;
 			if (_quickMatchItem) _quickMatchItem.Button.IsInteractable = _matchmakingPopup;
 
 			ShowRootMenu();
@@ -74,6 +89,7 @@ namespace Game.Runtime.UI.MainMenu
 
 		private void OnDisable()
 		{
+			if (_playCloseButton) _playCloseButton.OnClick -= ShowRootMenu;
 			_rootGroup.OnSubmitted -= HandleRootSubmitted;
 			_playGroup.OnSubmitted -= HandlePlaySubmitted;
 		}
@@ -250,7 +266,6 @@ namespace Game.Runtime.UI.MainMenu
 			if (item == _quickMatchItem) QuickMatch();
 			else if (item == _hostItem) CreateLobby();
 			else if (item == _findItem) FindLobby();
-			else if (item == _backItem) ShowRootMenu();
 		}
 
 		private void ShowOptions()
@@ -284,8 +299,8 @@ namespace Game.Runtime.UI.MainMenu
 		// appears, so the list always opens with something under the pointer.
 		private void SetMenu(bool root)
 		{
-			if (_rootGroup) _rootGroup.gameObject.SetActive(root);
-			if (_playGroup) _playGroup.gameObject.SetActive(!root);
+			_rootMenu.SetActive(root);
+			_playMenu.SetActive(!root);
 		}
 	}
 }

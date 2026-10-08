@@ -23,6 +23,13 @@ namespace Game.Runtime.UI.Matchmaking
 		[Required]
 		[SerializeField] private TMP_Text _status;
 
+		[Tooltip("Who is in the room so far, under the status; shown only while waiting for it to fill.")]
+		[Required]
+		[SerializeField] private TMP_Text _count;
+
+		[Tooltip("Colour of the members already in, against the target.")]
+		[SerializeField] private Color _joinedColor = new(0.788f, 0.243f, 0.251f);
+
 		[Required]
 		[SerializeField] private UIButton _cancelButton;
 
@@ -143,6 +150,9 @@ namespace Game.Runtime.UI.Matchmaking
 			UIEscapeStack.Remove(_showingFailure ? HandleCancel : Close);
 			UIEscapeStack.Push(_showingFailure ? Close : HandleCancel);
 
+			var waiting = !_showingFailure && _matchmaking.State == MatchmakingState.Waiting;
+			_count.gameObject.SetActive(waiting);
+
 			if (_showingFailure)
 			{
 				_title.text = Localizer.Get(LocalizationKeys.Matchmaking.Failed);
@@ -150,9 +160,12 @@ namespace Game.Runtime.UI.Matchmaking
 			}
 
 			_title.text = Localizer.Get(LocalizationKeys.Matchmaking.Title);
-			_status.text = _matchmaking.State == MatchmakingState.Waiting
-				? Localizer.Format(LocalizationKeys.Matchmaking.Waiting, _matchmaking.MemberCount, _matchmaking.TargetPlayers)
-				: Localizer.Get(LocalizationKeys.Matchmaking.Searching);
+			_status.text = Localizer.Get(LocalizationKeys.Matchmaking.Searching);
+
+			if (waiting)
+			{
+				_count.text = $"<color=#{ColorUtility.ToHtmlStringRGB(_joinedColor)}>{_matchmaking.MemberCount}</color>/{_matchmaking.TargetPlayers}";
+			}
 		}
 
 		private static string FailureKey(MatchmakingFailure failure) => failure switch
