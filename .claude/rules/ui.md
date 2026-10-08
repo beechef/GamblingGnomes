@@ -51,7 +51,7 @@ paths:
 - **Never add a missing component with `GetComponent() ?? AddComponent()`** — Unity's fake null defeats `??`. Use `if (!component)` and read back.
 
 ### Buttons, selection, input on UI
-- **`UIButton` resolves state; `UIButtonVisual` subclasses draw it.** `UIButton` has no `Image`/colour/tween and raises `OnStateChanged(previous, current)`; subclasses: `UIButtonSpriteVisual`, `UIButtonScaleVisual`, `UIButtonOffsetVisual`, `UIButtonCanvasGroupVisual` (alpha). The base finds the button via `GetComponentInParent`, owns the subscription, snaps on enable, and snaps when `previous == current`.
+- **`UIButton` resolves state; `UIButtonVisual` subclasses draw it.** `UIButton` has no `Image`/colour/tween and raises `OnStateChanged(previous, current)`; subclasses: `UIButtonSpriteVisual`, `UIButtonScaleVisual`, `UIButtonOffsetVisual`, `UIButtonCanvasGroupVisual` (alpha), `UIButtonLabelVisual` (colour, and with `_animateSize` the size, through `fontSizeMax` on an auto-sized label). A button with a fixed 3D icon is `Button_Model`: `UIModelView._startPrefab` shows it on Start, `UIButtonScaleVisual` scales the `Model` rect. The base finds the button via `GetComponentInParent`, owns the subscription, snaps on enable, and snaps when `previous == current`.
 - **A `UIButtonVisual` subclass never declares `Reset` or `OnDisable`**; use `OnReset`/`OnDisabled`.
 - **A button styled by a visual sets uGUI `Button` Transition to None.**
 - **A tint a visual paints at runtime is also authored on the `Image`.** `Button_Plate`
