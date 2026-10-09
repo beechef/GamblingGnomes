@@ -1,12 +1,17 @@
+using System.Collections.Generic;
 using FMODUnity;
 using UnityEngine;
 
 namespace Game.Runtime.Audio
 {
-	// Each sound is its own instance, released as soon as it starts: FMOD frees it when it stops, and an
-	// attached one is followed by RuntimeManager until then.
+	// Each sound is its own instance. A one-shot is released as soon as it starts, so FMOD frees it when it
+	// ends; one that plays until stopped is kept by id and released on Stop. An attached one is followed by
+	// RuntimeManager until it stops.
 	public class FmodAudioBackend : IAudioBackend
 	{
+		private readonly Dictionary<int, FMOD.Studio.EventInstance> _playing = new();
+		private int _nextId;
+
 		public FmodAudioBackend(GameObject listener)
 		{
 			if (listener && !listener.TryGetComponent(out StudioListener _)) listener.AddComponent<StudioListener>();
@@ -27,6 +32,32 @@ namespace Game.Runtime.Audio
 			instance.set3DAttributes(target.To3DAttributes());
 			RuntimeManager.AttachInstanceToGameObject(instance, target.gameObject);
 			Start(instance, audioEvent);
+		}
+
+		public int Play(AudioEvent audioEvent, Transform target)
+		{
+			if (!TryCreate(audioEvent, out var instance)) return 0;
+
+			if (target)
+			{
+				instance.set3DAttributes(target.To3DAttributes());
+				RuntimeManager.AttachInstanceToGameObject(instance, target.gameObject);
+			}
+
+			instance.setVolume(audioEvent.Volume);
+			instance.start();
+
+			var id = ++_nextId;
+			_playing[id] = instance;
+			return id;
+		}
+
+		public void Stop(int id, bool fadeOut)
+		{
+			if (!_playing.Remove(id, out var instance) || !instance.isValid()) return;
+
+			instance.stop(fadeOut ? FMOD.Studio.STOP_MODE.ALLOWFADEOUT : FMOD.Studio.STOP_MODE.IMMEDIATE);
+			instance.release();
 		}
 
 		private static bool TryCreate(AudioEvent audioEvent, out FMOD.Studio.EventInstance instance)

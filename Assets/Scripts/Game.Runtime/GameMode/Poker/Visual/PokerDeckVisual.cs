@@ -1,5 +1,7 @@
+using Game.Runtime.Audio;
 using Game.Runtime.GameMode.Poker.Stages;
 using Sirenix.OdinInspector;
+using Unity.Collections;
 using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker.Visual
@@ -28,6 +30,9 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		[Required]
 		[SerializeField] private PokerDealController _controller;
 
+		[Tooltip("Played on the deck as a deal begins, before the first card leaves. Empty: no shuffle heard.")]
+		[SerializeField] private AudioEvent _shuffleSound;
+
 		public static PokerDeckVisual Instance { get; private set; }
 
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
@@ -43,6 +48,22 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		private void OnDestroy()
 		{
 			if (Instance == this) Instance = null;
+		}
+
+		// Heard only as a deal begins: a player joining mid-deal reads the stage on bind and hears nothing.
+		protected override void OnBind() => Data.StageId.OnValueChanged += HandleStageChanged;
+
+		protected override void OnUnbind()
+		{
+			if (Data) Data.StageId.OnValueChanged -= HandleStageChanged;
+		}
+
+		private void HandleStageChanged(FixedString32Bytes previous, FixedString32Bytes current)
+		{
+			if (!_shuffleSound || !AudioManager.Instance) return;
+			if (GameMode.FindStage(current.ToString()) is not PokerDealStage) return;
+
+			AudioManager.Instance.PlayOneShot(_shuffleSound, _top ? _top.position : transform.position);
 		}
 
 		// Holds the card on the deck until its turn comes round. The turn is by seat, not by the order the

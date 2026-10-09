@@ -9,12 +9,20 @@ namespace Game.Runtime.UI
 	// pointer is over it while it answers, the same way UIButton.OnPointerOverChanged does, so the screen-wide
 	// reactions (the cursor's look) treat every control alike without the control knowing they exist.
 	[RequireComponent(typeof(Selectable))]
-	public class UISelectableHover : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
+	public class UISelectableHover : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler, ISubmitHandler
 	{
 		public static event Action<UISelectableHover, bool> OnPointerOverChanged;
 
+		// A toggle flipped by the player, by click or submit, never by code setting its value, for what answers
+		// it like a button press (the click sound).
+		public static event Action<UISelectableHover> OnToggleFlipped;
+
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-		private static void ResetStatics() => OnPointerOverChanged = null;
+		private static void ResetStatics()
+		{
+			OnPointerOverChanged = null;
+			OnToggleFlipped = null;
+		}
 
 		private Selectable _selectable;
 		private bool _over;
@@ -27,6 +35,18 @@ namespace Game.Runtime.UI
 		public void OnPointerEnter(PointerEventData eventData) => SetOver(_selectable.IsInteractable());
 
 		public void OnPointerExit(PointerEventData eventData) => SetOver(false);
+
+		public void OnPointerClick(PointerEventData eventData)
+		{
+			if (eventData.button == PointerEventData.InputButton.Left) RaiseToggleFlipped();
+		}
+
+		public void OnSubmit(BaseEventData eventData) => RaiseToggleFlipped();
+
+		private void RaiseToggleFlipped()
+		{
+			if (_selectable is Toggle && _selectable.IsInteractable()) OnToggleFlipped?.Invoke(this);
+		}
 
 		private void SetOver(bool over)
 		{
