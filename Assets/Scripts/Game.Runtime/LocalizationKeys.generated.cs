@@ -518,6 +518,7 @@ namespace Game.Runtime
 			public const string LanguageSection = "settings.language_section";
 			public const string Resolution = "settings.resolution";
 			public const string Title = "settings.title";
+			public const string VoiceSection = "settings.voice_section";
 			public const string Vsync = "settings.vsync";
 			public const string WindowModeKey = "settings.window_mode";
 
@@ -532,6 +533,27 @@ namespace Game.Runtime
 			public static class Fps
 			{
 				public const string Unlimited = "settings.fps.unlimited";
+			}
+
+			public static class Voice
+			{
+				public const string InputVolume = "settings.voice.input_volume";
+				public const string MicrophoneKey = "settings.voice.microphone";
+				public const string NoiseSuppression = "settings.voice.noise_suppression";
+				public const string OutputVolume = "settings.voice.output_volume";
+				public const string PlayerVolumes = "settings.voice.player_volumes";
+				public const string TalkModeKey = "settings.voice.talk_mode";
+
+				public static class Microphone
+				{
+					public const string Default = "settings.voice.microphone.default";
+				}
+
+				public static class TalkMode
+				{
+					public const string OpenMic = "settings.voice.talk_mode.open_mic";
+					public const string PushToTalk = "settings.voice.talk_mode.push_to_talk";
+				}
 			}
 
 			public static class WindowMode

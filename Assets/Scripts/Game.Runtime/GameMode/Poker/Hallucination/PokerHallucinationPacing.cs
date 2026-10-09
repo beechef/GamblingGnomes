@@ -29,6 +29,10 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 		[MinValue(0)]
 		[SerializeField] private int _reopenFrame = 38;
 
+		[Tooltip("How fast the lids close and open against the video's own rate. 1.5 is half as fast again. The hold is not scaled.")]
+		[MinValue(0.1)]
+		[SerializeField] private float _playbackSpeed = 1f;
+
 		[Tooltip("Seconds the eye stays shut after the change lands. Never shorter than Effect Ease, so the eye cannot open on an effect still moving.")]
 		[SerializeField, Min(0f)] private float _hold = 0.8f;
 
@@ -45,13 +49,18 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 		private float FrameTime(int frame) =>
 			HasBlink ? (float)(Mathf.Clamp(frame, 0, (int)_blinkVideo.frameCount) / _blinkVideo.frameRate) : 0f;
 
-		public float CloseDuration => FrameTime(_shutFrame);
+		private float Speed => Mathf.Max(_playbackSpeed, 0.1f);
+
+		// Shut Time and Reopen Time are points in the video; the durations are seconds on the clock.
+		public float ShutTime => FrameTime(_shutFrame);
 
 		public float ReopenTime => FrameTime(Mathf.Max(_reopenFrame, _shutFrame));
 
+		public float CloseDuration => ShutTime / Speed;
+
 		public float HoldDuration => HasBlink ? Mathf.Max(_hold, _effectEase) : 0f;
 
-		public float OpenDuration => HasBlink ? (float)_blinkVideo.length - ReopenTime : 0f;
+		public float OpenDuration => HasBlink ? ((float)_blinkVideo.length - ReopenTime) / Speed : 0f;
 
 		// The whole beat: closing, held shut, opening.
 		public float TransitionDuration => CloseDuration + HoldDuration + OpenDuration;
