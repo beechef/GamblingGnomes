@@ -60,5 +60,11 @@ namespace Game.Runtime.Audio
 		{
 			if (handle.IsValid && _backend != null) _backend.Stop(handle.Id, fadeOut);
 		}
+
+		// A parameter on a sound that lasts, by the name its event gives it.
+		public void SetParameter(AudioHandle handle, string parameter, float value)
+		{
+			if (handle.IsValid && _backend != null && !string.IsNullOrEmpty(parameter)) _backend.SetParameter(handle.Id, parameter, value);
+		}
 	}
 }

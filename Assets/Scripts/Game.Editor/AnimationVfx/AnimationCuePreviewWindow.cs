@@ -406,6 +406,8 @@ namespace Game.Editor.AnimationVfx
 
 				EditorGUILayout.PropertyField(frame);
 				EditorGUILayout.PropertyField(sound);
+				EditorGUILayout.PropertyField(cue.FindPropertyRelative(nameof(AnimationAudioCue.Choice)), true);
+				EditorGUILayout.PropertyField(cue.FindPropertyRelative(nameof(AnimationAudioCue.AlternateEvent)));
 				DrawBonePopup(cue.FindPropertyRelative(nameof(AnimationAudioCue.Bone)));
 				EditorGUILayout.PropertyField(cue.FindPropertyRelative(nameof(AnimationAudioCue.FollowBone)));
 			}

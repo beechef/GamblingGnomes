@@ -95,8 +95,8 @@ namespace Game.Runtime.GameMode.Poker.Items
 		// through the whole of it.
 		public event Action<ulong, PokerItemType> OnItemResolved;
 
-		// A card about to be rewritten in place, and which faces it flickers through on the way.
-		public event Action<PokerCardPlace, PokerCardFlickerFaces> OnCardRewriting;
+		// A card about to be rewritten in place, which faces it flickers through on the way, and what it becomes (None when it stays as it is).
+		public event Action<PokerCardPlace, PokerCardFlickerFaces, CardData> OnCardRewriting;
 
 		public PokerCardExchangePacing ExchangePacing => _exchangePacing;
 
@@ -659,7 +659,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 		{
 			if (!IsServer || !holder || !holder.Data || slot < 0 || slot >= holder.Data.CardCount) return;
 
-			PlayCardRewriteRPC(PokerCardPlace.InHand(holder.ClientId, slot), faces);
+			PlayCardRewriteRPC(PokerCardPlace.InHand(holder.ClientId, slot), faces, card);
 
 			if (_exchangePacing) await Awaitable.WaitForSecondsAsync(_exchangePacing.RewriteDuration, ct);
 
@@ -676,7 +676,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 		private void PlayItemResolvedRPC(ulong user, PokerItemType item) => OnItemResolved?.Invoke(user, item);
 
 		[Rpc(SendTo.Everyone)]
-		private void PlayCardRewriteRPC(PokerCardPlace place, PokerCardFlickerFaces faces) => OnCardRewriting?.Invoke(place, faces);
+		private void PlayCardRewriteRPC(PokerCardPlace place, PokerCardFlickerFaces faces, CardData card) => OnCardRewriting?.Invoke(place, faces, card);
 
 		[Rpc(SendTo.Everyone)]
 		private void PlayCardExchangeRPC(PokerCardPlace first, PokerCardPlace second, PokerCardExchangeFlight flight) => OnCardsExchanging?.Invoke(first, second, flight);
