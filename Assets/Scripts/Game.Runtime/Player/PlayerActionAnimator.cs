@@ -60,6 +60,13 @@ namespace Game.Runtime.Player
 			};
 		}
 
+		// For a performance every peer already runs from one shared event (an item's prop): played here
+		// rather than replicated, which would play it twice.
+		public void PlayLocal(string actionId)
+		{
+			if (!string.IsNullOrEmpty(actionId)) Play(actionId);
+		}
+
 		private void HandleCurrentChanged(PlayerActionAnimationEvent previous, PlayerActionAnimationEvent current)
 		{
 			Play(current.Id.ToString());

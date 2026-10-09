@@ -1,7 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
 using Game.Runtime.Audio;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -75,11 +73,7 @@ namespace Game.Runtime.Player
 			return false;
 		}
 
-		private static IEnumerable<string> ActionIds =>
-			typeof(PlayerActionIds)
-				.GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy)
-				.Where(field => field.IsLiteral && field.FieldType == typeof(string))
-				.Select(field => (string)field.GetRawConstantValue());
+		private static IEnumerable<string> ActionIds => PlayerActionIds.All;
 
 		private IEnumerable<string> StateNames
 		{

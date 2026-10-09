@@ -534,6 +534,8 @@ namespace Game.Runtime.GameMode.Poker.Items
 
 				try
 				{
+					if (item.LeadIn > 0f) await Awaitable.WaitForSecondsAsync(item.LeadIn, ct);
+
 					await item.UseServerAsync(context, request, ct);
 				}
 				finally

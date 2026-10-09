@@ -157,6 +157,64 @@ MonoBehaviour:
     m_Bits: 4294967295
   _maxDistance: 6
   _cardHoverLift: 0.015
+--- !u!1 &1087355224460173777
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5169061535997356265}
+  - component: {fileID: 3791783350489784885}
+  m_Layer: 0
+  m_Name: ItemPerformances
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5169061535997356265
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1087355224460173777}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 1569989469006434712}
+  - {fileID: 8145515007645979680}
+  - {fileID: 2883722175476011648}
+  - {fileID: 4061370331948293385}
+  - {fileID: 8767742209076143994}
+  - {fileID: 1744555418995389488}
+  - {fileID: 5712018767110371196}
+  - {fileID: 5476871969772163090}
+  - {fileID: 8806316605481856200}
+  - {fileID: 7608631342197395092}
+  - {fileID: 2593180133978010466}
+  - {fileID: 5137735818105906828}
+  - {fileID: 420279023847015844}
+  m_Father: {fileID: 7915523810459036602}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3791783350489784885
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1087355224460173777}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2483c7b18baaf4f51bb15d6b712bab6a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Player.PokerItemPerformer
+  _ownFacePoint: {fileID: 1569989469006434712}
 --- !u!1 &1240236629025602518
 GameObject:
   m_ObjectHideFlags: 0
@@ -319,6 +377,127 @@ MonoBehaviour:
   _requiresPlaceInMatch: 0
   _requiresFocus: 0
   _data: {fileID: 6935137486891752095}
+--- !u!1 &1294279587994817630
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1744555418995389488}
+  - component: {fileID: 4091236621562976229}
+  m_Layer: 0
+  m_Name: Dice
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1744555418995389488
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1294279587994817630}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5169061535997356265}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4091236621562976229
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1294279587994817630}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 639b688469ae3f352be314409c78cc62, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Player.PokerItemPerformance
+  _item: {fileID: 11400000, guid: 8b251b97beebb1943984837d8a88415d, type: 2}
+  _performer: 0
+  _propPrefab: {fileID: 5221234804125038969, guid: a50e9f6c0427b4544a70650715caaa88, type: 3}
+  _cardsFrom: 0
+  _intro:
+  - Label: Take out from under the table
+    Duration: 0.35
+    To: 1
+    Offset: {x: 0, y: 0, z: 0}
+    Rotation: {x: 0, y: 0, z: 0}
+    AimAtOther: 0
+    Spin: {x: 0, y: 0, z: 0}
+    Ease: 6
+    Hide: 0
+    HandFollows: 1
+    Gesture: ItemTakeOut
+    PropState: 
+    Effect: {fileID: 0}
+    EffectLifetime: 0
+    Sound: {fileID: 0}
+    OnlyOnOutcome: 0
+    Outcome: 0
+  - Label: Shake
+    Duration: 0.4
+    To: 9
+    Offset: {x: 0.1, y: 0.62, z: 0.28}
+    Rotation: {x: 0, y: 0, z: 0}
+    AimAtOther: 0
+    Spin: {x: 0, y: 360, z: 0}
+    Ease: 4
+    Hide: 0
+    HandFollows: 1
+    Gesture: ItemDiceRoll
+    PropState: 
+    Effect: {fileID: 0}
+    EffectLifetime: 0
+    Sound: {fileID: 0}
+    OnlyOnOutcome: 0
+    Outcome: 0
+  - Label: Roll
+    Duration: 0.6
+    To: 2
+    Offset: {x: 0, y: 0.025, z: -0.1}
+    Rotation: {x: 0, y: 0, z: 0}
+    AimAtOther: 0
+    Spin: {x: 720, y: 360, z: 0}
+    Ease: 30
+    Hide: 0
+    HandFollows: 0
+    Gesture: 
+    PropState: 
+    Effect: {fileID: 0}
+    EffectLifetime: 0
+    Sound: {fileID: 0}
+    OnlyOnOutcome: 0
+    Outcome: 0
+  _hold: 1
+  _holdDuration: 0
+  _outro:
+  - Label: Vanish
+    Duration: 0.3
+    To: 2
+    Offset: {x: 0, y: 0.025, z: -0.1}
+    Rotation: {x: 0, y: 0, z: 0}
+    AimAtOther: 0
+    Spin: {x: 0, y: 0, z: 0}
+    Ease: 26
+    Hide: 1
+    HandFollows: 0
+    Gesture: 
+    PropState: 
+    Effect: {fileID: 0}
+    EffectLifetime: 0
+    Sound: {fileID: 0}
+    OnlyOnOutcome: 0
+    Outcome: 0
+  _handReachDuration: 0.2
 --- !u!1 &1863945868604418551
 GameObject:
   m_ObjectHideFlags: 0
@@ -692,6 +871,144 @@ MonoBehaviour:
   _requiresPlaceInMatch: 0
   _requiresFocus: 0
   _data: {fileID: 6935137486891752095}
+--- !u!1 &2853070419111643969
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8767742209076143994}
+  - component: {fileID: 608924406540951241}
+  m_Layer: 0
+  m_Name: Cigarette
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8767742209076143994
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2853070419111643969}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5169061535997356265}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &608924406540951241
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2853070419111643969}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 639b688469ae3f352be314409c78cc62, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Player.PokerItemPerformance
+  _item: {fileID: 11400000, guid: bdf3c1e1f2b204f42990b5af1c2ec76d, type: 2}
+  _performer: 0
+  _propPrefab: {fileID: 2075498200954577541, guid: 800b850356a5f13498646d083a0a262e, type: 3}
+  _cardsFrom: 2
+  _intro:
+  - Label: Take out from under the table
+    Duration: 0.35
+    To: 1
+    Offset: {x: 0, y: 0, z: 0}
+    Rotation: {x: 0, y: 0, z: 0}
+    AimAtOther: 0
+    Spin: {x: 0, y: 0, z: 0}
+    Ease: 6
+    Hide: 0
+    HandFollows: 1
+    Gesture: ItemTakeOut
+    PropState: 
+    Effect: {fileID: 0}
+    EffectLifetime: 0
+    Sound: {fileID: 0}
+    OnlyOnOutcome: 0
+    Outcome: 0
+  - Label: To the mouth
+    Duration: 0.4
+    To: 3
+    Offset: {x: 0.015, y: -0.01, z: 0.03}
+    Rotation: {x: 0, y: -25, z: 0}
+    AimAtOther: 0
+    Spin: {x: 0, y: 0, z: 0}
+    Ease: 4
+    Hide: 0
+    HandFollows: 1
+    Gesture: ItemSmoke
+    PropState: 
+    Effect: {fileID: 0}
+    EffectLifetime: 0
+    Sound: {fileID: 0}
+    OnlyOnOutcome: 0
+    Outcome: 0
+  - Label: Drag
+    Duration: 0.9
+    To: 3
+    Offset: {x: 0.015, y: -0.01, z: 0.03}
+    Rotation: {x: 0, y: -25, z: 0}
+    AimAtOther: 0
+    Spin: {x: 0, y: 0, z: 0}
+    Ease: 4
+    Hide: 0
+    HandFollows: 1
+    Gesture: 
+    PropState: 
+    Effect: {fileID: 1067041360444539270, guid: 8824a724954341a479d332df4e2c8734, type: 3}
+    EffectLifetime: 3
+    Sound: {fileID: 0}
+    OnlyOnOutcome: 0
+    Outcome: 0
+  - Label: Lower
+    Duration: 0.4
+    To: 9
+    Offset: {x: 0.1, y: 0.62, z: 0.28}
+    Rotation: {x: 0, y: 0, z: 0}
+    AimAtOther: 0
+    Spin: {x: 0, y: 0, z: 0}
+    Ease: 4
+    Hide: 0
+    HandFollows: 1
+    Gesture: 
+    PropState: 
+    Effect: {fileID: 0}
+    EffectLifetime: 0
+    Sound: {fileID: 0}
+    OnlyOnOutcome: 0
+    Outcome: 0
+  _hold: 0
+  _holdDuration: 0
+  _outro:
+  - Label: Throw away
+    Duration: 0.5
+    To: 9
+    Offset: {x: 0.45, y: 0.5, z: -0.2}
+    Rotation: {x: 0, y: 0, z: 0}
+    AimAtOther: 0
+    Spin: {x: 0, y: 0, z: 540}
+    Ease: 6
+    Hide: 1
+    HandFollows: 0
+    Gesture: ItemThrowAway
+    PropState: 
+    Effect: {fileID: 0}
+    EffectLifetime: 0
+    Sound: {fileID: 0}
+    OnlyOnOutcome: 0
+    Outcome: 0
+  _handReachDuration: 0.2
 --- !u!1 &2955366683832157649
 GameObject:
   m_ObjectHideFlags: 0
@@ -736,6 +1053,558 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a1564519ca8813d42bb7c5e89890c71a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Player.PokerPlayerEffectTags
+--- !u!1 &2985570886855542347
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5137735818105906828}
+  - component: {fileID: 3041998150075954592}
+  m_Layer: 0
+  m_Name: Handcuffs
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5137735818105906828
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2985570886855542347}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5169061535997356265}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3041998150075954592
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2985570886855542347}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 639b688469ae3f352be314409c78cc62, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Player.PokerItemPerformance
+  _item: {fileID: 11400000, guid: 4aa7314cec9b9ec4db71d7015993f695, type: 2}
+  _performer: 2
+  _propPrefab: {fileID: 2636972510481635183, guid: b0ffca52b6365cf45a6afc87d79b88e1, type: 3}
+  _cardsFrom: 0
+  _intro:
+  - Label: Snap on
+    Duration: 0.4
+    To: 0
+    Offset: {x: 0, y: 0.02, z: 0}
+    Rotation: {x: 0, y: 0, z: 0}
+    AimAtOther: 0
+    Spin: {x: 0, y: 0, z: 0}
+    Ease: 27
+    Hide: 0
+    HandFollows: 0
+    Gesture: ItemCuffed
+    PropState: 
+    Effect: {fileID: 0}
+    EffectLifetime: 0
+    Sound: {fileID: 0}
+    OnlyOnOutcome: 0
+    Outcome: 0
+  - Label: Settle
+    Duration: 0.4
+    To: 0
+    Offset: {x: 0, y: 0, z: 0}
+    Rotation: {x: 0, y: 0, z: 0}
+    AimAtOther: 0
+    Spin: {x: 0, y: 0, z: 0}
+    Ease: 4
+    Hide: 0
+    HandFollows: 0
+    Gesture: 
+    PropState: 
+    Effect: {fileID: 0}
+    EffectLifetime: 0
+    Sound: {fileID: 0}
+    OnlyOnOutcome: 0
+    Outcome: 0
+  _hold: 2
+  _holdDuration: 0
+  _outro:
+  - Label: Pop open
+    Duration: 0.3
+    To: 0
+    Offset: {x: 0, y: 0.08, z: 0}
+    Rotation: {x: 0, y: 0, z: 0}
+    AimAtOther: 0
+    Spin: {x: 0, y: 180, z: 0}
+    Ease: 6
+    Hide: 0
+    HandFollows: 0
+    Gesture: ItemCuffsBreak
+    PropState: Open
+    Effect: {fileID: 0}
+    EffectLifetime: 0
+    Sound: {fileID: 0}
+    OnlyOnOutcome: 0
+    Outcome: 0
+  - Label: Fall
+    Duration: 0.6
+    To: 9
+    Offset: {x: 0.15, y: 0.05, z: 0.2}
+    Rotation: {x: 0, y: 0, z: 0}
+    AimAtOther: 0
+    Spin: {x: 360, y: 0, z: 90}
+    Ease: 5
+    Hide: 0
+    HandFollows: 0
+    Gesture: 
+    PropState: 
+    Effect: {fileID: 0}
+    EffectLifetime: 0
+    Sound: {fileID: 0}
+    OnlyOnOutcome: 0
+    Outcome: 0
+  - Label: Vanish
+    Duration: 0.3
+    To: 9
+    Offset: {x: 0.15, y: 0.05, z: 0.2}
+    Rotation: {x: 0, y: 0, z: 0}
+    AimAtOther: 0
+    Spin: {x: 0, y: 0, z: 0}
+    Ease: 26
+    Hide: 1
+    HandFollows: 0
+    Gesture: 
+    PropState: 
+    Effect: {fileID: 0}
+    EffectLifetime: 0
+    Sound: {fileID: 0}
+    OnlyOnOutcome: 0
+    Outcome: 0
+  _handReachDuration: 0.2
+--- !u!1 &3039617776115397076
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8806316605481856200}
+  - component: {fileID: 2598387168695294616}
+  m_Layer: 0
+  m_Name: Syringe
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8806316605481856200
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3039617776115397076}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5169061535997356265}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2598387168695294616
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3039617776115397076}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 639b688469ae3f352be314409c78cc62, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Player.PokerItemPerformance
+  _item: {fileID: 11400000, guid: a00dc9283b17e934b90911c450b841fc, type: 2}
+  _performer: 1
+  _propPrefab: {fileID: 2004744023842150066, guid: 68d52c28629bd9e4785f9666d4657c8d, type: 3}
+  _cardsFrom: 0
+  _intro:
+  - Label: Take out from under the table
+    Duration: 0.35
+    To: 1
+    Offset: {x: 0, y: 0, z: 0}
+    Rotation: {x: 0, y: 0, z: 0}
+    AimAtOther: 0
+    Spin: {x: 0, y: 0, z: 0}
+    Ease: 6
+    Hide: 0
+    HandFollows: 1
+    Gesture: ItemTakeOut
+    PropState: 
+    Effect: {fileID: 0}
+    EffectLifetime: 0
+    Sound: {fileID: 0}
+    OnlyOnOutcome: 0
+    Outcome: 0
+  - Label: Aim at the card hand
+    Duration: 0.4
+    To: 5
+    Offset: {x: 0.07, y: 0.03, z: 0}
+    Rotation: {x: 0, y: -90, z: 0}
+    AimAtOther: 0
+    Spin: {x: 0, y: 0, z: 0}
+    Ease: 4
+    Hide: 0
+    HandFollows: 1
+    Gesture: ItemInject
+    PropState: 
+    Effect: {fileID: 0}
+    EffectLifetime: 0
+    Sound: {fileID: 0}
+    OnlyOnOutcome: 0
+    Outcome: 0
+  - Label: Inject
+    Duration: 0.4
+    To: 5
+    Offset: {x: 0.03, y: 0.01, z: 0}
+    Rotation: {x: 0, y: -90, z: 0}
+    AimAtOther: 0
+    Spin: {x: 0, y: 0, z: 0}
+    Ease: 5
+    Hide: 0
+    HandFollows: 1
+    Gesture: 
+    PropState: 
+    Effect: {fileID: 0}
+    EffectLifetime: 0
+    Sound: {fileID: 0}
+    OnlyOnOutcome: 0
+    Outcome: 0
+  _hold: 0
+  _holdDuration: 0.2
+  _outro:
+  - Label: Pull out
+    Duration: 0.25
+    To: 5
+    Offset: {x: 0.08, y: 0.03, z: 0}
+    Rotation: {x: 0, y: -90, z: 0}
+    AimAtOther: 0
+    Spin: {x: 0, y: 0, z: 0}
+    Ease: 4
+    Hide: 0
+    HandFollows: 1
+    Gesture: 
+    PropState: 
+    Effect: {fileID: 0}
+    EffectLifetime: 0
+    Sound: {fileID: 0}
+    OnlyOnOutcome: 0
+    Outcome: 0
+  - Label: Throw away
+    Duration: 0.5
+    To: 9
+    Offset: {x: 0.45, y: 0.4, z: -0.2}
+    Rotation: {x: 0, y: 0, z: 0}
+    AimAtOther: 0
+    Spin: {x: 360, y: 0, z: 0}
+    Ease: 6
+    Hide: 1
+    HandFollows: 0
+    Gesture: ItemThrowAway
+    PropState: 
+    Effect: {fileID: 0}
+    EffectLifetime: 0
+    Sound: {fileID: 0}
+    OnlyOnOutcome: 0
+    Outcome: 0
+  _handReachDuration: 0.2
+--- !u!1 &3541410777383517755
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8145515007645979680}
+  - component: {fileID: 184910040611313212}
+  m_Layer: 0
+  m_Name: Spatula
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8145515007645979680
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3541410777383517755}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5169061535997356265}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &184910040611313212
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3541410777383517755}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 639b688469ae3f352be314409c78cc62, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Player.PokerItemPerformance
+  _item: {fileID: 11400000, guid: 964c1095be9ccaf4f81c2b89e5db9734, type: 2}
+  _performer: 0
+  _propPrefab: {fileID: 2391252809837969121, guid: 8abd0acc6651d7f459eb5666c068e955, type: 3}
+  _cardsFrom: 0
+  _intro:
+  - Label: Take out from under the table
+    Duration: 0.35
+    To: 1
+    Offset: {x: 0, y: 0, z: 0}
+    Rotation: {x: 0, y: 0, z: 0}
+    AimAtOther: 0
+    Spin: {x: 0, y: 0, z: 0}
+    Ease: 6
+    Hide: 0
+    HandFollows: 1
+    Gesture: ItemTakeOut
+    PropState: 
+    Effect: {fileID: 0}
+    EffectLifetime: 0
+    Sound: {fileID: 0}
+    OnlyOnOutcome: 0
+    Outcome: 0
+  - Label: Raise
+    Duration: 0.35
+    To: 9
+    Offset: {x: 0.1, y: 0.62, z: 0.28}
+    Rotation: {x: 0, y: 0, z: 0}
+    AimAtOther: 0
+    Spin: {x: 0, y: 0, z: 0}
+    Ease: 4
+    Hide: 0
+    HandFollows: 1
+    Gesture: 
+    PropState: 
+    Effect: {fileID: 0}
+    EffectLifetime: 0
+    Sound: {fileID: 0}
+    OnlyOnOutcome: 0
+    Outcome: 0
+  - Label: Slide under the card
+    Duration: 0.5
+    To: 8
+    Offset: {x: 0, y: 0.02, z: -0.07}
+    Rotation: {x: 0, y: 0, z: 0}
+    AimAtOther: 0
+    Spin: {x: 0, y: 0, z: 0}
+    Ease: 4
+    Hide: 0
+    HandFollows: 0
+    Gesture: ItemSpatulaFlip
+    PropState: 
+    Effect: {fileID: 0}
+    EffectLifetime: 0
+    Sound: {fileID: 0}
+    OnlyOnOutcome: 0
+    Outcome: 0
+  - Label: Flip
+    Duration: 0.4
+    To: 8
+    Offset: {x: 0, y: 0.1, z: -0.02}
+    Rotation: {x: 0, y: 0, z: 0}
+    AimAtOther: 0
+    Spin: {x: -150, y: 0, z: 0}
+    Ease: 6
+    Hide: 0
+    HandFollows: 0
+    Gesture: 
+    PropState: 
+    Effect: {fileID: 0}
+    EffectLifetime: 0
+    Sound: {fileID: 0}
+    OnlyOnOutcome: 0
+    Outcome: 0
+  _hold: 0
+  _holdDuration: 0.3
+  _outro:
+  - Label: Bring back
+    Duration: 0.45
+    To: 9
+    Offset: {x: 0.1, y: 0.62, z: 0.28}
+    Rotation: {x: 0, y: 0, z: 0}
+    AimAtOther: 0
+    Spin: {x: 0, y: 0, z: 0}
+    Ease: 4
+    Hide: 0
+    HandFollows: 1
+    Gesture: 
+    PropState: 
+    Effect: {fileID: 0}
+    EffectLifetime: 0
+    Sound: {fileID: 0}
+    OnlyOnOutcome: 0
+    Outcome: 0
+  - Label: Put back under the table
+    Duration: 0.35
+    To: 1
+    Offset: {x: 0, y: 0, z: 0}
+    Rotation: {x: 0, y: 0, z: 0}
+    AimAtOther: 0
+    Spin: {x: 0, y: 0, z: 0}
+    Ease: 5
+    Hide: 1
+    HandFollows: 1
+    Gesture: ItemPutAway
+    PropState: 
+    Effect: {fileID: 0}
+    EffectLifetime: 0
+    Sound: {fileID: 0}
+    OnlyOnOutcome: 0
+    Outcome: 0
+  _handReachDuration: 0.2
+--- !u!1 &4316887955309095392
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7608631342197395092}
+  - component: {fileID: 4960580976101094414}
+  m_Layer: 0
+  m_Name: BeerCan
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7608631342197395092
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4316887955309095392}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5169061535997356265}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &4960580976101094414
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4316887955309095392}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 639b688469ae3f352be314409c78cc62, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Player.PokerItemPerformance
+  _item: {fileID: 11400000, guid: 4a83b03ae5fb546468af9af2dafb656d, type: 2}
+  _performer: 2
+  _propPrefab: {fileID: 2914765102253410121, guid: b1cbb0deda5ab5743ae54546a6dc9afc, type: 3}
+  _cardsFrom: 0
+  _intro:
+  - Label: Take out from under the table
+    Duration: 0.35
+    To: 1
+    Offset: {x: 0, y: 0, z: 0}
+    Rotation: {x: 0, y: 0, z: 0}
+    AimAtOther: 0
+    Spin: {x: 0, y: 0, z: 0}
+    Ease: 6
+    Hide: 0
+    HandFollows: 1
+    Gesture: ItemTakeOut
+    PropState: 
+    Effect: {fileID: 0}
+    EffectLifetime: 0
+    Sound: {fileID: 0}
+    OnlyOnOutcome: 0
+    Outcome: 0
+  - Label: To the mouth
+    Duration: 0.4
+    To: 3
+    Offset: {x: 0, y: -0.02, z: 0.05}
+    Rotation: {x: -60, y: 0, z: 0}
+    AimAtOther: 0
+    Spin: {x: 0, y: 0, z: 0}
+    Ease: 4
+    Hide: 0
+    HandFollows: 1
+    Gesture: ItemDrink
+    PropState: 
+    Effect: {fileID: 0}
+    EffectLifetime: 0
+    Sound: {fileID: 0}
+    OnlyOnOutcome: 0
+    Outcome: 0
+  - Label: Chug
+    Duration: 0.8
+    To: 3
+    Offset: {x: 0, y: -0.01, z: 0.045}
+    Rotation: {x: -80, y: 0, z: 0}
+    AimAtOther: 0
+    Spin: {x: 0, y: 0, z: 0}
+    Ease: 4
+    Hide: 0
+    HandFollows: 1
+    Gesture: 
+    PropState: 
+    Effect: {fileID: 0}
+    EffectLifetime: 0
+    Sound: {fileID: 0}
+    OnlyOnOutcome: 0
+    Outcome: 0
+  _hold: 0
+  _holdDuration: 0
+  _outro:
+  - Label: Throw away
+    Duration: 0.5
+    To: 9
+    Offset: {x: 0.4, y: 0.5, z: -0.25}
+    Rotation: {x: 0, y: 0, z: 0}
+    AimAtOther: 0
+    Spin: {x: 0, y: 0, z: 540}
+    Ease: 6
+    Hide: 1
+    HandFollows: 0
+    Gesture: ItemThrowAway
+    PropState: 
+    Effect: {fileID: 0}
+    EffectLifetime: 0
+    Sound: {fileID: 0}
+    OnlyOnOutcome: 0
+    Outcome: 0
+  _handReachDuration: 0.2
 --- !u!1 &4361738276177124825
 GameObject:
   m_ObjectHideFlags: 0
@@ -936,6 +1805,144 @@ MonoBehaviour:
   _requiresPlaceInMatch: 1
   _requiresFocus: 0
   _data: {fileID: 6935137486891752095}
+--- !u!1 &4835554838016381336
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2593180133978010466}
+  - component: {fileID: 3271052828231853714}
+  m_Layer: 0
+  m_Name: Megaphone
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2593180133978010466
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4835554838016381336}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5169061535997356265}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &3271052828231853714
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4835554838016381336}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 639b688469ae3f352be314409c78cc62, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Player.PokerItemPerformance
+  _item: {fileID: 11400000, guid: caa97cb624f94c44f9c7dd948b861f52, type: 2}
+  _performer: 0
+  _propPrefab: {fileID: 7814933357751752495, guid: f63a38e58699665439ff6b438ee27ffe, type: 3}
+  _cardsFrom: 0
+  _intro:
+  - Label: Take out from under the table
+    Duration: 0.35
+    To: 1
+    Offset: {x: 0, y: 0, z: 0}
+    Rotation: {x: 0, y: 0, z: 0}
+    AimAtOther: 0
+    Spin: {x: 0, y: 0, z: 0}
+    Ease: 6
+    Hide: 0
+    HandFollows: 1
+    Gesture: ItemTakeOut
+    PropState: 
+    Effect: {fileID: 0}
+    EffectLifetime: 0
+    Sound: {fileID: 0}
+    OnlyOnOutcome: 0
+    Outcome: 0
+  - Label: Raise
+    Duration: 0.35
+    To: 3
+    Offset: {x: 0, y: 0, z: 0.08}
+    Rotation: {x: 0, y: 0, z: 0}
+    AimAtOther: 0
+    Spin: {x: 0, y: 0, z: 0}
+    Ease: 4
+    Hide: 0
+    HandFollows: 1
+    Gesture: 
+    PropState: 
+    Effect: {fileID: 0}
+    EffectLifetime: 0
+    Sound: {fileID: 0}
+    OnlyOnOutcome: 0
+    Outcome: 0
+  - Label: Blabber
+    Duration: 0.9
+    To: 3
+    Offset: {x: 0, y: 0, z: 0.08}
+    Rotation: {x: 0, y: 0, z: 0}
+    AimAtOther: 0
+    Spin: {x: 0, y: 0, z: 0}
+    Ease: 4
+    Hide: 0
+    HandFollows: 1
+    Gesture: ItemMegaphone
+    PropState: 
+    Effect: {fileID: 2609294796081345373, guid: 13a91ce172220984b800141be649f89b, type: 3}
+    EffectLifetime: 1.5
+    Sound: {fileID: 0}
+    OnlyOnOutcome: 0
+    Outcome: 0
+  _hold: 0
+  _holdDuration: 0.3
+  _outro:
+  - Label: Lower
+    Duration: 0.3
+    To: 9
+    Offset: {x: 0.1, y: 0.62, z: 0.28}
+    Rotation: {x: 0, y: 0, z: 0}
+    AimAtOther: 0
+    Spin: {x: 0, y: 0, z: 0}
+    Ease: 4
+    Hide: 0
+    HandFollows: 1
+    Gesture: 
+    PropState: 
+    Effect: {fileID: 0}
+    EffectLifetime: 0
+    Sound: {fileID: 0}
+    OnlyOnOutcome: 0
+    Outcome: 0
+  - Label: Put back under the table
+    Duration: 0.35
+    To: 1
+    Offset: {x: 0, y: 0, z: 0}
+    Rotation: {x: 0, y: 0, z: 0}
+    AimAtOther: 0
+    Spin: {x: 0, y: 0, z: 0}
+    Ease: 5
+    Hide: 1
+    HandFollows: 1
+    Gesture: ItemPutAway
+    PropState: 
+    Effect: {fileID: 0}
+    EffectLifetime: 0
+    Sound: {fileID: 0}
+    OnlyOnOutcome: 0
+    Outcome: 0
+  _handReachDuration: 0.2
 --- !u!1 &5025441949699639480
 GameObject:
   m_ObjectHideFlags: 0
@@ -1048,6 +2055,161 @@ MonoBehaviour:
   _zoomFieldOfView: 38
   _zoomDuration: 0.35
   _zoomEase: 9
+--- !u!1 &5181721953865351696
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5712018767110371196}
+  - component: {fileID: 1547158881446277171}
+  m_Layer: 0
+  m_Name: JackBox
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5712018767110371196
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5181721953865351696}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5169061535997356265}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1547158881446277171
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5181721953865351696}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 639b688469ae3f352be314409c78cc62, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Player.PokerItemPerformance
+  _item: {fileID: 11400000, guid: 77dce280299d2e04b9bf941f057b3754, type: 2}
+  _performer: 0
+  _propPrefab: {fileID: 419904390382726389, guid: 7c21fbb3f7743b44d818638781451269, type: 3}
+  _cardsFrom: 0
+  _intro:
+  - Label: Take out from under the table
+    Duration: 0.35
+    To: 1
+    Offset: {x: 0, y: 0, z: 0}
+    Rotation: {x: 0, y: 0, z: 0}
+    AimAtOther: 0
+    Spin: {x: 0, y: 0, z: 0}
+    Ease: 6
+    Hide: 0
+    HandFollows: 1
+    Gesture: ItemTakeOut
+    PropState: 
+    Effect: {fileID: 0}
+    EffectLifetime: 0
+    Sound: {fileID: 0}
+    OnlyOnOutcome: 0
+    Outcome: 0
+  - Label: Set down
+    Duration: 0.5
+    To: 2
+    Offset: {x: 0.05, y: 0, z: -0.12}
+    Rotation: {x: 0, y: 0, z: 0}
+    AimAtOther: 0
+    Spin: {x: 0, y: 0, z: 0}
+    Ease: 6
+    Hide: 0
+    HandFollows: 1
+    Gesture: 
+    PropState: 
+    Effect: {fileID: 0}
+    EffectLifetime: 0
+    Sound: {fileID: 0}
+    OnlyOnOutcome: 0
+    Outcome: 0
+  - Label: Crank
+    Duration: 0.1
+    To: 2
+    Offset: {x: 0.05, y: 0, z: -0.12}
+    Rotation: {x: 0, y: 0, z: 0}
+    AimAtOther: 0
+    Spin: {x: 0, y: 0, z: 0}
+    Ease: 4
+    Hide: 0
+    HandFollows: 1
+    Gesture: ItemJackBoxCrank
+    PropState: Crank
+    Effect: {fileID: 0}
+    EffectLifetime: 0
+    Sound: {fileID: 0}
+    OnlyOnOutcome: 0
+    Outcome: 0
+  _hold: 1
+  _holdDuration: 0
+  _outro:
+  - Label: Pop
+    Duration: 0.6
+    To: 2
+    Offset: {x: 0.05, y: 0, z: -0.12}
+    Rotation: {x: 0, y: 0, z: 0}
+    AimAtOther: 0
+    Spin: {x: 0, y: 0, z: 0}
+    Ease: 4
+    Hide: 0
+    HandFollows: 0
+    Gesture: 
+    PropState: Open
+    Effect: {fileID: 7456413491343271369, guid: 8d147ab522008eb49ade0e3440a6eca9, type: 3}
+    EffectLifetime: 2
+    Sound: {fileID: 0}
+    OnlyOnOutcome: 0
+    Outcome: 0
+  - Label: Linger
+    Duration: 0.8
+    To: 2
+    Offset: {x: 0.05, y: 0, z: -0.12}
+    Rotation: {x: 0, y: 0, z: 0}
+    AimAtOther: 0
+    Spin: {x: 0, y: 0, z: 0}
+    Ease: 4
+    Hide: 0
+    HandFollows: 0
+    Gesture: 
+    PropState: 
+    Effect: {fileID: 0}
+    EffectLifetime: 0
+    Sound: {fileID: 0}
+    OnlyOnOutcome: 0
+    Outcome: 0
+  - Label: Vanish
+    Duration: 0.35
+    To: 2
+    Offset: {x: 0.05, y: 0, z: -0.12}
+    Rotation: {x: 0, y: 0, z: 0}
+    AimAtOther: 0
+    Spin: {x: 0, y: 0, z: 0}
+    Ease: 26
+    Hide: 1
+    HandFollows: 0
+    Gesture: 
+    PropState: 
+    Effect: {fileID: 0}
+    EffectLifetime: 0
+    Sound: {fileID: 0}
+    OnlyOnOutcome: 0
+    Outcome: 0
+  _handReachDuration: 0.2
 --- !u!1 &5347883484298159708
 GameObject:
   m_ObjectHideFlags: 0
@@ -1236,6 +2398,265 @@ MonoBehaviour:
     - {fileID: 0}
     - {fileID: 0}
   _boneScale: {fileID: 338084876826924209}
+--- !u!1 &6068800715179556877
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 4061370331948293385}
+  - component: {fileID: 1193299168488973105}
+  m_Layer: 0
+  m_Name: Vomit
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &4061370331948293385
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6068800715179556877}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5169061535997356265}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1193299168488973105
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6068800715179556877}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 639b688469ae3f352be314409c78cc62, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Player.PokerItemPerformance
+  _item: {fileID: 11400000, guid: 22d2c89f3e423634890ebaa5e82da070, type: 2}
+  _performer: 0
+  _propPrefab: {fileID: 6537035695434604612, guid: b8f1cca51324eb24b8e53a15d0c71dd5, type: 3}
+  _cardsFrom: 1
+  _intro:
+  - Label: Heave
+    Duration: 0.6
+    To: 2
+    Offset: {x: 0, y: 0.005, z: -0.15}
+    Rotation: {x: 0, y: 0, z: 0}
+    AimAtOther: 0
+    Spin: {x: 0, y: 0, z: 0}
+    Ease: 4
+    Hide: 1
+    HandFollows: 0
+    Gesture: ItemVomit
+    PropState: 
+    Effect: {fileID: 0}
+    EffectLifetime: 0
+    Sound: {fileID: 0}
+    OnlyOnOutcome: 0
+    Outcome: 0
+  - Label: Splat
+    Duration: 0.4
+    To: 2
+    Offset: {x: 0, y: 0.005, z: -0.15}
+    Rotation: {x: 0, y: 0, z: 0}
+    AimAtOther: 0
+    Spin: {x: 0, y: 0, z: 0}
+    Ease: 27
+    Hide: 0
+    HandFollows: 0
+    Gesture: 
+    PropState: 
+    Effect: {fileID: 5484573538644542605, guid: 2c020c4a0222c404683f7d3ead1215bb, type: 3}
+    EffectLifetime: 1.5
+    Sound: {fileID: 0}
+    OnlyOnOutcome: 0
+    Outcome: 0
+  _hold: 0
+  _holdDuration: 0.2
+  _outro:
+  - Label: Pick the card up
+    Duration: 0.6
+    To: 2
+    Offset: {x: 0, y: 0.005, z: -0.15}
+    Rotation: {x: 0, y: 0, z: 0}
+    AimAtOther: 0
+    Spin: {x: 0, y: 0, z: 0}
+    Ease: 4
+    Hide: 0
+    HandFollows: 0
+    Gesture: ItemPickUpCard
+    PropState: 
+    Effect: {fileID: 0}
+    EffectLifetime: 0
+    Sound: {fileID: 0}
+    OnlyOnOutcome: 0
+    Outcome: 0
+  - Label: Dry up
+    Duration: 0.5
+    To: 2
+    Offset: {x: 0, y: 0.005, z: -0.15}
+    Rotation: {x: 0, y: 0, z: 0}
+    AimAtOther: 0
+    Spin: {x: 0, y: 0, z: 0}
+    Ease: 26
+    Hide: 1
+    HandFollows: 0
+    Gesture: 
+    PropState: 
+    Effect: {fileID: 0}
+    EffectLifetime: 0
+    Sound: {fileID: 0}
+    OnlyOnOutcome: 0
+    Outcome: 0
+  _handReachDuration: 0.2
+--- !u!1 &6181049551853364098
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5476871969772163090}
+  - component: {fileID: 56158545984189135}
+  m_Layer: 0
+  m_Name: Panty
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5476871969772163090
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6181049551853364098}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5169061535997356265}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &56158545984189135
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6181049551853364098}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 639b688469ae3f352be314409c78cc62, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Player.PokerItemPerformance
+  _item: {fileID: 11400000, guid: 8cb2d3077ff1b564ba01a55a28fa4c37, type: 2}
+  _performer: 1
+  _propPrefab: {fileID: 5565140527595005493, guid: c4804edf19bab5a4fa33006b9048820c, type: 3}
+  _cardsFrom: 0
+  _intro:
+  - Label: Take out from under the table
+    Duration: 0.35
+    To: 1
+    Offset: {x: 0, y: 0, z: 0}
+    Rotation: {x: 0, y: 0, z: 0}
+    AimAtOther: 0
+    Spin: {x: 0, y: 0, z: 0}
+    Ease: 6
+    Hide: 0
+    HandFollows: 1
+    Gesture: ItemTakeOut
+    PropState: 
+    Effect: {fileID: 0}
+    EffectLifetime: 0
+    Sound: {fileID: 0}
+    OnlyOnOutcome: 0
+    Outcome: 0
+  - Label: Sniff
+    Duration: 1
+    To: 4
+    Offset: {x: 0, y: -0.01, z: 0.04}
+    Rotation: {x: -70, y: 0, z: 0}
+    AimAtOther: 0
+    Spin: {x: 0, y: 0, z: 0}
+    Ease: 4
+    Hide: 0
+    HandFollows: 1
+    Gesture: ItemSniff
+    PropState: 
+    Effect: {fileID: 0}
+    EffectLifetime: 0
+    Sound: {fileID: 0}
+    OnlyOnOutcome: 0
+    Outcome: 0
+  _hold: 1
+  _holdDuration: 0
+  _outro:
+  - Label: Smells nice
+    Duration: 0.9
+    To: 4
+    Offset: {x: 0, y: -0.01, z: 0.04}
+    Rotation: {x: -70, y: 0, z: 0}
+    AimAtOther: 0
+    Spin: {x: 0, y: 0, z: 0}
+    Ease: 4
+    Hide: 0
+    HandFollows: 1
+    Gesture: ItemSniffNice
+    PropState: 
+    Effect: {fileID: 2382685537185476422, guid: 69d1f485224b1a840b9979ea4a3f30dc, type: 3}
+    EffectLifetime: 2
+    Sound: {fileID: 0}
+    OnlyOnOutcome: 1
+    Outcome: 0
+  - Label: Stinks
+    Duration: 0.9
+    To: 4
+    Offset: {x: 0, y: -0.01, z: 0.04}
+    Rotation: {x: -70, y: 0, z: 0}
+    AimAtOther: 0
+    Spin: {x: 0, y: 0, z: 0}
+    Ease: 4
+    Hide: 0
+    HandFollows: 1
+    Gesture: ItemSniffGross
+    PropState: 
+    Effect: {fileID: 8181316736752781129, guid: 3aa7aff27bdd76b43be019a54ec03ad6, type: 3}
+    EffectLifetime: 2
+    Sound: {fileID: 0}
+    OnlyOnOutcome: 1
+    Outcome: 1
+  - Label: Throw away
+    Duration: 0.5
+    To: 9
+    Offset: {x: -0.45, y: 0.55, z: -0.15}
+    Rotation: {x: 0, y: 0, z: 0}
+    AimAtOther: 0
+    Spin: {x: 0, y: 360, z: 180}
+    Ease: 6
+    Hide: 1
+    HandFollows: 0
+    Gesture: ItemThrowAway
+    PropState: 
+    Effect: {fileID: 0}
+    EffectLifetime: 0
+    Sound: {fileID: 0}
+    OnlyOnOutcome: 0
+    Outcome: 0
+  _handReachDuration: 0.2
 --- !u!1 &6633838486943161487
 GameObject:
   m_ObjectHideFlags: 0
@@ -1411,6 +2832,127 @@ MonoBehaviour:
   - _BaseColor
   _data: {fileID: 0}
   _visual: {fileID: 0}
+--- !u!1 &7084565859936869475
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2883722175476011648}
+  - component: {fileID: 6154938133754262485}
+  m_Layer: 0
+  m_Name: Knife
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2883722175476011648
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7084565859936869475}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5169061535997356265}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &6154938133754262485
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7084565859936869475}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 639b688469ae3f352be314409c78cc62, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Player.PokerItemPerformance
+  _item: {fileID: 11400000, guid: 17fb2585ddd6c42479c60e530f82194e, type: 2}
+  _performer: 0
+  _propPrefab: {fileID: 2077577931926591269, guid: c9348eb4ca6c9c640ae504a9adc8ad08, type: 3}
+  _cardsFrom: 0
+  _intro:
+  - Label: Take out from under the table
+    Duration: 0.35
+    To: 1
+    Offset: {x: 0, y: 0, z: 0}
+    Rotation: {x: 0, y: 0, z: 0}
+    AimAtOther: 0
+    Spin: {x: 0, y: 0, z: 0}
+    Ease: 6
+    Hide: 0
+    HandFollows: 1
+    Gesture: ItemTakeOut
+    PropState: 
+    Effect: {fileID: 0}
+    EffectLifetime: 0
+    Sound: {fileID: 0}
+    OnlyOnOutcome: 0
+    Outcome: 0
+  - Label: Point at the target
+    Duration: 0.45
+    To: 9
+    Offset: {x: 0.12, y: 0.66, z: 0.35}
+    Rotation: {x: 0, y: 0, z: 0}
+    AimAtOther: 1
+    Spin: {x: 0, y: 0, z: 0}
+    Ease: 27
+    Hide: 0
+    HandFollows: 1
+    Gesture: ItemKnifeThreaten
+    PropState: 
+    Effect: {fileID: 0}
+    EffectLifetime: 0
+    Sound: {fileID: 0}
+    OnlyOnOutcome: 0
+    Outcome: 0
+  _hold: 1
+  _holdDuration: 0
+  _outro:
+  - Label: Lower
+    Duration: 0.3
+    To: 9
+    Offset: {x: 0.1, y: 0.62, z: 0.28}
+    Rotation: {x: 0, y: 0, z: 0}
+    AimAtOther: 0
+    Spin: {x: 0, y: 0, z: 0}
+    Ease: 4
+    Hide: 0
+    HandFollows: 1
+    Gesture: 
+    PropState: 
+    Effect: {fileID: 0}
+    EffectLifetime: 0
+    Sound: {fileID: 0}
+    OnlyOnOutcome: 0
+    Outcome: 0
+  - Label: Put back under the table
+    Duration: 0.35
+    To: 1
+    Offset: {x: 0, y: 0, z: 0}
+    Rotation: {x: 0, y: 0, z: 0}
+    AimAtOther: 0
+    Spin: {x: 0, y: 0, z: 0}
+    Ease: 5
+    Hide: 1
+    HandFollows: 1
+    Gesture: ItemPutAway
+    PropState: 
+    Effect: {fileID: 0}
+    EffectLifetime: 0
+    Sound: {fileID: 0}
+    OnlyOnOutcome: 0
+    Outcome: 0
+  _handReachDuration: 0.2
 --- !u!1 &7376730151611200368
 GameObject:
   m_ObjectHideFlags: 0
@@ -1481,6 +3023,110 @@ MonoBehaviour:
   _requiresPlaceInMatch: 0
   _requiresFocus: 0
   _data: {fileID: 6935137486891752095}
+--- !u!1 &7420984523212135630
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 420279023847015844}
+  - component: {fileID: 2421959803368419850}
+  m_Layer: 0
+  m_Name: Glasses
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &420279023847015844
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7420984523212135630}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5169061535997356265}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &2421959803368419850
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7420984523212135630}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 639b688469ae3f352be314409c78cc62, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Player.PokerItemPerformance
+  _item: {fileID: 11400000, guid: 990c9c6a8a102ed49bc052dfad3bef40, type: 2}
+  _performer: 0
+  _propPrefab: {fileID: 9198685076703777384, guid: 0934773ad60ab1446983d1e09924c675, type: 3}
+  _cardsFrom: 0
+  _intro:
+  - Label: Appear
+    Duration: 0.2
+    To: 6
+    Offset: {x: 0, y: 0.3, z: 0}
+    Rotation: {x: 0, y: 0, z: 0}
+    AimAtOther: 0
+    Spin: {x: 0, y: 0, z: 0}
+    Ease: 27
+    Hide: 0
+    HandFollows: 0
+    Gesture: 
+    PropState: 
+    Effect: {fileID: 0}
+    EffectLifetime: 0
+    Sound: {fileID: 0}
+    OnlyOnOutcome: 0
+    Outcome: 0
+  - Label: Move
+    Duration: 0.5
+    To: 6
+    Offset: {x: 0, y: 0.05, z: 0}
+    Rotation: {x: 0, y: 0, z: 0}
+    AimAtOther: 0
+    Spin: {x: 0, y: 0, z: 0}
+    Ease: 27
+    Hide: 0
+    HandFollows: 0
+    Gesture: 
+    PropState: 
+    Effect: {fileID: 0}
+    EffectLifetime: 0
+    Sound: {fileID: 0}
+    OnlyOnOutcome: 0
+    Outcome: 0
+  _hold: 0
+  _holdDuration: 2
+  _outro:
+  - Label: Vanish
+    Duration: 0.25
+    To: 6
+    Offset: {x: 0, y: 0.05, z: 0}
+    Rotation: {x: 0, y: 0, z: 0}
+    AimAtOther: 0
+    Spin: {x: 0, y: 0, z: 0}
+    Ease: 26
+    Hide: 1
+    HandFollows: 0
+    Gesture: 
+    PropState: 
+    Effect: {fileID: 0}
+    EffectLifetime: 0
+    Sound: {fileID: 0}
+    OnlyOnOutcome: 0
+    Outcome: 0
+  _handReachDuration: 0.2
 --- !u!1 &7813534592550633221
 GameObject:
   m_ObjectHideFlags: 0
@@ -1693,6 +3339,37 @@ MonoBehaviour:
   _eatSwallowCue: EatSwallow
   _cueTimeout: 3
   _lateCueWindow: 0.5
+--- !u!1 &8957562284668843031
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1569989469006434712}
+  m_Layer: 0
+  m_Name: OwnFacePoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1569989469006434712
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8957562284668843031}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0.06, y: 0.68, z: 0.16}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5169061535997356265}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1001 &1463668452541524349
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -2990,6 +4667,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 5390899513882683757, guid: 8a531d709826a264e9027ff908ced981, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2204299690909207381}
+    - targetCorrespondingSourceObject: {fileID: 5390899513882683757, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5169061535997356265}
     - targetCorrespondingSourceObject: {fileID: 2734819149101292962, guid: 8a531d709826a264e9027ff908ced981, type: 3}
       insertIndex: -1
       addedObject: {fileID: 7181582182888109943}
