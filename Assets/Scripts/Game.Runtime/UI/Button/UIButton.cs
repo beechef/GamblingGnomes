@@ -16,6 +16,9 @@ namespace Game.Runtime.UI.Button
 		public event Action OnHover;
 		public event Action OnUnHover;
 
+		// Asks every visual to play its hover look once and settle back, to draw the eye without the pointer.
+		public event Action OnFlash;
+
 		// Previous and current, so a visual can animate the transition rather than only the destination.
 		public event Action<UIButtonState, UIButtonState> OnStateChanged;
 
@@ -24,10 +27,16 @@ namespace Game.Runtime.UI.Button
 		// under the pointer counts as not over, so the pointer only promises what a click would do.
 		public static event Action<UIButton, bool> OnPointerOverChanged;
 
+		// Raised the moment a press is taken, before the click delay, for what answers the press itself (the click sound).
+		public event Action OnPress;
+
 		public bool IsPointerOver { get; private set; }
 
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-		private static void ResetStatics() => OnPointerOverChanged = null;
+		private static void ResetStatics()
+		{
+			OnPointerOverChanged = null;
+		}
 
 		private UnityEngine.UI.Button _button;
 		private bool _initialized;
@@ -145,6 +154,11 @@ namespace Game.Runtime.UI.Button
 		// and callers never have to reach past this component to the uGUI Button underneath.
 		public void Submit() => Click();
 
+		public void Flash()
+		{
+			if (isActiveAndEnabled && IsInteractable) OnFlash?.Invoke();
+		}
+
 		// Puts the button back to rest and redraws it, whether or not the answer has changed. Anything that
 		// takes the pointer away mid-press calls this — opening a screen, closing a panel, starting a load —
 		// because uGUI sends the release to whoever received the press, and a button that never hears it is
@@ -163,6 +177,8 @@ namespace Game.Runtime.UI.Button
 		private async void Click()
 		{
 			if (!IsInteractable || _clicking) return;
+
+			OnPress?.Invoke();
 
 			if (_clickDelay <= 0f)
 			{

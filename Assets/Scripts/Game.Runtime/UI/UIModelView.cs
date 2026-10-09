@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Game.Runtime.Props;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -30,11 +31,34 @@ namespace Game.Runtime.UI
 		[Tooltip("The box every model is scaled into, in UI units, centred on the pivot (drawn when selected). One box for all of them, so prefabs authored at different sizes all come out the size this says. A model is scaled uniformly until it touches the box; its width and depth are taken together, because turning about the pivot's Y swaps one for the other.")]
 		[SerializeField] private Vector3 _bounds = new(100f, 100f, 100f);
 
+		[Header("Content")]
+		[Tooltip("Shown on Start when no view has asked for another — a fixed icon, like a menu button's. Empty for a model a view picks at runtime.")]
+		[SerializeField] private GameObject _startPrefab;
+
 		public GameObject Model { get; private set; }
 
 		public event Action<GameObject> OnModelChanged;
 
 		private GameObject _prefab;
+
+		private void Start()
+		{
+			if (_startPrefab && !Model) Show(_startPrefab);
+		}
+
+		// Standing in front of the canvas, the model would show through a full-screen cover drawn over it.
+		private void OnEnable()
+		{
+			UIScreenCover.OnChanged += ApplyCover;
+			ApplyCover();
+		}
+
+		private void OnDisable() => UIScreenCover.OnChanged -= ApplyCover;
+
+		private void ApplyCover()
+		{
+			if (_pivot) _pivot.gameObject.SetActive(!UIScreenCover.IsCovered);
+		}
 
 		// The same prefab again keeps the instance it already has, so re-binding a list never flashes.
 		public void Show(GameObject prefab)
@@ -82,7 +106,8 @@ namespace Game.Runtime.UI
 			modelTransform.localScale = Vector3.one;
 
 			// Only what is drawn: a look switched off (a variant's eyes) would pull the centre off the axis it spins on.
-			var renderers = Model.GetComponentsInChildren<Renderer>(false);
+			// Judged inside the model only, so a model measured while a cover has its pivot switched off still fits.
+			var renderers = DrawnRenderers(modelTransform);
 			var bounds = renderers.Length > 0 ? LocalBounds(renderers) : new Bounds();
 			var scale = FitScale(bounds.size);
 
@@ -93,6 +118,30 @@ namespace Game.Runtime.UI
 			}
 
 			PlaceRoot();
+		}
+
+		private static Renderer[] DrawnRenderers(Transform model)
+		{
+			var all = model.GetComponentsInChildren<Renderer>(true);
+			var drawn = new List<Renderer>(all.Length);
+
+			foreach (var renderer in all)
+			{
+				if (renderer.enabled && IsActiveUnder(renderer.transform, model)) drawn.Add(renderer);
+			}
+
+			return drawn.ToArray();
+		}
+
+		private static bool IsActiveUnder(Transform from, Transform top)
+		{
+			for (var t = from; t; t = t.parent)
+			{
+				if (!t.gameObject.activeSelf) return false;
+				if (t == top) return true;
+			}
+
+			return true;
 		}
 
 		private float FitScale(Vector3 size)

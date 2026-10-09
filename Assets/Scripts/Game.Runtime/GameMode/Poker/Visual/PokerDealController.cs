@@ -1,4 +1,5 @@
 using DG.Tweening;
+using Game.Runtime.Audio;
 using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker.Visual
@@ -26,6 +27,14 @@ namespace Game.Runtime.GameMode.Poker.Visual
 	// is a different subclass on the Deck object and nothing else changes.
 	public abstract class PokerDealController : MonoBehaviour
 	{
+		[Tooltip("Played once per card, the moment it leaves the deck. Empty: dealt in silence.")]
+		[SerializeField] private AudioEvent _departSound;
+
+		public void PlayDepartSound(Vector3 position)
+		{
+			if (_departSound && AudioManager.Instance) AudioManager.Instance.PlayOneShot(_departSound, position);
+		}
+
 		// Seconds this card lies on the deck before it leaves.
 		public abstract float DelayFor(PokerDealTurn turn);
 

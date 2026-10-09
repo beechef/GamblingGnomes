@@ -1,3 +1,4 @@
+using DG.Tweening;
 using Sirenix.OdinInspector;
 using TMPro;
 using UnityEngine;
@@ -20,9 +21,32 @@ namespace Game.Runtime.UI.Button
 		[SerializeField] private Color _pressedColor = new(0.60f, 0.12f, 0.10f);
 		[SerializeField] private Color _disabledColor = new(0.45f, 0.42f, 0.38f);
 
+		[Header("Size")]
+		[Tooltip("On, the word grows while pointed at, held or chosen. Off leaves the authored size alone.")]
+		[SerializeField] private bool _animateSize;
+
+		[ShowIf(nameof(_animateSize)), MinValue(1f)]
+		[SerializeField] private float _normalSize = 40f;
+
+		[ShowIf(nameof(_animateSize)), MinValue(1f)]
+		[SerializeField] private float _hoveredSize = 64f;
+
+		[ShowIf(nameof(_animateSize)), MinValue(0f)]
+		[SerializeField] private float _sizeDuration = 0.12f;
+
+		[ShowIf(nameof(_animateSize))]
+		[SerializeField] private Ease _sizeEase = Ease.OutBack;
+
+		private Tween _sizeTween;
+
 		protected override void OnReset()
 		{
 			_label = GetComponentInChildren<TextMeshProUGUI>();
+		}
+
+		protected override void OnDisabled()
+		{
+			_sizeTween?.Kill();
 		}
 
 		protected override void OnApply(UIButtonState state, bool instant)
@@ -37,6 +61,33 @@ namespace Game.Runtime.UI.Button
 				UIButtonState.Disabled => _disabledColor,
 				_ => _normalColor
 			};
+
+			if (_animateSize) ApplySize(state is UIButtonState.Hovered or UIButtonState.Selected or UIButtonState.Pressed ? _hoveredSize : _normalSize, instant);
+		}
+
+		// An auto-sized label grows through its ceiling, so a long word still shrinks to fit instead of overflowing.
+		private void ApplySize(float size, bool instant)
+		{
+			_sizeTween?.Kill();
+
+			if (instant || _sizeDuration <= 0f)
+			{
+				SetSize(size);
+				return;
+			}
+
+			_sizeTween = DOTween.To(GetSize, SetSize, size, _sizeDuration)
+				.SetEase(_sizeEase)
+				.SetUpdate(true)
+				.SetLink(gameObject);
+		}
+
+		private float GetSize() => _label.enableAutoSizing ? _label.fontSizeMax : _label.fontSize;
+
+		private void SetSize(float size)
+		{
+			if (_label.enableAutoSizing) _label.fontSizeMax = size;
+			else _label.fontSize = size;
 		}
 	}
 }

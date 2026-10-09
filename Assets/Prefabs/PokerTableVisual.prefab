@@ -375,6 +375,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4595575644517756012}
   - component: {fileID: 3262226376792207284}
+  - component: {fileID: 4612237943748629627}
   m_Layer: 0
   m_Name: PokerTableVisual
   m_TagString: Untagged
@@ -424,6 +425,19 @@ MonoBehaviour:
   _eatDuration: 0.5
   _eatRise: 0.35
   _relayoutDuration: 0.25
+--- !u!114 &4612237943748629627
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5144388312125908722}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 6b28245406fbf6845827d88027b4dadc, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Visual.PokerTableAudioVisual
+  _turnSound: {fileID: 11400000, guid: 55f947a33e5bbe246a75a3b6615a2772, type: 2}
 --- !u!1 &6149834669299928766
 GameObject:
   m_ObjectHideFlags: 0
@@ -435,7 +449,6 @@ GameObject:
   - component: {fileID: 5753909750132927146}
   - component: {fileID: 4020883884267442223}
   - component: {fileID: 5119055816618132535}
-  - component: {fileID: 53598066523126404}
   m_Layer: 0
   m_Name: CardExchange
   m_TagString: Untagged
@@ -485,19 +498,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 03e5aee83d0edcc4891828ee7a2c2d1d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Visual.PokerCardRewriteVisual
---- !u!114 &53598066523126404
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 6149834669299928766}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d7f7fca8bfdc22f4b859efaa93af9786, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Visual.PokerItemPropVisual
-  _database: {fileID: 11400000, guid: 901a271f12357c54babd47484df8a787, type: 2}
 --- !u!1 &6269372136113326957
 GameObject:
   m_ObjectHideFlags: 0
@@ -551,6 +551,7 @@ MonoBehaviour:
   _stack: {fileID: 4346643346373451806}
   _database: {fileID: 11400000, guid: 81ffbfaf2b0219043836272fa19b4e8b, type: 2}
   _controller: {fileID: 3512344416786793997}
+  _shuffleSound: {fileID: 11400000, guid: d66f6d87cc6052d418f40df674e66f63, type: 2}
 --- !u!114 &3512344416786793997
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -563,6 +564,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 94a293490b16a5dbd272f5f271594e40, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Visual.PokerDealArcController
+  _departSound: {fileID: 11400000, guid: 8df121d03fe3ce04a93964dfd87d47fe, type: 2}
   _pacing: {fileID: 11400000, guid: 93e407067f1b09b45b2dab2811d55636, type: 2}
   _ease: 9
   _arc: 0.08
@@ -592,7 +594,7 @@ Transform:
   m_GameObject: {fileID: 6282405333032259453}
   serializedVersion: 2
   m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: -0, y: -0, z: 0.037500005}
+  m_LocalPosition: {x: -0, y: -0, z: 0.08}
   m_LocalScale: {x: 0.1, y: 0.1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -648,7 +650,7 @@ SpriteRenderer:
   m_SortingOrder: 0
   m_MaskInteraction: 0
   m_Sprite: {fileID: 21300000, guid: 6db8c543a22e9ef46aafa9731eeb240c, type: 3}
-  m_Color: {r: 0.76862746, g: 0.9843137, b: 0.5529412, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.19607843}
   m_FlipX: 0
   m_FlipY: 0
   m_DrawMode: 0

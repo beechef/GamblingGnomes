@@ -171,14 +171,18 @@ namespace Game.Runtime.GameMode.Poker
 
 		// How much of the pot is standing in front of one player. What is left to eat, once the settlement
 		// has handed the caps round.
-		public static int CountPotEntries(PokerGameData data, ulong ownerClientId)
+		public static int CountPotEntries(PokerGameData data, ulong ownerClientId) => CountPotEntries(data, ownerClientId, null);
+
+		// Only the kinds the predicate accepts; a null predicate counts every cap.
+		public static int CountPotEntries(PokerGameData data, ulong ownerClientId, Func<PokerBetItemType, bool> accept)
 		{
 			if (!data) return 0;
 
 			var count = 0;
 			for (var i = 0; i < data.PotEntries.Count; i++)
 			{
-				if (data.PotEntries[i].OwnerClientId == ownerClientId) count++;
+				var item = data.PotEntries[i];
+				if (item.OwnerClientId == ownerClientId && (accept == null || accept(item.BetItemType))) count++;
 			}
 
 			return count;

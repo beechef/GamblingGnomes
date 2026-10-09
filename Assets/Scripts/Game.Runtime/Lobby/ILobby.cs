@@ -7,6 +7,9 @@ namespace Game.Runtime.Lobby
 		int MemberCount { get; }
 		int MaxMembers { get; }
 
+		// The member the room answers to: who may change its data, and who hosts the session it opens.
+		ulong OwnerId { get; }
+
 		string GetData(string key);
 	}
 }

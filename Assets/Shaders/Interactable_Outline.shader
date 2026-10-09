@@ -57,7 +57,9 @@ Shader "Game/Interactable_Outline"
                 float3 positionVS = TransformWorldToView(TransformObjectToWorld(input.positionOS.xyz));
                 float3 normalVS = TransformWorldToViewDir(TransformObjectToWorldNormal(input.normalOS), true);
 
-                positionVS += normalVS * _OutlineWidth * -positionVS.z;
+                // An orthographic camera (UICamera) has no depth falloff: scale by its half height instead, matched to a 60° field of view.
+                float screenScale = unity_OrthoParams.w > 0.5 ? unity_OrthoParams.y * 1.7320508 : -positionVS.z;
+                positionVS += normalVS * _OutlineWidth * screenScale;
                 output.positionCS = TransformWViewToHClip(positionVS);
 
                 return output;

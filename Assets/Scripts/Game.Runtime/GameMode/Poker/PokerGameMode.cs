@@ -459,7 +459,7 @@ namespace Game.Runtime.GameMode.Poker
 			return slot % 2 == 0 ? slot / 2 : (count + 1) / 2 + slot / 2;
 		}
 
-		private PokerSeat FindSeat(int seatIndex)
+		public PokerSeat FindSeat(int seatIndex)
 		{
 			foreach (var seat in _seats)
 			{

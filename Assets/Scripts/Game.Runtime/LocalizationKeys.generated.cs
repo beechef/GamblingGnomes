@@ -337,18 +337,38 @@ namespace Game.Runtime
 
 		public static class Lobby
 		{
+			public const string Empty = "lobby.empty";
 			public const string Join = "lobby.join";
 			public const string Refresh = "lobby.refresh";
+			public const string Searching = "lobby.searching";
 			public const string Title = "lobby.title";
+		}
+
+		public static class Matchmaking
+		{
+			public const string Failed = "matchmaking.failed";
+			public const string Searching = "matchmaking.searching";
+			public const string Title = "matchmaking.title";
+			public const string Waiting = "matchmaking.waiting";
+
+			public static class Error
+			{
+				public const string Connect = "matchmaking.error.connect";
+				public const string Create = "matchmaking.error.create";
+				public const string Lost = "matchmaking.error.lost";
+				public const string Unavailable = "matchmaking.error.unavailable";
+			}
 		}
 
 		public static class Menu
 		{
 			public const string Back = "menu.back";
+			public const string Credit = "menu.credit";
 			public const string Find = "menu.find";
 			public const string Host = "menu.host";
 			public const string Option = "menu.option";
 			public const string Play = "menu.play";
+			public const string QuickMatch = "menu.quick_match";
 			public const string Quit = "menu.quit";
 		}
 
@@ -380,8 +400,10 @@ namespace Game.Runtime
 
 			public static class Button
 			{
+				public const string AddBot = "poker.button.add_bot";
 				public const string AllIn = "poker.button.all_in";
 				public const string Choose = "poker.button.choose";
+				public const string ClearBot = "poker.button.clear_bot";
 				public const string Fold = "poker.button.fold";
 				public const string Helper = "poker.button.helper";
 				public const string Invite = "poker.button.invite";
@@ -482,24 +504,56 @@ namespace Game.Runtime
 			public const string Create = "room.create";
 			public const string GameMode = "room.game_mode";
 			public const string MaxPlayers = "room.max_players";
+			public const string Name = "room.name";
 			public const string Private = "room.private";
 			public const string Title = "room.title";
 		}
 
 		public static class Settings
 		{
+			public const string AudioSection = "settings.audio_section";
 			public const string FpsKey = "settings.fps";
 			public const string Graphics = "settings.graphics";
 			public const string Language = "settings.language";
 			public const string LanguageSection = "settings.language_section";
 			public const string Resolution = "settings.resolution";
 			public const string Title = "settings.title";
+			public const string VoiceSection = "settings.voice_section";
 			public const string Vsync = "settings.vsync";
 			public const string WindowModeKey = "settings.window_mode";
+
+			public static class Audio
+			{
+				public const string Background = "settings.audio.background";
+				public const string Master = "settings.audio.master";
+				public const string Mute = "settings.audio.mute";
+				public const string Sfx = "settings.audio.sfx";
+			}
 
 			public static class Fps
 			{
 				public const string Unlimited = "settings.fps.unlimited";
+			}
+
+			public static class Voice
+			{
+				public const string InputVolume = "settings.voice.input_volume";
+				public const string MicrophoneKey = "settings.voice.microphone";
+				public const string NoiseSuppression = "settings.voice.noise_suppression";
+				public const string OutputVolume = "settings.voice.output_volume";
+				public const string PlayerVolumes = "settings.voice.player_volumes";
+				public const string TalkModeKey = "settings.voice.talk_mode";
+
+				public static class Microphone
+				{
+					public const string Default = "settings.voice.microphone.default";
+				}
+
+				public static class TalkMode
+				{
+					public const string OpenMic = "settings.voice.talk_mode.open_mic";
+					public const string PushToTalk = "settings.voice.talk_mode.push_to_talk";
+				}
 			}
 
 			public static class WindowMode

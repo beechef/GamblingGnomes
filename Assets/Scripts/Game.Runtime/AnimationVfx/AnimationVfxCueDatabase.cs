@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace Game.Runtime.AnimationVfx
 {
-	// Which effects a clip fires, and when. Edited through Tools > Animation VFX Preview, where the frame
+	// Which effects a clip fires, and when. Edited through Tools > Animation Cue Preview, where the frame
 	// can be seen. Installing and cleaning up the events is AnimationCueDatabase's half.
 	[CreateAssetMenu(fileName = "AnimationVfxCueDatabase", menuName = "Game/Animation/VFX Cue Database")]
 	public class AnimationVfxCueDatabase : AnimationCueDatabase

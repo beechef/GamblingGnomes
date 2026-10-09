@@ -1,0 +1,56 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &2976080593761204542
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7649910066796588641}
+  - component: {fileID: 9176384833821663167}
+  m_Layer: 0
+  m_Name: UI_RollSoundSequence
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7649910066796588641
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2976080593761204542}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &9176384833821663167
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2976080593761204542}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: bec4f7562a21cbb4194f0f1c95c8aa95, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Poker.UIPokerRollSoundSequence
+  _meter: {fileID: 0}
+  _skipOwnPlayer: 0
+  _sweepSound: {fileID: 11400000, guid: e8c96b34bb54e87aad9942252a96eab5, type: 2}
+  _sweepParameter: Parameter 2
+  _nearMissSound: {fileID: 11400000, guid: 8af9d8911d44e414104166131c2b22ec, type: 2}
+  _closeDistance: 5
+  _nearMissAt: 0.9
+  _deathSound: {fileID: 11400000, guid: 61a48e0bf74f56f1fdded1356a0da87e, type: 2}
+  _survivedSound: {fileID: 11400000, guid: ad2341cd62965674483258ca91758321, type: 2}
+  _finishSound: {fileID: 11400000, guid: 27cc3a7a6ae511e2709a40aae4779052, type: 2}

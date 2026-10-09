@@ -92,7 +92,7 @@ namespace Game.Runtime.Controller
 			DontDestroyOnLoad(gameObject);
 
 			_steamLobby = new SteamLobbyService(_steamTransport, _localTransport);
-			_localLobby = new LocalLobbyService(_networkManager, _localTransport);
+			_localLobby = new LocalLobbyService(_localTransport);
 
 			LobbySettings.GameSearchStrings.Add(new LobbyData(LobbyConstant.GameIDKey, LobbyConstant.GameIDValue));
 		}
@@ -135,7 +135,7 @@ namespace Game.Runtime.Controller
 
 		// Asked at every host, join and search rather than once: Steam signs in after the menu is up, and can
 		// drop out (offline) between one room and the next.
-		private ILobbyService ResolveLobbyService()
+		public ILobbyService ResolveLobbyService()
 		{
 			var preferSteam = !Application.isEditor || _editorLobby == LobbyBackend.Steam;
 			if (!preferSteam || _steamLobby.IsAvailable) return preferSteam ? _steamLobby : _localLobby;
@@ -146,9 +146,10 @@ namespace Game.Runtime.Controller
 			return _localLobby;
 		}
 
-		public void ConfigureLobby(int maxPlayers, bool isPrivate, GameModeType gameMode)
+		public void ConfigureLobby(int maxPlayers, bool isPrivate, GameModeType gameMode, string roomName = null)
 		{
 			var settings = LobbySettings;
+			settings.RoomName = roomName;
 			settings.MaxPlayers = maxPlayers;
 			settings.IsPrivate = isPrivate;
 			settings.SelectedGameMode = gameMode;
@@ -183,7 +184,7 @@ namespace Game.Runtime.Controller
 			// Raised past the guards, so the only starts announced are the ones that go on to answer.
 			OnConnectStarted?.Invoke();
 
-			var request = new LobbyCreateRequest(LobbySettings.MaxPlayers, LobbySettings.IsPrivate, BuildLobbyData(service));
+			var request = new LobbyCreateRequest(LobbySettings.MaxPlayers, LobbySettings.IsPrivate, BuildLobbyData(service, false));
 			var lobby = await service.CreateAsync(request, ct);
 
 			// A lobby cannot call a request already in flight back, and the room is up by the time this
@@ -201,6 +202,27 @@ namespace Game.Runtime.Controller
 				return;
 			}
 
+			HostLobby(service, lobby);
+		}
+
+		// Opens the session for a room this player already owns, gathered elsewhere (matchmaking). True once
+		// the host is up; a refusal is reported through OnConnectFailed like any other start.
+		public bool StartHostInLobby(ILobbyService service, ILobby lobby)
+		{
+			if (!TryGetSelectedGameMode(out var entry))
+			{
+				OnConnectFailed?.Invoke($"No GameModeDatabase entry for mode {LobbySettings.SelectedGameMode}.");
+				return false;
+			}
+
+			_gameplaySceneName = entry.SceneName;
+
+			OnConnectStarted?.Invoke();
+			return HostLobby(service, lobby);
+		}
+
+		private bool HostLobby(ILobbyService service, ILobby lobby)
+		{
 			CurrentLobby = lobby;
 			_lobbyService = service;
 
@@ -211,7 +233,7 @@ namespace Game.Runtime.Controller
 			{
 				OnConnectFailed?.Invoke("NetworkManager.StartHost() failed.");
 				LeaveLobby(false);
-				return;
+				return false;
 			}
 
 			_networkManager.SceneManager.LoadScene(_gameplaySceneName, LoadSceneMode.Additive);
@@ -219,14 +241,31 @@ namespace Game.Runtime.Controller
 
 			OnHostStarted?.Invoke();
 			OnLobbyEnter?.Invoke();
+			return true;
 		}
 
-		private List<LobbyData> BuildLobbyData(ILobbyService service)
+		// Connects to the session the owner of a room this player is already in has opened (matchmaking).
+		public void JoinSessionInLobby(ILobbyService service, ILobby lobby)
+		{
+			if (CurrentLobby != null || _joiningLobby)
+			{
+				OnConnectFailed?.Invoke("Already joining or in a room.");
+				return;
+			}
+
+			OnConnectStarted?.Invoke();
+			EnterAsClient(service, lobby);
+		}
+
+		// Every room says whether matchmaking opened it, so Find Lobby can ask Steam for hosted rooms only
+		// rather than receiving matchmaking ones and throwing them away.
+		public List<LobbyData> BuildLobbyData(ILobbyService service, bool matchmaking)
 		{
 			var data = new List<LobbyData>
 			{
-				new(LobbyConstant.RoomNameKey, service.LocalUserName),
-				new(LobbyConstant.GameModeKey, LobbySettings.SelectedGameMode.ToString())
+				new(LobbyConstant.RoomNameKey, string.IsNullOrWhiteSpace(LobbySettings.RoomName) ? service.LocalUserName : LobbySettings.RoomName.Trim()),
+				new(LobbyConstant.GameModeKey, LobbySettings.SelectedGameMode.ToString()),
+				new(LobbyConstant.MatchmakingKey, matchmaking ? LobbyConstant.MatchmakingValue : LobbyConstant.HostedValue)
 			};
 
 			data.AddRange(LobbySettings.GameSearchStrings);
@@ -304,7 +343,14 @@ namespace Game.Runtime.Controller
 		{
 			ct.ThrowIfCancellationRequested();
 
-			var lobbies = await ResolveLobbyService().SearchAsync(LobbySettings.GameSearchStrings, ct);
+			// A matchmaking room is only entered through quick match: joined by hand, nobody in it would wait
+			// for the room to fill or hear that it started.
+			var filters = new List<LobbyData>(LobbySettings.GameSearchStrings)
+			{
+				new(LobbyConstant.MatchmakingKey, LobbyConstant.HostedValue)
+			};
+
+			var lobbies = await ResolveLobbyService().SearchAsync(filters, ct);
 
 			ct.ThrowIfCancellationRequested();
 
@@ -491,7 +537,8 @@ namespace Game.Runtime.Controller
 
 			// Two editor instances share one Steam lobby, so only the host may hand it back — a client leaving
 			// would close the room out from under the player still hosting it.
-			var mayLeave = !hostOnly || _networkManager.IsHost;
+			// Local rooms are files per process and have no such sharing.
+			var mayLeave = !hostOnly || _networkManager.IsHost || _lobbyService != _steamLobby;
 
 			if (mayLeave) _lobbyService?.Leave(CurrentLobby);
 

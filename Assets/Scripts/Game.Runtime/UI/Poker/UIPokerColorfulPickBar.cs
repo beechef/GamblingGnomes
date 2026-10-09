@@ -1,5 +1,8 @@
+using Game.Runtime.GameMode.Poker.Items;
 using Game.Runtime.GameMode.Poker.Stages;
 using Game.Runtime.UI.Progress;
+using Localization;
+using TMPro;
 using Unity.Collections;
 using UnityEngine;
 
@@ -12,6 +15,9 @@ namespace Game.Runtime.UI.Poker
 	{
 		[Header("Panel")]
 		[SerializeField] private GameObject _panel;
+
+		[Tooltip("Reads poker.colorful.prompt, {0} filled with the items the survivor is handed (PokerItemModule.ColorfulSurvivorItems).")]
+		[SerializeField] private TMP_Text _prompt;
 
 		[Header("Turn Timer")]
 		[Tooltip("Hidden outright when the stage runs no clock, rather than drawn sitting at zero.")]
@@ -28,12 +34,14 @@ namespace Game.Runtime.UI.Poker
 		{
 			Data.CurrentTurnClientId.OnValueChanged += HandleTurnChanged;
 			Data.StageId.OnValueChanged += HandleStageChanged;
+			Localizer.OnLocaleChanged += Refresh;
 
 			Refresh();
 		}
 
 		protected override void OnUnbind()
 		{
+			Localizer.OnLocaleChanged -= Refresh;
 			Data.StageId.OnValueChanged -= HandleStageChanged;
 			Data.CurrentTurnClientId.OnValueChanged -= HandleTurnChanged;
 
@@ -59,6 +67,13 @@ namespace Game.Runtime.UI.Poker
 
 			if (_panel) _panel.SetActive(show);
 			if (show && _timerBar) _timerBar.gameObject.SetActive(Data.HasTurnClock);
+			if (show && _prompt) _prompt.text = Localizer.Format(LocalizationKeys.Poker.Colorful.Prompt, SurvivorItems());
+		}
+
+		private int SurvivorItems()
+		{
+			var module = GameMode.FindModule<PokerItemModule>();
+			return module ? module.ColorfulSurvivorItems : 0;
 		}
 	}
 }

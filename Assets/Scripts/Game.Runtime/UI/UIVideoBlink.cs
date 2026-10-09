@@ -75,16 +75,17 @@ namespace Game.Runtime.UI
 			if (!_video.isPrepared) _video.Prepare();
 		}
 
-		// Plays to the shut frame and stays there; put on it exactly at shutTime however playback drifted.
-		public void Close(VideoClip clip, float shutTime)
+		// Plays to the shut frame over closeDuration and stays there; put on it exactly then however playback drifted.
+		public void Close(VideoClip clip, float shutTime, float closeDuration)
 		{
 			if (!Begin(clip)) return;
 
 			Fill(Color.white);
+			_video.playbackSpeed = SpeedFor(shutTime, closeDuration);
 			_video.time = 0d;
 			_video.Play();
 
-			_pending = DOVirtual.DelayedCall(shutTime, () =>
+			_pending = DOVirtual.DelayedCall(closeDuration, () =>
 			{
 				_video.Pause();
 				_video.time = shutTime;
@@ -104,6 +105,7 @@ namespace Game.Runtime.UI
 		{
 			if (!Begin(clip)) return;
 
+			_video.playbackSpeed = SpeedFor((float)clip.length - reopenTime, openDuration);
 			_video.time = reopenTime;
 			_video.Play();
 
@@ -118,6 +120,9 @@ namespace Game.Runtime.UI
 			if (_video) _video.Stop();
 			if (_eyelids) _eyelids.enabled = false;
 		}
+
+		private static float SpeedFor(float videoSpan, float duration) =>
+			duration > 0f && videoSpan > 0f ? videoSpan / duration : 1f;
 
 		private bool Begin(VideoClip clip)
 		{

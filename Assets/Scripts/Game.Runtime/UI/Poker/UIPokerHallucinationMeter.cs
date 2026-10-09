@@ -94,6 +94,9 @@ namespace Game.Runtime.UI.Poker
 		// feedback lands with the change rather than after the ease.
 		public event Action<int, bool> OnRungCrossed;
 
+		// The skull starts sweeping: seconds until it stops, the number it stops on, the rate it is rolled against.
+		public event Action<float, int, int> OnRollSweepStarted;
+
 		// The skull has stopped on a roll: the number, and whether it means going under.
 		public event Action<int, bool> OnRollSettled;
 
@@ -219,6 +222,8 @@ namespace Game.Runtime.UI.Poker
 
 		public RectTransform Knot => _knot;
 
+		public PokerPlayer Player => _player;
+
 		private void SnapFill()
 		{
 			_fillTween?.Kill();
@@ -315,6 +320,7 @@ namespace Game.Runtime.UI.Poker
 
 			var sequence = DOTween.Sequence().SetLink(gameObject);
 			sequence.AppendInterval(leadIn);
+			sequence.AppendCallback(() => OnRollSweepStarted?.Invoke(sweep, roll, _data ? _data.HallucinationRate.Value : 0));
 			sequence.Append(DOTween.To(() => 0f, travelled => PlaceKnot(KnotAlong(travelled, loops)), distance, sweep).SetEase(_sweepEase));
 			sequence.AppendInterval(hold);
 			sequence.Append(KnotTween(1f, _returnDuration, _returnEase));

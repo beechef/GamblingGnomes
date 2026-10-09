@@ -59,7 +59,7 @@ namespace Game.Runtime.UI.Poker
 			var reopen = _controller.BlinkReopenTime;
 			var openDuration = _controller.OpenDuration;
 
-			_eyelids.Close(clip, _controller.ApplyDelay);
+			_eyelids.Close(clip, _controller.BlinkShutTime, _controller.ApplyDelay);
 
 			// Held shut while the effects ease into place, so the eye opens on a room that has finished changing.
 			_open?.Kill();

@@ -1,0 +1,200 @@
+using System;
+using Game.Runtime.Controller;
+using Game.Runtime.UI.Button;
+using Localization;
+using Sirenix.OdinInspector;
+using TMPro;
+using UnityEngine;
+
+namespace Game.Runtime.UI.Matchmaking
+{
+	// What the player looks at while quick match runs: the search, then the count until the room is full,
+	// with Cancel to walk out (Escape presses whichever cross is up). A failure stays up with its reason until
+	// closed. The root stays active and toggles _content, because a failure can arrive after the popup has stepped aside for the
+	// loading screen. Whoever opened it hears OnClosed when the player is back to choosing.
+	public class UIMatchmakingPopup : MonoBehaviour
+	{
+		[Required]
+		[SerializeField] private GameObject _content;
+
+		[Required]
+		[SerializeField] private TMP_Text _title;
+
+		[Required]
+		[SerializeField] private TMP_Text _status;
+
+		[Tooltip("Who is in the room so far, under the status; shown only while waiting for it to fill.")]
+		[Required]
+		[SerializeField] private TMP_Text _count;
+
+		[Tooltip("Colour of the members already in, against the target.")]
+		[SerializeField] private Color _joinedColor = new(0.788f, 0.243f, 0.251f);
+
+		[Required]
+		[SerializeField] private UIButton _cancelButton;
+
+		[Required]
+		[SerializeField] private UIButton _closeButton;
+
+		private MatchmakingController _matchmaking;
+		private bool _showingFailure;
+
+		public event Action OnClosed;
+
+		// Raised whenever the popup comes up, including a failure arriving after the menu stepped aside, so
+		// whoever holds it can bring the screen around it back.
+		public event Action OnOpened;
+
+		public bool IsOpen { get; private set; }
+
+		// The content's own fade, if it has one; the content is switched off only once it has played.
+		private UIPopInVisual _transition;
+
+		private void Awake()
+		{
+			_transition = _content.GetComponentInChildren<UIPopInVisual>(true);
+			_content.SetActive(false);
+		}
+
+		private void OnEnable()
+		{
+			_cancelButton.OnClick += HandleCancel;
+			_closeButton.OnClick += Close;
+		}
+
+		private void OnDisable()
+		{
+			_closeButton.OnClick -= Close;
+			_cancelButton.OnClick -= HandleCancel;
+		}
+
+		private void Start()
+		{
+			_matchmaking = MatchmakingController.Instance;
+			if (!_matchmaking)
+			{
+				Debug.LogWarning($"{nameof(UIMatchmakingPopup)}: no {nameof(MatchmakingController)} in Bootstrap; quick match cannot open.", this);
+				return;
+			}
+
+			_matchmaking.OnStateChanged += HandleStateChanged;
+			_matchmaking.OnMembersChanged += Redraw;
+			_matchmaking.OnFailed += HandleFailed;
+			Localizer.OnLocaleChanged += Redraw;
+		}
+
+		private void OnDestroy()
+		{
+			Localizer.OnLocaleChanged -= Redraw;
+
+			if (!_matchmaking) return;
+
+			_matchmaking.OnFailed -= HandleFailed;
+			_matchmaking.OnMembersChanged -= Redraw;
+			_matchmaking.OnStateChanged -= HandleStateChanged;
+		}
+
+		public bool CanOpen => _matchmaking && _matchmaking.State == MatchmakingState.Idle;
+
+		public void Open()
+		{
+			if (!CanOpen) return;
+
+			_showingFailure = false;
+			Show();
+			_matchmaking.StartMatchmaking();
+		}
+
+		private void HandleStateChanged(MatchmakingState state)
+		{
+			// Handing over to the session: the loading screen covers what comes next, and the menu has hidden
+			// itself, so there is nothing to go back to.
+			if (state == MatchmakingState.Starting)
+			{
+				Hide();
+				return;
+			}
+
+			Redraw();
+		}
+
+		private void HandleCancel()
+		{
+			if (_matchmaking) _matchmaking.CancelMatchmaking();
+			Close();
+		}
+
+		private void HandleFailed(MatchmakingFailure failure)
+		{
+			_showingFailure = true;
+			_status.text = Localizer.Get(FailureKey(failure));
+			Show();
+		}
+
+		private void Close()
+		{
+			_showingFailure = false;
+			Hide();
+			OnClosed?.Invoke();
+		}
+
+		private void Show()
+		{
+			IsOpen = true;
+
+			// Brought back mid-fade: switching off first cancels the fade and lets the pop-in play again.
+			if (_content.activeSelf && _transition && _transition.IsHiding) _content.SetActive(false);
+			_content.SetActive(true);
+
+			OnOpened?.Invoke();
+			Redraw();
+		}
+
+		private void Hide()
+		{
+			if (!IsOpen) return;
+			IsOpen = false;
+
+			if (_transition) _transition.Hide(SwitchOffIfStillHidden);
+			else _content.SetActive(false);
+		}
+
+		private void SwitchOffIfStillHidden()
+		{
+			if (!IsOpen) _content.SetActive(false);
+		}
+
+		private void Redraw()
+		{
+			if (!IsOpen || !_matchmaking) return;
+
+			_cancelButton.gameObject.SetActive(!_showingFailure);
+			_closeButton.gameObject.SetActive(_showingFailure);
+
+			var waiting = !_showingFailure && _matchmaking.State == MatchmakingState.Waiting;
+			_count.gameObject.SetActive(waiting);
+
+			if (_showingFailure)
+			{
+				_title.text = Localizer.Get(LocalizationKeys.Matchmaking.Failed);
+				return;
+			}
+
+			_title.text = Localizer.Get(LocalizationKeys.Matchmaking.Title);
+			_status.text = Localizer.Get(LocalizationKeys.Matchmaking.Searching);
+
+			if (waiting)
+			{
+				_count.text = $"<color=#{ColorUtility.ToHtmlStringRGB(_joinedColor)}>{_matchmaking.MemberCount}</color>/{_matchmaking.TargetPlayers}";
+			}
+		}
+
+		private static string FailureKey(MatchmakingFailure failure) => failure switch
+		{
+			MatchmakingFailure.Unavailable => LocalizationKeys.Matchmaking.Error.Unavailable,
+			MatchmakingFailure.CreateFailed => LocalizationKeys.Matchmaking.Error.Create,
+			MatchmakingFailure.LobbyLost => LocalizationKeys.Matchmaking.Error.Lost,
+			_ => LocalizationKeys.Matchmaking.Error.Connect
+		};
+	}
+}

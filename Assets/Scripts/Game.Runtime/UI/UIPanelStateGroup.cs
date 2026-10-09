@@ -21,22 +21,32 @@ namespace Game.Runtime.UI
 
 		public GameObject Current { get; private set; }
 
-		// Nothing has been shown yet, so nothing fades: the panels are simply put down.
+		// Nothing has been shown yet, so nothing fades: the panels are simply put down. A neighbour's OnEnable
+		// may already have shown one before this Awake runs, and that one stays up.
 		private void Awake()
 		{
-			_transitions = new UIPopInVisual[_panels.Length];
+			CollectTransitions();
 
+			foreach (var panel in _panels)
+			{
+				if (panel && panel != Current) panel.SetActive(false);
+			}
+		}
+
+		private void CollectTransitions()
+		{
+			if (_transitions != null) return;
+
+			_transitions = new UIPopInVisual[_panels.Length];
 			for (var i = 0; i < _panels.Length; i++)
 			{
-				if (!_panels[i]) continue;
-
-				_transitions[i] = _panels[i].GetComponentInChildren<UIPopInVisual>(true);
-				_panels[i].SetActive(false);
+				if (_panels[i]) _transitions[i] = _panels[i].GetComponentInChildren<UIPopInVisual>(true);
 			}
 		}
 
 		public void Show(GameObject panel)
 		{
+			CollectTransitions();
 			Current = panel;
 
 			for (var i = 0; i < _panels.Length; i++)
