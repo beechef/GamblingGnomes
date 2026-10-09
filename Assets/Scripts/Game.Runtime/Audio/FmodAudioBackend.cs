@@ -60,6 +60,11 @@ namespace Game.Runtime.Audio
 			instance.release();
 		}
 
+		public void SetParameter(int id, string parameter, float value)
+		{
+			if (_playing.TryGetValue(id, out var instance) && instance.isValid()) instance.setParameterByName(parameter, value);
+		}
+
 		private static bool TryCreate(AudioEvent audioEvent, out FMOD.Studio.EventInstance instance)
 		{
 			instance = default;

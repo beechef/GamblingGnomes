@@ -12,5 +12,7 @@ namespace Game.Runtime.Audio
 		int Play(AudioEvent audioEvent, Transform target);
 
 		void Stop(int id, bool fadeOut);
+
+		void SetParameter(int id, string parameter, float value);
 	}
 }

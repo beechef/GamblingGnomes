@@ -36,6 +36,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 		public Ease Ease;
 
+		[Tooltip("Keeps the prop turned the way the last step left it (a die still showing the face it landed on); Rotation and Aim At Other are ignored.")]
+		public bool HoldRotation;
+
 		[Tooltip("Shrinks the prop to nothing over the step. The prop starts at nothing, so the first step that should show it leaves this off.")]
 		public bool Hide;
 

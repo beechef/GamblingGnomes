@@ -9,6 +9,11 @@ namespace Game.Runtime.Audio
 	// plays; the menu stops as a way into a table starts, the ambience as the table is left.
 	public class MusicController : MonoBehaviour
 	{
+		public static MusicController Instance { get; private set; }
+
+		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+		private static void ResetStatics() => Instance = null;
+
 		[Required]
 		[SerializeField] private AudioManager _audio;
 
@@ -18,9 +23,26 @@ namespace Game.Runtime.Audio
 		[Required]
 		[SerializeField] private AudioEvent _gameplayAmbience;
 
+		[Tooltip("The ambience parameter the table moves through its beats (0 waiting, 1 playing, 2 eating).")]
+		[FMODUnity.ParamRef]
+		[SerializeField] private string _ambienceParameter = "Parameter 1";
+
+		private float _ambienceValue;
+
 		private GameNetworkManager _network;
 		private AudioHandle _menu;
 		private AudioHandle _ambience;
+
+		private void Awake()
+		{
+			if (Instance && Instance != this)
+			{
+				Destroy(this);
+				return;
+			}
+
+			Instance = this;
+		}
 
 		private void Start()
 		{
@@ -51,6 +73,15 @@ namespace Game.Runtime.Audio
 
 			Stop(ref _ambience);
 			Stop(ref _menu);
+
+			if (Instance == this) Instance = null;
+		}
+
+		// Kept when no ambience is playing, so the bed starts at the beat the table is already in.
+		public void SetAmbienceLevel(float value)
+		{
+			_ambienceValue = value;
+			_audio.SetParameter(_ambience, _ambienceParameter, value);
 		}
 
 		private void HandleConnectStarted() => Stop(ref _menu);
@@ -58,10 +89,17 @@ namespace Game.Runtime.Audio
 		private void HandleTableEntered()
 		{
 			Stop(ref _menu);
-			if (!_ambience.IsValid) _ambience = _audio.Play(_gameplayAmbience);
+			if (_ambience.IsValid) return;
+
+			_ambience = _audio.Play(_gameplayAmbience);
+			_audio.SetParameter(_ambience, _ambienceParameter, _ambienceValue);
 		}
 
-		private void HandleTableLeaving() => Stop(ref _ambience);
+		private void HandleTableLeaving()
+		{
+			Stop(ref _ambience);
+			_ambienceValue = 0f;
+		}
 
 		private void HandleTableLeft()
 		{
