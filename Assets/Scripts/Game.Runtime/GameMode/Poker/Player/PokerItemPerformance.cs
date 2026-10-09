@@ -24,12 +24,17 @@ namespace Game.Runtime.GameMode.Poker.Player
 		[SerializeField] private PokerItemPropActor _performer;
 
 		[Header("Prop")]
-		[Tooltip("The prop, its root at the grip. Placeholder primitives live in Prefabs/Items; art replaces the prefab.")]
+		[Tooltip("The prop, set up as a child of this object (an instance of a Prefabs/Items prop, its root at the grip) and kept switched off until played. Art replaces the child.")]
 		[Required]
-		[SerializeField] private GameObject _propPrefab;
+		[SerializeField] private GameObject _prop;
 
 		[Tooltip("Where a card the item hands out flies from (when this player is the user).")]
 		[SerializeField] private PokerItemPropCardSource _cardsFrom;
+
+		[Tooltip("Where a die prop (PokerSuitDie) is thrown to once the card's new suit is known, seen from the performer.")]
+		[SerializeField] private PokerItemPropAnchor _dieLandingAnchor = PokerItemPropAnchor.Table;
+
+		[SerializeField] private Vector3 _dieLandingOffset;
 
 		[Header("Steps")]
 		[Tooltip("Played as the item is used, stretched to end exactly when it acts (the item's Lead In). In order.")]
@@ -55,6 +60,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			public Vector3 Position;
 			public Quaternion Rotation;
 			public Vector3 Scale;
+			public Quaternion? EndRotation;
 		}
 
 		private PokerPlayer _player;
@@ -64,8 +70,12 @@ namespace Game.Runtime.GameMode.Poker.Player
 		private Transform _ownFacePoint;
 		private ulong _userClientId;
 
-		private GameObject _prop;
+		private Transform _propHome;
+		private Vector3 _propHomePosition;
+		private Quaternion _propHomeRotation;
 		private Animator _propAnimator;
+		private PokerSuitDie _die;
+		private readonly List<GameObject> _effects = new();
 		private Vector3 _restScale;
 		private Sequence _sequence;
 		private Tween _handTween;
@@ -80,7 +90,20 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 		public PokerItem Item => _item;
 
-		private void Awake() => _player = GetComponentInParent<PokerPlayer>(true);
+		private void Awake()
+		{
+			_player = GetComponentInParent<PokerPlayer>(true);
+			if (!_prop) return;
+
+			var prop = _prop.transform;
+			_propHome = prop.parent;
+			_propHomePosition = prop.localPosition;
+			_propHomeRotation = prop.localRotation;
+			_restScale = prop.localScale;
+			_propAnimator = _prop.GetComponentInChildren<Animator>(true);
+			_die = _prop.GetComponentInChildren<PokerSuitDie>(true);
+			_prop.SetActive(false);
+		}
 
 		private void OnDestroy() => Stop();
 
@@ -95,7 +118,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		public void Play(PokerGameMode gameMode, PokerItemModule module, ulong userClientId, PokerPlayer other, Transform ownFacePoint)
 		{
 			Stop();
-			if (!_player || !_propPrefab || !gameMode || !module) return;
+			if (!_player || !_prop || !gameMode || !module) return;
 
 			_ownFacePoint = ownFacePoint;
 			_gameMode = gameMode;
@@ -113,10 +136,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 				rotation = TargetRotation(_intro[0], at);
 			}
 
-			_prop = Instantiate(_propPrefab, at, rotation);
-			_propAnimator = _prop.GetComponentInChildren<Animator>();
-			_restScale = _prop.transform.localScale;
+			_prop.transform.SetPositionAndRotation(at, rotation);
 			_prop.transform.localScale = Vector3.zero;
+			_prop.SetActive(true);
 
 			if (_player.ClientId == userClientId) StartCardOrigin();
 
@@ -143,6 +165,27 @@ namespace Game.Runtime.GameMode.Poker.Player
 			_outcome = outcome;
 		}
 
+		// The card the item is rewriting and what it becomes, told as the flicker starts: a die is thrown to land on
+		// the new suit. A screen that may not see the card gets any face, so the die never tells the table.
+		public void ReceiveRewrite(PokerCardPlace place, CardData card)
+		{
+			if (!_playing || _resolved || !_die || place.HolderClientId != _userClientId) return;
+
+			var holder = PokerPlayer.Find(place.HolderClientId);
+			var data = holder ? holder.Data : null;
+			var visible = data && place.Slot >= 0 && place.Slot < data.CardCount && data.IsHoleCardVisible(place.Slot);
+			CardSuit? suit = visible && card.IsValid && !card.IsJoker ? card.SuitType : null;
+
+			SetHandFollowing(false);
+			_prop.transform.SetParent(_propHome, true);
+
+			var anchor = ResolveAnchor(_dieLandingAnchor);
+			var landing = (anchor ? anchor.position : _prop.transform.position) + Frame() * _dieLandingOffset;
+			// The card flickers for the pacing's rewrite duration before its new face is written: the die settles then.
+			var pacing = _module ? _module.ExchangePacing : null;
+			_die.RollTo(landing, suit, pacing ? pacing.RewriteDuration : 1f);
+		}
+
 		public void RefreshHold()
 		{
 			if (_hold == PokerItemPropHold.UntilFoldLockLifted) TryRelease();
@@ -165,9 +208,26 @@ namespace Game.Runtime.GameMode.Poker.Player
 			var deck = PokerDeckVisual.Instance;
 			if (_cardOrigin && deck) deck.ClearItemDrawOrigin(_cardOrigin);
 
-			if (_prop) Destroy(_prop);
+			foreach (var effect in _effects)
+			{
+				if (effect) Destroy(effect);
+			}
 
-			_prop = null;
+			_effects.Clear();
+
+			// Back where it was set up, switched off, ready for the next play.
+			if (_prop)
+			{
+				if (_die) _die.Stop();
+
+				var prop = _prop.transform;
+				prop.SetParent(_propHome, false);
+				prop.localPosition = _propHomePosition;
+				prop.localRotation = _propHomeRotation;
+				prop.localScale = _restScale;
+				_prop.SetActive(false);
+			}
+
 			_cardOrigin = null;
 			_handFollowing = false;
 			_playing = false;
@@ -220,11 +280,12 @@ namespace Game.Runtime.GameMode.Poker.Player
 			if (!_prop) return;
 
 			var prop = _prop.transform;
-			if (prop.parent) prop.SetParent(null, true);
+			if (prop.parent != _propHome) prop.SetParent(_propHome, true);
 
 			start.Position = prop.position;
 			start.Rotation = prop.rotation;
 			start.Scale = prop.localScale;
+			start.EndRotation = step.HoldRotation ? prop.rotation : null;
 
 			SetHandFollowing(step.HandFollows && step.To != PokerItemPropAnchor.Hand);
 
@@ -239,6 +300,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			if (step.Effect)
 			{
 				var effect = Instantiate(step.Effect, prop.position, prop.rotation, prop);
+				_effects.Add(effect);
 				if (step.EffectLifetime > 0f) Destroy(effect, step.EffectLifetime);
 			}
 
@@ -253,7 +315,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			var position = Vector3.LerpUnclamped(start.Position, TargetPosition(step, start.Position), t);
 
 			prop.SetPositionAndRotation(position,
-				Quaternion.SlerpUnclamped(start.Rotation, TargetRotation(step, position), t) * Quaternion.Euler(step.Spin * t));
+				Quaternion.SlerpUnclamped(start.Rotation, start.EndRotation ?? TargetRotation(step, position), t) * Quaternion.Euler(step.Spin * t));
 
 			// Clamped: an overshooting ease on the way out must not turn the prop inside out.
 			prop.localScale = Vector3.Max(Vector3.zero, Vector3.LerpUnclamped(start.Scale, step.Hide ? Vector3.zero : _restScale, t));
