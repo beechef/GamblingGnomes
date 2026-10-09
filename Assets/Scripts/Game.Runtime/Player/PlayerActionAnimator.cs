@@ -1,4 +1,5 @@
 using System;
+using Game.Runtime.Audio;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
@@ -70,6 +71,8 @@ namespace Game.Runtime.Player
 
 			CrossFade(_bodyAnimator, entry);
 			CrossFade(_handOnlyAnimator, entry);
+
+			if (entry.Sound && AudioManager.Instance) AudioManager.Instance.PlayOneShotAttached(entry.Sound, transform);
 		}
 
 		// A state the controller does not have yet is quietly skipped, so gestures can be scripted ahead
