@@ -1,34 +1,37 @@
 using Game.Runtime.Audio;
-using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace Game.Runtime.UI.Button
 {
-	// One click sound for every button and checkbox on the canvas, so no prefab carries its own.
+	// Sits on the button or toggle it voices, so each prefab picks its own sound; an empty event stays silent.
 	public class UIButtonClickSound : MonoBehaviour
 	{
-		[Required]
 		[SerializeField] private AudioEvent _click;
+
+		private UIButton _button;
+		private UISelectableHover _toggle;
+
+		private void Awake()
+		{
+			TryGetComponent(out _button);
+			TryGetComponent(out _toggle);
+		}
 
 		private void OnEnable()
 		{
-			UIButton.OnAnyClicked += HandleButtonClicked;
-			UISelectableHover.OnToggleFlipped += HandleToggleFlipped;
+			if (_button) _button.OnPress += Play;
+			if (_toggle) _toggle.OnToggleFlipped += Play;
 		}
 
 		private void OnDisable()
 		{
-			UISelectableHover.OnToggleFlipped -= HandleToggleFlipped;
-			UIButton.OnAnyClicked -= HandleButtonClicked;
+			if (_toggle) _toggle.OnToggleFlipped -= Play;
+			if (_button) _button.OnPress -= Play;
 		}
 
-		private void HandleButtonClicked(UIButton button) => Play(button.transform.position);
-
-		private void HandleToggleFlipped(UISelectableHover toggle) => Play(toggle.transform.position);
-
-		private void Play(Vector3 position)
+		private void Play()
 		{
-			if (AudioManager.Instance) AudioManager.Instance.PlayOneShot(_click, position);
+			if (_click && AudioManager.Instance) AudioManager.Instance.PlayOneShot(_click, transform.position);
 		}
 	}
 }

@@ -15,13 +15,12 @@ namespace Game.Runtime.UI
 
 		// A toggle flipped by the player, by click or submit, never by code setting its value, for what answers
 		// it like a button press (the click sound).
-		public static event Action<UISelectableHover> OnToggleFlipped;
+		public event Action OnToggleFlipped;
 
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
 		private static void ResetStatics()
 		{
 			OnPointerOverChanged = null;
-			OnToggleFlipped = null;
 		}
 
 		private Selectable _selectable;
@@ -45,7 +44,7 @@ namespace Game.Runtime.UI
 
 		private void RaiseToggleFlipped()
 		{
-			if (_selectable is Toggle && _selectable.IsInteractable()) OnToggleFlipped?.Invoke(this);
+			if (_selectable is Toggle && _selectable.IsInteractable()) OnToggleFlipped?.Invoke();
 		}
 
 		private void SetOver(bool over)

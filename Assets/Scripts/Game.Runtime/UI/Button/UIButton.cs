@@ -27,9 +27,8 @@ namespace Game.Runtime.UI.Button
 		// under the pointer counts as not over, so the pointer only promises what a click would do.
 		public static event Action<UIButton, bool> OnPointerOverChanged;
 
-		// Raised by any button the moment a press is taken, before its click delay, for what answers every
-		// click the same way (the click sound).
-		public static event Action<UIButton> OnAnyClicked;
+		// Raised the moment a press is taken, before the click delay, for what answers the press itself (the click sound).
+		public event Action OnPress;
 
 		public bool IsPointerOver { get; private set; }
 
@@ -37,7 +36,6 @@ namespace Game.Runtime.UI.Button
 		private static void ResetStatics()
 		{
 			OnPointerOverChanged = null;
-			OnAnyClicked = null;
 		}
 
 		private UnityEngine.UI.Button _button;
@@ -180,7 +178,7 @@ namespace Game.Runtime.UI.Button
 		{
 			if (!IsInteractable || _clicking) return;
 
-			OnAnyClicked?.Invoke(this);
+			OnPress?.Invoke();
 
 			if (_clickDelay <= 0f)
 			{
