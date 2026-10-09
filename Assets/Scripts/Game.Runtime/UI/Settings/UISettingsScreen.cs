@@ -13,7 +13,7 @@ using UnityEngine.EventSystems;
 namespace Game.Runtime.UI.Settings
 {
 	// The player's settings: a menu of sections, each its own panel. Graphics are window mode, resolution,
-	// frame rate cap and VSync; the language panel lists every locale. Each choice is applied the moment it is
+	// frame rate cap and VSync; the language panel lists every locale; voice is UIVoiceSettingsPanel. Each choice is applied the moment it is
 	// made. Opened from the main menu and the pause menu; whoever opened it hears OnClosed.
 	public class UISettingsScreen : MonoBehaviour
 	{
@@ -42,6 +42,9 @@ namespace Game.Runtime.UI.Settings
 		[Required]
 		[SerializeField] private GameObject _languagePanel;
 
+		[Required]
+		[SerializeField] private GameObject _voicePanel;
+
 		[Header("Menu")]
 		[Required]
 		[SerializeField] private UISelectionGroup _menuGroup;
@@ -54,6 +57,9 @@ namespace Game.Runtime.UI.Settings
 
 		[Required]
 		[SerializeField] private UISelectionItem _languageItem;
+
+		[Required]
+		[SerializeField] private UISelectionItem _voiceItem;
 
 		[Tooltip("Every way out of the whole screen: each panel's close cross and the menu's Back.")]
 		[SerializeField] private UIButton[] _closeButtons = Array.Empty<UIButton>();
@@ -126,6 +132,7 @@ namespace Game.Runtime.UI.Settings
 			if (item == _graphicItem) _panels.Show(_graphicPanel);
 			else if (item == _audioItem) _panels.Show(_audioPanel);
 			else if (item == _languageItem) ShowLanguages();
+			else if (item == _voiceItem) _panels.Show(_voicePanel);
 		}
 
 		private void ShowLanguages()

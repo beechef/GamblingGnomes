@@ -3,24 +3,19 @@ using UnityEngine;
 
 namespace Game.Runtime.Controller
 {
-	// The player's own settings, read and written in one place. Frame rate and VSync are ours to save and
-	// apply; window mode and resolution are the engine's (Screen), which a player build saves itself; the
-	// language is the localization plugin's, which keeps its own key. Keys are saved data: never rename one.
+	// The player's video and language settings, kept in SettingController. Frame rate and VSync are ours to
+	// save and apply; window mode and resolution are the engine's (Screen), which a player build saves itself.
 	public static class GameSettings
 	{
 		public const int UncappedFrameRate = -1;
 
-		private const int DefaultTargetFrameRate = 60;
-		private const string TargetFrameRateKey = "settings.video.targetFrameRate";
-		private const string VSyncKey = "settings.video.vSync";
-		private const string LanguageKey = "localization.locale";
-
 		public static int TargetFrameRate
 		{
-			get => PlayerPrefs.GetInt(TargetFrameRateKey, DefaultTargetFrameRate);
+			get => SettingController.Data.TargetFrameRate;
 			set
 			{
-				PlayerPrefs.SetInt(TargetFrameRateKey, value);
+				SettingController.Data.TargetFrameRate = value;
+				SettingController.Save();
 				ApplyFrameRate();
 			}
 		}
@@ -28,10 +23,11 @@ namespace Game.Runtime.Controller
 		// With VSync on the display's refresh rate decides and the target frame rate is ignored.
 		public static bool VSync
 		{
-			get => PlayerPrefs.GetInt(VSyncKey, 0) != 0;
+			get => SettingController.Data.VSync;
 			set
 			{
-				PlayerPrefs.SetInt(VSyncKey, value ? 1 : 0);
+				SettingController.Data.VSync = value;
+				SettingController.Save();
 				ApplyFrameRate();
 			}
 		}
@@ -53,11 +49,17 @@ namespace Game.Runtime.Controller
 			Application.targetFrameRate = TargetFrameRate;
 		}
 
-		// After the plugin resets its statics, before the bootstrap picks a language: a first launch on a
-		// Vietnamese system starts in Vietnamese, every later one in whatever the player chose.
+		// After the plugin resets its statics, before the bootstrap picks a language: the plugin's own
+		// PlayerPrefs key is replaced by the settings document.
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
-		private static void DefaultLanguageToSystem() =>
-			Localizer.LoadLocale = () =>
-				PlayerPrefs.GetString(LanguageKey, Application.systemLanguage == SystemLanguage.Vietnamese ? "vi" : string.Empty);
+		private static void StoreLanguageInSettings()
+		{
+			Localizer.LoadLocale = () => SettingController.Data.Language;
+			Localizer.SaveLocale = code =>
+			{
+				SettingController.Data.Language = code ?? string.Empty;
+				SettingController.Save();
+			};
+		}
 	}
 }

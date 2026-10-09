@@ -1380,6 +1380,45 @@
                     "isPartOfComposite": false
                 }
             ]
+        },
+        {
+            "name": "Voice",
+            "id": "0b9cf51a-769f-486a-895d-347b727111a3",
+            "actions": [
+                {
+                    "name": "PushToTalk",
+                    "type": "Button",
+                    "id": "ddea2fb9-80c1-4d24-a9bb-c79624cc87fd",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
+                }
+            ],
+            "bindings": [
+                {
+                    "name": "",
+                    "id": "b7ee63ba-7102-4d22-afda-6c79713b5800",
+                    "path": "<Keyboard>/t",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard&Mouse",
+                    "action": "PushToTalk",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "952dcb5b-a0de-49c9-ad38-8ae0248ab0ed",
+                    "path": "<Gamepad>/leftShoulder",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Gamepad",
+                    "action": "PushToTalk",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                }
+            ]
         }
     ],
     "controlSchemes": [
