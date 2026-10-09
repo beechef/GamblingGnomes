@@ -17,6 +17,12 @@ namespace Game.Runtime.Player
 		public const string Impact = "Impact";
 		public const string SnapFingers = "SnapFingers";
 
+		// The same snap, naming themselves: its own id so it can sound different.
+		public const string SnapFingersAtSelf = "SnapFingersAtSelf";
+
+		// The shudder after a mouthful that sets off no roll. Sound only until it has a clip.
+		public const string ShakeOff = "ShakeOff";
+
 		// Item performances (PokerItemPerformance). Scripted ahead of their clips: a state the rig lacks is skipped.
 		public const string ItemTakeOut = "ItemTakeOut";
 		public const string ItemPutAway = "ItemPutAway";

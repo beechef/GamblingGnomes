@@ -2836,6 +2836,8 @@ GameObject:
   - component: {fileID: 1084748030116895478}
   - component: {fileID: 8171426156567892191}
   - component: {fileID: 2622330947424367867}
+  - component: {fileID: 6637203550320359179}
+  - component: {fileID: 6316882363909950646}
   m_Layer: 0
   m_Name: Hallucination
   m_TagString: Untagged
@@ -2911,6 +2913,38 @@ MonoBehaviour:
   - _BaseColor
   _data: {fileID: 0}
   _visual: {fileID: 0}
+--- !u!114 &6637203550320359179
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6876006055139249189}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 98f1763c54b80c14fbda02cdeb0c4c3d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Hallucination.PokerRollSoundVisual
+  _roll: {fileID: 8171426156567892191}
+  _survivedSound: {fileID: 11400000, guid: ad2341cd62965674483258ca91758321, type: 2}
+  _fatalSound: {fileID: 11400000, guid: da0632d2cf9f8fb4c9512f0f4d650afc, type: 2}
+--- !u!114 &6316882363909950646
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6876006055139249189}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 008d210cf8dd95c42833ae4475706d32, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Hallucination.PokerHallucinationSnapshotVisual
+  ShowTopMostFoldoutHeaderGroup: 1
+  _mildSnapshot: {fileID: 11400000, guid: 4786be3a73fe03a459be56c74c7df95f, type: 2}
+  _mildThreshold: 20
+  _strongSnapshot: {fileID: 11400000, guid: b1cad57437678a546bd9bf3e4d0bb738, type: 2}
+  _strongThreshold: 41
 --- !u!1 &7084565859936869475
 GameObject:
   m_ObjectHideFlags: 0
