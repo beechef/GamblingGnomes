@@ -9,15 +9,24 @@ namespace Game.Runtime.GameMode.Poker.Visual
 	// replicated phase on every screen; a late joiner lands on the beat already running.
 	public class PokerAmbienceParameterDriver : PokerVisual
 	{
-		private const float RoomLevel = 0f;
-		private const float MatchLevel = 1f;
-		private const float EatingLevel = 2f;
-
 		[Required]
 		[SerializeField] private MusicTrack _track;
 
 		[FMODUnity.ParamRef]
 		[SerializeField] private string _parameter = "Parameter 1";
+
+		[Header("Levels")]
+		[Tooltip("In the room before a match starts, and after one ends.")]
+		[SerializeField] private float _roomLevel;
+
+		[Tooltip("Once a match has started, between plates.")]
+		[SerializeField] private float _matchLevel = 1f;
+
+		[Tooltip("While plates are being eaten.")]
+		[SerializeField] private float _eatingLevel = 2f;
+
+		[ShowInInspector, ReadOnly]
+		private float _current;
 
 		// The waiting room between hands is still the match; only a match ending sends the track back to 0.
 		private bool _matchStarted;
@@ -35,7 +44,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			if (Data) Data.Phase.OnValueChanged -= HandlePhaseChanged;
 
 			_matchStarted = false;
-			_track.SetParameter(_parameter, RoomLevel);
+			SetLevel(_roomLevel);
 		}
 
 		private void HandlePhaseChanged(PokerPhase previous, PokerPhase current)
@@ -48,7 +57,13 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 		private void Apply(PokerPhase phase)
 		{
-			var level = phase == PokerPhase.Eating ? EatingLevel : _matchStarted ? MatchLevel : RoomLevel;
+			var level = phase == PokerPhase.Eating ? _eatingLevel : _matchStarted ? _matchLevel : _roomLevel;
+			SetLevel(level);
+		}
+
+		private void SetLevel(float level)
+		{
+			_current = level;
 			_track.SetParameter(_parameter, level);
 		}
 
