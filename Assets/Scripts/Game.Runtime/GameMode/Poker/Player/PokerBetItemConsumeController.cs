@@ -280,12 +280,6 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 			ApplyPendingEffects();
 
-			// A mouthful that rolls is answered by the roll; any other shudders as it goes down.
-			if (!_player.HallucinationRoll || !_player.HallucinationRoll.ServerHasQueuedRoll)
-			{
-				_player.ActionAnimator?.ServerPlay(PlayerActionIds.ShakeOff);
-			}
-
 			// A Colorful cap queued its roll rather than playing it, so the sweep runs on this pacing.
 			if (_player.HallucinationRoll)
 			{

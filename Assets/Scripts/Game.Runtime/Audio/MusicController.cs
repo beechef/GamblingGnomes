@@ -4,45 +4,18 @@ using UnityEngine;
 
 namespace Game.Runtime.Audio
 {
-	// Which bed of sound is under the game: the menu music while the player is outside a table (launch,
-	// every menu screen, the quick match wait), the gameplay ambience while they are in one. At most one
-	// plays; the menu stops as a way into a table starts, the ambience as the table is left.
+	// Which bed of sound is under the game: the menu track while the player is outside a table (launch, every
+	// menu screen, the quick match wait), the gameplay track while they are in one. Each track is an object
+	// switched on and off here; what it plays and what moves it lives on the track itself.
 	public class MusicController : MonoBehaviour
 	{
-		public static MusicController Instance { get; private set; }
-
-		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-		private static void ResetStatics() => Instance = null;
+		[Required]
+		[SerializeField] private GameObject _menuTrack;
 
 		[Required]
-		[SerializeField] private AudioManager _audio;
-
-		[Required]
-		[SerializeField] private AudioEvent _menuMusic;
-
-		[Required]
-		[SerializeField] private AudioEvent _gameplayAmbience;
-
-		[Tooltip("The ambience parameter the table moves through its beats (0 waiting, 1 playing, 2 eating).")]
-		[FMODUnity.ParamRef]
-		[SerializeField] private string _ambienceParameter = "Parameter 1";
-
-		private float _ambienceValue;
+		[SerializeField] private GameObject _gameplayTrack;
 
 		private GameNetworkManager _network;
-		private AudioHandle _menu;
-		private AudioHandle _ambience;
-
-		private void Awake()
-		{
-			if (Instance && Instance != this)
-			{
-				Destroy(this);
-				return;
-			}
-
-			Instance = this;
-		}
 
 		private void Start()
 		{
@@ -56,55 +29,36 @@ namespace Game.Runtime.Audio
 				_network.OnConnectFailed += HandleConnectFailed;
 			}
 
-			if (_network && _network.IsInGame) HandleTableEntered();
-			else PlayMenu();
+			var inGame = _network && _network.IsInGame;
+			_gameplayTrack.SetActive(inGame);
+			_menuTrack.SetActive(!inGame);
 		}
 
 		private void OnDestroy()
 		{
-			if (_network)
-			{
-				_network.OnConnectFailed -= HandleConnectFailed;
-				_network.OnGameLeft -= HandleTableLeft;
-				_network.OnGameLeaving -= HandleTableLeaving;
-				_network.OnLobbyEnter -= HandleTableEntered;
-				_network.OnConnectStarted -= HandleConnectStarted;
-			}
+			if (!_network) return;
 
-			Stop(ref _ambience);
-			Stop(ref _menu);
-
-			if (Instance == this) Instance = null;
+			_network.OnConnectFailed -= HandleConnectFailed;
+			_network.OnGameLeft -= HandleTableLeft;
+			_network.OnGameLeaving -= HandleTableLeaving;
+			_network.OnLobbyEnter -= HandleTableEntered;
+			_network.OnConnectStarted -= HandleConnectStarted;
 		}
 
-		// Kept when no ambience is playing, so the bed starts at the beat the table is already in.
-		public void SetAmbienceLevel(float value)
-		{
-			_ambienceValue = value;
-			_audio.SetParameter(_ambience, _ambienceParameter, value);
-		}
-
-		private void HandleConnectStarted() => Stop(ref _menu);
+		private void HandleConnectStarted() => _menuTrack.SetActive(false);
 
 		private void HandleTableEntered()
 		{
-			Stop(ref _menu);
-			if (_ambience.IsValid) return;
-
-			_ambience = _audio.Play(_gameplayAmbience);
-			_audio.SetParameter(_ambience, _ambienceParameter, _ambienceValue);
+			_menuTrack.SetActive(false);
+			_gameplayTrack.SetActive(true);
 		}
 
-		private void HandleTableLeaving()
-		{
-			Stop(ref _ambience);
-			_ambienceValue = 0f;
-		}
+		private void HandleTableLeaving() => _gameplayTrack.SetActive(false);
 
 		private void HandleTableLeft()
 		{
-			Stop(ref _ambience);
-			PlayMenu();
+			_gameplayTrack.SetActive(false);
+			_menuTrack.SetActive(true);
 		}
 
 		// A failed attempt may leave nothing to tear down, so OnGameLeft never comes to bring the menu back.
@@ -112,21 +66,8 @@ namespace Game.Runtime.Audio
 		{
 			if (_network.IsInGame) return;
 
-			Stop(ref _ambience);
-			PlayMenu();
-		}
-
-		private void PlayMenu()
-		{
-			if (!_menu.IsValid) _menu = _audio.Play(_menuMusic);
-		}
-
-		private void Stop(ref AudioHandle handle)
-		{
-			if (!handle.IsValid) return;
-
-			if (_audio) _audio.Stop(handle);
-			handle = default;
+			_gameplayTrack.SetActive(false);
+			_menuTrack.SetActive(true);
 		}
 	}
 }
