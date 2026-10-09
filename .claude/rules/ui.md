@@ -25,7 +25,7 @@ paths:
 ### Layout
 - **Full-screen panels anchor `(0,0)`–`(1,1)` with zero offsets; corner HUD anchors to its corner.**
 - **A stretched frame uses a 9-slice sprite (Single mode, `Image` Sliced); shaped ends stay Simple** (`button_ability_default`). A progress bar slices its track, fill stays Filled.
-- **Pad a layout off the art, not the rect** (9-slice overhang, `table_ranking`).
+- **Pad a layout off the art, not the rect** (9-slice overhang, `table_ranking`). A slider handle overhangs its track by half its width at either end, so a row of sliders inside a `RectMask2D` pads that side by half the handle (`UI_Panel_Voice/Body/Scroll/Rows` right 18, the skull handle 36 wide).
 - **A row/column of widgets is an auto-layout group with a `LayoutElement` per child**, never hand anchors; only fixed furniture is anchored.
 - **Layout groups: every child needs a size source.** A plain container carries a `LayoutElement`. A nested layout group reports its own size: turn on the parent's `childControlWidth/Height`, never add a `ContentSizeFitter` to the child (`UI_IconCounter`). A `ContentSizeFitter` on the object whose layout it sizes lags a frame; pin heights with `LayoutElement` (`UIPokerRankingPanel`).
 - **A button in a layout that controls child size needs its own row**: wrap it in an empty rect with the `LayoutElement` height, button centred at authored size.
