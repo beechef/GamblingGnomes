@@ -51,6 +51,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 		private CancellationTokenSource _eating;
 		private PokerBiteRule _rule;
 
+		// Which kinds this plate is; null is everything in front of the player.
+		private Func<PokerBetItemType, bool> _kinds;
+
 		public PokerConsumePacing Pacing => _pacing;
 		public bool IsEating => _eating != null;
 
@@ -114,22 +117,24 @@ namespace Game.Runtime.GameMode.Poker.Player
 		// left on their plate stays there until the table is cleared.
 		public bool CanEat => _player && _player.Data && _player.Data.IsAlive;
 
-		public bool HasPlate
+		public bool HasPlate => HasPlateOf(null);
+
+		// Something of the given kinds in front of them; null asks about every kind.
+		public bool HasPlateOf(Func<PokerBetItemType, bool> kinds)
 		{
-			get
-			{
-				var mode = PokerGameMode.Instance;
-				return CanEat && mode && mode.Data && PokerTableUtility.CountPotEntries(mode.Data, _player.ClientId) > 0;
-			}
+			var mode = PokerGameMode.Instance;
+			return CanEat && mode && mode.Data && PokerTableUtility.CountPotEntries(mode.Data, _player.ClientId, kinds) > 0;
 		}
 
-		// Starts eating everything the ledger leaves in front of this player. False, and no OnPlateFinished,
-		// when there is nothing to eat or a plate is already being eaten.
-		public bool ServerEatPlate(PokerBiteRule rule = null)
+		// Starts eating what the ledger leaves in front of this player, only the given kinds when named, so a
+		// table can serve one course before another. False, and no OnPlateFinished, when there is nothing of
+		// those kinds or a plate is already being eaten.
+		public bool ServerEatPlate(PokerBiteRule rule = null, Func<PokerBetItemType, bool> kinds = null)
 		{
-			if (!IsServer || IsEating || !HasPlate) return false;
+			if (!IsServer || IsEating || !HasPlateOf(kinds)) return false;
 
 			_rule = rule ?? DefaultBiteRule;
+			_kinds = kinds;
 			_eating = CancellationTokenSource.CreateLinkedTokenSource(destroyCancellationToken);
 
 			_ = EatPlateAsync(_eating.Token);
@@ -197,7 +202,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		{
 			var mode = PokerGameMode.Instance;
 			var data = mode ? mode.Data : null;
-			if (!data || PokerTableUtility.CountPotEntries(data, _player.ClientId) == 0) return false;
+			if (!data || PokerTableUtility.CountPotEntries(data, _player.ClientId, _kinds) == 0) return false;
 
 			ClearPending();
 
@@ -214,7 +219,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		{
 			for (var i = 0; i < count; i++)
 			{
-				if (!PokerTableUtility.ServerTakePotEntry(data, _player.ClientId, out var itemType)) break;
+				if (!PokerTableUtility.ServerTakePotEntry(data, _player.ClientId, IsOnThisPlate, out var itemType)) break;
 
 				Pend(itemType);
 			}
@@ -223,18 +228,22 @@ namespace Game.Runtime.GameMode.Poker.Player
 		// Everything shared goes down together; once only the kinds eaten on their own are left, one of them.
 		private void TakeWholePlate(PokerGameData data)
 		{
-			while (PokerTableUtility.ServerTakePotEntry(data, _player.ClientId, _rule.IsEatenWithOthers, out var itemType))
+			while (PokerTableUtility.ServerTakePotEntry(data, _player.ClientId, IsSharedOnThisPlate, out var itemType))
 			{
 				Pend(itemType);
 			}
 
 			if (_pendingBetItems.Count > 0) return;
 
-			if (PokerTableUtility.ServerTakePotEntry(data, _player.ClientId, _rule.IsEatenOnItsOwn, out var alone))
+			if (PokerTableUtility.ServerTakePotEntry(data, _player.ClientId, IsAloneOnThisPlate, out var alone))
 			{
 				Pend(alone);
 			}
 		}
+
+		private bool IsOnThisPlate(PokerBetItemType itemType) => _kinds == null || _kinds(itemType);
+		private bool IsSharedOnThisPlate(PokerBetItemType itemType) => IsOnThisPlate(itemType) && _rule.IsEatenWithOthers(itemType);
+		private bool IsAloneOnThisPlate(PokerBetItemType itemType) => IsOnThisPlate(itemType) && _rule.IsEatenOnItsOwn(itemType);
 
 		// Asked of the effects before the bite is paid for, so the hit can be played in front of the change
 		// rather than on top of it. Exact rather than predicted: the only thing a price turns on is a record
