@@ -197,7 +197,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 			if (chooser)
 			{
-				chooser.ActionAnimator?.ServerPlay(chooser == target ? PlayerActionIds.SnapFingersAtSelf : PlayerActionIds.SnapFingers);
+				chooser.ActionAnimator?.ServerPlay(PlayerActionIds.SnapFingers);
 				GameMode.ServerSetFocus(target.ClientId);
 
 				// The cap waits for the snap that names them. The clip says when that is, rather than a

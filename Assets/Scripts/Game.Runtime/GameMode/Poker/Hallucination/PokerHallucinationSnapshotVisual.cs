@@ -6,9 +6,9 @@ using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker.Hallucination
 {
-	// How high this machine's own player is, heard as a mix snapshot over everything: a milder one past the
-	// first threshold, the stronger one in its place past the second, none below. Owner only — the mix is
-	// about the player listening, not about whoever else is high.
+	// How high this machine's own player is, heard as mix snapshots over everything: the mild one past the
+	// first threshold, the strong one stacked on top of it past the second, each let go as the rate falls
+	// back under its own. Owner only — the mix is about the player listening, not whoever else is high.
 	public class PokerHallucinationSnapshotVisual : NetworkBehaviour
 	{
 		[SerializeField] private AudioEvent _mildSnapshot;
@@ -22,8 +22,8 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 		[SerializeField] private int _strongThreshold = 41;
 
 		private PokerPlayerData _data;
-		private AudioHandle _playing;
-		private int _level;
+		private AudioHandle _mild;
+		private AudioHandle _strong;
 
 		private void Awake() => _data = GetComponentInParent<PokerPlayerData>();
 
@@ -39,30 +39,31 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 		{
 			if (_data) _data.HallucinationRate.OnValueChanged -= HandleRateChanged;
 
-			StopSnapshot();
-			_level = 0;
+			Hold(ref _mild, _mildSnapshot, false);
+			Hold(ref _strong, _strongSnapshot, false);
 		}
 
 		private void HandleRateChanged(int previous, int current) => Apply(current);
 
 		private void Apply(int rate)
 		{
-			var level = rate >= _strongThreshold ? 2 : rate >= _mildThreshold ? 1 : 0;
-			if (level == _level) return;
-
-			_level = level;
-			StopSnapshot();
-
-			var snapshot = level == 2 ? _strongSnapshot : level == 1 ? _mildSnapshot : null;
-			if (snapshot && AudioManager.Instance) _playing = AudioManager.Instance.Play(snapshot);
+			Hold(ref _mild, _mildSnapshot, rate >= _mildThreshold);
+			Hold(ref _strong, _strongSnapshot, rate >= _strongThreshold);
 		}
 
-		private void StopSnapshot()
+		// Started once when wanted and stopped once when not, so a rate moving within a band never restarts it.
+		private static void Hold(ref AudioHandle handle, AudioEvent snapshot, bool wanted)
 		{
-			if (!_playing.IsValid) return;
+			if (wanted == handle.IsValid || !AudioManager.Instance) return;
 
-			if (AudioManager.Instance) AudioManager.Instance.Stop(_playing);
-			_playing = default;
+			if (wanted)
+			{
+				if (snapshot) handle = AudioManager.Instance.Play(snapshot);
+				return;
+			}
+
+			AudioManager.Instance.Stop(handle);
+			handle = default;
 		}
 	}
 }

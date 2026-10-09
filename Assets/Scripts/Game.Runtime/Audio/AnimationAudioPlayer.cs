@@ -37,8 +37,10 @@ namespace Game.Runtime.Audio
 
 			var bone = ResolveBone(cue.Bone);
 
-			if (cue.FollowBone) AudioManager.Instance.PlayOneShotAttached(cue.Event, bone);
-			else AudioManager.Instance.PlayOneShot(cue.Event, bone.position);
+			var sound = cue.EventFor(transform);
+
+			if (cue.FollowBone) AudioManager.Instance.PlayOneShotAttached(sound, bone);
+			else AudioManager.Instance.PlayOneShot(sound, bone.position);
 		}
 
 		private Transform ResolveBone(string name)
