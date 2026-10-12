@@ -74,6 +74,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		// laid out around it the moment it was moved cannot send it off ahead of its turn. The deal is
 		// cleared when the card lands.
 		private float _departAt;
+		private bool _departSounded;
 		private PokerDealController _deal;
 
 		private float DepartWait => Mathf.Max(0f, _departAt - Time.time);
@@ -159,6 +160,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 			_departAt = Time.time + Mathf.Max(0f, delay);
 			_deal = deal;
+			_departSounded = false;
 		}
 
 		// Where the card sits, and under what. The new parent is only taken when the card lands: a card
@@ -195,6 +197,17 @@ namespace Game.Runtime.GameMode.Poker.Visual
 				: ArcTween(transform, parent, localPosition, localRotation, RestScale, _moveDuration, _moveEase, _moveArc);
 
 			var sequence = DOTween.Sequence().AppendInterval(wait).Append(travel);
+
+			// A dealt card is heard leaving the deck once, however often it is re-placed on the way.
+			if (_deal && !_departSounded)
+			{
+				var deal = _deal;
+				sequence.InsertCallback(wait, () =>
+				{
+					_departSounded = true;
+					deal.PlayDepartSound(transform.position);
+				});
+			}
 
 			// A chosen card stands off the table while it waits and comes down over the flight, rather than
 			// dropping back onto the wood the moment it is committed and then taking off from there.

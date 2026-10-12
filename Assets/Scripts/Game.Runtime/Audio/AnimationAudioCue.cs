@@ -15,11 +15,23 @@ namespace Game.Runtime.Audio
 		[Required]
 		public AudioEvent Event;
 
+		[Tooltip("Optional: decides when the cue fires whether it plays the alternate sound instead.")]
+		[SerializeReference]
+		public AnimationAudioCueChoice Choice;
+
+		[Tooltip("Played instead of Event when the choice says so.")]
+		[ShowIf(nameof(HasChoice))]
+		public AudioEvent AlternateEvent;
+
 		[Tooltip("Bone the sound comes from, by name, so one cue lands on whichever rig is drawn. Empty uses the rig's root.")]
 		public string Bone;
 
 		[Tooltip("Keeps following the bone while it plays. Off leaves it where it started.")]
 		public bool FollowBone = true;
+
+		private bool HasChoice => Choice != null;
+
+		public AudioEvent EventFor(Transform rig) => Choice != null && AlternateEvent && Choice.UseAlternate(rig) ? AlternateEvent : Event;
 
 		public float TimeIn(AnimationClip clip) => clip && clip.frameRate > 0f ? Frame / clip.frameRate : 0f;
 	}

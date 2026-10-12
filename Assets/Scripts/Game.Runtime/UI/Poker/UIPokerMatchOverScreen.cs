@@ -126,7 +126,7 @@ namespace Game.Runtime.UI.Poker
 
 			if (shut)
 			{
-				if (animate) _blink.Close(clip, pacing.CloseDuration);
+				if (animate) _blink.Close(clip, pacing.ShutTime, pacing.CloseDuration);
 				else _blink.SnapShut(clip);
 				return;
 			}

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
+using Game.Runtime.Audio;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -45,6 +44,11 @@ namespace Game.Runtime.Player
 			[ValueDropdown(nameof(StateNames), AppendNextDrawer = true)]
 			public string AlternateStateName;
 
+			// Heard with the gesture on every screen, from the player, whether or not the rig has the state
+			// yet. A sound tied to a frame of the clip belongs in AnimationAudioCueDatabase instead.
+			[Tooltip("Optional: played from the player as the gesture starts.")]
+			public AudioEvent Sound;
+
 			public string DefaultStateName => string.IsNullOrEmpty(StateName) ? Id : StateName;
 
 			public bool HasAlternate => !string.IsNullOrEmpty(AlternateWhen) && !string.IsNullOrEmpty(AlternateStateName);
@@ -69,11 +73,7 @@ namespace Game.Runtime.Player
 			return false;
 		}
 
-		private static IEnumerable<string> ActionIds =>
-			typeof(PlayerActionIds)
-				.GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy)
-				.Where(field => field.IsLiteral && field.FieldType == typeof(string))
-				.Select(field => (string)field.GetRawConstantValue());
+		private static IEnumerable<string> ActionIds => PlayerActionIds.All;
 
 		private IEnumerable<string> StateNames
 		{

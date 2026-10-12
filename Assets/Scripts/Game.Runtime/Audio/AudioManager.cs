@@ -46,5 +46,25 @@ namespace Game.Runtime.Audio
 			if (target) _backend.PlayOneShotAttached(audioEvent, target);
 			else _backend.PlayOneShot(audioEvent, transform.position);
 		}
+
+		// For a sound that lasts until something ends it (music, ambience); the caller keeps the handle and
+		// stops it. A null target plays it unplaced, the way music is heard.
+		public AudioHandle Play(AudioEvent audioEvent, Transform target = null)
+		{
+			if (!audioEvent || _backend == null) return default;
+
+			return new AudioHandle(_backend.Play(audioEvent, target));
+		}
+
+		public void Stop(AudioHandle handle, bool fadeOut = true)
+		{
+			if (handle.IsValid && _backend != null) _backend.Stop(handle.Id, fadeOut);
+		}
+
+		// A parameter on a sound that lasts, by the name its event gives it.
+		public void SetParameter(AudioHandle handle, string parameter, float value)
+		{
+			if (handle.IsValid && _backend != null && !string.IsNullOrEmpty(parameter)) _backend.SetParameter(handle.Id, parameter, value);
+		}
 	}
 }

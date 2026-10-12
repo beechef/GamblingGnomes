@@ -1,4 +1,5 @@
 using System;
+using Game.Runtime.Voice;
 using Steamworks;
 using Unity.Collections;
 using Unity.Netcode;
@@ -23,7 +24,15 @@ namespace Game.Runtime.Player
 		[HideInInspector] public NetworkVariable<int> ColorIndex = new(-1,
 			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
 
+		// This player's Vivox player id (VoiceChatManager.LocalVoiceId), so voice state such as who is
+		// speaking can be shown on their body. Empty for a bot, or until their voice login lands.
+		[HideInInspector] public NetworkVariable<FixedString128Bytes> VoiceId = new(default,
+			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
+
 		public event Action OnIdentityChanged;
+
+		private VoiceChatManager _voice;
+		private string _reportedVoiceId = string.Empty;
 
 		public override void OnNetworkSpawn()
 		{
@@ -34,7 +43,11 @@ namespace Game.Runtime.Player
 			// Steam only knows whoever is signed in at this machine, so each player reports their own
 			// name and id. The server cannot ask on their behalf: the transport hands it a bare number,
 			// and the lobby it would look the name up in may not list a member who only just arrived.
-			if (IsOwner) ReportIdentity();
+			if (IsOwner)
+			{
+				ReportIdentity();
+				BindVoice();
+			}
 
 			OnIdentityChanged?.Invoke();
 		}
@@ -67,8 +80,36 @@ namespace Game.Runtime.Player
 			ServerSetIdentity(playerId, displayName);
 		}
 
+		// The voice login can land long after the spawn, and a re-login changes the id.
+		private void BindVoice()
+		{
+			_voice = VoiceChatManager.Instance;
+			if (_voice) _voice.OnLocalVoiceIdChanged += ReportVoiceId;
+			ReportVoiceId();
+		}
+
+		private void ReportVoiceId()
+		{
+			var voiceId = _voice ? _voice.LocalVoiceId : string.Empty;
+			if (voiceId == _reportedVoiceId) return;
+
+			_reportedVoiceId = voiceId;
+			SubmitVoiceIdRPC(voiceId);
+		}
+
+		[Rpc(SendTo.Server)]
+		private void SubmitVoiceIdRPC(string voiceId, RpcParams rpcParams = default)
+		{
+			if (rpcParams.Receive.SenderClientId != OwnerClientId) return;
+
+			VoiceId.Value = voiceId.Length > FixedString128Bytes.UTF8MaxLengthInBytes ? string.Empty : voiceId;
+		}
+
 		public override void OnNetworkDespawn()
 		{
+			if (_voice) _voice.OnLocalVoiceIdChanged -= ReportVoiceId;
+			_voice = null;
+
 			ColorIndex.OnValueChanged -= HandleColorIndexChanged;
 			DisplayName.OnValueChanged -= HandleNameChanged;
 			PlayerId.OnValueChanged -= HandleIdChanged;

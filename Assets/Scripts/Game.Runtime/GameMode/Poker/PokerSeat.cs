@@ -29,7 +29,11 @@ namespace Game.Runtime.GameMode.Poker
 		[Tooltip("Where a sitter is looking when they face straight ahead — out across the table, at head height. Authored rather than derived so it can be nudged; left empty, a shot that asks for it simply leaves the look where it is.")]
 		[SerializeField] private Transform _aheadAnchor;
 
+		[Tooltip("Under the table edge in front of the sitter: where an item is taken out from and put back. No fallback.")]
+		[SerializeField] private Transform _itemStashAnchor;
+
 		public int SeatIndex => _seatIndex;
+		public Transform ItemStashAnchor => _itemStashAnchor;
 		public Transform CardAnchor => _cardAnchor ? _cardAnchor : SitAnchor;
 
 		// Where a stake lands belongs to the chair for the same reason where the cards lie does: it is a spot

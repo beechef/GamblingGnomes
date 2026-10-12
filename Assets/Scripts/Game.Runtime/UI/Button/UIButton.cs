@@ -27,10 +27,16 @@ namespace Game.Runtime.UI.Button
 		// under the pointer counts as not over, so the pointer only promises what a click would do.
 		public static event Action<UIButton, bool> OnPointerOverChanged;
 
+		// Raised the moment a press is taken, before the click delay, for what answers the press itself (the click sound).
+		public event Action OnPress;
+
 		public bool IsPointerOver { get; private set; }
 
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-		private static void ResetStatics() => OnPointerOverChanged = null;
+		private static void ResetStatics()
+		{
+			OnPointerOverChanged = null;
+		}
 
 		private UnityEngine.UI.Button _button;
 		private bool _initialized;
@@ -171,6 +177,8 @@ namespace Game.Runtime.UI.Button
 		private async void Click()
 		{
 			if (!IsInteractable || _clicking) return;
+
+			OnPress?.Invoke();
 
 			if (_clickDelay <= 0f)
 			{

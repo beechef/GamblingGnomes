@@ -1,0 +1,91 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9b3b1fef701e1d34aad38a944401e83f, type: 3}
+  m_Name: AnimationAudioCueDatabase
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Audio.AnimationAudioCueDatabase
+  _clips:
+  - Clip: {fileID: -4067113552664517915, guid: 302b130296a45cb4bb27123e6d986545, type: 3}
+    Cues:
+    - Frame: 0
+      Event: {fileID: 11400000, guid: ed941050d8b4b6745aafd190be9a9a36, type: 2}
+      Choice:
+        rid: -2
+      AlternateEvent: {fileID: 0}
+      Bone: Wrist_R
+      FollowBone: 1
+  - Clip: {fileID: 7082065182427284219, guid: 434024fd26095f6409a3e02bca2e8795, type: 3}
+    Cues:
+    - Frame: 0
+      Event: {fileID: 11400000, guid: ed941050d8b4b6745aafd190be9a9a36, type: 2}
+      Choice:
+        rid: -2
+      AlternateEvent: {fileID: 0}
+      Bone: Wrist_R
+      FollowBone: 1
+  - Clip: {fileID: -6718854405777268428, guid: ec780f06d1c33c44d8c7c4d6871ca110, type: 3}
+    Cues:
+    - Frame: 27
+      Event: {fileID: 11400000, guid: f2f1edd878ea903438a78bc4fd120e88, type: 2}
+      Choice:
+        rid: -2
+      AlternateEvent: {fileID: 0}
+      Bone: Head_M
+      FollowBone: 1
+    - Frame: 48
+      Event: {fileID: 11400000, guid: 2b34b6b945c6aff09474b8a74e4f9e56, type: 2}
+      Choice:
+        rid: -2
+      AlternateEvent: {fileID: 0}
+      Bone: Head_M
+      FollowBone: 1
+  - Clip: {fileID: 7008616159364520661, guid: 8a2dd1667bffadc4e87cc306c34b3a6d, type: 3}
+    Cues:
+    - Frame: 0
+      Event: {fileID: 11400000, guid: da0632d2cf9f8fb4c9512f0f4d650afc, type: 2}
+      Choice:
+        rid: -2
+      AlternateEvent: {fileID: 0}
+      Bone: Head_M
+      FollowBone: 1
+    - Frame: 68
+      Event: {fileID: 11400000, guid: 8c64b2b68845a9246b7948546604d42a, type: 2}
+      Choice:
+        rid: -2
+      AlternateEvent: {fileID: 0}
+      Bone: Head_M
+      FollowBone: 0
+  - Clip: {fileID: 3716668784015804215, guid: 7089124b7f8322c40833183fe6fbfcb7, type: 3}
+    Cues:
+    - Frame: 42
+      Event: {fileID: 11400000, guid: b39c8e62a0ed3904b8e4f2d6f4508356, type: 2}
+      Choice:
+        rid: 4213679508372062574
+      AlternateEvent: {fileID: 11400000, guid: 86b6307f87fbc9545bc3c9e3885ddd3a, type: 2}
+      Bone: Wrist_R
+      FollowBone: 1
+  - Clip: {fileID: 7838699852346251955, guid: 1a7988cfd071ebc41aa272ad434393ce, type: 3}
+    Cues:
+    - Frame: 0
+      Event: {fileID: 11400000, guid: adb13c52748bafb49908210216b5d4b5, type: 2}
+      Choice:
+        rid: -2
+      AlternateEvent: {fileID: 0}
+      Bone: Head_M
+      FollowBone: 1
+  references:
+    version: 2
+    RefIds:
+    - rid: -2
+      type: {class: , ns: , asm: }
+    - rid: 4213679508372062574
+      type: {class: PokerSnapAtSelfChoice, ns: Game.Runtime.GameMode.Poker.Player, asm: Game.Runtime}
+      data: 

@@ -72,6 +72,27 @@ Words follow `CONTEXT.md` and `docs/items-design.md` (Match, Hand, Street, Bet, 
 - **Next-Street Items.** No Items and Chained are hidden on the second Street, the last one (existing
   rule: what the rules forbid is hidden).
 
+## Item presentation
+
+Each Item is acted out with a prop (art brief: `Items.docx`), one GameObject per item asset under
+`Player_Poker/ItemPerformances` (`PokerItemPerformance`); the effect lands when the prop gets there (`PokerItem.LeadIn`). Props, VFX and the
+jack box animator are placeholders in `Assets/Prefabs/Items/`; gestures are named (`PlayerActionIds.Item*`)
+but have no clips yet.
+
+| Prop | Item | Performed by | Beat |
+|---|---|---|---|
+| Spatula | Scry (`PeekBoard_Main`) | user | from under the table to the last face-down board card, flips it (the face still shows only to the user), back under |
+| Threaten Knife | Swap | user | pointed at the target until the cards have changed hands, put away |
+| Vomit | Extra Draw | user | puddle on the table; the card flies out of it into the hand; puddle dries |
+| Cigarette | Lay Down | user | smoked, then flicked away as the card goes to the board and the new one comes up from under the table |
+| Dice | Repaint | user | shaken, rolled onto the table, stays while the card flickers |
+| Jack box | Wild Card | user | set on the table, crank turns through the flicker, pops open |
+| Panty | Rate Shift | target | sniffed; hearts when the rate went down, stink when it went up; thrown away |
+| Syringe | Half Dose | target | injected into the card hand, thrown away, then the roll |
+| Beer | Shared Roll | both | drunk together, cans thrown, then both roll |
+| Megaphone | Exposure | user | raised to the mouth with sound waves while every hand shows a card |
+| Handcuffs | Chained | both | snap onto the right wrist, stay until the fold lock runs out, pop open and fall |
+
 ## Hand ranking
 
 The mode has its own `PokerHandDatabase` (`PokerGameMode._handDatabase`, read by the showdown and the helper): the ten standard hands plus **Five of a Kind** on top.

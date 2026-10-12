@@ -51,6 +51,20 @@ namespace Game.Runtime.Player
 		[Tooltip("Every state allowed to raise the IK, each with its own weight curve. Anything else holds the weight at zero.")]
 		[SerializeField] private StateWeight[] _states = Array.Empty<StateWeight>();
 
+		// A reach held by code rather than a gesture: the hand trails something moving (a prop carried before its
+		// clip exists). The higher of this and the gesture's weight wins.
+		private Transform _follow;
+		private float _followWeight;
+
+		public float FollowWeight
+		{
+			get => _followWeight;
+			set => _followWeight = Mathf.Clamp01(value);
+		}
+
+		// Null lets go; the weight is the caller's to ease.
+		public void Follow(Transform target) => _follow = target;
+
 		private void Awake()
 		{
 			if (_constraints == null || _constraints.Length == 0)
@@ -84,6 +98,14 @@ namespace Game.Runtime.Player
 				if (!constraint) continue;
 
 				var weight = EvaluateWeight(i);
+
+				if (_follow)
+				{
+					var target = constraint.data.target;
+					if (target) target.position = _follow.position;
+					weight = Mathf.Max(weight, _followWeight);
+				}
+
 				if (!Mathf.Approximately(constraint.weight, weight)) constraint.weight = weight;
 			}
 		}

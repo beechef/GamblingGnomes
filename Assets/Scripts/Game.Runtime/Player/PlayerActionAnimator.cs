@@ -1,4 +1,5 @@
 using System;
+using Game.Runtime.Audio;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
@@ -59,6 +60,13 @@ namespace Game.Runtime.Player
 			};
 		}
 
+		// For a performance every peer already runs from one shared event (an item's prop): played here
+		// rather than replicated, which would play it twice.
+		public void PlayLocal(string actionId)
+		{
+			if (!string.IsNullOrEmpty(actionId)) Play(actionId);
+		}
+
 		private void HandleCurrentChanged(PlayerActionAnimationEvent previous, PlayerActionAnimationEvent current)
 		{
 			Play(current.Id.ToString());
@@ -70,6 +78,8 @@ namespace Game.Runtime.Player
 
 			CrossFade(_bodyAnimator, entry);
 			CrossFade(_handOnlyAnimator, entry);
+
+			if (entry.Sound && AudioManager.Instance) AudioManager.Instance.PlayOneShotAttached(entry.Sound, transform);
 		}
 
 		// A state the controller does not have yet is quietly skipped, so gestures can be scripted ahead

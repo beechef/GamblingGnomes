@@ -48,7 +48,13 @@ namespace Game.Runtime.GameMode.Poker.Items
 		[FormerlySerializedAs("_privateNoticeVerb")]
 		[SerializeField] private string _privateNoticeKey;
 
+		[Header("Pacing")]
+		[Tooltip("Seconds between the item being played and it acting: the server waits this long, and the intro of its PokerItemPerformance is stretched to arrive exactly then — the spatula at the card, the knife on the target.")]
+		[MinValue(0f)]
+		[SerializeField] private float _leadIn;
+
 		public PokerItemType Type => _type;
+		public float LeadIn => Mathf.Max(0f, _leadIn);
 		public string DisplayName => string.IsNullOrEmpty(_nameKey) ? name : Localizer.Get(_nameKey);
 		public string Description => Localizer.Get(_descriptionKey);
 		public Sprite Icon => _icon;

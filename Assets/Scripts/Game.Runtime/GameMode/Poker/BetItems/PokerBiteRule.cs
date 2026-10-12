@@ -17,8 +17,7 @@ namespace Game.Runtime.GameMode.Poker.BetItems
 		[Tooltip("On, a player's whole plate goes down in one mouthful, except the kinds eaten on their own, which follow one per mouthful. Items Per Bite is not used then.")]
 		[SerializeField] private bool _eatWholePlate;
 
-		[Tooltip("Kinds never swallowed with anything else while the whole plate is eaten at once: each is its own mouthful, after the rest. Colorful, whose roll is its own beat.")]
-		[ShowIf(nameof(_eatWholePlate))]
+		[Tooltip("Kinds never swallowed with anything else: each is its own mouthful, after the rest, and a consume stage serving courses eats them in its second course. Colorful, whose roll is its own beat.")]
 		[SerializeField] private List<PokerBetItemType> _eatenOnTheirOwn = new() { PokerBetItemType.Colorful };
 
 		public int BiteSize => Mathf.Max(1, _biteSize);

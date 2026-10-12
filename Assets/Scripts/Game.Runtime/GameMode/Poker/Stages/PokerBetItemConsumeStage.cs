@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Game.Runtime.GameMode.Poker.BetItems;
 using Game.Runtime.GameMode.Poker.Player;
@@ -25,7 +26,11 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		[Tooltip("One after another: seat order, the room watching each eater. All at once: every plate starts together, the view stays free and turns only to whoever is rolling.")]
 		[SerializeField] private PokerEatingOrder _order = PokerEatingOrder.OneAfterAnother;
 
-		[Tooltip("Seconds between one player finishing their plate and the next starting theirs, so two players eating do not read as one.")]
+		[Tooltip("All at once only: everybody first eats the kinds that go down together, then, as a second course, the kinds eaten on their own (Colorful, Bite Rule), so the rolls come after the whole table has eaten.")]
+		[ShowIf(nameof(_order), PokerEatingOrder.AllAtOnce)]
+		[SerializeField] private bool _ownKindsAsSecondCourse = true;
+
+		[Tooltip("Seconds between one player finishing their plate and the next starting theirs (or one course and the next), so two do not read as one.")]
 		[MinValue(0f)]
 		[SerializeField] private float _handoverDuration = 0.4f;
 
@@ -45,6 +50,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		// All at once: everyone still eating, and the roller the room is turned to.
 		private readonly List<PokerPlayer> _eaters = new();
 		private PokerPlayer _watchedRoller;
+		private bool _secondCourse;
 
 		protected override void OnStartStage()
 		{
@@ -53,6 +59,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 			_seatIndex = -1;
 			_handingOver = false;
+			_secondCourse = false;
 
 			if (_order == PokerEatingOrder.AllAtOnce)
 			{
@@ -72,7 +79,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 				if (_timer > 0f) return;
 
 				_handingOver = false;
-				if (_order == PokerEatingOrder.AllAtOnce) FinishEating();
+				if (_order == PokerEatingOrder.AllAtOnce) FinishCourse();
 				else StartNextPlate();
 				return;
 			}
@@ -121,11 +128,32 @@ namespace Game.Runtime.GameMode.Poker.Stages
 				if (!consume || !consume.HasPlate) continue;
 
 				consume.OnPlateFinished += HandleTablePlateFinished;
-				if (consume.ServerEatPlate(_biteRule)) _eaters.Add(player);
+				if (consume.ServerEatPlate(_biteRule, CourseKinds())) _eaters.Add(player);
 				else consume.OnPlateFinished -= HandleTablePlateFinished;
 			}
 
-			if (_eaters.Count == 0) FinishEating();
+			if (_eaters.Count == 0) FinishCourse();
+		}
+
+		// The first course is what goes down together, the second what is eaten on its own; without courses,
+		// everything at once.
+		private Func<PokerBetItemType, bool> CourseKinds()
+		{
+			if (!_ownKindsAsSecondCourse) return null;
+			return _secondCourse ? _biteRule.IsEatenOnItsOwn : _biteRule.IsEatenWithOthers;
+		}
+
+		// The second course is served only to a table that has one; otherwise the eating is over.
+		private void FinishCourse()
+		{
+			if (_ownKindsAsSecondCourse && !_secondCourse)
+			{
+				_secondCourse = true;
+				StartEveryPlate();
+				return;
+			}
+
+			FinishEating();
 		}
 
 		private void TickTable()

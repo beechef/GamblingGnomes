@@ -1,5 +1,7 @@
+using Game.Runtime.Audio;
 using Game.Runtime.GameMode.Poker.Stages;
 using Sirenix.OdinInspector;
+using Unity.Collections;
 using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker.Visual
@@ -28,7 +30,23 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		[Required]
 		[SerializeField] private PokerDealController _controller;
 
+		[Tooltip("Played on the deck as a deal begins, before the first card leaves. Empty: no shuffle heard.")]
+		[SerializeField] private AudioEvent _shuffleSound;
+
 		public static PokerDeckVisual Instance { get; private set; }
+
+		// Where a card an item hands out comes from while that item is being played (a vomit puddle, under the
+		// table), instead of _itemDrawFrom. One at a time: only one item resolves at once.
+		private Transform _itemDrawOverride;
+
+		public void SetItemDrawOrigin(Transform origin) => _itemDrawOverride = origin;
+
+		public void ClearItemDrawOrigin(Transform origin)
+		{
+			if (_itemDrawOverride == origin) _itemDrawOverride = null;
+		}
+
+		private Transform ItemDrawFrom => _itemDrawOverride ? _itemDrawOverride : _itemDrawFrom ? _itemDrawFrom : _top ? _top : transform;
 
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
 		private static void ResetStatics() => Instance = null;
@@ -43,6 +61,22 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		private void OnDestroy()
 		{
 			if (Instance == this) Instance = null;
+		}
+
+		// Heard only as a deal begins: a player joining mid-deal reads the stage on bind and hears nothing.
+		protected override void OnBind() => Data.StageId.OnValueChanged += HandleStageChanged;
+
+		protected override void OnUnbind()
+		{
+			if (Data) Data.StageId.OnValueChanged -= HandleStageChanged;
+		}
+
+		private void HandleStageChanged(FixedString32Bytes previous, FixedString32Bytes current)
+		{
+			if (!_shuffleSound || !AudioManager.Instance) return;
+			if (GameMode.FindStage(current.ToString()) is not PokerDealStage) return;
+
+			AudioManager.Instance.PlayOneShot(_shuffleSound, _top ? _top.position : transform.position);
 		}
 
 		// Holds the card on the deck until its turn comes round. The turn is by seat, not by the order the
@@ -61,7 +95,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			// A card handed out mid-hand, by an item, takes no turn in any deal: it drops in from above at once.
 			if (!deal)
 			{
-				card.DealFrom(_itemDrawFrom ? _itemDrawFrom : _top ? _top : transform, 0f, _controller);
+				card.DealFrom(ItemDrawFrom, 0f, _controller);
 				return;
 			}
 
@@ -84,7 +118,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			// A card laid on the board mid-hand, by an item, takes no turn in any deal either.
 			if (!deal)
 			{
-				card.DealFrom(_top ? _top : transform, 0f, _controller);
+				card.DealFrom(_itemDrawOverride ? _itemDrawOverride : _top ? _top : transform, 0f, _controller);
 				return;
 			}
 

@@ -40,7 +40,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			for (var i = _rewrites.Count - 1; i >= 0; i--) Settle(_rewrites[i]);
 		}
 
-		private void HandleCardRewriting(PokerCardPlace place, PokerCardFlickerFaces faces)
+		private void HandleCardRewriting(PokerCardPlace place, PokerCardFlickerFaces faces, CardData becomes)
 		{
 			var pacing = _module ? _module.ExchangePacing : null;
 			var player = PokerPlayer.Find(place.HolderClientId);

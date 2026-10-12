@@ -152,6 +152,7 @@ GameObject:
   - component: {fileID: 521612333448189428}
   - component: {fileID: 5475141220054849468}
   - component: {fileID: 1080748128334404434}
+  - component: {fileID: 4893956857744884737}
   m_Layer: 5
   m_Name: Button_Join
   m_TagString: Untagged
@@ -287,6 +288,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Button.UIButtonSpriteVisual
   _button: {fileID: 521612333448189428}
+  _flashHold: 0.15
   _image: {fileID: 4969047917280617881}
   _normal: {fileID: 21300000, guid: 02363303dbabcca48b61573ab4bd0474, type: 3}
   _hovered: {fileID: 0}
@@ -309,6 +311,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Button.UIButtonScaleVisual
   _button: {fileID: 521612333448189428}
+  _flashHold: 0.15
   _target: {fileID: 4362655443472548891}
   _normalScale: 1
   _hoveredScale: 1.06
@@ -316,6 +319,19 @@ MonoBehaviour:
   _disabledScale: 1
   _duration: 0.12
   _ease: 27
+--- !u!114 &4893956857744884737
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5236616735185955652}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01c5d9f66275e644cbebdfea582f1ca1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Button.UIButtonClickSound
+  _click: {fileID: 11400000, guid: a722acdb54cd55f4abcda5d49d577b42, type: 2}
 --- !u!1 &6145883033693051819
 GameObject:
   m_ObjectHideFlags: 0
@@ -564,6 +580,7 @@ MonoBehaviour:
   _nameText: {fileID: 4903081043223373510}
   _gameModeText: {fileID: 7725988963861448340}
   _playerCountText: {fileID: 5259705700368321042}
+  _openCountColor: {r: 0.788, g: 0.243, b: 0.251, a: 1}
   _joinButton: {fileID: 521612333448189428}
 --- !u!114 &2796116534854278839
 MonoBehaviour:
