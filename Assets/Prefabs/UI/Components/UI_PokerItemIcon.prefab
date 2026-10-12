@@ -1044,6 +1044,7 @@ GameObject:
   - component: {fileID: 8862284524576693057}
   - component: {fileID: 7456258502537196238}
   - component: {fileID: 8547617699812339523}
+  - component: {fileID: 678016712583904184}
   m_Layer: 5
   m_Name: UI_PokerItemIcon
   m_TagString: Untagged
@@ -1213,6 +1214,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Button.UIButtonScaleVisual
   _button: {fileID: 2295048443216035819}
+  _flashHold: 0.15
   _target: {fileID: 7541299429382044765}
   _normalScale: 1
   _hoveredScale: 1.5
@@ -1233,6 +1235,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Button.UIButtonRotationVisual
   _button: {fileID: 2295048443216035819}
+  _flashHold: 0.15
   _target: {fileID: 7541299429382044765}
   _hoveredAngle: 15
   _pressedAngle: -5
@@ -1261,6 +1264,19 @@ MonoBehaviour:
   _reasonLabel: {fileID: 1272661341395957302}
   _costGroup: {fileID: 2576426959538262507}
   _costLabel: {fileID: 3025218727303175397}
+--- !u!114 &678016712583904184
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8210422496510091227}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01c5d9f66275e644cbebdfea582f1ca1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Button.UIButtonClickSound
+  _click: {fileID: 11400000, guid: a722acdb54cd55f4abcda5d49d577b42, type: 2}
 --- !u!1 &9008397266769991616
 GameObject:
   m_ObjectHideFlags: 0

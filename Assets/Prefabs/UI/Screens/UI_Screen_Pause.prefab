@@ -241,6 +241,7 @@ GameObject:
   - component: {fileID: 5002698041006997236}
   - component: {fileID: 3267687831505581992}
   - component: {fileID: 2336260192846223613}
+  - component: {fileID: 723640642666067537}
   m_Layer: 5
   m_Name: Button_Quit
   m_TagString: Untagged
@@ -388,6 +389,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Button.UIButtonSpriteVisual
   _button: {fileID: 5002698041006997236}
+  _flashHold: 0.15
   _image: {fileID: 4620495433273605526}
   _normal: {fileID: 21300000, guid: 02363303dbabcca48b61573ab4bd0474, type: 3}
   _hovered: {fileID: 0}
@@ -410,6 +412,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Button.UIButtonScaleVisual
   _button: {fileID: 5002698041006997236}
+  _flashHold: 0.15
   _target: {fileID: 996042973777785183}
   _normalScale: 1
   _hoveredScale: 1.06
@@ -417,6 +420,19 @@ MonoBehaviour:
   _disabledScale: 1
   _duration: 0.12
   _ease: 27
+--- !u!114 &723640642666067537
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2052571866630769752}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01c5d9f66275e644cbebdfea582f1ca1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Button.UIButtonClickSound
+  _click: {fileID: 11400000, guid: a722acdb54cd55f4abcda5d49d577b42, type: 2}
 --- !u!1 &2215968385285314634
 GameObject:
   m_ObjectHideFlags: 0
@@ -790,6 +806,7 @@ GameObject:
   - component: {fileID: 3125078762572570964}
   - component: {fileID: 2826265577535280612}
   - component: {fileID: 5738959894686155937}
+  - component: {fileID: 3035712850134083385}
   m_Layer: 5
   m_Name: Button_Resume
   m_TagString: Untagged
@@ -937,6 +954,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Button.UIButtonSpriteVisual
   _button: {fileID: 3125078762572570964}
+  _flashHold: 0.15
   _image: {fileID: 1346606816001182641}
   _normal: {fileID: 21300000, guid: 02363303dbabcca48b61573ab4bd0474, type: 3}
   _hovered: {fileID: 0}
@@ -959,6 +977,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Button.UIButtonScaleVisual
   _button: {fileID: 3125078762572570964}
+  _flashHold: 0.15
   _target: {fileID: 1819280270867548720}
   _normalScale: 1
   _hoveredScale: 1.06
@@ -966,6 +985,19 @@ MonoBehaviour:
   _disabledScale: 1
   _duration: 0.12
   _ease: 27
+--- !u!114 &3035712850134083385
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4895057440073873864}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01c5d9f66275e644cbebdfea582f1ca1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Button.UIButtonClickSound
+  _click: {fileID: 11400000, guid: a722acdb54cd55f4abcda5d49d577b42, type: 2}
 --- !u!1 &5371641395784243743
 GameObject:
   m_ObjectHideFlags: 0
@@ -981,6 +1013,7 @@ GameObject:
   - component: {fileID: 7586151435045390615}
   - component: {fileID: 740290799741037576}
   - component: {fileID: 3998324577186310925}
+  - component: {fileID: 7907314357185891070}
   m_Layer: 5
   m_Name: Button_Settings
   m_TagString: Untagged
@@ -1128,6 +1161,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Button.UIButtonSpriteVisual
   _button: {fileID: 7586151435045390615}
+  _flashHold: 0.15
   _image: {fileID: 48526416728852473}
   _normal: {fileID: 21300000, guid: 02363303dbabcca48b61573ab4bd0474, type: 3}
   _hovered: {fileID: 0}
@@ -1150,6 +1184,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Button.UIButtonScaleVisual
   _button: {fileID: 7586151435045390615}
+  _flashHold: 0.15
   _target: {fileID: 7220275017852027450}
   _normalScale: 1
   _hoveredScale: 1.06
@@ -1157,6 +1192,19 @@ MonoBehaviour:
   _disabledScale: 1
   _duration: 0.12
   _ease: 27
+--- !u!114 &7907314357185891070
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5371641395784243743}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01c5d9f66275e644cbebdfea582f1ca1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Button.UIButtonClickSound
+  _click: {fileID: 11400000, guid: a722acdb54cd55f4abcda5d49d577b42, type: 2}
 --- !u!1 &6032960660795400377
 GameObject:
   m_ObjectHideFlags: 0
@@ -1364,6 +1412,7 @@ GameObject:
   - component: {fileID: 3487703990428648886}
   - component: {fileID: 2136104547947505203}
   - component: {fileID: 6067930279940873451}
+  - component: {fileID: 8776462717496876856}
   m_Layer: 5
   m_Name: Button_Leave
   m_TagString: Untagged
@@ -1511,6 +1560,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Button.UIButtonSpriteVisual
   _button: {fileID: 3487703990428648886}
+  _flashHold: 0.15
   _image: {fileID: 1363266987343069039}
   _normal: {fileID: 21300000, guid: 02363303dbabcca48b61573ab4bd0474, type: 3}
   _hovered: {fileID: 0}
@@ -1533,6 +1583,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Button.UIButtonScaleVisual
   _button: {fileID: 3487703990428648886}
+  _flashHold: 0.15
   _target: {fileID: 3528949620811448326}
   _normalScale: 1
   _hoveredScale: 1.06
@@ -1540,6 +1591,19 @@ MonoBehaviour:
   _disabledScale: 1
   _duration: 0.12
   _ease: 27
+--- !u!114 &8776462717496876856
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7886260683963265731}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01c5d9f66275e644cbebdfea582f1ca1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Button.UIButtonClickSound
+  _click: {fileID: 11400000, guid: a722acdb54cd55f4abcda5d49d577b42, type: 2}
 --- !u!1 &7912561817437130001
 GameObject:
   m_ObjectHideFlags: 0

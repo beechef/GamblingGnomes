@@ -52,6 +52,7 @@ MonoBehaviour:
   _pivot: {fileID: 2301095594349449802}
   _root: {fileID: 1421940612696631001}
   _bounds: {x: 100, y: 100, z: 100}
+  _startPrefab: {fileID: 0}
 --- !u!1 &2892791031498106647
 GameObject:
   m_ObjectHideFlags: 0
@@ -139,6 +140,7 @@ GameObject:
   - component: {fileID: 8285134118567287731}
   - component: {fileID: 5076906489024170430}
   - component: {fileID: 7312422598737886777}
+  - component: {fileID: 5664137064609983336}
   m_Layer: 5
   m_Name: UI_PokerBetKind
   m_TagString: Untagged
@@ -309,6 +311,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Button.UIButtonScaleVisual
   _button: {fileID: 5587583676526602881}
+  _flashHold: 0.15
   _target: {fileID: 3320408694229221080}
   _normalScale: 1
   _hoveredScale: 1.5
@@ -342,6 +345,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Button.UIButtonSpinVisual
   _button: {fileID: 5587583676526602881}
+  _flashHold: 0.15
   _target: {fileID: 1421940612696631001}
   _axis: {x: 0, y: 1, z: 0}
   _degreesPerSecond: 180
@@ -360,6 +364,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Button.UIButtonOutlineVisual
   _button: {fileID: 5587583676526602881}
+  _flashHold: 0.15
   _root: {fileID: 1421940612696631001}
   _outline: {fileID: 2100000, guid: 712ea6f8513b37949b31811fcce9c143, type: 2}
   _litWhilePressed: 1
@@ -376,12 +381,26 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Button.UIButtonRotationVisual
   _button: {fileID: 5587583676526602881}
+  _flashHold: 0.15
   _target: {fileID: 1171151273948017058}
   _hoveredAngle: -10
   _pressedAngle: 0
   _disabledAngle: 0
   _duration: 0.1
   _ease: 27
+--- !u!114 &5664137064609983336
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4702627318684888590}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01c5d9f66275e644cbebdfea582f1ca1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Button.UIButtonClickSound
+  _click: {fileID: 11400000, guid: a722acdb54cd55f4abcda5d49d577b42, type: 2}
 --- !u!1 &7987740238016517507
 GameObject:
   m_ObjectHideFlags: 0

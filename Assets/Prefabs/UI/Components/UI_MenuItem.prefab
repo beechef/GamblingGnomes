@@ -167,6 +167,7 @@ GameObject:
   - component: {fileID: 2879913087644139037}
   - component: {fileID: 5516941656801254705}
   - component: {fileID: 8021034148310064622}
+  - component: {fileID: 8391167721622165778}
   m_Layer: 5
   m_Name: UI_MenuItem
   m_TagString: Untagged
@@ -297,12 +298,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Button.UIButtonLabelVisual
   _button: {fileID: 8321613581667379207}
+  _flashHold: 0.15
   _label: {fileID: 3878974831324386900}
   _normalColor: {r: 0.85, g: 0.78, b: 0.65, a: 1}
   _hoveredColor: {r: 0.95, g: 0.9, b: 0.78, a: 1}
   _selectedColor: {r: 0.5568628, g: 0.19607843, b: 0.19607843, a: 1}
   _pressedColor: {r: 0.6, g: 0.12, b: 0.1, a: 1}
   _disabledColor: {r: 0.45, g: 0.42, b: 0.38, a: 1}
+  _animateSize: 0
+  _normalSize: 40
+  _hoveredSize: 64
+  _sizeDuration: 0.12
+  _sizeEase: 27
 --- !u!114 &8021034148310064622
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -316,6 +323,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Button.UIButtonScaleVisual
   _button: {fileID: 8321613581667379207}
+  _flashHold: 0.15
   _target: {fileID: 5811634834450710423}
   _normalScale: 1
   _hoveredScale: 1.04
@@ -323,3 +331,16 @@ MonoBehaviour:
   _disabledScale: 1
   _duration: 0.12
   _ease: 27
+--- !u!114 &8391167721622165778
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8357368356852828429}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01c5d9f66275e644cbebdfea582f1ca1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Button.UIButtonClickSound
+  _click: {fileID: 11400000, guid: a722acdb54cd55f4abcda5d49d577b42, type: 2}

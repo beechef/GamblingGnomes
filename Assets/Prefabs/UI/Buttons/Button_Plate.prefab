@@ -90,6 +90,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Button.UIButtonScaleVisual
   _button: {fileID: 342601452257255324}
+  _flashHold: 0.15
   _target: {fileID: 4863384955165601446}
   _normalScale: 1
   _hoveredScale: 1.5
@@ -110,6 +111,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Button.UIButtonRotationVisual
   _button: {fileID: 342601452257255324}
+  _flashHold: 0.15
   _target: {fileID: 4863384955165601446}
   _hoveredAngle: 15
   _pressedAngle: -5
@@ -776,6 +778,7 @@ GameObject:
   - component: {fileID: 2801246708585047222}
   - component: {fileID: 3218858165755190399}
   - component: {fileID: 1755802412371582965}
+  - component: {fileID: 727031983338906755}
   m_Layer: 5
   m_Name: Button_Plate
   m_TagString: Untagged
@@ -893,6 +896,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Button.UIButtonSpriteVisual
   _button: {fileID: 342601452257255324}
+  _flashHold: 0.15
   _image: {fileID: 601494674606288206}
   _normal: {fileID: 21300000, guid: 02363303dbabcca48b61573ab4bd0474, type: 3}
   _hovered: {fileID: 0}
@@ -915,6 +919,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Button.UIButtonOffsetVisual
   _button: {fileID: 342601452257255324}
+  _flashHold: 0.15
   _target: {fileID: 5028673275121449005}
   _hoveredOffset: {x: 0, y: 6}
   _pressedOffset: {x: 0, y: -6}
@@ -948,6 +953,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Button.UIButtonScaleVisual
   _button: {fileID: 342601452257255324}
+  _flashHold: 0.15
   _target: {fileID: 5028673275121449005}
   _normalScale: 1
   _hoveredScale: 1.06
@@ -968,6 +974,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Button.UIButtonCanvasGroupVisual
   _button: {fileID: 342601452257255324}
+  _flashHold: 0.15
   _target: {fileID: 3331198427334929258}
   _normalAlpha: 1
   _hoveredAlpha: 1
@@ -975,3 +982,16 @@ MonoBehaviour:
   _disabledAlpha: 0.5
   _duration: 0.12
   _ease: 6
+--- !u!114 &727031983338906755
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8775369202157300117}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01c5d9f66275e644cbebdfea582f1ca1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Button.UIButtonClickSound
+  _click: {fileID: 11400000, guid: a722acdb54cd55f4abcda5d49d577b42, type: 2}

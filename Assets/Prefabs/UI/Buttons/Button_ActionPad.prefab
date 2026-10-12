@@ -230,6 +230,7 @@ GameObject:
   - component: {fileID: 2985877766061614309}
   - component: {fileID: 6864546375066210114}
   - component: {fileID: 3378254527849831603}
+  - component: {fileID: 6081746590514818900}
   m_Layer: 5
   m_Name: Button_ActionPad
   m_TagString: Untagged
@@ -365,6 +366,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Button.UIButtonSpriteVisual
   _button: {fileID: 500597482286249264}
+  _flashHold: 0.15
   _image: {fileID: 3253252370790765197}
   _normal: {fileID: 21300000, guid: 07674ca63fa0a71458c4689c7e2226c4, type: 3}
   _hovered: {fileID: 0}
@@ -401,6 +403,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Button.UIButtonOffsetVisual
   _button: {fileID: 500597482286249264}
+  _flashHold: 0.15
   _target: {fileID: 760517532268004137}
   _hoveredOffset: {x: 0, y: 8}
   _pressedOffset: {x: 0, y: -8}
@@ -420,6 +423,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Button.UIButtonOverlayVisual
   _button: {fileID: 500597482286249264}
+  _flashHold: 0.15
   _overlay: {fileID: 4850371259562412979}
   _shownState: 4
 --- !u!114 &3378254527849831603
@@ -435,6 +439,19 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Button.UIAlphaHitArea
   _threshold: 0.1
+--- !u!114 &6081746590514818900
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5134804705075160272}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01c5d9f66275e644cbebdfea582f1ca1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Button.UIButtonClickSound
+  _click: {fileID: 11400000, guid: a722acdb54cd55f4abcda5d49d577b42, type: 2}
 --- !u!1 &5633317135185047839
 GameObject:
   m_ObjectHideFlags: 0
