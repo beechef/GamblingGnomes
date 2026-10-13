@@ -2123,25 +2123,6 @@ MonoBehaviour:
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
     Sound: {fileID: 0}
-  - Label: Blabber
-    When: 1
-    Cue: ItemUse
-    Outcome: 0
-    Delay: 0
-    Do: 9
-    Anchor: 0
-    Offset: {x: 0, y: 0, z: 0}
-    Rotation: {x: 0, y: 0, z: 0}
-    Arc: 0
-    Duration: 0
-    Ease: 0
-    State: 
-    Message: 
-    Gesture: 
-    Effect: {fileID: 2609294796081345373, guid: 13a91ce172220984b800141be649f89b, type: 3}
-    EffectPoint: {fileID: 0}
-    EffectLifetime: 2.2
-    Sound: {fileID: 0}
   - Label: Put away
     When: 1
     Cue: ItemPutAway
@@ -2721,7 +2702,7 @@ MonoBehaviour:
   _prop: {fileID: 5746880024715345707}
   _cardsFrom: 1
   _cardPoint: {fileID: 7471967519060812855}
-  _cardDepartDelay: 3.2
+  _cardDepartDelay: 2.9
   _dieLandingAnchor: 2
   _dieLandingOffset: {x: 0, y: 0, z: 0}
   _actions:
@@ -2744,12 +2725,12 @@ MonoBehaviour:
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
     Sound: {fileID: 0}
-  - Label: At the mouth, empty
-    When: 0
-    Cue: 
+  - Label: From the mouth
+    When: 1
+    Cue: ItemUse
     Outcome: 0
     Delay: 0
-    Do: 0
+    Do: 2
     Anchor: 0
     Offset: {x: 0, y: 0, z: 0}
     Rotation: {x: 0, y: 0, z: 0}
@@ -2763,20 +2744,39 @@ MonoBehaviour:
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
     Sound: {fileID: 0}
-  - Label: Pour
+  - Label: Grows as it flies
     When: 1
     Cue: ItemUse
     Outcome: 0
     Delay: 0
-    Do: 7
+    Do: 0
     Anchor: 0
     Offset: {x: 0, y: 0, z: 0}
     Rotation: {x: 0, y: 0, z: 0}
     Arc: 0
-    Duration: 0
-    Ease: 0
+    Duration: 0.5
+    Ease: 6
     State: 
-    Message: Pour
+    Message: 
+    Gesture: 
+    Effect: {fileID: 0}
+    EffectPoint: {fileID: 0}
+    EffectLifetime: 0
+    Sound: {fileID: 0}
+  - Label: Flies onto the table
+    When: 1
+    Cue: ItemUse
+    Outcome: 0
+    Delay: 0
+    Do: 5
+    Anchor: 2
+    Offset: {x: 0, y: 0, z: 0}
+    Rotation: {x: 0, y: 0, z: 0}
+    Arc: 0.12
+    Duration: 0.5
+    Ease: 1
+    State: 
+    Message: 
     Gesture: 
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
@@ -2786,7 +2786,7 @@ MonoBehaviour:
     When: 1
     Cue: ItemUse
     Outcome: 0
-    Delay: 1.5
+    Delay: 0.9
     Do: 8
     Anchor: 0
     Offset: {x: 0, y: 0, z: 0}
@@ -2801,7 +2801,7 @@ MonoBehaviour:
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
     Sound: {fileID: 0}
-  - Label: Dry up
+  - Label: Gone
     When: 1
     Cue: ItemVanish
     Outcome: 0
@@ -2822,9 +2822,9 @@ MonoBehaviour:
     Sound: {fileID: 0}
   - Label: Done
     When: 1
-    Cue: ItemUse
+    Cue: ItemVanish
     Outcome: 0
-    Delay: 2.9
+    Delay: 0.35
     Do: 12
     Anchor: 0
     Offset: {x: 0, y: 0, z: 0}
