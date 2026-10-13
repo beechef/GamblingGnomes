@@ -10,9 +10,6 @@ namespace Game.Runtime.GameMode.Poker.Player
 	// events, on every screen: the one for the item played, when this player used it or was its target.
 	public class PokerItemPerformer : PokerVisual
 	{
-		[Tooltip("Where a prop raised to the mouth or nose sits on this player's own screen: low and close before the eyes, since their real face is the camera.")]
-		[SerializeField] private Transform _ownFacePoint;
-
 		private readonly List<PokerItemPerformance> _performances = new();
 
 		private PokerPlayer _player;
@@ -68,11 +65,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 			var isTarget = _player.ClientId == targetClientId;
 			if (!isUser && !isTarget) return;
 
-			var other = PokerPlayer.Find(isUser ? targetClientId : userClientId);
-
 			foreach (var performance in _performances)
 			{
-				if (performance.Item == asset && performance.PlaysFor(isUser, isTarget)) performance.Play(GameMode, _module, userClientId, other, _ownFacePoint);
+				if (performance.ActsOut(asset) && performance.PlaysFor(isUser, isTarget)) performance.Play(GameMode, _module, userClientId);
 			}
 		}
 
@@ -80,7 +75,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		{
 			foreach (var performance in _performances)
 			{
-				if (performance.Item && performance.Item.Type == item) performance.Resolve(userClientId);
+				if (performance.ActsOut(item)) performance.Resolve(userClientId);
 			}
 		}
 
@@ -95,16 +90,16 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 			foreach (var performance in _performances)
 			{
-				if (performance.Item && performance.Item.Type == notice.Item) performance.ReceiveOutcome(notice.ActorClientId, notice.Amount);
+				if (performance.ActsOut(notice.Item)) performance.ReceiveOutcome(notice.ActorClientId, notice.Amount);
 			}
 		}
 
-		private void HandleStreetSerialChanged(int previous, int current) => RefreshHolds();
-		private void HandleTableRulesChanged(NetworkListEvent<PokerItemTableRule> change) => RefreshHolds();
+		private void HandleStreetSerialChanged(int previous, int current) => RefreshFoldLocks();
+		private void HandleTableRulesChanged(NetworkListEvent<PokerItemTableRule> change) => RefreshFoldLocks();
 
-		private void RefreshHolds()
+		private void RefreshFoldLocks()
 		{
-			foreach (var performance in _performances) performance.RefreshHold();
+			foreach (var performance in _performances) performance.RefreshFoldLock();
 		}
 	}
 }

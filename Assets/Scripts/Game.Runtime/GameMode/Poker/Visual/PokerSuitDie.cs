@@ -21,6 +21,13 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		[Tooltip("Every side of the die. A suit on several sides lands on any one of them.")]
 		[SerializeField] private List<Face> _faces = new();
 
+		[Header("Models")]
+		[Tooltip("The die with suits on its sides, shown to a screen that may see the card it decides.")]
+		[SerializeField] private GameObject _suitModel;
+
+		[Tooltip("The die with question marks, shown to every screen that may not: it never tells the table the suit.")]
+		[SerializeField] private GameObject _secretModel;
+
 		[Header("Roll")]
 		[Tooltip("Seconds the throw takes to reach the spot; the die spins on there for the rest of the roll.")]
 		[Min(0.01f)]
@@ -42,10 +49,17 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		private readonly List<Vector3> _matches = new();
 		private Sequence _roll;
 
-		// Rolls for exactly `duration`, coming to rest on the suit as it ends. No suit lands on any side: a screen
-		// that may not know the result is shown none.
+		public void ShowSecret(bool secret)
+		{
+			if (_suitModel) _suitModel.SetActive(!secret);
+			if (_secretModel) _secretModel.SetActive(secret);
+		}
+
+		// Rolls for exactly `duration`, coming to rest on the suit as it ends. No suit lands on any side, on the
+		// secret die: a screen that may not know the result is shown none.
 		public void RollTo(Vector3 landing, CardSuit? suit, float duration)
 		{
+			ShowSecret(!suit.HasValue);
 			duration = Mathf.Max(0.01f, duration);
 			var turns = Mathf.Max(1, Mathf.RoundToInt(_turnsPerSecond * duration));
 			Stop();

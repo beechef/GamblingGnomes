@@ -50,18 +50,13 @@ Words follow `CONTEXT.md` and `docs/items-design.md` (Match, Hand, Street, Bet, 
   |---|---|---|---|
   | Information | `PeekBoard` | Scry | See the last face-down board card (`_slotChoice` LastFaceDown); you cannot Fold this Street. |
   | Card | `SwapHand` | Swap | Trade one card with a chosen player; they choose which of theirs. |
-  | Card | `SwapBoard` | Board Swap | Choose your card; a random board card is shown to everyone, then the two trade places. |
   | Card | `ExtraDraw` | Extra Draw | Draw one more card; you cannot Fold for the rest of the Hand. |
   | Card | `PlaceOnBoard` | Lay Down | Lay a chosen card face up on the board (the board grows by one) and draw a new one in its place. |
   | Card | `RandomSuit` | Repaint | A chosen card keeps its rank and takes a random other suit. |
   | Card | `JokerCard` | Wild Card | 50% (`_chance`) that a chosen card becomes a Joker. Only you hear whether it took; the card flickers between itself and a Joker for 3 s either way. |
-  | Card | `CopyCard` | Copy (out of the pool) | 35% (`_chance`) that a chosen card becomes a copy of another card in your hand. Only you hear whether it took. |
   | Death rate | `HalfDose` | Half Dose | A chosen player (you included) halves their Death Rate, then Death Rolls. |
   | Death rate | `RateShift` | Rate Shift | A chosen player's Death Rate goes up or down by 20 (`_amount`), drawn 50/50; the table is told which. A raise stops one short of the ceiling. |
   | Death rate | `SharedRoll` | Shared Roll | You and a chosen player Death Roll together. |
-  | Death rate | `MushroomDose` | Spike (out of the pool) | A chosen player's next 2 mushrooms (`_caps`) do nothing or hit twice as hard, drawn 50/50 (`_nullifyWeight`/`_doubleWeight`), Colorful roll included. Kept across Hands until eaten; the table is told which. |
-  | Disturb | `PeekHand` | Peek (out of the pool) | See one card of a chosen player, who is told which. |
-  | Disturb | `PairLockItems` | No Items (out of the pool) | You and a chosen player cannot play Items on the next Street. |
   | Disturb | `PairLockFold` | Chained | You and a chosen player cannot Fold on the next Street. |
   | Disturb | `TableReveal` | Exposure | Every player still in the Hand shows one random hidden card over their head this Street (`_shownStreets`). |
 

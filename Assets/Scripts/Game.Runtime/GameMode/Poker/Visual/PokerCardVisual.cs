@@ -77,6 +77,9 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		private bool _departSounded;
 		private PokerDealController _deal;
 
+		// What the card is carried on while it waits to leave (a card riding a vomit stream down to the table).
+		private Transform _carrier;
+
 		private float DepartWait => Mathf.Max(0f, _departAt - Time.time);
 
 		// How far off the table the art is standing, and why. Two reasons, one height: a card being
@@ -145,13 +148,14 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		}
 
 		// Puts the card on top of the deck and holds it there for `delay` seconds; whatever places it next
-		// travels from here, the way `deal` says, once the wait is over. Called before the card is placed or
-		// given its face.
-		public void DealFrom(Transform deck, float delay, PokerDealController deal)
+		// travels from here, the way `deal` says, once the wait is over. `rideDeck` keeps it on a deck that moves
+		// for the wait instead of where the deck was. Called before the card is placed or given its face.
+		public void DealFrom(Transform deck, float delay, PokerDealController deal, bool rideDeck = false)
 		{
 			if (!deck) return;
 
 			transform.SetPositionAndRotation(deck.position, deck.rotation);
+			_carrier = rideDeck ? deck : null;
 
 			// Its own size on the deck, whatever the group it was spawned under draws it at; the flight resizes it.
 			var size = RestScale;
@@ -196,7 +200,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 				? _deal.Travel(transform, parent, localPosition, localRotation, RestScale)
 				: ArcTween(transform, parent, localPosition, localRotation, RestScale, _moveDuration, _moveEase, _moveArc);
 
-			var sequence = DOTween.Sequence().AppendInterval(wait).Append(travel);
+			var sequence = DOTween.Sequence().Append(Wait(wait)).Append(travel);
 
 			// A dealt card is heard leaving the deck once, however often it is re-placed on the way.
 			if (_deal && !_departSounded)
@@ -223,10 +227,23 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			_moveTween = sequence.OnComplete(() =>
 			{
 				_deal = null;
+				_carrier = null;
 				_lift = 0f;
 				ApplyArtHeight();
 				Land(parent, localPosition, localRotation);
 			});
+		}
+
+		// The wait before a card sets off: still where it lies, or carried along on its carrier.
+		private Tween Wait(float wait)
+		{
+			var carrier = _carrier;
+			if (!carrier) return DOTween.Sequence().AppendInterval(wait);
+
+			return DOVirtual.Float(0f, 1f, wait, _ =>
+			{
+				if (carrier) transform.SetPositionAndRotation(carrier.position, carrier.rotation);
+			}).SetEase(Ease.Linear);
 		}
 
 		private void Land(Transform parent, Vector3 localPosition, Quaternion localRotation)

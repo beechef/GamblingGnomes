@@ -16,6 +16,10 @@ namespace Game.Runtime.UI.Poker
 		[Tooltip("Silent for this screen's own player. On over-head meters, whose owner already hears the HUD bar's.")]
 		[SerializeField] private bool _skipOwnPlayer;
 
+		[Header("Meter")]
+		[Tooltip("Played as the meter climbs.")]
+		[SerializeField] private AudioEvent _rateUpSound;
+
 		[Header("Sweep")]
 		[Tooltip("Plays while the skull sweeps.")]
 		[SerializeField] private AudioEvent _sweepSound;
@@ -52,14 +56,21 @@ namespace Game.Runtime.UI.Poker
 		{
 			_meter.OnRollSweepStarted += HandleSweepStarted;
 			_meter.OnRollSettled += HandleRollSettled;
+			_meter.OnRateRaised += HandleRateRaised;
 		}
 
 		private void OnDisable()
 		{
+			_meter.OnRateRaised -= HandleRateRaised;
 			_meter.OnRollSettled -= HandleRollSettled;
 			_meter.OnRollSweepStarted -= HandleSweepStarted;
 
 			StopSweep();
+		}
+
+		private void HandleRateRaised()
+		{
+			if (_rateUpSound && AudioManager.Instance && !IsSkipped) AudioManager.Instance.PlayOneShotAttached(_rateUpSound, transform);
 		}
 
 		private void HandleSweepStarted(float duration, int roll, int rate)

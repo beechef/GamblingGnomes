@@ -94,6 +94,9 @@ namespace Game.Runtime.UI.Poker
 		// feedback lands with the change rather than after the ease.
 		public event Action<int, bool> OnRungCrossed;
 
+		// The rate went up: the fill is about to climb.
+		public event Action OnRateRaised;
+
 		// The skull starts sweeping: seconds until it stops, the number it stops on, the rate it is rolled against.
 		public event Action<float, int, int> OnRollSweepStarted;
 
@@ -155,6 +158,7 @@ namespace Game.Runtime.UI.Poker
 		private void HandleHallucinationChanged(int previous, int current)
 		{
 			RaiseRungCrossings(previous, current);
+			if (current > previous) OnRateRaised?.Invoke();
 
 			if (current < previous) Dissolve(previous);
 

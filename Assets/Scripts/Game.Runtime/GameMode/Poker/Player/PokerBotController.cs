@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using Game.Runtime.GameMode.Poker.BetItems;
 using Game.Runtime.GameMode.Poker.Items;
@@ -19,6 +20,10 @@ namespace Game.Runtime.GameMode.Poker.Player
 		[Tooltip("Seconds the bot waits before answering, so its move reads on screen.")]
 		[MinValue(0f)]
 		[SerializeField] private float _answerDelay = 1f;
+
+		[Tooltip("Chance the bot plays one of its items, picked at random, before staking on its turn.")]
+		[PropertyRange(0f, 1f)]
+		[SerializeField] private float _itemUseChance = 0.5f;
 
 		private PokerGameMode _gameMode;
 		private PokerItemModule _itemModule;
@@ -81,6 +86,12 @@ namespace Game.Runtime.GameMode.Poker.Player
 			if (!await WaitAnswerDelayAsync(ct)) return;
 			if (gameMode != _gameMode || gameMode.Data.CurrentTurnClientId.Value != _player.ClientId) return;
 
+			if (_itemModule && UnityEngine.Random.value < _itemUseChance && TryBuildItemRequest(out var request))
+			{
+				await _itemModule.ServerUseItemAsync(_player.ClientId, request, ct);
+				if (ct.IsCancellationRequested || gameMode != _gameMode || gameMode.Data.CurrentTurnClientId.Value != _player.ClientId) return;
+			}
+
 			var clientId = _player.ClientId;
 			if (gameMode.ServerSubmitAction(clientId, PokerActionType.Bet, DrawBetKind(gameMode))) return;
 			if (gameMode.ServerSubmitAction(clientId, PokerActionType.AllIn, 0)) return;
@@ -116,6 +127,77 @@ namespace Game.Runtime.GameMode.Poker.Player
 			{
 				if (module.ServerAnswerCard(_player, (start + i) % count)) return;
 			}
+		}
+
+		// Any held item the table lets it play now, aimed at whatever its steps accept, picked at random.
+		private bool TryBuildItemRequest(out PokerItemUseRequest request)
+		{
+			request = default;
+			var inventory = _player.ItemInventory;
+			if (!inventory || inventory.Items.Count == 0) return false;
+
+			var context = _itemModule.ContextFor(_player);
+			var steps = new List<PokerItemTargetKind>();
+			var start = UnityEngine.Random.Range(0, inventory.Items.Count);
+
+			for (var i = 0; i < inventory.Items.Count; i++)
+			{
+				PokerItemType type = inventory.Items[(start + i) % inventory.Items.Count];
+				if (!_itemModule.GetAvailability(_player, type).IsUsable || !_itemModule.TryGetItem(type, out var item)) continue;
+
+				steps.Clear();
+				item.CollectTargetSteps(steps);
+				if (TryAim(item, context, steps, new PokerItemUseRequest(type), out request)) return true;
+			}
+
+			return false;
+		}
+
+		private bool TryAim(PokerItem item, PokerItemContext context, List<PokerItemTargetKind> steps, PokerItemUseRequest request, out PokerItemUseRequest aimed)
+		{
+			aimed = request;
+
+			if (steps.Contains(PokerItemTargetKind.OwnCard))
+			{
+				var slot = PokerItemModule.PickRandomSlot(_player.Data.CardCount, s => item.AcceptsOwnCard(context, s));
+				if (slot < 0) return false;
+				aimed = aimed.WithOwnCard(slot);
+			}
+
+			if (steps.Contains(PokerItemTargetKind.BoardCard))
+			{
+				var slot = PokerItemModule.PickRandomSlot(_gameMode.Data.CommunityCards.Count, s => item.AcceptsBoardCard(context, s));
+				if (slot < 0) return false;
+				aimed = aimed.WithCard(slot);
+			}
+
+			var wantsPlayer = steps.Contains(PokerItemTargetKind.Player);
+			var wantsCard = steps.Contains(PokerItemTargetKind.OpponentCard);
+			if (!wantsPlayer && !wantsCard) return item.IsValidRequest(context, aimed);
+
+			var players = _gameMode.SeatedPlayers;
+			var first = UnityEngine.Random.Range(0, Mathf.Max(1, players.Count));
+
+			for (var i = 0; i < players.Count; i++)
+			{
+				var target = players[(first + i) % players.Count];
+				if (!target || (wantsPlayer && !item.AcceptsPlayer(context, target))) continue;
+
+				var candidate = aimed.WithTarget(target.Data.SeatIndex.Value);
+				if (wantsCard)
+				{
+					var slot = PokerItemModule.PickRandomSlot(target.Data.CardCount, s => item.AcceptsOpponentCard(context, target, s));
+					if (slot < 0) continue;
+					candidate = candidate.WithCard(slot);
+				}
+
+				if (!item.IsValidRequest(context, candidate)) continue;
+
+				aimed = candidate;
+				return true;
+			}
+
+			return false;
 		}
 
 		private async Awaitable<bool> WaitAnswerDelayAsync(CancellationToken ct)

@@ -4283,6 +4283,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: -6629702255741646666, guid: ccae2c9bbf67cf945ae72b5a5898942a, type: 3}
       insertIndex: -1
       addedObject: {fileID: 4346778985895963043}
+    - targetCorrespondingSourceObject: {fileID: -4787062967520897664, guid: ccae2c9bbf67cf945ae72b5a5898942a, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 8282619923924322127}
   m_SourcePrefab: {fileID: 100100000, guid: ccae2c9bbf67cf945ae72b5a5898942a, type: 3}
 --- !u!4 &93501951750231881 stripped
 Transform:
@@ -4958,6 +4961,12 @@ MonoBehaviour:
   - Bone: 26
     Transform: {fileID: 3287574432717083873}
     BoneName: Nose_M
+  - Bone: 27
+    Transform: {fileID: 8323678887068978975}
+    BoneName: POT_attach_R
+  - Bone: 28
+    Transform: {fileID: 7272444222468555611}
+    BoneName: POT_attach_L
 --- !u!114 &4572397720835468741
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5047,6 +5056,11 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 3752506043894559062, guid: ccae2c9bbf67cf945ae72b5a5898942a, type: 3}
   m_PrefabInstance: {fileID: 6336059294613022579}
   m_PrefabAsset: {fileID: 0}
+--- !u!4 &7272444222468555611 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -5547628633370385368, guid: ccae2c9bbf67cf945ae72b5a5898942a, type: 3}
+  m_PrefabInstance: {fileID: 6336059294613022579}
+  m_PrefabAsset: {fileID: 0}
 --- !u!4 &7441958526038098648 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3506353036581168555, guid: ccae2c9bbf67cf945ae72b5a5898942a, type: 3}
@@ -5077,6 +5091,28 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -4742496395633300362, guid: ccae2c9bbf67cf945ae72b5a5898942a, type: 3}
   m_PrefabInstance: {fileID: 6336059294613022579}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &7673812448943928051 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -4787062967520897664, guid: ccae2c9bbf67cf945ae72b5a5898942a, type: 3}
+  m_PrefabInstance: {fileID: 6336059294613022579}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &8282619923924322127
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7673812448943928051}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d365255615a44a3fac21dfe811cf74c6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.PlayerVoiceJawVisual
+  _openAxis: {x: 0, y: 0, z: 1}
+  _maxAngle: 25
+  _quietLevel: 0.05
+  _loudLevel: 0.6
+  _speed: 12
 --- !u!4 &7790043551670116336 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -4902732183977445245, guid: ccae2c9bbf67cf945ae72b5a5898942a, type: 3}
@@ -6625,6 +6661,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 919132149155446097, guid: 39bc1341774026a42bfa10073058dab3, type: 3}
       insertIndex: -1
       addedObject: {fileID: 3519592863314818989}
+    - targetCorrespondingSourceObject: {fileID: -4787062967520897664, guid: 39bc1341774026a42bfa10073058dab3, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 5141259497724218270}
   m_SourcePrefab: {fileID: 100100000, guid: 39bc1341774026a42bfa10073058dab3, type: 3}
 --- !u!4 &22253836735682391 stripped
 Transform:
@@ -6858,6 +6897,12 @@ MonoBehaviour:
   - Bone: 26
     Transform: {fileID: 2575800719312401795}
     BoneName: Nose_M
+  - Bone: 27
+    Transform: {fileID: 9053219608196542077}
+    BoneName: POT_attach_R
+  - Bone: 28
+    Transform: {fileID: 7695582905218179641}
+    BoneName: POT_attach_L
 --- !u!114 &5348767635628544556
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6922,9 +6967,36 @@ Transform:
   m_CorrespondingSourceObject: {fileID: -4902732183977445245, guid: 39bc1341774026a42bfa10073058dab3, type: 3}
   m_PrefabInstance: {fileID: 6471372255580718609}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &7232219561691992977 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: -4787062967520897664, guid: 39bc1341774026a42bfa10073058dab3, type: 3}
+  m_PrefabInstance: {fileID: 6471372255580718609}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &5141259497724218270
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7232219561691992977}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d365255615a44a3fac21dfe811cf74c6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.PlayerVoiceJawVisual
+  _openAxis: {x: 0, y: 0, z: 1}
+  _maxAngle: 25
+  _quietLevel: 0.05
+  _loudLevel: 0.6
+  _speed: 12
 --- !u!4 &7611957704961399758 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3489715716728331743, guid: 39bc1341774026a42bfa10073058dab3, type: 3}
+  m_PrefabInstance: {fileID: 6471372255580718609}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &7695582905218179641 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -5547628633370385368, guid: 39bc1341774026a42bfa10073058dab3, type: 3}
   m_PrefabInstance: {fileID: 6471372255580718609}
   m_PrefabAsset: {fileID: 0}
 --- !u!4 &7916618522181138247 stripped
