@@ -3,7 +3,8 @@ namespace Game.Runtime.GameMode.Poker.Items
 	// Where one step of an item's prop performance takes the prop, seen from the player performing it.
 	public enum PokerItemPropAnchor : byte
 	{
-		// Their right hand's hold point; the prop rides it until a later step takes it away.
+		// Their right palm (PlayerBone.AttachRight), the joint the prop art is modelled against: the prop's root
+		// sits on it, turned with it, and rides it until a later step takes it away.
 		Hand = 0,
 
 		// Under the table edge in front of their chair (PokerSeat.ItemStashAnchor).

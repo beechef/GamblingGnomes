@@ -31,6 +31,15 @@ namespace Game.Runtime.GameMode.Poker.Player
 		[Tooltip("Where a card the item hands out flies from (when this player is the user).")]
 		[SerializeField] private PokerItemPropCardSource _cardsFrom;
 
+		[ShowIf(nameof(_cardsFrom), PokerItemPropCardSource.Prop)]
+		[Tooltip("The point on the prop a card handed out rides until it leaves (the tip of a vomit stream). Empty: the prop's root.")]
+		[SerializeField] private Transform _cardPoint;
+
+		[ShowIf(nameof(_cardsFrom), PokerItemPropCardSource.Prop)]
+		[Tooltip("Seconds after the item is played before a card handed out leaves the card point for the hand: the moment the pick-up gesture reaches it.")]
+		[MinValue(0f)]
+		[SerializeField] private float _cardDepartDelay;
+
 		[Tooltip("Where a die prop (PokerSuitDie) is thrown to once the card's new suit is known, seen from the performer.")]
 		[SerializeField] private PokerItemPropAnchor _dieLandingAnchor = PokerItemPropAnchor.Table;
 
@@ -54,13 +63,15 @@ namespace Game.Runtime.GameMode.Poker.Player
 		[MinValue(0f)]
 		[SerializeField] private float _handReachDuration = 0.2f;
 
-		// Where a step set off from, filled as it starts.
+		// Where a step set off from, filled as it starts. A step bound for the body keeps its start in the
+		// anchor's space, so a prop already riding a moving hand stays on it instead of trailing behind.
 		private sealed class StepStart
 		{
 			public Vector3 Position;
 			public Quaternion Rotation;
 			public Vector3 Scale;
 			public Quaternion? EndRotation;
+			public Transform Anchor;
 		}
 
 		private PokerPlayer _player;
@@ -244,12 +255,13 @@ namespace Game.Runtime.GameMode.Poker.Player
 			var seat = Seat();
 			_cardOrigin = _cardsFrom switch
 			{
-				PokerItemPropCardSource.Prop => _prop.transform,
+				PokerItemPropCardSource.Prop => _cardPoint ? _cardPoint : _prop.transform,
 				PokerItemPropCardSource.Stash => seat ? seat.ItemStashAnchor : null,
 				_ => null
 			};
 
-			if (_cardOrigin) deck.SetItemDrawOrigin(_cardOrigin);
+			var departAt = _cardsFrom == PokerItemPropCardSource.Prop ? Time.time + _cardDepartDelay : 0f;
+			if (_cardOrigin) deck.SetItemDrawOrigin(_cardOrigin, departAt);
 		}
 
 		private Sequence BuildSteps(List<PokerItemPerformanceStep> steps, out float duration)
@@ -282,8 +294,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 			var prop = _prop.transform;
 			if (prop.parent != _propHome) prop.SetParent(_propHome, true);
 
-			start.Position = prop.position;
-			start.Rotation = prop.rotation;
+			start.Anchor = IsOnBody(step.To) ? ResolveAnchor(step.To) : null;
+			start.Position = start.Anchor ? start.Anchor.InverseTransformPoint(prop.position) : prop.position;
+			start.Rotation = start.Anchor ? Quaternion.Inverse(start.Anchor.rotation) * prop.rotation : prop.rotation;
 			start.Scale = prop.localScale;
 			start.EndRotation = step.HoldRotation ? prop.rotation : null;
 
@@ -312,10 +325,12 @@ namespace Game.Runtime.GameMode.Poker.Player
 			if (!_prop) return;
 
 			var prop = _prop.transform;
-			var position = Vector3.LerpUnclamped(start.Position, TargetPosition(step, start.Position), t);
+			var startPosition = start.Anchor ? start.Anchor.TransformPoint(start.Position) : start.Position;
+			var startRotation = start.Anchor ? start.Anchor.rotation * start.Rotation : start.Rotation;
+			var position = Vector3.LerpUnclamped(startPosition, TargetPosition(step, startPosition), t);
 
 			prop.SetPositionAndRotation(position,
-				Quaternion.SlerpUnclamped(start.Rotation, start.EndRotation ?? TargetRotation(step, position), t) * Quaternion.Euler(step.Spin * t));
+				Quaternion.SlerpUnclamped(startRotation, start.EndRotation ?? TargetRotation(step, position), t) * Quaternion.Euler(step.Spin * t));
 
 			// Clamped: an overshooting ease on the way out must not turn the prop inside out.
 			prop.localScale = Vector3.Max(Vector3.zero, Vector3.LerpUnclamped(start.Scale, step.Hide ? Vector3.zero : _restScale, t));
@@ -397,12 +412,12 @@ namespace Game.Runtime.GameMode.Poker.Player
 		private Vector3 TargetPosition(in PokerItemPerformanceStep step, Vector3 fallback)
 		{
 			var anchor = ResolveAnchor(step.To);
-			return (anchor ? anchor.position : fallback) + Frame() * step.Offset;
+			return (anchor ? anchor.position : fallback) + StepFrame(step.To, anchor) * step.Offset;
 		}
 
 		private Quaternion TargetRotation(in PokerItemPerformanceStep step, Vector3 at)
 		{
-			var frame = Frame();
+			var frame = StepFrame(step.To, ResolveAnchor(step.To));
 
 			if (step.AimAtOther)
 			{
@@ -413,6 +428,10 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 			return frame * Quaternion.Euler(step.Rotation);
 		}
+
+		// A prop in the hand is turned with the palm, as the art was modelled; anywhere else, with the chair.
+		private Quaternion StepFrame(PokerItemPropAnchor to, Transform anchor) =>
+			to == PokerItemPropAnchor.Hand && anchor ? anchor.rotation : Frame();
 
 		// The chair's facing, which is the sitter's: x their right, z towards the table.
 		private Quaternion Frame()
@@ -428,7 +447,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			switch (anchor)
 			{
 				case PokerItemPropAnchor.Hand:
-					return _player.Rig ? _player.Rig.GetBone(PlayerBone.HoldRight) : null;
+					return _player.Rig ? _player.Rig.GetBone(PlayerBone.AttachRight) : null;
 				case PokerItemPropAnchor.Stash:
 					return Seat() ? Seat().ItemStashAnchor : null;
 				case PokerItemPropAnchor.Table:
