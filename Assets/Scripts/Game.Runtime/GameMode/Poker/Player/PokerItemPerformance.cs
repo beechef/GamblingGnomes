@@ -73,6 +73,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 		private Vector3 _homePosition;
 		private Quaternion _homeRotation;
 		private Vector3 _restScale;
+		private Transform _cardPointParent;
+		private Vector3 _cardPointPosition;
+		private Quaternion _cardPointRotation;
 		private Animator _propAnimator;
 		private PokerSuitDie _die;
 
@@ -121,6 +124,13 @@ namespace Game.Runtime.GameMode.Poker.Player
 			_restScale = prop.localScale;
 			_propAnimator = _prop.GetComponentInChildren<Animator>(true);
 			_die = _prop.GetComponentInChildren<PokerSuitDie>(true);
+
+			if (_cardPoint)
+			{
+				_cardPointParent = _cardPoint.parent;
+				_cardPointPosition = _cardPoint.localPosition;
+				_cardPointRotation = _cardPoint.localRotation;
+			}
 
 			prop.SetParent(transform, true);
 			_prop.SetActive(false);
@@ -249,6 +259,12 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 			_effects.Clear();
 
+			if (_cardPoint && _cardPointParent && _cardPoint.parent != _cardPointParent)
+			{
+				_cardPoint.SetParent(_cardPointParent, false);
+				_cardPoint.SetLocalPositionAndRotation(_cardPointPosition, _cardPointRotation);
+			}
+
 			if (_lookLocked && _playerController) _playerController.EndLookLock();
 			_lookLocked = false;
 
@@ -358,6 +374,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 					break;
 				case PokerItemPropAction.Finish:
 					Stop();
+					break;
+				case PokerItemPropAction.DropCardPoint:
+					if (_cardPoint) _cardPoint.SetParent(transform, true);
 					break;
 				case PokerItemPropAction.AimHandAtTarget:
 					var target = PokerPlayer.Find(_targetClientId);
