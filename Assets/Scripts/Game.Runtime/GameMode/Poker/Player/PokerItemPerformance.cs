@@ -13,6 +13,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 	// the item acts (PokerItem.LeadIn, which the server waits), it holds, then the outro puts it away. One per
 	// item, on its own child of the player's ItemPerformances; PokerItemPerformer starts it. Presentation only:
 	// art replaces the prop prefab, a clip fills the gesture's state, and the steps stay.
+	// Runs first: a prop authored on the hand is lifted off the rig before the rig's renderer caches
+	// (PlayerAnimationEventRelay, AnimationVfxPlayer) count it as part of the body.
+	[DefaultExecutionOrder(-1000)]
 	public class PokerItemPerformance : MonoBehaviour
 	{
 		[Header("Item")]
@@ -24,7 +27,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		[SerializeField] private PokerItemPropActor _performer;
 
 		[Header("Prop")]
-		[Tooltip("The prop, set up as a child of this object (an instance of a Prefabs/Items prop, its root at the grip) and kept switched off until played. Art replaces the child.")]
+		[Tooltip("The prop (an instance of a Prefabs/Items prop, its root at the grip), kept switched off until played. A hand prop is authored on the full-body rig's POT_attach_R so it can be posed in the hand; it is moved under this object on Awake.")]
 		[Required]
 		[SerializeField] private GameObject _prop;
 
@@ -82,8 +85,6 @@ namespace Game.Runtime.GameMode.Poker.Player
 		private ulong _userClientId;
 
 		private Transform _propHome;
-		private Vector3 _propHomePosition;
-		private Quaternion _propHomeRotation;
 		private Animator _propAnimator;
 		private PokerSuitDie _die;
 		private readonly List<GameObject> _effects = new();
@@ -107,9 +108,8 @@ namespace Game.Runtime.GameMode.Poker.Player
 			if (!_prop) return;
 
 			var prop = _prop.transform;
-			_propHome = prop.parent;
-			_propHomePosition = prop.localPosition;
-			_propHomeRotation = prop.localRotation;
+			_propHome = transform;
+			prop.SetParent(_propHome, false);
 			_restScale = prop.localScale;
 			_propAnimator = _prop.GetComponentInChildren<Animator>(true);
 			_die = _prop.GetComponentInChildren<PokerSuitDie>(true);
@@ -233,8 +233,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 				var prop = _prop.transform;
 				prop.SetParent(_propHome, false);
-				prop.localPosition = _propHomePosition;
-				prop.localRotation = _propHomeRotation;
+				prop.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
 				prop.localScale = _restScale;
 				_prop.SetActive(false);
 			}
