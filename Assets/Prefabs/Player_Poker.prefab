@@ -198,7 +198,6 @@ Transform:
   - {fileID: 7608631342197395092}
   - {fileID: 2593180133978010466}
   - {fileID: 5137735818105906828}
-  - {fileID: 420279023847015844}
   m_Father: {fileID: 7915523810459036602}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &3791783350489784885
@@ -956,7 +955,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Player.PokerItemPerformance
   _items:
-  - {fileID: 11400000, guid: ffdd43fb44b8b3a4c846aed3abbda614, type: 2}
   - {fileID: 11400000, guid: bdf3c1e1f2b204f42990b5af1c2ec76d, type: 2}
   _performer: 0
   _prop: {fileID: 3865452863626445314}
@@ -2354,7 +2352,7 @@ MonoBehaviour:
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
     Sound: {fileID: 0}
-  - Label: Crank
+  - Label: Crank on the table
     When: 1
     Cue: ItemRelease
     Outcome: 0
@@ -2412,12 +2410,12 @@ MonoBehaviour:
     When: 2
     Cue: 
     Outcome: 0
-    Delay: 1.4
+    Delay: 1
     Do: 1
     Anchor: 0
     Offset: {x: 0, y: 0, z: 0}
     Rotation: {x: 0, y: 0, z: 0}
-    Duration: 0.35
+    Duration: 0.25
     Ease: 0
     State: 
     Message: 
@@ -2430,7 +2428,7 @@ MonoBehaviour:
     When: 2
     Cue: 
     Outcome: 0
-    Delay: 1.8
+    Delay: 1.3
     Do: 12
     Anchor: 0
     Offset: {x: 0, y: 0, z: 0}
@@ -3421,152 +3419,6 @@ MonoBehaviour:
   _requiresPlaceInMatch: 0
   _requiresFocus: 0
   _data: {fileID: 6935137486891752095}
---- !u!1 &7420984523212135630
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 420279023847015844}
-  - component: {fileID: 2421959803368419850}
-  m_Layer: 0
-  m_Name: Glasses
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &420279023847015844
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7420984523212135630}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 1143970050790417457}
-  m_Father: {fileID: 5169061535997356265}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2421959803368419850
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7420984523212135630}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 639b688469ae3f352be314409c78cc62, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Player.PokerItemPerformance
-  _items:
-  - {fileID: 11400000, guid: 990c9c6a8a102ed49bc052dfad3bef40, type: 2}
-  _performer: 0
-  _prop: {fileID: 530878879496019988}
-  _cardsFrom: 0
-  _cardPoint: {fileID: 0}
-  _cardDepartDelay: 0
-  _dieLandingAnchor: 2
-  _dieLandingOffset: {x: 0, y: 0, z: 0}
-  _actions:
-  - Label: Above the eyes
-    When: 0
-    Cue: 
-    Outcome: 0
-    Delay: 0
-    Do: 5
-    Anchor: 6
-    Offset: {x: 0, y: 0.3, z: 0}
-    Rotation: {x: 0, y: 0, z: 0}
-    Duration: 0
-    Ease: 0
-    State: 
-    Message: 
-    Gesture: 
-    Effect: {fileID: 0}
-    EffectPoint: {fileID: 0}
-    EffectLifetime: 0
-    Sound: {fileID: 0}
-  - Label: Appear
-    When: 0
-    Cue: 
-    Outcome: 0
-    Delay: 0
-    Do: 0
-    Anchor: 0
-    Offset: {x: 0, y: 0, z: 0}
-    Rotation: {x: 0, y: 0, z: 0}
-    Duration: 0.2
-    Ease: 0
-    State: 
-    Message: 
-    Gesture: 
-    Effect: {fileID: 0}
-    EffectPoint: {fileID: 0}
-    EffectLifetime: 0
-    Sound: {fileID: 0}
-  - Label: Onto the eyes
-    When: 0
-    Cue: 
-    Outcome: 0
-    Delay: 0.05
-    Do: 5
-    Anchor: 6
-    Offset: {x: 0, y: 0.05, z: 0}
-    Rotation: {x: 0, y: 0, z: 0}
-    Duration: 0.5
-    Ease: 0
-    State: 
-    Message: 
-    Gesture: 
-    Effect: {fileID: 0}
-    EffectPoint: {fileID: 0}
-    EffectLifetime: 0
-    Sound: {fileID: 0}
-  - Label: Gone
-    When: 0
-    Cue: 
-    Outcome: 0
-    Delay: 2.7
-    Do: 1
-    Anchor: 0
-    Offset: {x: 0, y: 0, z: 0}
-    Rotation: {x: 0, y: 0, z: 0}
-    Duration: 0.25
-    Ease: 0
-    State: 
-    Message: 
-    Gesture: 
-    Effect: {fileID: 0}
-    EffectPoint: {fileID: 0}
-    EffectLifetime: 0
-    Sound: {fileID: 0}
-  - Label: Done
-    When: 0
-    Cue: 
-    Outcome: 0
-    Delay: 3
-    Do: 12
-    Anchor: 0
-    Offset: {x: 0, y: 0, z: 0}
-    Rotation: {x: 0, y: 0, z: 0}
-    Duration: 0
-    Ease: 0
-    State: 
-    Message: 
-    Gesture: 
-    Effect: {fileID: 0}
-    EffectPoint: {fileID: 0}
-    EffectLifetime: 0
-    Sound: {fileID: 0}
-  _cueTimeout: 6
 --- !u!1 &7813534592550633221
 GameObject:
   m_ObjectHideFlags: 0
@@ -7135,77 +6987,6 @@ GameObject:
 Transform:
   m_CorrespondingSourceObject: {fileID: 4599929676017346959, guid: 8abd0acc6651d7f459eb5666c068e955, type: 3}
   m_PrefabInstance: {fileID: 7966501006443952186}
-  m_PrefabAsset: {fileID: 0}
---- !u!1001 &8716229789410898556
-PrefabInstance:
-  m_ObjectHideFlags: 0
-  serializedVersion: 2
-  m_Modification:
-    serializedVersion: 3
-    m_TransformParent: {fileID: 420279023847015844}
-    m_Modifications:
-    - target: {fileID: 8581176308205082189, guid: 0934773ad60ab1446983d1e09924c675, type: 3}
-      propertyPath: m_LocalPosition.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8581176308205082189, guid: 0934773ad60ab1446983d1e09924c675, type: 3}
-      propertyPath: m_LocalPosition.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8581176308205082189, guid: 0934773ad60ab1446983d1e09924c675, type: 3}
-      propertyPath: m_LocalPosition.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8581176308205082189, guid: 0934773ad60ab1446983d1e09924c675, type: 3}
-      propertyPath: m_LocalRotation.w
-      value: 1
-      objectReference: {fileID: 0}
-    - target: {fileID: 8581176308205082189, guid: 0934773ad60ab1446983d1e09924c675, type: 3}
-      propertyPath: m_LocalRotation.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8581176308205082189, guid: 0934773ad60ab1446983d1e09924c675, type: 3}
-      propertyPath: m_LocalRotation.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8581176308205082189, guid: 0934773ad60ab1446983d1e09924c675, type: 3}
-      propertyPath: m_LocalRotation.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8581176308205082189, guid: 0934773ad60ab1446983d1e09924c675, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.x
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8581176308205082189, guid: 0934773ad60ab1446983d1e09924c675, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.y
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 8581176308205082189, guid: 0934773ad60ab1446983d1e09924c675, type: 3}
-      propertyPath: m_LocalEulerAnglesHint.z
-      value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 9198685076703777384, guid: 0934773ad60ab1446983d1e09924c675, type: 3}
-      propertyPath: m_Name
-      value: Prop_Glasses
-      objectReference: {fileID: 0}
-    - target: {fileID: 9198685076703777384, guid: 0934773ad60ab1446983d1e09924c675, type: 3}
-      propertyPath: m_IsActive
-      value: 0
-      objectReference: {fileID: 0}
-    m_RemovedComponents: []
-    m_RemovedGameObjects: []
-    m_AddedGameObjects: []
-    m_AddedComponents: []
-  m_SourcePrefab: {fileID: 100100000, guid: 0934773ad60ab1446983d1e09924c675, type: 3}
---- !u!1 &530878879496019988 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 9198685076703777384, guid: 0934773ad60ab1446983d1e09924c675, type: 3}
-  m_PrefabInstance: {fileID: 8716229789410898556}
-  m_PrefabAsset: {fileID: 0}
---- !u!4 &1143970050790417457 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: 8581176308205082189, guid: 0934773ad60ab1446983d1e09924c675, type: 3}
-  m_PrefabInstance: {fileID: 8716229789410898556}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &8849131211801904099
 PrefabInstance:
