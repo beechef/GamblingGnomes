@@ -22,6 +22,11 @@ namespace Game.Runtime.Controller
 		// A locale code; empty for the catalog's default.
 		public string Language = string.Empty;
 
+		public float MasterVolume = 1f;
+		public float MusicVolume = 1f;
+		public float SfxVolume = 1f;
+		public bool AudioMuted;
+
 		public float VoiceInputVolume = 0.5f;
 		public float VoiceOutputVolume = 1f;
 		public VoiceTalkMode VoiceTalkMode = VoiceTalkMode.OpenMic;

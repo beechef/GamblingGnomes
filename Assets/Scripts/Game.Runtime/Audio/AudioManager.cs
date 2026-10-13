@@ -1,3 +1,4 @@
+using Game.Runtime.Controller;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -27,11 +28,23 @@ namespace Game.Runtime.Audio
 
 			Instance = this;
 			_backend = new FmodAudioBackend(_listener);
+			SettingController.OnChanged += ApplyVolumes;
 		}
+
+		private void Start() => ApplyVolumes();
 
 		private void OnDestroy()
 		{
-			if (Instance == this) Instance = null;
+			if (Instance != this) return;
+
+			SettingController.OnChanged -= ApplyVolumes;
+			Instance = null;
+		}
+
+		private void ApplyVolumes()
+		{
+			var data = SettingController.Data;
+			_backend.SetVolumes(data.MasterVolume, data.MusicVolume, data.SfxVolume, data.AudioMuted);
 		}
 
 		public void PlayOneShot(AudioEvent audioEvent, Vector3 position)
