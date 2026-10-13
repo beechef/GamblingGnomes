@@ -44,6 +44,11 @@ namespace Game.Runtime.GameMode.Poker.Player
 		[Tooltip("How the prop is turned at the end, in the same frame as Offset.")]
 		public Vector3 Rotation;
 
+		[ShowIf(nameof(Do), PokerItemPropAction.MoveTo)]
+		[Tooltip("Height of the hop on the way, in metres: 0 travels straight.")]
+		[MinValue(0f)]
+		public float Arc;
+
 		[ShowIf("@Do == PokerItemPropAction.Show || Do == PokerItemPropAction.Hide || Do == PokerItemPropAction.MoveTo")]
 		[MinValue(0f)]
 		public float Duration;

@@ -27,6 +27,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 		[Tooltip("Who acts it out: the user, the player they aimed it at, or both, each with a prop of their own.")]
 		[SerializeField] private PokerItemPropActor _performer;
 
+		[Tooltip("The performer cannot turn their view while it plays (their own screen only).")]
+		[SerializeField] private bool _locksLook;
+
 		[Header("Prop")]
 		[Tooltip("The prop (an instance of a Prefabs/Items prop), switched off, authored where it belongs: on a bone of the full-body rig (POT_attach_R for the hand, Jaw_M for the mouth) at its pose there. It returns there on the rig being drawn; it is lifted under this object on Awake.")]
 		[Required]
@@ -58,9 +61,12 @@ namespace Game.Runtime.GameMode.Poker.Player
 		[SerializeField] private float _cueTimeout = 6f;
 
 		private PokerPlayer _player;
+		private PlayerController _playerController;
+		private PlayerHandIkController _handIk;
 		private PokerGameMode _gameMode;
 		private PokerItemModule _module;
 		private ulong _userClientId;
+		private ulong _targetClientId;
 
 		private Transform _authoredParent;
 		private PlayerBone? _homeBone;
@@ -79,6 +85,8 @@ namespace Game.Runtime.GameMode.Poker.Player
 		private Transform _cardOrigin;
 		private int _useStreetSerial;
 		private bool _playing;
+		private bool _lookLocked;
+		private bool _outcomeKnown;
 		private bool _resolved;
 		private bool _foldLockLifted;
 		private bool _dieThrown;
@@ -101,6 +109,8 @@ namespace Game.Runtime.GameMode.Poker.Player
 		private void Awake()
 		{
 			_player = GetComponentInParent<PokerPlayer>(true);
+			_playerController = GetComponentInParent<PlayerController>(true);
+			_handIk = _player ? _player.GetComponentInChildren<PlayerHandIkController>(true) : null;
 			if (!_prop) return;
 
 			var prop = _prop.transform;
@@ -139,8 +149,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 			_ => isUser || isTarget
 		};
 
-		// A second use before the first is over (cuffs still on) starts over.
-		public void Play(PokerGameMode gameMode, PokerItemModule module, ulong userClientId)
+		// A second use before the first is over (cuffs still on) starts over. An outcome drawn as it was played is
+		// acted out from the start; one the item only announces later arrives through ReceiveOutcome.
+		public void Play(PokerGameMode gameMode, PokerItemModule module, ulong userClientId, ulong targetClientId, int outcome)
 		{
 			Stop();
 			if (!_player || !_prop || !gameMode || !module) return;
@@ -148,10 +159,17 @@ namespace Game.Runtime.GameMode.Poker.Player
 			_gameMode = gameMode;
 			_module = module;
 			_userClientId = userClientId;
+			_targetClientId = targetClientId;
 			_useStreetSerial = module.StreetSerial.Value;
 			_playing = true;
 
 			PutHome();
+			if (_locksLook && _player.IsOwner && _playerController)
+			{
+				_playerController.BeginLookLock();
+				_lookLocked = true;
+			}
+
 			if (_die) _die.ShowSecret(!_player.IsOwner);
 			if (_player.ClientId == userClientId) StartCardOrigin();
 
@@ -161,6 +179,12 @@ namespace Game.Runtime.GameMode.Poker.Player
 			}
 
 			Run(PokerItemMoment.Played);
+
+			if (outcome != PokerItemUseRequest.NoOutcome)
+			{
+				_outcomeKnown = true;
+				Run(PokerItemMoment.Outcome, null, outcome);
+			}
 		}
 
 		public void Resolve(ulong userClientId)
@@ -175,8 +199,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 		// A chance item's outcome reaches the table as a notice before the item is done.
 		public void ReceiveOutcome(ulong userClientId, int outcome)
 		{
-			if (!_playing || _resolved || userClientId != _userClientId) return;
+			if (!_playing || _resolved || _outcomeKnown || userClientId != _userClientId) return;
 
+			_outcomeKnown = true;
 			Run(PokerItemMoment.Outcome, null, outcome);
 		}
 
@@ -184,14 +209,17 @@ namespace Game.Runtime.GameMode.Poker.Player
 		// see the card gets the secret die, so it never tells the table.
 		public void ReceiveRewrite(PokerCardPlace place, CardData card)
 		{
-			if (!_playing || _resolved || !_die || place.HolderClientId != _userClientId) return;
+			if (!_playing || _resolved || _hasRewrite || place.HolderClientId != _userClientId) return;
+
+			_hasRewrite = true;
+			Run(PokerItemMoment.Rewriting);
+			if (!_die) return;
 
 			var holder = PokerPlayer.Find(place.HolderClientId);
 			var data = holder ? holder.Data : null;
 			var visible = data && place.Slot >= 0 && place.Slot < data.CardCount && data.IsHoleCardVisible(place.Slot);
 
 			_rewriteSuit = visible && card.IsValid && !card.IsJoker ? card.SuitType : null;
-			_hasRewrite = true;
 			TryRollDie();
 		}
 
@@ -221,6 +249,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 			_effects.Clear();
 
+			if (_lookLocked && _playerController) _playerController.EndLookLock();
+			_lookLocked = false;
+
 			if (_prop)
 			{
 				if (_die) _die.Stop();
@@ -237,6 +268,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			_resolved = false;
 			_foldLockLifted = false;
 			_dieThrown = false;
+			_outcomeKnown = false;
 			_dieRolled = false;
 			_hasRewrite = false;
 			_rewriteSuit = null;
@@ -297,8 +329,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 				case PokerItemPropAction.PlayState:
 					if (_propAnimator && _propAnimator.isActiveAndEnabled)
 					{
+						// In seconds: a normalized fade advances with the state it leaves, and a prop's rest state is frozen.
 						var hash = Animator.StringToHash(action.State);
-						if (_propAnimator.HasState(0, hash)) _propAnimator.CrossFade(hash, 0.1f, 0);
+						if (_propAnimator.HasState(0, hash)) _propAnimator.CrossFadeInFixedTime(hash, 0.1f, 0);
 					}
 
 					break;
@@ -325,6 +358,10 @@ namespace Game.Runtime.GameMode.Poker.Player
 					break;
 				case PokerItemPropAction.Finish:
 					Stop();
+					break;
+				case PokerItemPropAction.AimHandAtTarget:
+					var target = PokerPlayer.Find(_targetClientId);
+					if (_handIk && target && target.Rig) _handIk.Aim(target.Rig.FocusPoint);
 					break;
 			}
 		}
@@ -357,7 +394,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			_scaleTween?.Kill();
 
 			_scaleTween = _prop.transform.DOScale(scale, action.Duration)
-				.SetEase(action.Ease == Ease.Unset ? Ease.OutBack : action.Ease)
+				.SetEase(action.Ease != Ease.Unset ? action.Ease : switchOff ? Ease.InBack : Ease.OutBack)
 				.OnComplete(() =>
 				{
 					if (switchOff && _prop) _prop.SetActive(false);
@@ -385,8 +422,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 					var from = anchor ? anchor.TransformPoint(startPosition) : startPosition;
 					var fromRotation = anchor ? anchor.rotation * startRotation : startRotation;
 					var to = (anchor ? anchor.position : from) + frame * action.Offset;
+					var hop = Vector3.up * (action.Arc * 4f * t * (1f - t));
 
-					prop.SetPositionAndRotation(Vector3.LerpUnclamped(from, to, t),
+					prop.SetPositionAndRotation(Vector3.LerpUnclamped(from, to, t) + hop,
 						Quaternion.SlerpUnclamped(fromRotation, frame * Quaternion.Euler(action.Rotation), t));
 				})
 				.SetEase(action.Ease == Ease.Unset ? Ease.InOutSine : action.Ease)
@@ -470,7 +508,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 				case PokerItemPropAnchor.Stash:
 					return Seat() ? Seat().ItemStashAnchor : null;
 				case PokerItemPropAnchor.Table:
-					return Seat() ? Seat().CardAnchor : null;
+					return Seat() ? Seat().ItemTableAnchor : null;
 				case PokerItemPropAnchor.Mouth:
 					return _player.Rig ? _player.Rig.GetBone(PlayerBone.Jaw) : null;
 				case PokerItemPropAnchor.Nose:

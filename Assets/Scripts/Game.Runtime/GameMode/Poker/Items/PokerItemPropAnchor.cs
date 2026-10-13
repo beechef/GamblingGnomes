@@ -11,7 +11,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 		// Under the table edge in front of their chair (PokerSeat.ItemStashAnchor).
 		Stash = 1,
 
-		// On the table in front of them (PokerSeat.CardAnchor).
+		// On the table in front of them, where every item put down is set (PokerSeat.ItemTableAnchor).
 		Table = 2,
 
 		Mouth = 3,

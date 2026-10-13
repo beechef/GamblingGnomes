@@ -32,8 +32,12 @@ namespace Game.Runtime.GameMode.Poker
 		[Tooltip("Under the table edge in front of the sitter: where an item is taken out from and put back. No fallback.")]
 		[SerializeField] private Transform _itemStashAnchor;
 
+		[Tooltip("On the table in front of the sitter: where an item put down is set (a jack-in-the-box, a thrown die). No fallback.")]
+		[SerializeField] private Transform _itemTableAnchor;
+
 		public int SeatIndex => _seatIndex;
 		public Transform ItemStashAnchor => _itemStashAnchor;
+		public Transform ItemTableAnchor => _itemTableAnchor;
 		public Transform CardAnchor => _cardAnchor ? _cardAnchor : SitAnchor;
 
 		// Where a stake lands belongs to the chair for the same reason where the cards lie does: it is a spot

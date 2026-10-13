@@ -18,6 +18,9 @@ namespace Game.Runtime.GameMode.Poker.Items
 		// The hand goes back under the table with the prop.
 		public const string PutAway = "ItemPutAway";
 
+		// The prop is gone without the hand: a pour dries up.
+		public const string Vanish = "ItemVanish";
+
 		public static IEnumerable<string> All
 		{
 			get
@@ -26,6 +29,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 				yield return Use;
 				yield return Release;
 				yield return PutAway;
+				yield return Vanish;
 			}
 		}
 	}
