@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using DG.Tweening;
-using Game.Runtime.Audio;
 using Game.Runtime.GameMode.Poker.Items;
 using Game.Runtime.GameMode.Poker.Visual;
 using Game.Runtime.Player;
+using Game.Runtime.Player.Camera;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -29,6 +29,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 		[Tooltip("The performer cannot turn their view while it plays (their own screen only).")]
 		[SerializeField] private bool _locksLook;
+
+		[Tooltip("The shot held on the performer's own screen while it plays (the vomit looks down at the table). Empty: the view stays as it is.")]
+		[SerializeField] private PlayerCameraState _cameraState;
 
 		[Header("Prop")]
 		[Tooltip("The prop (an instance of a Prefabs/Items prop), switched off, authored where it belongs: on a bone of the full-body rig (POT_attach_R for the hand, Jaw_M for the mouth) at its pose there. It returns there on the rig being drawn; it is lifted under this object on Awake.")]
@@ -63,6 +66,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		private PokerPlayer _player;
 		private PlayerController _playerController;
 		private PlayerHandIkController _handIk;
+		private PlayerCameraController _camera;
 		private PokerGameMode _gameMode;
 		private PokerItemModule _module;
 		private ulong _userClientId;
@@ -89,6 +93,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		private int _useStreetSerial;
 		private bool _playing;
 		private bool _lookLocked;
+		private int _cameraHandle;
 		private bool _outcomeKnown;
 		private bool _resolved;
 		private bool _foldLockLifted;
@@ -114,6 +119,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			_player = GetComponentInParent<PokerPlayer>(true);
 			_playerController = GetComponentInParent<PlayerController>(true);
 			_handIk = _player ? _player.GetComponentInChildren<PlayerHandIkController>(true) : null;
+			_camera = _player ? _player.GetComponentInChildren<PlayerCameraController>(true) : null;
 			if (!_prop) return;
 
 			var prop = _prop.transform;
@@ -174,11 +180,14 @@ namespace Game.Runtime.GameMode.Poker.Player
 			_playing = true;
 
 			PutHome();
+			ReturnCardPoint();
 			if (_locksLook && _player.IsOwner && _playerController)
 			{
 				_playerController.BeginLookLock();
 				_lookLocked = true;
 			}
+
+			if (_cameraState && _player.IsOwner && _camera) _cameraHandle = _camera.Request(_cameraState);
 
 			if (_die) _die.ShowSecret(!_player.IsOwner);
 			if (_player.ClientId == userClientId) StartCardOrigin();
@@ -259,14 +268,11 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 			_effects.Clear();
 
-			if (_cardPoint && _cardPointParent && _cardPoint.parent != _cardPointParent)
-			{
-				_cardPoint.SetParent(_cardPointParent, false);
-				_cardPoint.SetLocalPositionAndRotation(_cardPointPosition, _cardPointRotation);
-			}
-
 			if (_lookLocked && _playerController) _playerController.EndLookLock();
 			_lookLocked = false;
+
+			if (_camera) _camera.Release(_cameraHandle);
+			_cameraHandle = 0;
 
 			if (_prop)
 			{
@@ -321,6 +327,8 @@ namespace Game.Runtime.GameMode.Poker.Player
 				case PokerItemPropAction.Show:
 					if (!_prop.activeSelf) prop.localScale = action.Duration > 0f ? Vector3.zero : _restScale;
 					_prop.SetActive(true);
+					// Its animator's first pose this frame, not one frame of the rest pose before the clip takes it.
+					if (_propAnimator && _propAnimator.isActiveAndEnabled) _propAnimator.Update(0f);
 					ScaleTo(_restScale, action, false);
 					break;
 				case PokerItemPropAction.Hide:
@@ -335,10 +343,6 @@ namespace Game.Runtime.GameMode.Poker.Player
 					var anchor = ResolveAnchor(action.Anchor);
 					if (anchor) prop.SetParent(anchor, true);
 					break;
-				case PokerItemPropAction.Release:
-					_moveTween?.Kill();
-					prop.SetParent(transform, true);
-					break;
 				case PokerItemPropAction.MoveTo:
 					MoveTo(action);
 					break;
@@ -351,9 +355,6 @@ namespace Game.Runtime.GameMode.Poker.Player
 					}
 
 					break;
-				case PokerItemPropAction.SendMessage:
-					if (!string.IsNullOrEmpty(action.Message)) _prop.BroadcastMessage(action.Message, SendMessageOptions.DontRequireReceiver);
-					break;
 				case PokerItemPropAction.PlayGesture:
 					if (!string.IsNullOrEmpty(action.Gesture) && _player.ActionAnimator) _player.ActionAnimator.PlayLocal(action.Gesture);
 					break;
@@ -365,9 +366,6 @@ namespace Game.Runtime.GameMode.Poker.Player
 					_effects.Add(effect);
 					if (action.EffectLifetime > 0f) Destroy(effect, action.EffectLifetime);
 					break;
-				case PokerItemPropAction.PlaySound:
-					if (action.Sound && AudioManager.Instance) AudioManager.Instance.PlayOneShotAttached(action.Sound, prop);
-					break;
 				case PokerItemPropAction.RollDie:
 					_dieThrown = true;
 					TryRollDie();
@@ -375,14 +373,35 @@ namespace Game.Runtime.GameMode.Poker.Player
 				case PokerItemPropAction.Finish:
 					Stop();
 					break;
-				case PokerItemPropAction.DropCardPoint:
-					if (_cardPoint) _cardPoint.SetParent(transform, true);
+				case PokerItemPropAction.AttachCardPoint:
+					if (!_cardPoint) break;
+
+					var carrier = ResolveAnchor(action.Anchor);
+					_cardPoint.SetParent(carrier ? carrier : transform, true);
+					// Laid on the anchor's surface below where it is, turned in the chair's frame.
+					if (carrier)
+					{
+						var below = _cardPoint.position;
+						below.y = carrier.position.y;
+						_cardPoint.SetPositionAndRotation(below, Frame() * Quaternion.Euler(action.Rotation));
+					}
+
 					break;
 				case PokerItemPropAction.AimHandAtTarget:
 					var target = PokerPlayer.Find(_targetClientId);
 					if (_handIk && target && target.Rig) _handIk.Aim(target.Rig.FocusPoint);
 					break;
 			}
+		}
+
+		// Back on the prop, at the start of a play rather than the end of one: a card handed out may still be
+		// riding it in the hand after the performance is over, until it leaves for the hand's cards.
+		private void ReturnCardPoint()
+		{
+			if (!_cardPoint || !_cardPointParent || _cardPoint.parent == _cardPointParent) return;
+
+			_cardPoint.SetParent(_cardPointParent, false);
+			_cardPoint.SetLocalPositionAndRotation(_cardPointPosition, _cardPointRotation);
 		}
 
 		// On the drawn rig's bone the prop was authored on (the hand-only rig on its owner's screen), at its pose there.

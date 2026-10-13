@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using DG.Tweening;
-using Game.Runtime.Audio;
 using Game.Runtime.GameMode.Poker.Items;
 using Game.Runtime.Player;
 using Sirenix.OdinInspector;
@@ -33,15 +32,15 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 		public PokerItemPropAction Do;
 
-		[ShowIf("@Do == PokerItemPropAction.AttachTo || Do == PokerItemPropAction.MoveTo")]
+		[ShowIf("@Do == PokerItemPropAction.AttachTo || Do == PokerItemPropAction.MoveTo || Do == PokerItemPropAction.AttachCardPoint")]
 		public PokerItemPropAnchor Anchor;
 
 		[ShowIf(nameof(Do), PokerItemPropAction.MoveTo)]
 		[Tooltip("Offset from the anchor: in the palm's frame for a hand, else the chair's (x their right, y up, z towards the table).")]
 		public Vector3 Offset;
 
-		[ShowIf(nameof(Do), PokerItemPropAction.MoveTo)]
-		[Tooltip("How the prop is turned at the end, in the same frame as Offset.")]
+		[ShowIf("@Do == PokerItemPropAction.MoveTo || Do == PokerItemPropAction.AttachCardPoint")]
+		[Tooltip("How the prop is turned at the end, in the same frame as Offset; for the card point, how it lies on the anchor in the chair's frame.")]
 		public Vector3 Rotation;
 
 		[ShowIf(nameof(Do), PokerItemPropAction.MoveTo)]
@@ -60,9 +59,6 @@ namespace Game.Runtime.GameMode.Poker.Player
 		[Tooltip("State on the prop's animator. Skipped when the prop has no such state.")]
 		public string State;
 
-		[ShowIf(nameof(Do), PokerItemPropAction.SendMessage)]
-		public string Message;
-
 		[ShowIf(nameof(Do), PokerItemPropAction.PlayGesture)]
 		[ValueDropdown(nameof(GestureIds))]
 		public string Gesture;
@@ -77,9 +73,6 @@ namespace Game.Runtime.GameMode.Poker.Player
 		[ShowIf(nameof(Do), PokerItemPropAction.SpawnEffect)]
 		[MinValue(0f)]
 		public float EffectLifetime;
-
-		[ShowIf(nameof(Do), PokerItemPropAction.PlaySound)]
-		public AudioEvent Sound;
 
 		public bool Matches(PokerItemMoment moment, string cue, int outcome) =>
 			When == moment && (moment != PokerItemMoment.Cue || Cue == cue) && (moment != PokerItemMoment.Outcome || Outcome == outcome);
