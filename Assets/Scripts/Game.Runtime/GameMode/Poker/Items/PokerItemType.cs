@@ -5,16 +5,16 @@ namespace Game.Runtime.GameMode.Poker.Items
 	public enum PokerItemType : byte
 	{
 		None = 0,
-		PeekBoard = 2,
-		SwapHand = 5,
-		ExtraDraw = 7,
-		HalfDose = 8,
-		SharedRoll = 9,
-		PlaceOnBoard = 12,
-		RandomSuit = 13,
-		PairLockFold = 17,
-		RateShift = 18,
-		TableReveal = 19,
-		JokerCard = 20
+		Spatula = 2,
+		Knife = 5,
+		Vomit = 7,
+		Syringe = 8,
+		Beer = 9,
+		Cigarette = 12,
+		Dice = 13,
+		Handcuffs = 17,
+		Panties = 18,
+		Megaphone = 19,
+		JackBox = 20
 	}
 }
