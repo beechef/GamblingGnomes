@@ -56,7 +56,8 @@ namespace Game.Runtime.Player
 			(PlayerBone.EyeLeft, "Eye_L"),
 			(PlayerBone.EyeRight, "Eye_R"),
 			(PlayerBone.Nose, "Nose_M"),
-			(PlayerBone.AttachRight, "POT_attach_R")
+			(PlayerBone.AttachRight, "POT_attach_R"),
+			(PlayerBone.AttachLeft, "POT_attach_L")
 		};
 
 		[Header("Rig")]

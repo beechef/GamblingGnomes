@@ -38,6 +38,7 @@ namespace Game.Runtime.Player
 		Nose,
 
 		// The palm joint the item props are modelled against: a prop's root laid on it exactly sits in the fist.
-		AttachRight
+		AttachRight,
+		AttachLeft
 	}
 }

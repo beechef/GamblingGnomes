@@ -4,8 +4,8 @@ using UnityEngine;
 namespace Game.Runtime.Props
 {
 	// A stream mesh drawn out by its material's growth (0 none of it, 1 all of it, revealed from uv v = 1 down to
-	// v = 0), poured out each time it is switched on. A point rides the leading edge, so whatever is carried on it
-	// comes down the stream and rests where the stream ends.
+	// v = 0): empty when switched on, poured by Pour (sent by the clip's cue). A point rides the leading edge, so
+	// whatever is carried on it comes down the stream and rests where the stream ends.
 	public class PropGrowthStream : MonoBehaviour
 	{
 		private static readonly int GrowthId = Shader.PropertyToID("_Growth");
@@ -15,10 +15,6 @@ namespace Game.Runtime.Props
 
 		[Tooltip("Carried along the stream's centre at its leading edge and left at its end. Keeps its own rotation.")]
 		[SerializeField] private Transform _tip;
-
-		[Tooltip("Seconds after the stream is switched on before it starts to pour: when the clip opens the mouth.")]
-		[Min(0f)]
-		[SerializeField] private float _delay;
 
 		[Tooltip("Seconds from the first drop to the stream reaching its end.")]
 		[Min(0.01f)]
@@ -44,7 +40,12 @@ namespace Game.Runtime.Props
 		{
 			_tween?.Kill();
 			SetGrowth(0f);
-			_tween = DOVirtual.Float(0f, 1f, _duration, SetGrowth).SetDelay(_delay).SetEase(_ease);
+		}
+
+		public void Pour()
+		{
+			_tween?.Kill();
+			_tween = DOVirtual.Float(0f, 1f, _duration, SetGrowth).SetEase(_ease);
 		}
 
 		private void OnDisable()

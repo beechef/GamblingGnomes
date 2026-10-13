@@ -9,11 +9,12 @@ using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker.Player
 {
-	// How this player acts one item out, on every screen: the prop comes out, the intro is stretched to land as
-	// the item acts (PokerItem.LeadIn, which the server waits), it holds, then the outro puts it away. One per
-	// item, on its own child of the player's ItemPerformances; PokerItemPerformer starts it. Presentation only:
-	// art replaces the prop prefab, a clip fills the gesture's state, and the steps stay.
-	// Runs first: a prop authored on the hand is lifted off the rig before the rig's renderer caches
+	// How this player acts one item out, on every screen. The prop is set up in the player prefab where it
+	// belongs (in the right hand, at the mouth) and switched off; the gesture's clip drives it through cues
+	// (shown at the grab, its own clip played at use, let go on the table), and the item's own moments
+	// (resolved, outcome, fold lock lifted) finish it. One per item, on its own child of the player's
+	// ItemPerformances; PokerItemPerformer starts it. Presentation only.
+	// Runs first: a prop authored on the rig is lifted off it before the rig's renderer caches
 	// (PlayerAnimationEventRelay, AnimationVfxPlayer) count it as part of the body.
 	[DefaultExecutionOrder(-1000)]
 	public class PokerItemPerformance : MonoBehaviour
@@ -27,7 +28,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		[SerializeField] private PokerItemPropActor _performer;
 
 		[Header("Prop")]
-		[Tooltip("The prop (an instance of a Prefabs/Items prop, its root at the grip), kept switched off until played. A hand prop is authored on the full-body rig's POT_attach_R so it can be posed in the hand; it is moved under this object on Awake.")]
+		[Tooltip("The prop (an instance of a Prefabs/Items prop), switched off, authored where it belongs: on a bone of the full-body rig (POT_attach_R for the hand, Jaw_M for the mouth) at its pose there. It returns there on the rig being drawn; it is lifted under this object on Awake.")]
 		[Required]
 		[SerializeField] private GameObject _prop;
 
@@ -43,62 +44,47 @@ namespace Game.Runtime.GameMode.Poker.Player
 		[MinValue(0f)]
 		[SerializeField] private float _cardDepartDelay;
 
-		[Tooltip("Where a die prop (PokerSuitDie) is thrown to once the card's new suit is known, seen from the performer.")]
+		[Tooltip("Where a die prop (PokerSuitDie) is thrown to, seen from the performer.")]
 		[SerializeField] private PokerItemPropAnchor _dieLandingAnchor = PokerItemPropAnchor.Table;
 
 		[SerializeField] private Vector3 _dieLandingOffset;
 
-		[Header("Steps")]
-		[Tooltip("Played as the item is used, stretched to end exactly when it acts (the item's Lead In). In order.")]
-		[SerializeField] private List<PokerItemPerformanceStep> _intro = new();
+		[Header("Actions")]
+		[Tooltip("What happens, each at its moment. Cues come from the performer's clip; any order.")]
+		[SerializeField] private List<PokerItemPerformanceAction> _actions = new();
 
-		[SerializeField] private PokerItemPropHold _hold;
-
-		[ShowIf(nameof(_hold), PokerItemPropHold.Duration)]
+		[Tooltip("A cue the clip never raises (missing event, rig not drawn) fires anyway this long after the play, so a prop is never left out.")]
 		[MinValue(0f)]
-		[SerializeField] private float _holdDuration;
-
-		[Tooltip("Played once the hold is over, then the prop is gone. In order.")]
-		[SerializeField] private List<PokerItemPerformanceStep> _outro = new();
-
-		[Header("Hand")]
-		[Tooltip("Seconds the hand takes to reach for a prop it follows, or to let it go.")]
-		[MinValue(0f)]
-		[SerializeField] private float _handReachDuration = 0.2f;
-
-		// Where a step set off from, filled as it starts. A step bound for the body keeps its start in the
-		// anchor's space, so a prop already riding a moving hand stays on it instead of trailing behind.
-		private sealed class StepStart
-		{
-			public Vector3 Position;
-			public Quaternion Rotation;
-			public Vector3 Scale;
-			public Quaternion? EndRotation;
-			public Transform Anchor;
-		}
+		[SerializeField] private float _cueTimeout = 6f;
 
 		private PokerPlayer _player;
 		private PokerGameMode _gameMode;
 		private PokerItemModule _module;
-		private PokerPlayer _other;
-		private Transform _ownFacePoint;
 		private ulong _userClientId;
 
-		private Transform _propHome;
+		private Transform _authoredParent;
+		private PlayerBone? _homeBone;
+		private Vector3 _homePosition;
+		private Quaternion _homeRotation;
+		private Vector3 _restScale;
 		private Animator _propAnimator;
 		private PokerSuitDie _die;
+
+		private readonly List<PlayerAnimationEventRelay> _relays = new();
+		private readonly HashSet<string> _heardCues = new();
+		private readonly List<Tween> _tweens = new();
 		private readonly List<GameObject> _effects = new();
-		private Vector3 _restScale;
-		private Sequence _sequence;
-		private Tween _handTween;
-		private bool _handFollowing;
+		private Tween _moveTween;
+		private Tween _scaleTween;
 		private Transform _cardOrigin;
 		private int _useStreetSerial;
 		private bool _playing;
-		private bool _holding;
 		private bool _resolved;
-		private bool _hasOutcome;
-		private int _outcome;
+		private bool _foldLockLifted;
+		private bool _dieThrown;
+		private bool _dieRolled;
+		private bool _hasRewrite;
+		private CardSuit? _rewriteSuit;
 
 		public PokerItem Item => _item;
 
@@ -108,15 +94,33 @@ namespace Game.Runtime.GameMode.Poker.Player
 			if (!_prop) return;
 
 			var prop = _prop.transform;
-			_propHome = transform;
-			prop.SetParent(_propHome, false);
+			_authoredParent = prop.parent;
+			_homeBone = BoneOf(_authoredParent);
+			_homePosition = prop.localPosition;
+			_homeRotation = prop.localRotation;
 			_restScale = prop.localScale;
 			_propAnimator = _prop.GetComponentInChildren<Animator>(true);
 			_die = _prop.GetComponentInChildren<PokerSuitDie>(true);
+
+			prop.SetParent(transform, true);
 			_prop.SetActive(false);
 		}
 
-		private void OnDestroy() => Stop();
+		// Both rigs, each gating itself on being drawn, as PokerBetItemCarryController does.
+		private void OnEnable()
+		{
+			if (_player && _player.Rig) _player.Rig.GetComponentsInChildren(true, _relays);
+
+			foreach (var relay in _relays) relay.OnAnimationCue += HandleCue;
+		}
+
+		private void OnDisable()
+		{
+			foreach (var relay in _relays) relay.OnAnimationCue -= HandleCue;
+
+			_relays.Clear();
+			Stop();
+		}
 
 		public bool PlaysFor(bool isUser, bool isTarget) => _performer switch
 		{
@@ -126,37 +130,27 @@ namespace Game.Runtime.GameMode.Poker.Player
 		};
 
 		// A second use before the first is over (cuffs still on) starts over.
-		public void Play(PokerGameMode gameMode, PokerItemModule module, ulong userClientId, PokerPlayer other, Transform ownFacePoint)
+		public void Play(PokerGameMode gameMode, PokerItemModule module, ulong userClientId)
 		{
 			Stop();
 			if (!_player || !_prop || !gameMode || !module) return;
 
-			_ownFacePoint = ownFacePoint;
 			_gameMode = gameMode;
 			_module = module;
 			_userClientId = userClientId;
-			_other = other;
 			_useStreetSerial = module.StreetSerial.Value;
 			_playing = true;
 
-			var at = _player.transform.position;
-			var rotation = Frame();
-			if (_intro.Count > 0)
-			{
-				at = TargetPosition(_intro[0], at);
-				rotation = TargetRotation(_intro[0], at);
-			}
-
-			_prop.transform.SetPositionAndRotation(at, rotation);
-			_prop.transform.localScale = Vector3.zero;
-			_prop.SetActive(true);
-
+			PutHome();
+			if (_die) _die.ShowSecret(!_player.IsOwner);
 			if (_player.ClientId == userClientId) StartCardOrigin();
 
-			var intro = BuildSteps(_intro, out var duration);
-			if (_item.LeadIn > 0f && duration > 0f) intro.timeScale = duration / _item.LeadIn;
+			foreach (var action in _actions)
+			{
+				if (action.When == PokerItemMoment.Cue && !string.IsNullOrEmpty(action.Cue)) Schedule(_cueTimeout, () => HandleCue(action.Cue));
+			}
 
-			_sequence = intro.OnComplete(EnterHold);
+			Run(PokerItemMoment.Played);
 		}
 
 		public void Resolve(ulong userClientId)
@@ -164,20 +158,20 @@ namespace Game.Runtime.GameMode.Poker.Player
 			if (!_playing || _resolved || userClientId != _userClientId) return;
 
 			_resolved = true;
-			TryRelease();
+			Run(PokerItemMoment.Resolved);
+			RefreshFoldLock();
 		}
 
-		// A chance item's outcome reaches the table as a notice before the item is done, so the outro can tell.
+		// A chance item's outcome reaches the table as a notice before the item is done.
 		public void ReceiveOutcome(ulong userClientId, int outcome)
 		{
 			if (!_playing || _resolved || userClientId != _userClientId) return;
 
-			_hasOutcome = true;
-			_outcome = outcome;
+			Run(PokerItemMoment.Outcome, null, outcome);
 		}
 
-		// The card the item is rewriting and what it becomes, told as the flicker starts: a die is thrown to land on
-		// the new suit. A screen that may not see the card gets any face, so the die never tells the table.
+		// The card the item is rewriting and what it becomes, told as the flicker starts. A screen that may not
+		// see the card gets the secret die, so it never tells the table.
 		public void ReceiveRewrite(PokerCardPlace place, CardData card)
 		{
 			if (!_playing || _resolved || !_die || place.HolderClientId != _userClientId) return;
@@ -185,36 +179,27 @@ namespace Game.Runtime.GameMode.Poker.Player
 			var holder = PokerPlayer.Find(place.HolderClientId);
 			var data = holder ? holder.Data : null;
 			var visible = data && place.Slot >= 0 && place.Slot < data.CardCount && data.IsHoleCardVisible(place.Slot);
-			CardSuit? suit = visible && card.IsValid && !card.IsJoker ? card.SuitType : null;
 
-			SetHandFollowing(false);
-			_prop.transform.SetParent(_propHome, true);
-
-			var anchor = ResolveAnchor(_dieLandingAnchor);
-			var landing = (anchor ? anchor.position : _prop.transform.position) + Frame() * _dieLandingOffset;
-			// The card flickers for the pacing's rewrite duration before its new face is written: the die settles then.
-			var pacing = _module ? _module.ExchangePacing : null;
-			_die.RollTo(landing, suit, pacing ? pacing.RewriteDuration : 1f);
+			_rewriteSuit = visible && card.IsValid && !card.IsJoker ? card.SuitType : null;
+			_hasRewrite = true;
+			TryRollDie();
 		}
 
-		public void RefreshHold()
+		// A fold lock laid after the item was played lifts once the hand moves past it; the hand ending clears it too.
+		public void RefreshFoldLock()
 		{
-			if (_hold == PokerItemPropHold.UntilFoldLockLifted) TryRelease();
+			if (!_playing || !_resolved || _foldLockLifted || IsFoldLocked()) return;
+
+			_foldLockLifted = true;
+			Run(PokerItemMoment.FoldLockLifted);
 		}
 
 		public void Stop()
 		{
-			_sequence?.Kill();
-			_handTween?.Kill();
-			_sequence = null;
-			_handTween = null;
-
-			var ik = _player ? _player.HandIk : null;
-			if (_handFollowing && ik)
-			{
-				ik.FollowWeight = 0f;
-				ik.Follow(null);
-			}
+			foreach (var tween in _tweens) tween?.Kill();
+			_tweens.Clear();
+			_moveTween?.Kill();
+			_scaleTween?.Kill();
 
 			var deck = PokerDeckVisual.Instance;
 			if (_cardOrigin && deck) deck.ClearItemDrawOrigin(_cardOrigin);
@@ -226,24 +211,195 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 			_effects.Clear();
 
-			// Back where it was set up, switched off, ready for the next play.
 			if (_prop)
 			{
 				if (_die) _die.Stop();
 
 				var prop = _prop.transform;
-				prop.SetParent(_propHome, false);
-				prop.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
+				prop.SetParent(transform, false);
 				prop.localScale = _restScale;
 				_prop.SetActive(false);
 			}
 
+			_heardCues.Clear();
 			_cardOrigin = null;
-			_handFollowing = false;
 			_playing = false;
-			_holding = false;
 			_resolved = false;
-			_hasOutcome = false;
+			_foldLockLifted = false;
+			_dieThrown = false;
+			_dieRolled = false;
+			_hasRewrite = false;
+			_rewriteSuit = null;
+		}
+
+		private void HandleCue(string cue)
+		{
+			if (!_playing || string.IsNullOrEmpty(cue) || !_heardCues.Add(cue)) return;
+
+			Run(PokerItemMoment.Cue, cue);
+		}
+
+		private void Run(PokerItemMoment moment, string cue = null, int outcome = 0)
+		{
+			foreach (var action in _actions)
+			{
+				if (!action.Matches(moment, cue, outcome)) continue;
+
+				var current = action;
+				if (current.Delay > 0f) Schedule(current.Delay, () => Do(current));
+				else Do(current);
+			}
+		}
+
+		private void Schedule(float delay, TweenCallback callback) => _tweens.Add(DOVirtual.DelayedCall(delay, callback, false));
+
+		private void Do(PokerItemPerformanceAction action)
+		{
+			if (!_playing || !_prop) return;
+
+			var prop = _prop.transform;
+			switch (action.Do)
+			{
+				case PokerItemPropAction.Show:
+					if (!_prop.activeSelf) prop.localScale = action.Duration > 0f ? Vector3.zero : _restScale;
+					_prop.SetActive(true);
+					ScaleTo(_restScale, action, false);
+					break;
+				case PokerItemPropAction.Hide:
+					ScaleTo(Vector3.zero, action, true);
+					break;
+				case PokerItemPropAction.ReturnHome:
+					_moveTween?.Kill();
+					PutHome();
+					break;
+				case PokerItemPropAction.AttachTo:
+					_moveTween?.Kill();
+					var anchor = ResolveAnchor(action.Anchor);
+					if (anchor) prop.SetParent(anchor, true);
+					break;
+				case PokerItemPropAction.Release:
+					_moveTween?.Kill();
+					prop.SetParent(transform, true);
+					break;
+				case PokerItemPropAction.MoveTo:
+					MoveTo(action);
+					break;
+				case PokerItemPropAction.PlayState:
+					if (_propAnimator && _propAnimator.isActiveAndEnabled)
+					{
+						var hash = Animator.StringToHash(action.State);
+						if (_propAnimator.HasState(0, hash)) _propAnimator.CrossFade(hash, 0.1f, 0);
+					}
+
+					break;
+				case PokerItemPropAction.SendMessage:
+					if (!string.IsNullOrEmpty(action.Message)) _prop.BroadcastMessage(action.Message, SendMessageOptions.DontRequireReceiver);
+					break;
+				case PokerItemPropAction.PlayGesture:
+					if (!string.IsNullOrEmpty(action.Gesture) && _player.ActionAnimator) _player.ActionAnimator.PlayLocal(action.Gesture);
+					break;
+				case PokerItemPropAction.SpawnEffect:
+					if (!action.Effect) break;
+
+					var point = action.EffectPoint ? action.EffectPoint : prop;
+					var effect = Instantiate(action.Effect, point.position, point.rotation, point);
+					_effects.Add(effect);
+					if (action.EffectLifetime > 0f) Destroy(effect, action.EffectLifetime);
+					break;
+				case PokerItemPropAction.PlaySound:
+					if (action.Sound && AudioManager.Instance) AudioManager.Instance.PlayOneShotAttached(action.Sound, prop);
+					break;
+				case PokerItemPropAction.RollDie:
+					_dieThrown = true;
+					TryRollDie();
+					break;
+				case PokerItemPropAction.Finish:
+					Stop();
+					break;
+			}
+		}
+
+		// On the drawn rig's bone the prop was authored on (the hand-only rig on its owner's screen), at its pose there.
+		private void PutHome()
+		{
+			var prop = _prop.transform;
+			var parent = _homeBone.HasValue && _player.Rig ? _player.Rig.GetBone(_homeBone.Value) : null;
+
+			prop.SetParent(parent ? parent : _authoredParent, false);
+			prop.SetLocalPositionAndRotation(_homePosition, _homeRotation);
+		}
+
+		private PlayerBone? BoneOf(Transform bone)
+		{
+			var rig = _player && _player.Rig ? _player.Rig.FullBodyRig : null;
+			if (!rig || !bone) return null;
+
+			foreach (PlayerBone candidate in System.Enum.GetValues(typeof(PlayerBone)))
+			{
+				if (rig.TryGet(candidate, out var found) && found == bone) return candidate;
+			}
+
+			return null;
+		}
+
+		private void ScaleTo(Vector3 scale, in PokerItemPerformanceAction action, bool switchOff)
+		{
+			_scaleTween?.Kill();
+
+			_scaleTween = _prop.transform.DOScale(scale, action.Duration)
+				.SetEase(action.Ease == Ease.Unset ? Ease.OutBack : action.Ease)
+				.OnComplete(() =>
+				{
+					if (switchOff && _prop) _prop.SetActive(false);
+				});
+		}
+
+		// Read every frame towards an anchor that moves, from a start kept in the anchor's space so a prop already
+		// riding a moving hand stays on it; rides the anchor at the end when it is on the body.
+		private void MoveTo(PokerItemPerformanceAction action)
+		{
+			_moveTween?.Kill();
+
+			var prop = _prop.transform;
+			var anchor = ResolveAnchor(action.Anchor);
+			prop.SetParent(transform, true);
+
+			var startPosition = anchor ? anchor.InverseTransformPoint(prop.position) : prop.position;
+			var startRotation = anchor ? Quaternion.Inverse(anchor.rotation) * prop.rotation : prop.rotation;
+
+			_moveTween = DOVirtual.Float(0f, 1f, Mathf.Max(0.0001f, action.Duration), t =>
+				{
+					if (!_prop) return;
+
+					var frame = anchor && IsPalm(action.Anchor) ? anchor.rotation : Frame();
+					var from = anchor ? anchor.TransformPoint(startPosition) : startPosition;
+					var fromRotation = anchor ? anchor.rotation * startRotation : startRotation;
+					var to = (anchor ? anchor.position : from) + frame * action.Offset;
+
+					prop.SetPositionAndRotation(Vector3.LerpUnclamped(from, to, t),
+						Quaternion.SlerpUnclamped(fromRotation, frame * Quaternion.Euler(action.Rotation), t));
+				})
+				.SetEase(action.Ease == Ease.Unset ? Ease.InOutSine : action.Ease)
+				.OnComplete(() =>
+				{
+					if (_prop && anchor && IsOnBody(action.Anchor)) prop.SetParent(anchor, true);
+				});
+		}
+
+		// Thrown once the hand lets go and the new suit is known, whichever comes last.
+		private void TryRollDie()
+		{
+			if (!_die || !_dieThrown || !_hasRewrite || _dieRolled) return;
+
+			_dieRolled = true;
+			_moveTween?.Kill();
+			_prop.transform.SetParent(transform, true);
+
+			var anchor = ResolveAnchor(_dieLandingAnchor);
+			var landing = (anchor ? anchor.position : _prop.transform.position) + Frame() * _dieLandingOffset;
+			// The card flickers for the pacing's rewrite duration before its new face is written: the die settles then.
+			var pacing = _module ? _module.ExchangePacing : null;
+			_die.RollTo(landing, _rewriteSuit, pacing ? pacing.RewriteDuration : 1f);
 		}
 
 		private void StartCardOrigin()
@@ -263,137 +419,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			if (_cardOrigin) deck.SetItemDrawOrigin(_cardOrigin, departAt);
 		}
 
-		private Sequence BuildSteps(List<PokerItemPerformanceStep> steps, out float duration)
-		{
-			var sequence = DOTween.Sequence();
-			duration = 0f;
-
-			foreach (var step in steps)
-			{
-				if (step.OnlyOnOutcome && (!_hasOutcome || _outcome != step.Outcome)) continue;
-
-				var current = step;
-				var start = new StepStart();
-
-				sequence.AppendCallback(() => BeginStep(current, start));
-				sequence.Append(DOVirtual.Float(0f, 1f, Mathf.Max(0.0001f, current.Duration), t => ApplyStep(current, start, t))
-					.SetEase(current.Ease == Ease.Unset ? Ease.InOutSine : current.Ease));
-				sequence.AppendCallback(() => EndStep(current));
-
-				duration += current.Duration;
-			}
-
-			return sequence;
-		}
-
-		private void BeginStep(PokerItemPerformanceStep step, StepStart start)
-		{
-			if (!_prop) return;
-
-			var prop = _prop.transform;
-			if (prop.parent != _propHome) prop.SetParent(_propHome, true);
-
-			start.Anchor = IsOnBody(step.To) ? ResolveAnchor(step.To) : null;
-			start.Position = start.Anchor ? start.Anchor.InverseTransformPoint(prop.position) : prop.position;
-			start.Rotation = start.Anchor ? Quaternion.Inverse(start.Anchor.rotation) * prop.rotation : prop.rotation;
-			start.Scale = prop.localScale;
-			start.EndRotation = step.HoldRotation ? prop.rotation : null;
-
-			SetHandFollowing(step.HandFollows && step.To != PokerItemPropAnchor.Hand);
-
-			if (!string.IsNullOrEmpty(step.Gesture) && _player.ActionAnimator) _player.ActionAnimator.PlayLocal(step.Gesture);
-
-			if (!string.IsNullOrEmpty(step.PropState) && _propAnimator)
-			{
-				var hash = Animator.StringToHash(step.PropState);
-				if (_propAnimator.HasState(0, hash)) _propAnimator.CrossFade(hash, 0.1f, 0);
-			}
-
-			if (step.Effect)
-			{
-				var effect = Instantiate(step.Effect, prop.position, prop.rotation, prop);
-				_effects.Add(effect);
-				if (step.EffectLifetime > 0f) Destroy(effect, step.EffectLifetime);
-			}
-
-			if (step.Sound && AudioManager.Instance) AudioManager.Instance.PlayOneShotAttached(step.Sound, prop);
-		}
-
-		private void ApplyStep(PokerItemPerformanceStep step, StepStart start, float t)
-		{
-			if (!_prop) return;
-
-			var prop = _prop.transform;
-			var startPosition = start.Anchor ? start.Anchor.TransformPoint(start.Position) : start.Position;
-			var startRotation = start.Anchor ? start.Anchor.rotation * start.Rotation : start.Rotation;
-			var position = Vector3.LerpUnclamped(startPosition, TargetPosition(step, startPosition), t);
-
-			prop.SetPositionAndRotation(position,
-				Quaternion.SlerpUnclamped(startRotation, start.EndRotation ?? TargetRotation(step, position), t) * Quaternion.Euler(step.Spin * t));
-
-			// Clamped: an overshooting ease on the way out must not turn the prop inside out.
-			prop.localScale = Vector3.Max(Vector3.zero, Vector3.LerpUnclamped(start.Scale, step.Hide ? Vector3.zero : _restScale, t));
-		}
-
-		// A prop left on the body rides it until the next step takes it away.
-		private void EndStep(PokerItemPerformanceStep step)
-		{
-			if (!_prop || !IsOnBody(step.To)) return;
-
-			var anchor = ResolveAnchor(step.To);
-			if (anchor) _prop.transform.SetParent(anchor, true);
-		}
-
-		private static bool IsOnBody(PokerItemPropAnchor anchor) =>
-			anchor is PokerItemPropAnchor.Hand or PokerItemPropAnchor.Mouth or PokerItemPropAnchor.Nose or PokerItemPropAnchor.Cards or PokerItemPropAnchor.Focus;
-
-		private void SetHandFollowing(bool follow)
-		{
-			var ik = _player.HandIk;
-			if (!ik || _handFollowing == follow) return;
-
-			_handFollowing = follow;
-			_handTween?.Kill();
-
-			if (follow) ik.Follow(_prop.transform);
-
-			_handTween = DOTween.To(() => ik.FollowWeight, weight => ik.FollowWeight = weight, follow ? 1f : 0f, _handReachDuration)
-				.OnComplete(() =>
-				{
-					if (!follow) ik.Follow(null);
-				});
-		}
-
-		private void EnterHold()
-		{
-			_holding = true;
-
-			if (_hold == PokerItemPropHold.Duration)
-			{
-				_sequence = DOTween.Sequence().AppendInterval(_holdDuration).OnComplete(PlayOutro);
-				return;
-			}
-
-			TryRelease();
-		}
-
-		private void TryRelease()
-		{
-			if (!_holding || !_resolved || _hold == PokerItemPropHold.Duration) return;
-			if (_hold == PokerItemPropHold.UntilFoldLockLifted && IsFoldLocked()) return;
-
-			PlayOutro();
-		}
-
-		private void PlayOutro()
-		{
-			_holding = false;
-			_sequence?.Kill();
-			_sequence = BuildSteps(_outro, out _).OnComplete(Stop);
-		}
-
 		// A fold lock laid on this player after the item was played, still covering this street or one to come.
-		// The hand ending clears every rule, which lifts it too.
 		private bool IsFoldLocked()
 		{
 			if (!_module) return false;
@@ -408,29 +434,11 @@ namespace Game.Runtime.GameMode.Poker.Player
 			return false;
 		}
 
-		private Vector3 TargetPosition(in PokerItemPerformanceStep step, Vector3 fallback)
-		{
-			var anchor = ResolveAnchor(step.To);
-			return (anchor ? anchor.position : fallback) + StepFrame(step.To, anchor) * step.Offset;
-		}
+		private static bool IsPalm(PokerItemPropAnchor anchor) => anchor is PokerItemPropAnchor.Hand or PokerItemPropAnchor.HandLeft;
 
-		private Quaternion TargetRotation(in PokerItemPerformanceStep step, Vector3 at)
-		{
-			var frame = StepFrame(step.To, ResolveAnchor(step.To));
-
-			if (step.AimAtOther)
-			{
-				var other = FocusOf(_other);
-				var direction = other ? other.position - at : Vector3.zero;
-				if (direction.sqrMagnitude > 0.0001f) frame = Quaternion.LookRotation(direction, Vector3.up);
-			}
-
-			return frame * Quaternion.Euler(step.Rotation);
-		}
-
-		// A prop in the hand is turned with the palm, as the art was modelled; anywhere else, with the chair.
-		private Quaternion StepFrame(PokerItemPropAnchor to, Transform anchor) =>
-			to == PokerItemPropAnchor.Hand && anchor ? anchor.rotation : Frame();
+		private static bool IsOnBody(PokerItemPropAnchor anchor) =>
+			anchor is PokerItemPropAnchor.Hand or PokerItemPropAnchor.HandLeft or PokerItemPropAnchor.Mouth or PokerItemPropAnchor.Nose
+				or PokerItemPropAnchor.Cards or PokerItemPropAnchor.Focus;
 
 		// The chair's facing, which is the sitter's: x their right, z towards the table.
 		private Quaternion Frame()
@@ -447,39 +455,25 @@ namespace Game.Runtime.GameMode.Poker.Player
 			{
 				case PokerItemPropAnchor.Hand:
 					return _player.Rig ? _player.Rig.GetBone(PlayerBone.AttachRight) : null;
+				case PokerItemPropAnchor.HandLeft:
+					return _player.Rig ? _player.Rig.GetBone(PlayerBone.AttachLeft) : null;
 				case PokerItemPropAnchor.Stash:
 					return Seat() ? Seat().ItemStashAnchor : null;
 				case PokerItemPropAnchor.Table:
 					return Seat() ? Seat().CardAnchor : null;
 				case PokerItemPropAnchor.Mouth:
-					return FaceBone(PlayerBone.Jaw);
+					return _player.Rig ? _player.Rig.GetBone(PlayerBone.Jaw) : null;
 				case PokerItemPropAnchor.Nose:
-					return FaceBone(PlayerBone.Nose);
+					return _player.Rig ? _player.Rig.GetBone(PlayerBone.Nose) : null;
 				case PokerItemPropAnchor.Cards:
 					return _player.HandVisual ? _player.HandVisual.HandAnchor : null;
 				case PokerItemPropAnchor.Focus:
 					return FocusOf(_player);
-				case PokerItemPropAnchor.Other:
-					return FocusOf(_other);
-				case PokerItemPropAnchor.BoardCard:
-					return LastFaceDownBoardCard();
 				case PokerItemPropAnchor.Body:
 					return _player.transform;
 				default:
 					return null;
 			}
-		}
-
-		// The full body's face for everybody watching; for the performer themselves, the performer's own face
-		// point, since their real face is the camera and a hand raised to it would cover the whole view.
-		private Transform FaceBone(PlayerBone bone)
-		{
-			if (_player.IsOwner && _ownFacePoint) return _ownFacePoint;
-
-			var rig = _player.Rig ? _player.Rig.FullBodyRig : null;
-			if (!rig) return null;
-
-			return rig.TryGet(bone, out var found) ? found : rig.Get(PlayerBone.Head);
 		}
 
 		// About you, before your own eyes; about anybody else, on their body.
@@ -488,21 +482,6 @@ namespace Game.Runtime.GameMode.Poker.Player
 			if (!player || !player.Rig) return null;
 
 			return player.IsOwner ? player.Rig.SelfFocusPoint : player.Rig.FocusPoint;
-		}
-
-		private Transform LastFaceDownBoardCard()
-		{
-			var board = PokerBoardVisual.Instance;
-			var data = _gameMode ? _gameMode.Data : null;
-			if (!board || !data) return null;
-
-			var cards = board.Cards;
-			for (var i = cards.Count - 1; i >= 0; i--)
-			{
-				if (cards[i] && !data.IsCommunityCardRevealed(i)) return cards[i].transform;
-			}
-
-			return null;
 		}
 	}
 }
