@@ -412,7 +412,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 		public void UseItemRPC(PokerItemUseRequest request, RpcParams rpcParams = default)
 		{
 			// Left unawaited on purpose: it carries the module's own lifetime and finishes on its own.
-			_ = ServerUseAsync(rpcParams.Receive.SenderClientId, request, destroyCancellationToken);
+			_ = ServerUseItemAsync(rpcParams.Receive.SenderClientId, request, destroyCancellationToken);
 		}
 
 		private void ServerDealItems()
@@ -490,7 +490,8 @@ namespace Game.Runtime.GameMode.Poker.Items
 			return false;
 		}
 
-		private async Awaitable ServerUseAsync(ulong clientId, PokerItemUseRequest request, CancellationToken ct)
+		// The door a seated player plays an item through: their RPC, or a bot on the server.
+		public async Awaitable ServerUseItemAsync(ulong clientId, PokerItemUseRequest request, CancellationToken ct)
 		{
 			var user = GameMode.FindSeatedPlayer(clientId);
 			var availability = GetAvailability(user, request.Item);
