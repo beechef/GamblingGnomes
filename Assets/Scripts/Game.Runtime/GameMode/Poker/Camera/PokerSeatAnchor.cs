@@ -11,6 +11,9 @@ namespace Game.Runtime.GameMode.Poker.Camera
 		// Straight out across the table, where a sitter looks when they are facing forward. Every chair
 		// aims at the same spot, so a shot that wants "the room from where I sit" needs no wide camera and
 		// no marker of its own — the seat already knows which way it faces.
-		Ahead = 2
+		Ahead = 2,
+
+		// On the table before them, where an item is put down (PokerSeat.ItemTableAnchor): the vomit's stream.
+		ItemTable = 3
 	}
 }

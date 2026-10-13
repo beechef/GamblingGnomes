@@ -422,6 +422,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 8b251b97beebb1943984837d8a88415d, type: 2}
   _performer: 0
   _locksLook: 0
+  _cameraState: {fileID: 0}
   _prop: {fileID: 1652350754082826096}
   _cardsFrom: 0
   _cardPoint: {fileID: 0}
@@ -953,6 +954,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: bdf3c1e1f2b204f42990b5af1c2ec76d, type: 2}
   _performer: 0
   _locksLook: 0
+  _cameraState: {fileID: 0}
   _prop: {fileID: 3865452863626445314}
   _cardsFrom: 2
   _cardPoint: {fileID: 0}
@@ -1155,6 +1157,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 4aa7314cec9b9ec4db71d7015993f695, type: 2}
   _performer: 2
   _locksLook: 0
+  _cameraState: {fileID: 0}
   _prop: {fileID: 3977947464334578970}
   _cardsFrom: 0
   _cardPoint: {fileID: 0}
@@ -1381,6 +1384,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: a00dc9283b17e934b90911c450b841fc, type: 2}
   _performer: 1
   _locksLook: 0
+  _cameraState: {fileID: 0}
   _prop: {fileID: 3699094898483157565}
   _cardsFrom: 0
   _cardPoint: {fileID: 0}
@@ -1539,6 +1543,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 964c1095be9ccaf4f81c2b89e5db9734, type: 2}
   _performer: 0
   _locksLook: 0
+  _cameraState: {fileID: 0}
   _prop: {fileID: 5738111174628198107}
   _cardsFrom: 0
   _cardPoint: {fileID: 0}
@@ -1615,6 +1620,55 @@ MonoBehaviour:
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
   _cueTimeout: 6
+--- !u!1 &3911585905989661448
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7384676402122137874}
+  - component: {fileID: 1332360093427464006}
+  m_Layer: 0
+  m_Name: State_ItemTable
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7384676402122137874
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3911585905989661448}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 6961401803370160626}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1332360093427464006
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3911585905989661448}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b763c5578f64e4b81b47910c5cf9d9fa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Camera.PokerOwnSeatCameraState
+  _allowManualLook: 0
+  _aimDelay: 0
+  _anchor: 3
+  _aimHeight: 0
+  _data: {fileID: 6935137486891752095}
 --- !u!1 &4316887955309095392
 GameObject:
   m_ObjectHideFlags: 0
@@ -1663,6 +1717,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 4a83b03ae5fb546468af9af2dafb656d, type: 2}
   _performer: 2
   _locksLook: 0
+  _cameraState: {fileID: 0}
   _prop: {fileID: 5961990308723115178}
   _cardsFrom: 0
   _cardPoint: {fileID: 0}
@@ -1793,6 +1848,7 @@ Transform:
   - {fileID: 6943904450054317861}
   - {fileID: 6596022643985744369}
   - {fileID: 4985311146887374898}
+  - {fileID: 7384676402122137874}
   - {fileID: 3823808715294345562}
   - {fileID: 1436942122852505741}
   m_Father: {fileID: 7915523810459036602}
@@ -2004,6 +2060,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: caa97cb624f94c44f9c7dd948b861f52, type: 2}
   _performer: 0
   _locksLook: 0
+  _cameraState: {fileID: 0}
   _prop: {fileID: 3836441507046034475}
   _cardsFrom: 0
   _cardPoint: {fileID: 0}
@@ -2240,6 +2297,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 77dce280299d2e04b9bf941f057b3754, type: 2}
   _performer: 0
   _locksLook: 0
+  _cameraState: {fileID: 0}
   _prop: {fileID: 3471148327486938038}
   _cardsFrom: 0
   _cardPoint: {fileID: 0}
@@ -2603,10 +2661,11 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 22d2c89f3e423634890ebaa5e82da070, type: 2}
   _performer: 0
   _locksLook: 1
+  _cameraState: {fileID: 1332360093427464006}
   _prop: {fileID: 5746880024715345707}
   _cardsFrom: 1
   _cardPoint: {fileID: 7471967519060812855}
-  _cardDepartDelay: 2.9
+  _cardDepartDelay: 3.8
   _dieLandingAnchor: 2
   _dieLandingOffset: {x: 0, y: 0, z: 0}
   _actions:
@@ -2695,28 +2754,11 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
-  - Label: Pick the card up
+  - Label: Done
     When: 1
     Cue: ItemEnd
     Outcome: 0
-    Delay: 0.15
-    Do: 8
-    Anchor: 0
-    Offset: {x: 0, y: 0, z: 0}
-    Rotation: {x: 0, y: 0, z: 0}
-    Arc: 0
-    Duration: 0
-    Ease: 0
-    State: 
-    Gesture: ItemPickUpCard
-    Effect: {fileID: 0}
-    EffectPoint: {fileID: 0}
-    EffectLifetime: 0
-  - Label: Done
-    When: 1
-    Cue: ItemGrab
-    Outcome: 0
-    Delay: 0.4
+    Delay: 0.6
     Do: 12
     Anchor: 0
     Offset: {x: 0, y: 0, z: 0}
@@ -2778,6 +2820,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 8cb2d3077ff1b564ba01a55a28fa4c37, type: 2}
   _performer: 1
   _locksLook: 0
+  _cameraState: {fileID: 0}
   _prop: {fileID: 9082974099659319165}
   _cardsFrom: 0
   _cardPoint: {fileID: 0}
@@ -3163,6 +3206,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 17fb2585ddd6c42479c60e530f82194e, type: 2}
   _performer: 0
   _locksLook: 0
+  _cameraState: {fileID: 0}
   _prop: {fileID: 326353555373725435}
   _cardsFrom: 0
   _cardPoint: {fileID: 0}
