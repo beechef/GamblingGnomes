@@ -142,6 +142,7 @@ namespace Game.Runtime.Player
 		private Transform _lookTarget;
 		private float _lastManualLookTime = float.NegativeInfinity;
 		private int _manualLookHolds;
+		private int _lookLocks;
 		private bool _headLookSuspended;
 
 		public bool MovementEnabled => _movementEnabled;
@@ -218,6 +219,15 @@ namespace Game.Runtime.Player
 		public void SetLookInputDisabled(bool disabled)
 		{
 			_lookInputDisabled = disabled;
+		}
+
+		// Holds the view still for an act the player is carried through (an item acted out), apart from the
+		// camera states' switch above so neither releases the other. Counted, like the manual look.
+		public void BeginLookLock() => _lookLocks++;
+
+		public void EndLookLock()
+		{
+			if (_lookLocks > 0) _lookLocks--;
 		}
 
 		// Aims the view at a point in the world and keeps it there, turning the look bone to get it — so
@@ -419,7 +429,7 @@ namespace Game.Runtime.Player
 			// A camera state that has taken the view somewhere else stops the input outright: left reading,
 			// the angles still replicate, so every other client watches the head turn and the view snaps to
 			// wherever they had turned the moment the state lets go.
-			if (_lookInputDisabled) return;
+			if (_lookInputDisabled || _lookLocks > 0) return;
 
 			if (!_inputBound) return;
 

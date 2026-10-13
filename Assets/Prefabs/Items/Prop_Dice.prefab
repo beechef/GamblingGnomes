@@ -61,11 +61,14 @@ MonoBehaviour:
     LocalNormal: {x: 0, y: -1, z: 0}
   _suitModel: {fileID: 5025857150784145865}
   _secretModel: {fileID: 7504395972938562410}
-  _throwDuration: 0.7
-  _jumpPower: 0.12
-  _bounces: 3
-  _turnsPerSecond: 1.5
-  _settleEase: 9
+  _throwDuration: 0.35
+  _jumpPower: 0.08
+  _bounces: 1
+  _throwTurns: 2
+  _turnsPerSecond: 8
+  _spinEase: 6
+  _tipDuration: 0.25
+  _tipEase: 5
 --- !u!1 &7504395972938562410
 GameObject:
   m_ObjectHideFlags: 0
@@ -133,6 +136,7 @@ MeshRenderer:
   m_RendererPriority: 0
   m_Materials:
   - {fileID: 2100000, guid: b800bcd5dad4e784fa98922e345c545c, type: 2}
+  - {fileID: 2100000, guid: df0fd2d106cab0c41aeef3e334506a1d, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -216,6 +220,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: e7784bad20c752046a80abf08ad3c33f, type: 3}
+      propertyPath: m_Materials.Array.size
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: -7511558181221131132, guid: e7784bad20c752046a80abf08ad3c33f, type: 3}
+      propertyPath: 'm_Materials.Array.data[1]'
+      value: 
+      objectReference: {fileID: 2100000, guid: df0fd2d106cab0c41aeef3e334506a1d, type: 2}
     - target: {fileID: 919132149155446097, guid: e7784bad20c752046a80abf08ad3c33f, type: 3}
       propertyPath: m_Name
       value: Model

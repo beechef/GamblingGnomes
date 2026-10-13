@@ -27,6 +27,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 		[Tooltip("Who acts it out: the user, the player they aimed it at, or both, each with a prop of their own.")]
 		[SerializeField] private PokerItemPropActor _performer;
 
+		[Tooltip("The performer cannot turn their view while it plays (their own screen only).")]
+		[SerializeField] private bool _locksLook;
+
 		[Header("Prop")]
 		[Tooltip("The prop (an instance of a Prefabs/Items prop), switched off, authored where it belongs: on a bone of the full-body rig (POT_attach_R for the hand, Jaw_M for the mouth) at its pose there. It returns there on the rig being drawn; it is lifted under this object on Awake.")]
 		[Required]
@@ -58,6 +61,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		[SerializeField] private float _cueTimeout = 6f;
 
 		private PokerPlayer _player;
+		private PlayerController _playerController;
 		private PokerGameMode _gameMode;
 		private PokerItemModule _module;
 		private ulong _userClientId;
@@ -79,6 +83,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		private Transform _cardOrigin;
 		private int _useStreetSerial;
 		private bool _playing;
+		private bool _lookLocked;
 		private bool _resolved;
 		private bool _foldLockLifted;
 		private bool _dieThrown;
@@ -101,6 +106,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		private void Awake()
 		{
 			_player = GetComponentInParent<PokerPlayer>(true);
+			_playerController = GetComponentInParent<PlayerController>(true);
 			if (!_prop) return;
 
 			var prop = _prop.transform;
@@ -152,6 +158,12 @@ namespace Game.Runtime.GameMode.Poker.Player
 			_playing = true;
 
 			PutHome();
+			if (_locksLook && _player.IsOwner && _playerController)
+			{
+				_playerController.BeginLookLock();
+				_lookLocked = true;
+			}
+
 			if (_die) _die.ShowSecret(!_player.IsOwner);
 			if (_player.ClientId == userClientId) StartCardOrigin();
 
@@ -220,6 +232,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 			}
 
 			_effects.Clear();
+
+			if (_lookLocked && _playerController) _playerController.EndLookLock();
+			_lookLocked = false;
 
 			if (_prop)
 			{
@@ -297,8 +312,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 				case PokerItemPropAction.PlayState:
 					if (_propAnimator && _propAnimator.isActiveAndEnabled)
 					{
+						// In seconds: a normalized fade advances with the state it leaves, and a prop's rest state is frozen.
 						var hash = Animator.StringToHash(action.State);
-						if (_propAnimator.HasState(0, hash)) _propAnimator.CrossFade(hash, 0.1f, 0);
+						if (_propAnimator.HasState(0, hash)) _propAnimator.CrossFadeInFixedTime(hash, 0.1f, 0);
 					}
 
 					break;
@@ -357,7 +373,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			_scaleTween?.Kill();
 
 			_scaleTween = _prop.transform.DOScale(scale, action.Duration)
-				.SetEase(action.Ease == Ease.Unset ? Ease.OutBack : action.Ease)
+				.SetEase(action.Ease != Ease.Unset ? action.Ease : switchOff ? Ease.InBack : Ease.OutBack)
 				.OnComplete(() =>
 				{
 					if (switchOff && _prop) _prop.SetActive(false);
@@ -385,8 +401,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 					var from = anchor ? anchor.TransformPoint(startPosition) : startPosition;
 					var fromRotation = anchor ? anchor.rotation * startRotation : startRotation;
 					var to = (anchor ? anchor.position : from) + frame * action.Offset;
+					var hop = Vector3.up * (action.Arc * 4f * t * (1f - t));
 
-					prop.SetPositionAndRotation(Vector3.LerpUnclamped(from, to, t),
+					prop.SetPositionAndRotation(Vector3.LerpUnclamped(from, to, t) + hop,
 						Quaternion.SlerpUnclamped(fromRotation, frame * Quaternion.Euler(action.Rotation), t));
 				})
 				.SetEase(action.Ease == Ease.Unset ? Ease.InOutSine : action.Ease)
@@ -470,7 +487,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 				case PokerItemPropAnchor.Stash:
 					return Seat() ? Seat().ItemStashAnchor : null;
 				case PokerItemPropAnchor.Table:
-					return Seat() ? Seat().CardAnchor : null;
+					return Seat() ? Seat().ItemTableAnchor : null;
 				case PokerItemPropAnchor.Mouth:
 					return _player.Rig ? _player.Rig.GetBone(PlayerBone.Jaw) : null;
 				case PokerItemPropAnchor.Nose:
