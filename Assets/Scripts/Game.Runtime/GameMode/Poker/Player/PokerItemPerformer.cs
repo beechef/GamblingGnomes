@@ -67,7 +67,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 			foreach (var performance in _performances)
 			{
-				if (performance.Item == asset && performance.PlaysFor(isUser, isTarget)) performance.Play(GameMode, _module, userClientId);
+				if (performance.ActsOut(asset) && performance.PlaysFor(isUser, isTarget)) performance.Play(GameMode, _module, userClientId);
 			}
 		}
 
@@ -75,7 +75,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		{
 			foreach (var performance in _performances)
 			{
-				if (performance.Item && performance.Item.Type == item) performance.Resolve(userClientId);
+				if (performance.ActsOut(item)) performance.Resolve(userClientId);
 			}
 		}
 
@@ -90,7 +90,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 			foreach (var performance in _performances)
 			{
-				if (performance.Item && performance.Item.Type == notice.Item) performance.ReceiveOutcome(notice.ActorClientId, notice.Amount);
+				if (performance.ActsOut(notice.Item)) performance.ReceiveOutcome(notice.ActorClientId, notice.Amount);
 			}
 		}
 

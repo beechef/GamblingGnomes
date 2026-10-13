@@ -20,9 +20,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 	public class PokerItemPerformance : MonoBehaviour
 	{
 		[Header("Item")]
-		[Tooltip("The item asset this acts out, so a mode's own variant of an item can be acted out differently.")]
+		[Tooltip("The item assets this acts out (items that share a look share a performance); a mode's own variant of an item can be acted out by another.")]
 		[Required]
-		[SerializeField] private PokerItem _item;
+		[SerializeField] private List<PokerItem> _items = new();
 
 		[Tooltip("Who acts it out: the user, the player they aimed it at, or both, each with a prop of their own.")]
 		[SerializeField] private PokerItemPropActor _performer;
@@ -86,7 +86,17 @@ namespace Game.Runtime.GameMode.Poker.Player
 		private bool _hasRewrite;
 		private CardSuit? _rewriteSuit;
 
-		public PokerItem Item => _item;
+		public bool ActsOut(PokerItem item) => item && _items.Contains(item);
+
+		public bool ActsOut(PokerItemType type)
+		{
+			foreach (var item in _items)
+			{
+				if (item && item.Type == type) return true;
+			}
+
+			return false;
+		}
 
 		private void Awake()
 		{
