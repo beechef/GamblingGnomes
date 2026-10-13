@@ -37,8 +37,8 @@ namespace Game.Runtime.GameMode.Poker.Items
 		// gesture's IK curve decides when the arm follows (PlayerHandIkController).
 		AimHandAtTarget = 13,
 
-		// The card point rides an anchor from where it is, leaving the prop: a card carried there lies still on
-		// the table while the prop shrinks away (Table), or rides a hand (Hand).
+		// The card point leaves the prop for an anchor, laid on its surface below where it is and turned by
+		// Rotation: the card handed out lies still on the table where the vomit stream ended.
 		AttachCardPoint = 14
 	}
 }

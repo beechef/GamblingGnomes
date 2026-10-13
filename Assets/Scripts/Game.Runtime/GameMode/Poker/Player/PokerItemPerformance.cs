@@ -366,6 +366,14 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 					var carrier = ResolveAnchor(action.Anchor);
 					_cardPoint.SetParent(carrier ? carrier : transform, true);
+					// Laid on the anchor's surface below where it is, turned in the chair's frame.
+					if (carrier)
+					{
+						var below = _cardPoint.position;
+						below.y = carrier.position.y;
+						_cardPoint.SetPositionAndRotation(below, Frame() * Quaternion.Euler(action.Rotation));
+					}
+
 					break;
 				case PokerItemPropAction.AimHandAtTarget:
 					var target = PokerPlayer.Find(_targetClientId);
