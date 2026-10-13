@@ -48,7 +48,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 		[SerializeField] private List<PokerItemType> _startingItems = new();
 
 		[FoldoutGroup("Testing"), ShowInInspector, DisableInEditorMode]
-		private PokerItemType _giveItem = PokerItemType.DeckCount;
+		private PokerItemType _giveItem = PokerItemType.ExtraDraw;
 
 		[FoldoutGroup("Testing"), ShowInInspector, DisableInEditorMode, ValueDropdown(nameof(GiveTargets))]
 		private ulong _giveTarget = PokerGameData.NoTurn;
