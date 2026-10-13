@@ -38,11 +38,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 		AimHandAtTarget = 13,
 
 		// The card point rides an anchor from where it is, leaving the prop: a card carried there lies still on
-		// the table while the prop shrinks away (Table), then goes with the hand that picks it up (Hand).
-		AttachCardPoint = 14,
-
-		// Aims the performer's hand IK at an anchor (the card point it reaches for); the gesture's IK curve
-		// decides when the arm follows (PlayerHandIkController).
-		AimHand = 15
+		// the table while the prop shrinks away (Table), or rides a hand (Hand).
+		AttachCardPoint = 14
 	}
 }

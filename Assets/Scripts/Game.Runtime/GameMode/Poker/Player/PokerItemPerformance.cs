@@ -367,10 +367,6 @@ namespace Game.Runtime.GameMode.Poker.Player
 					var carrier = ResolveAnchor(action.Anchor);
 					_cardPoint.SetParent(carrier ? carrier : transform, true);
 					break;
-				case PokerItemPropAction.AimHand:
-					var spot = ResolveAnchor(action.Anchor);
-					if (_handIk && spot) _handIk.Aim(spot);
-					break;
 				case PokerItemPropAction.AimHandAtTarget:
 					var target = PokerPlayer.Find(_targetClientId);
 					if (_handIk && target && target.Rig) _handIk.Aim(target.Rig.FocusPoint);
@@ -541,8 +537,6 @@ namespace Game.Runtime.GameMode.Poker.Player
 					return FocusOf(_player);
 				case PokerItemPropAnchor.Body:
 					return _player.transform;
-				case PokerItemPropAnchor.CardPoint:
-					return _cardPoint;
 				default:
 					return null;
 			}

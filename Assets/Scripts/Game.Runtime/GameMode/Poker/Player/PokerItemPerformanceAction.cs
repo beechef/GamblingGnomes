@@ -32,7 +32,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 		public PokerItemPropAction Do;
 
-		[ShowIf("@Do == PokerItemPropAction.AttachTo || Do == PokerItemPropAction.MoveTo || Do == PokerItemPropAction.AttachCardPoint || Do == PokerItemPropAction.AimHand")]
+		[ShowIf("@Do == PokerItemPropAction.AttachTo || Do == PokerItemPropAction.MoveTo || Do == PokerItemPropAction.AttachCardPoint")]
 		public PokerItemPropAnchor Anchor;
 
 		[ShowIf(nameof(Do), PokerItemPropAction.MoveTo)]
