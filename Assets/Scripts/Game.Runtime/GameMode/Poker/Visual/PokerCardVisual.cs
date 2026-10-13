@@ -202,6 +202,10 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 			var sequence = DOTween.Sequence().Append(Wait(wait)).Append(travel);
 
+			// A card riding a carrier is set after the animation has posed its bones (the hand it rides, the hand
+			// it is parented under); set before, it trails every bone move by a frame and judders.
+			if (_carrier) sequence.SetUpdate(UpdateType.Late);
+
 			// A dealt card is heard leaving the deck once, however often it is re-placed on the way.
 			if (_deal && !_departSounded)
 			{

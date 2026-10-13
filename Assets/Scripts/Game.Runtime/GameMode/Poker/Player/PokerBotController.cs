@@ -21,6 +21,14 @@ namespace Game.Runtime.GameMode.Poker.Player
 		[MinValue(0f)]
 		[SerializeField] private float _answerDelay = 1f;
 
+		[Tooltip("Up to this many seconds more, drawn each answer, so the bot's pace varies.")]
+		[MinValue(0f)]
+		[SerializeField] private float _answerDelayJitter = 1f;
+
+		[Tooltip("Seconds the bot waits after its item has played out before it stakes.")]
+		[MinValue(0f)]
+		[SerializeField] private float _afterItemDelay = 1.5f;
+
 		[Tooltip("Chance the bot plays one of its items, picked at random, before staking on its turn.")]
 		[PropertyRange(0f, 1f)]
 		[SerializeField] private float _itemUseChance = 0.5f;
@@ -89,7 +97,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			if (_itemModule && UnityEngine.Random.value < _itemUseChance && TryBuildItemRequest(out var request))
 			{
 				await _itemModule.ServerUseItemAsync(_player.ClientId, request, ct);
-				if (ct.IsCancellationRequested || gameMode != _gameMode || gameMode.Data.CurrentTurnClientId.Value != _player.ClientId) return;
+				if (!await WaitAsync(_afterItemDelay, ct) || gameMode != _gameMode || gameMode.Data.CurrentTurnClientId.Value != _player.ClientId) return;
 			}
 
 			var clientId = _player.ClientId;
@@ -200,11 +208,14 @@ namespace Game.Runtime.GameMode.Poker.Player
 			return false;
 		}
 
-		private async Awaitable<bool> WaitAnswerDelayAsync(CancellationToken ct)
+		private Awaitable<bool> WaitAnswerDelayAsync(CancellationToken ct) =>
+			WaitAsync(_answerDelay + UnityEngine.Random.Range(0f, _answerDelayJitter), ct);
+
+		private static async Awaitable<bool> WaitAsync(float seconds, CancellationToken ct)
 		{
 			try
 			{
-				await Awaitable.WaitForSecondsAsync(_answerDelay, ct);
+				await Awaitable.WaitForSecondsAsync(seconds, ct);
 				return true;
 			}
 			catch (OperationCanceledException)

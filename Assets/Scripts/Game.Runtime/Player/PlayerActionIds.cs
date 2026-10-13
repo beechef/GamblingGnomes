@@ -29,7 +29,6 @@ namespace Game.Runtime.Player
 		public const string ItemDiceRoll = "ItemDiceRoll";
 		public const string ItemJackBoxCrank = "ItemJackBoxCrank";
 		public const string ItemSniff = "ItemSniff";
-		public const string ItemSniffNice = "ItemSniffNice";
 		public const string ItemSniffGross = "ItemSniffGross";
 		public const string ItemInject = "ItemInject";
 		public const string ItemDrink = "ItemDrink";

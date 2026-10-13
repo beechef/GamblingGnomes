@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using DG.Tweening;
-using Game.Runtime.Audio;
 using Game.Runtime.GameMode.Poker.Items;
 using Game.Runtime.GameMode.Poker.Visual;
 using Game.Runtime.Player;
+using Game.Runtime.Player.Camera;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -30,6 +30,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 		[Tooltip("The performer cannot turn their view while it plays (their own screen only).")]
 		[SerializeField] private bool _locksLook;
 
+		[Tooltip("The shot held on the performer's own screen while it plays (the vomit looks down at the table). Empty: the view stays as it is.")]
+		[SerializeField] private PlayerCameraState _cameraState;
+
 		[Header("Prop")]
 		[Tooltip("The prop (an instance of a Prefabs/Items prop), switched off, authored where it belongs: on a bone of the full-body rig (POT_attach_R for the hand, Jaw_M for the mouth) at its pose there. It returns there on the rig being drawn; it is lifted under this object on Awake.")]
 		[Required]
@@ -38,12 +41,13 @@ namespace Game.Runtime.GameMode.Poker.Player
 		[Tooltip("Where a card the item hands out flies from (when this player is the user).")]
 		[SerializeField] private PokerItemPropCardSource _cardsFrom;
 
-		[ShowIf(nameof(_cardsFrom), PokerItemPropCardSource.Prop)]
-		[Tooltip("The point on the prop a card handed out rides until it leaves (the tip of a vomit stream). Empty: the prop's root.")]
+		[ShowIf(nameof(_cardsFrom), PokerItemPropCardSource.CardPoint)]
+		[Tooltip("Where a card handed out appears and waits: a child of this performance, placed in the player's frame (the vomit's card on the table where its stream ends).")]
+		[Required]
 		[SerializeField] private Transform _cardPoint;
 
-		[ShowIf(nameof(_cardsFrom), PokerItemPropCardSource.Prop)]
-		[Tooltip("Seconds after the item is played before a card handed out leaves the card point for the hand: the moment the pick-up gesture reaches it.")]
+		[ShowIf(nameof(_cardsFrom), PokerItemPropCardSource.CardPoint)]
+		[Tooltip("Seconds after the item is played before a card handed out leaves the card point for the hand.")]
 		[MinValue(0f)]
 		[SerializeField] private float _cardDepartDelay;
 
@@ -62,9 +66,12 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 		private PokerPlayer _player;
 		private PlayerController _playerController;
+		private PlayerHandIkController _handIk;
+		private PlayerCameraController _camera;
 		private PokerGameMode _gameMode;
 		private PokerItemModule _module;
 		private ulong _userClientId;
+		private ulong _targetClientId;
 
 		private Transform _authoredParent;
 		private PlayerBone? _homeBone;
@@ -84,6 +91,8 @@ namespace Game.Runtime.GameMode.Poker.Player
 		private int _useStreetSerial;
 		private bool _playing;
 		private bool _lookLocked;
+		private int _cameraHandle;
+		private bool _outcomeKnown;
 		private bool _resolved;
 		private bool _foldLockLifted;
 		private bool _dieThrown;
@@ -107,6 +116,8 @@ namespace Game.Runtime.GameMode.Poker.Player
 		{
 			_player = GetComponentInParent<PokerPlayer>(true);
 			_playerController = GetComponentInParent<PlayerController>(true);
+			_handIk = _player ? _player.GetComponentInChildren<PlayerHandIkController>(true) : null;
+			_camera = _player ? _player.GetComponentInChildren<PlayerCameraController>(true) : null;
 			if (!_prop) return;
 
 			var prop = _prop.transform;
@@ -145,8 +156,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 			_ => isUser || isTarget
 		};
 
-		// A second use before the first is over (cuffs still on) starts over.
-		public void Play(PokerGameMode gameMode, PokerItemModule module, ulong userClientId)
+		// A second use before the first is over (cuffs still on) starts over. An outcome drawn as it was played is
+		// acted out from the start; one the item only announces later arrives through ReceiveOutcome.
+		public void Play(PokerGameMode gameMode, PokerItemModule module, ulong userClientId, ulong targetClientId, int outcome)
 		{
 			Stop();
 			if (!_player || !_prop || !gameMode || !module) return;
@@ -154,6 +166,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			_gameMode = gameMode;
 			_module = module;
 			_userClientId = userClientId;
+			_targetClientId = targetClientId;
 			_useStreetSerial = module.StreetSerial.Value;
 			_playing = true;
 
@@ -164,6 +177,8 @@ namespace Game.Runtime.GameMode.Poker.Player
 				_lookLocked = true;
 			}
 
+			if (_cameraState && _player.IsOwner && _camera) _cameraHandle = _camera.Request(_cameraState);
+
 			if (_die) _die.ShowSecret(!_player.IsOwner);
 			if (_player.ClientId == userClientId) StartCardOrigin();
 
@@ -173,6 +188,12 @@ namespace Game.Runtime.GameMode.Poker.Player
 			}
 
 			Run(PokerItemMoment.Played);
+
+			if (outcome != PokerItemUseRequest.NoOutcome)
+			{
+				_outcomeKnown = true;
+				Run(PokerItemMoment.Outcome, null, outcome);
+			}
 		}
 
 		public void Resolve(ulong userClientId)
@@ -187,8 +208,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 		// A chance item's outcome reaches the table as a notice before the item is done.
 		public void ReceiveOutcome(ulong userClientId, int outcome)
 		{
-			if (!_playing || _resolved || userClientId != _userClientId) return;
+			if (!_playing || _resolved || _outcomeKnown || userClientId != _userClientId) return;
 
+			_outcomeKnown = true;
 			Run(PokerItemMoment.Outcome, null, outcome);
 		}
 
@@ -196,14 +218,17 @@ namespace Game.Runtime.GameMode.Poker.Player
 		// see the card gets the secret die, so it never tells the table.
 		public void ReceiveRewrite(PokerCardPlace place, CardData card)
 		{
-			if (!_playing || _resolved || !_die || place.HolderClientId != _userClientId) return;
+			if (!_playing || _resolved || _hasRewrite || place.HolderClientId != _userClientId) return;
+
+			_hasRewrite = true;
+			Run(PokerItemMoment.Rewriting);
+			if (!_die) return;
 
 			var holder = PokerPlayer.Find(place.HolderClientId);
 			var data = holder ? holder.Data : null;
 			var visible = data && place.Slot >= 0 && place.Slot < data.CardCount && data.IsHoleCardVisible(place.Slot);
 
 			_rewriteSuit = visible && card.IsValid && !card.IsJoker ? card.SuitType : null;
-			_hasRewrite = true;
 			TryRollDie();
 		}
 
@@ -236,6 +261,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 			if (_lookLocked && _playerController) _playerController.EndLookLock();
 			_lookLocked = false;
 
+			if (_camera) _camera.Release(_cameraHandle);
+			_cameraHandle = 0;
+
 			if (_prop)
 			{
 				if (_die) _die.Stop();
@@ -252,6 +280,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			_resolved = false;
 			_foldLockLifted = false;
 			_dieThrown = false;
+			_outcomeKnown = false;
 			_dieRolled = false;
 			_hasRewrite = false;
 			_rewriteSuit = null;
@@ -288,6 +317,8 @@ namespace Game.Runtime.GameMode.Poker.Player
 				case PokerItemPropAction.Show:
 					if (!_prop.activeSelf) prop.localScale = action.Duration > 0f ? Vector3.zero : _restScale;
 					_prop.SetActive(true);
+					// Its animator's first pose this frame, not one frame of the rest pose before the clip takes it.
+					if (_propAnimator && _propAnimator.isActiveAndEnabled) _propAnimator.Update(0f);
 					ScaleTo(_restScale, action, false);
 					break;
 				case PokerItemPropAction.Hide:
@@ -302,10 +333,6 @@ namespace Game.Runtime.GameMode.Poker.Player
 					var anchor = ResolveAnchor(action.Anchor);
 					if (anchor) prop.SetParent(anchor, true);
 					break;
-				case PokerItemPropAction.Release:
-					_moveTween?.Kill();
-					prop.SetParent(transform, true);
-					break;
 				case PokerItemPropAction.MoveTo:
 					MoveTo(action);
 					break;
@@ -318,9 +345,6 @@ namespace Game.Runtime.GameMode.Poker.Player
 					}
 
 					break;
-				case PokerItemPropAction.SendMessage:
-					if (!string.IsNullOrEmpty(action.Message)) _prop.BroadcastMessage(action.Message, SendMessageOptions.DontRequireReceiver);
-					break;
 				case PokerItemPropAction.PlayGesture:
 					if (!string.IsNullOrEmpty(action.Gesture) && _player.ActionAnimator) _player.ActionAnimator.PlayLocal(action.Gesture);
 					break;
@@ -332,15 +356,16 @@ namespace Game.Runtime.GameMode.Poker.Player
 					_effects.Add(effect);
 					if (action.EffectLifetime > 0f) Destroy(effect, action.EffectLifetime);
 					break;
-				case PokerItemPropAction.PlaySound:
-					if (action.Sound && AudioManager.Instance) AudioManager.Instance.PlayOneShotAttached(action.Sound, prop);
-					break;
 				case PokerItemPropAction.RollDie:
 					_dieThrown = true;
 					TryRollDie();
 					break;
 				case PokerItemPropAction.Finish:
 					Stop();
+					break;
+				case PokerItemPropAction.AimHandAtTarget:
+					var target = PokerPlayer.Find(_targetClientId);
+					if (_handIk && target && target.Rig) _handIk.Aim(target.Rig.FocusPoint);
 					break;
 			}
 		}
@@ -437,12 +462,12 @@ namespace Game.Runtime.GameMode.Poker.Player
 			var seat = Seat();
 			_cardOrigin = _cardsFrom switch
 			{
-				PokerItemPropCardSource.Prop => _cardPoint ? _cardPoint : _prop.transform,
+				PokerItemPropCardSource.CardPoint => _cardPoint,
 				PokerItemPropCardSource.Stash => seat ? seat.ItemStashAnchor : null,
 				_ => null
 			};
 
-			var departAt = _cardsFrom == PokerItemPropCardSource.Prop ? Time.time + _cardDepartDelay : 0f;
+			var departAt = _cardsFrom == PokerItemPropCardSource.CardPoint ? Time.time + _cardDepartDelay : 0f;
 			if (_cardOrigin) deck.SetItemDrawOrigin(_cardOrigin, departAt);
 		}
 

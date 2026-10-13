@@ -57,7 +57,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			foreach (var performance in _performances) performance.Stop();
 		}
 
-		private void HandleItemUsed(ulong userClientId, PokerItemType item, ulong targetClientId)
+		private void HandleItemUsed(ulong userClientId, PokerItemType item, ulong targetClientId, int outcome)
 		{
 			if (!_player || !_module.TryGetItem(item, out var asset)) return;
 
@@ -67,7 +67,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 			foreach (var performance in _performances)
 			{
-				if (performance.ActsOut(asset) && performance.PlaysFor(isUser, isTarget)) performance.Play(GameMode, _module, userClientId);
+				if (performance.ActsOut(asset) && performance.PlaysFor(isUser, isTarget)) performance.Play(GameMode, _module, userClientId, targetClientId, outcome);
 			}
 		}
 

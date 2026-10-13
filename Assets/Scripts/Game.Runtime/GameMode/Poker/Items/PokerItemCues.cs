@@ -6,7 +6,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 	// step names the moment rather than a frame. Frames per clip are in .claude/rules/player-animation-camera.md.
 	public static class PokerItemCues
 	{
-		// The hand reaches the prop under the table and takes it.
+		// The hand takes the prop (from under the table) or the card it hands out (off the table).
 		public const string Grab = "ItemGrab";
 
 		// The prop is put to use: lit, sniffed, pointed, injected, locked, poured.
@@ -18,8 +18,11 @@ namespace Game.Runtime.GameMode.Poker.Items
 		// The hand goes back under the table with the prop.
 		public const string PutAway = "ItemPutAway";
 
-		// The prop is gone without the hand: a pour dries up.
+		// A prop no hand puts away goes: the vomit stops pouring.
 		public const string Vanish = "ItemVanish";
+
+		// The gesture is over: what comes next waits for the whole act (the vomit's pick-up).
+		public const string End = "ItemEnd";
 
 		public static IEnumerable<string> All
 		{
@@ -30,6 +33,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 				yield return Release;
 				yield return PutAway;
 				yield return Vanish;
+				yield return End;
 			}
 		}
 	}
