@@ -18,6 +18,9 @@ namespace Game.Runtime.GameMode.Poker.Items
 		// The hand goes back under the table with the prop.
 		public const string PutAway = "ItemPutAway";
 
+		// A prop no hand puts away goes: the vomit stops pouring.
+		public const string Vanish = "ItemVanish";
+
 		// The gesture is over: what comes next waits for the whole act (the vomit's pick-up).
 		public const string End = "ItemEnd";
 
@@ -29,6 +32,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 				yield return Use;
 				yield return Release;
 				yield return PutAway;
+				yield return Vanish;
 				yield return End;
 			}
 		}
