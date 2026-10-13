@@ -65,6 +65,16 @@ namespace Game.Runtime.Audio
 			if (_playing.TryGetValue(id, out var instance) && instance.isValid()) instance.setParameterByName(parameter, value);
 		}
 
+		// Paths authored in the FMOD project: the master bus and one VCA per player-facing level.
+		public void SetVolumes(float master, float music, float sfx, bool muted)
+		{
+			var masterBus = RuntimeManager.GetBus("bus:/");
+			masterBus.setVolume(master);
+			masterBus.setMute(muted);
+			RuntimeManager.GetVCA("vca:/MUSIC").setVolume(music);
+			RuntimeManager.GetVCA("vca:/SFX").setVolume(sfx);
+		}
+
 		private static bool TryCreate(AudioEvent audioEvent, out FMOD.Studio.EventInstance instance)
 		{
 			instance = default;

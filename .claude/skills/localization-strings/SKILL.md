@@ -49,6 +49,7 @@ Text conventions:
 - Keywords to stand out: `<Highlight>…</Highlight>` (expanded by `UITextHighlighter`), never a hand `<color>`.
 - Runtime values: `{0}`, `{1}`, filled by `Localizer.Format(key, args)`. A label filled this way is set from code, so remove its `LocalizedText`.
 - Write the Vietnamese yourself, and tell the user it is your translation.
+- **A value Google Sheets would read as a formula (starts with `=`, `+`, `-` or `@`, e.g. `+{0} ITEM`) is written in the sheet with a leading `'`.** Otherwise the sheet turns it into a formula error and Import refuses everything (`The source holds formula errors; nothing was imported`). Tell the user which cells need it when they upload.
 
 ## 3. Regenerate keys
 

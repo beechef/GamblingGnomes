@@ -41,11 +41,6 @@ namespace Game.Runtime.GameMode.Poker.Player
 		// blink, so it is held back until the hit is over — otherwise the room changes on top of the impact
 		// instead of after it.
 		private readonly List<PokerBetItemType> _pendingBetItems = new();
-		private readonly List<int> _pendingDoses = new();
-
-		// Server only: how strongly each of the next caps swallowed lands, oldest first; a cap with no entry is
-		// a single dose. Kept across hands until eaten, because "the next caps" is about the eater, not the hand.
-		private readonly Queue<int> _doses = new();
 
 		private PokerPlayer _player;
 		private CancellationTokenSource _eating;
@@ -102,15 +97,6 @@ namespace Game.Runtime.GameMode.Poker.Player
 			if (!IsServer) return;
 
 			Consumed.Clear();
-			_doses.Clear();
-		}
-
-		// The next `caps` caps this player swallows land at `dose` strength: 0 does nothing, 2 lands twice as hard.
-		public void ServerQueueDoses(int dose, int caps)
-		{
-			if (!IsServer) return;
-
-			for (var i = 0; i < caps; i++) _doses.Enqueue(Mathf.Max(0, dose));
 		}
 
 		// Conscious and with something in front of them. A player who went under stops eating: whatever is
@@ -259,7 +245,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 				var itemType = _pendingBetItems[i];
 				if (database && database.TryGetEntry(itemType, out var entry) && entry.Effect)
 				{
-					gain += entry.Effect.PreviewHallucinationGain(mode, _player, itemType, _pendingDoses[i]);
+					gain += entry.Effect.PreviewHallucinationGain(mode, _player, itemType);
 				}
 			}
 
@@ -301,25 +287,16 @@ namespace Game.Runtime.GameMode.Poker.Player
 				var itemType = _pendingBetItems[i];
 				if (database && database.TryGetEntry(itemType, out var entry) && entry.Effect)
 				{
-					entry.Effect.ConsumeServer(mode, _player, itemType, _pendingDoses[i]);
+					entry.Effect.ConsumeServer(mode, _player, itemType);
 				}
 			}
 
 			ClearPending();
 		}
 
-		// Each cap taken off the table carries the dose it will land with, drawn as it goes down.
-		private void Pend(PokerBetItemType itemType)
-		{
-			_pendingBetItems.Add(itemType);
-			_pendingDoses.Add(_doses.Count > 0 ? _doses.Dequeue() : 1);
-		}
+		private void Pend(PokerBetItemType itemType) => _pendingBetItems.Add(itemType);
 
-		private void ClearPending()
-		{
-			_pendingBetItems.Clear();
-			_pendingDoses.Clear();
-		}
+		private void ClearPending() => _pendingBetItems.Clear();
 
 		// A Colorful roll is still being shown when the effect returns: the skull sweeps every bar and a
 		// fatal one only puts its eater under once it stops. The next mouthful waits out the whole of that,

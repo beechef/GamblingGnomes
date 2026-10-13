@@ -14,5 +14,7 @@ namespace Game.Runtime.Audio
 		void Stop(int id, bool fadeOut);
 
 		void SetParameter(int id, string parameter, float value);
+
+		void SetVolumes(float master, float music, float sfx, bool muted);
 	}
 }

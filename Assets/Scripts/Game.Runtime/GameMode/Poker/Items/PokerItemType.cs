@@ -1,29 +1,20 @@
 namespace Game.Runtime.GameMode.Poker.Items
 {
 	// Which item a card in somebody's hand is. It replicates, so a value is never renumbered and a retired
-	// item keeps its number; the database row names its type rather than taking it from its position.
+	// item's number is never reused; the database row names its type rather than taking it from its position.
 	public enum PokerItemType : byte
 	{
 		None = 0,
-		PeekHand = 1,
-		PeekBoard = 2,
-		MutualReveal = 3,
-		DeckCount = 4,
-		SwapHand = 5,
-		SwapBoard = 6,
-		ExtraDraw = 7,
-		HalfDose = 8,
-		SharedRoll = 9,
-		LockFold = 10,
-		RaiseStakes = 11,
-		PlaceOnBoard = 12,
-		RandomSuit = 13,
-		CopyCard = 14,
-		MushroomDose = 15,
-		PairLockItems = 16,
-		PairLockFold = 17,
-		RateShift = 18,
-		TableReveal = 19,
-		JokerCard = 20
+		Spatula = 2,
+		Knife = 5,
+		Vomit = 7,
+		Syringe = 8,
+		Beer = 9,
+		Cigarette = 12,
+		Dice = 13,
+		Handcuffs = 17,
+		Panties = 18,
+		Megaphone = 19,
+		JackBox = 20
 	}
 }

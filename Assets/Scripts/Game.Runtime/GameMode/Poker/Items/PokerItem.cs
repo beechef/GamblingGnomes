@@ -92,6 +92,12 @@ namespace Game.Runtime.GameMode.Poker.Items
 		// the module says nothing when it is played.
 		public virtual bool AnnouncesOutcome => false;
 
+		// A chance outcome drawn as the item is played rather than once it resolves, so every screen acts out the
+		// right one from the start (the panty's sniff). Stamped on the request by the module; -1 draws none.
+		public int DrawOutcome(in PokerItemContext context) => OnDrawOutcome(context);
+
+		protected virtual int OnDrawOutcome(in PokerItemContext context) => PokerItemUseRequest.NoOutcome;
+
 		// What the player this item asks to answer reads, after the user's name.
 		public virtual string GetResponsePrompt() => Localizer.Get(LocalizationKeys.Item.Prompt.OwnCard);
 

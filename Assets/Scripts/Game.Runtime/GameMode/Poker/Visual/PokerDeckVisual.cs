@@ -35,11 +35,17 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 		public static PokerDeckVisual Instance { get; private set; }
 
-		// Where a card an item hands out comes from while that item is being played (a vomit puddle, under the
-		// table), instead of _itemDrawFrom. One at a time: only one item resolves at once.
+		// Where a card an item hands out comes from while that item is being played (a vomit stream, under the
+		// table), instead of _itemDrawFrom, and the time it leaves for the hand, riding the origin until then.
+		// One at a time: only one item resolves at once.
 		private Transform _itemDrawOverride;
+		private float _itemDrawDepartAt;
 
-		public void SetItemDrawOrigin(Transform origin) => _itemDrawOverride = origin;
+		public void SetItemDrawOrigin(Transform origin, float departAt = 0f)
+		{
+			_itemDrawOverride = origin;
+			_itemDrawDepartAt = departAt;
+		}
 
 		public void ClearItemDrawOrigin(Transform origin)
 		{
@@ -95,7 +101,8 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			// A card handed out mid-hand, by an item, takes no turn in any deal: it drops in from above at once.
 			if (!deal)
 			{
-				card.DealFrom(ItemDrawFrom, 0f, _controller);
+				var wait = _itemDrawOverride ? Mathf.Max(0f, _itemDrawDepartAt - Time.time) : 0f;
+				card.DealFrom(ItemDrawFrom, wait, _controller, wait > 0f);
 				return;
 			}
 

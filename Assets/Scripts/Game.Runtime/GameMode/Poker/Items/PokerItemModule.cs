@@ -48,7 +48,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 		[SerializeField] private List<PokerItemType> _startingItems = new();
 
 		[FoldoutGroup("Testing"), ShowInInspector, DisableInEditorMode]
-		private PokerItemType _giveItem = PokerItemType.DeckCount;
+		private PokerItemType _giveItem = PokerItemType.Vomit;
 
 		[FoldoutGroup("Testing"), ShowInInspector, DisableInEditorMode, ValueDropdown(nameof(GiveTargets))]
 		private ulong _giveTarget = PokerGameData.NoTurn;
@@ -89,7 +89,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 		public event Action<PokerCardPlace, PokerCardPlace, PokerCardExchangeFlight> OnCardsExchanging;
 
 		// An item played, on every peer: user, item, and whom it was aimed at (NoTurn for nobody). For props.
-		public event Action<ulong, PokerItemType, ulong> OnItemUsed;
+		public event Action<ulong, PokerItemType, ulong, int> OnItemUsed;
 
 		// The same item done resolving, answers and flights included, on every peer: user, item. For props held
 		// through the whole of it.
@@ -412,7 +412,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 		public void UseItemRPC(PokerItemUseRequest request, RpcParams rpcParams = default)
 		{
 			// Left unawaited on purpose: it carries the module's own lifetime and finishes on its own.
-			_ = ServerUseAsync(rpcParams.Receive.SenderClientId, request, destroyCancellationToken);
+			_ = ServerUseItemAsync(rpcParams.Receive.SenderClientId, request, destroyCancellationToken);
 		}
 
 		private void ServerDealItems()
@@ -490,7 +490,8 @@ namespace Game.Runtime.GameMode.Poker.Items
 			return false;
 		}
 
-		private async Awaitable ServerUseAsync(ulong clientId, PokerItemUseRequest request, CancellationToken ct)
+		// The door a seated player plays an item through: their RPC, or a bot on the server.
+		public async Awaitable ServerUseItemAsync(ulong clientId, PokerItemUseRequest request, CancellationToken ct)
 		{
 			var user = GameMode.FindSeatedPlayer(clientId);
 			var availability = GetAvailability(user, request.Item);
@@ -516,6 +517,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 				return;
 			}
 
+			request = request.WithOutcome(item.DrawOutcome(context));
 			_resolving = true;
 
 			try
@@ -530,7 +532,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 				if (GameMode.Notices && !item.AnnouncesOutcome)
 					GameMode.Notices.ServerAnnounce(PokerNotice.ForItemUsed(clientId, request.Item, targetClientId));
 
-				PlayItemUsedRPC(clientId, request.Item, targetClientId);
+				PlayItemUsedRPC(clientId, request.Item, targetClientId, request.Outcome);
 
 				try
 				{
@@ -670,7 +672,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 		}
 
 		[Rpc(SendTo.Everyone)]
-		private void PlayItemUsedRPC(ulong user, PokerItemType item, ulong target) => OnItemUsed?.Invoke(user, item, target);
+		private void PlayItemUsedRPC(ulong user, PokerItemType item, ulong target, int outcome) => OnItemUsed?.Invoke(user, item, target, outcome);
 
 		[Rpc(SendTo.Everyone)]
 		private void PlayItemResolvedRPC(ulong user, PokerItemType item) => OnItemResolved?.Invoke(user, item);

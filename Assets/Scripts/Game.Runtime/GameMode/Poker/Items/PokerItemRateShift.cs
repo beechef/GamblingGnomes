@@ -66,7 +66,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 			if (!target) return;
 
 			var data = target.Data;
-			var raised = DrawRaised();
+			var raised = request.Outcome == Raised;
 			var rate = data.HallucinationRate.Value;
 
 			// ponytail: a raise stops one short of the ceiling, since only a roll may put somebody under; roll after the raise if it should kill.
@@ -78,6 +78,8 @@ namespace Game.Runtime.GameMode.Poker.Items
 			var notices = context.GameMode.Notices;
 			if (notices) notices.ServerAnnounce(PokerNotice.ForItemOutcome(context.User.ClientId, Type, target.ClientId, raised ? Raised : Lowered));
 		}
+
+		protected override int OnDrawOutcome(in PokerItemContext context) => DrawRaised() ? Raised : Lowered;
 
 		private bool DrawRaised()
 		{

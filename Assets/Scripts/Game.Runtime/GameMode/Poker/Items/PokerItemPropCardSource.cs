@@ -5,7 +5,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 	{
 		Deck = 0,
 
-		// The user's prop itself: a card coughed up out of a puddle.
+		// A point on the user's prop (PokerItemPerformance's card point): a card carried down a vomit stream.
 		Prop = 1,
 
 		// Under the table in front of the user (PokerSeat.ItemStashAnchor).
