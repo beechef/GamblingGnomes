@@ -32,15 +32,15 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 		public PokerItemPropAction Do;
 
-		[ShowIf("@Do == PokerItemPropAction.AttachTo || Do == PokerItemPropAction.MoveTo || Do == PokerItemPropAction.AttachCardPoint")]
+		[ShowIf("@Do == PokerItemPropAction.AttachTo || Do == PokerItemPropAction.MoveTo")]
 		public PokerItemPropAnchor Anchor;
 
 		[ShowIf(nameof(Do), PokerItemPropAction.MoveTo)]
 		[Tooltip("Offset from the anchor: in the palm's frame for a hand, else the chair's (x their right, y up, z towards the table).")]
 		public Vector3 Offset;
 
-		[ShowIf("@Do == PokerItemPropAction.MoveTo || Do == PokerItemPropAction.AttachCardPoint")]
-		[Tooltip("How the prop is turned at the end, in the same frame as Offset; for the card point, how it lies on the anchor in the chair's frame.")]
+		[ShowIf(nameof(Do), PokerItemPropAction.MoveTo)]
+		[Tooltip("How the prop is turned at the end, in the same frame as Offset.")]
 		public Vector3 Rotation;
 
 		[ShowIf(nameof(Do), PokerItemPropAction.MoveTo)]
