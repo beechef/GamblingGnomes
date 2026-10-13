@@ -40,6 +40,7 @@ namespace Game.Runtime.Voice
 		public event Action OnLocalVoiceIdChanged;
 
 		private readonly Dictionary<string, VivoxParticipant> _peers = new();
+		private readonly Dictionary<string, VivoxParticipant> _participants = new();
 		private readonly List<VoicePeer> _peerList = new();
 		private readonly HashSet<string> _speaking = new();
 		private readonly Dictionary<VivoxParticipant, Action> _speechHandlers = new();
@@ -68,6 +69,10 @@ namespace Game.Runtime.Voice
 		public bool IsTransmitting => IsReady && Vivox.IsLoggedIn && _isSending;
 
 		public bool IsSpeaking(string voiceId) => !string.IsNullOrEmpty(voiceId) && _speaking.Contains(voiceId);
+
+		// How loud this participant is right now, 0 to 1 (Vivox audio energy), the local player included.
+		public float GetAudioLevel(string voiceId) =>
+			!string.IsNullOrEmpty(voiceId) && _participants.TryGetValue(voiceId, out var participant) ? (float)participant.AudioEnergy : 0f;
 
 		public string ActiveInputDeviceId => IsReady && Vivox.ActiveInputDevice != null ? Vivox.ActiveInputDevice.DeviceID : string.Empty;
 
@@ -361,6 +366,7 @@ namespace Game.Runtime.Voice
 			if (participant.ChannelName != _channel) return;
 
 			WatchSpeech(participant);
+			_participants[participant.PlayerId] = participant;
 			if (participant.IsSelf)
 			{
 				OnTalkStateChanged?.Invoke();
@@ -375,6 +381,7 @@ namespace Game.Runtime.Voice
 		private void HandleParticipantRemoved(VivoxParticipant participant)
 		{
 			UnwatchSpeech(participant);
+			_participants.Remove(participant.PlayerId);
 			if (!_peers.Remove(participant.PlayerId))
 			{
 				OnTalkStateChanged?.Invoke();
@@ -389,6 +396,7 @@ namespace Game.Runtime.Voice
 			foreach (var (participant, handler) in _speechHandlers) participant.ParticipantSpeechDetected -= handler;
 			_speechHandlers.Clear();
 			_speaking.Clear();
+			_participants.Clear();
 			_peers.Clear();
 
 			RebuildPeerList();
