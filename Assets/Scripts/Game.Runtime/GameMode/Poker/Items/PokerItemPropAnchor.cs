@@ -27,6 +27,9 @@ namespace Game.Runtime.GameMode.Poker.Items
 		Body = 9,
 
 		// Their left palm (PlayerBone.AttachLeft), turned with it like Hand.
-		HandLeft = 10
+		HandLeft = 10,
+
+		// The point a card the item hands out rides (the performance's card point).
+		CardPoint = 11
 	}
 }

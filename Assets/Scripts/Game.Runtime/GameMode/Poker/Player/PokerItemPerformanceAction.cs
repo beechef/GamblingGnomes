@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using DG.Tweening;
-using Game.Runtime.Audio;
 using Game.Runtime.GameMode.Poker.Items;
 using Game.Runtime.Player;
 using Sirenix.OdinInspector;
@@ -33,7 +32,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 		public PokerItemPropAction Do;
 
-		[ShowIf("@Do == PokerItemPropAction.AttachTo || Do == PokerItemPropAction.MoveTo")]
+		[ShowIf("@Do == PokerItemPropAction.AttachTo || Do == PokerItemPropAction.MoveTo || Do == PokerItemPropAction.AttachCardPoint || Do == PokerItemPropAction.AimHand")]
 		public PokerItemPropAnchor Anchor;
 
 		[ShowIf(nameof(Do), PokerItemPropAction.MoveTo)]
@@ -60,9 +59,6 @@ namespace Game.Runtime.GameMode.Poker.Player
 		[Tooltip("State on the prop's animator. Skipped when the prop has no such state.")]
 		public string State;
 
-		[ShowIf(nameof(Do), PokerItemPropAction.SendMessage)]
-		public string Message;
-
 		[ShowIf(nameof(Do), PokerItemPropAction.PlayGesture)]
 		[ValueDropdown(nameof(GestureIds))]
 		public string Gesture;
@@ -77,9 +73,6 @@ namespace Game.Runtime.GameMode.Poker.Player
 		[ShowIf(nameof(Do), PokerItemPropAction.SpawnEffect)]
 		[MinValue(0f)]
 		public float EffectLifetime;
-
-		[ShowIf(nameof(Do), PokerItemPropAction.PlaySound)]
-		public AudioEvent Sound;
 
 		public bool Matches(PokerItemMoment moment, string cue, int outcome) =>
 			When == moment && (moment != PokerItemMoment.Cue || Cue == cue) && (moment != PokerItemMoment.Outcome || Outcome == outcome);

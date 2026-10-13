@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using DG.Tweening;
-using Game.Runtime.Audio;
 using Game.Runtime.GameMode.Poker.Items;
 using Game.Runtime.GameMode.Poker.Visual;
 using Game.Runtime.Player;
@@ -174,6 +173,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			_playing = true;
 
 			PutHome();
+			ReturnCardPoint();
 			if (_locksLook && _player.IsOwner && _playerController)
 			{
 				_playerController.BeginLookLock();
@@ -259,12 +259,6 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 			_effects.Clear();
 
-			if (_cardPoint && _cardPointParent && _cardPoint.parent != _cardPointParent)
-			{
-				_cardPoint.SetParent(_cardPointParent, false);
-				_cardPoint.SetLocalPositionAndRotation(_cardPointPosition, _cardPointRotation);
-			}
-
 			if (_lookLocked && _playerController) _playerController.EndLookLock();
 			_lookLocked = false;
 
@@ -321,6 +315,8 @@ namespace Game.Runtime.GameMode.Poker.Player
 				case PokerItemPropAction.Show:
 					if (!_prop.activeSelf) prop.localScale = action.Duration > 0f ? Vector3.zero : _restScale;
 					_prop.SetActive(true);
+					// Its animator's first pose this frame, not one frame of the rest pose before the clip takes it.
+					if (_propAnimator && _propAnimator.isActiveAndEnabled) _propAnimator.Update(0f);
 					ScaleTo(_restScale, action, false);
 					break;
 				case PokerItemPropAction.Hide:
@@ -335,10 +331,6 @@ namespace Game.Runtime.GameMode.Poker.Player
 					var anchor = ResolveAnchor(action.Anchor);
 					if (anchor) prop.SetParent(anchor, true);
 					break;
-				case PokerItemPropAction.Release:
-					_moveTween?.Kill();
-					prop.SetParent(transform, true);
-					break;
 				case PokerItemPropAction.MoveTo:
 					MoveTo(action);
 					break;
@@ -351,9 +343,6 @@ namespace Game.Runtime.GameMode.Poker.Player
 					}
 
 					break;
-				case PokerItemPropAction.SendMessage:
-					if (!string.IsNullOrEmpty(action.Message)) _prop.BroadcastMessage(action.Message, SendMessageOptions.DontRequireReceiver);
-					break;
 				case PokerItemPropAction.PlayGesture:
 					if (!string.IsNullOrEmpty(action.Gesture) && _player.ActionAnimator) _player.ActionAnimator.PlayLocal(action.Gesture);
 					break;
@@ -365,9 +354,6 @@ namespace Game.Runtime.GameMode.Poker.Player
 					_effects.Add(effect);
 					if (action.EffectLifetime > 0f) Destroy(effect, action.EffectLifetime);
 					break;
-				case PokerItemPropAction.PlaySound:
-					if (action.Sound && AudioManager.Instance) AudioManager.Instance.PlayOneShotAttached(action.Sound, prop);
-					break;
 				case PokerItemPropAction.RollDie:
 					_dieThrown = true;
 					TryRollDie();
@@ -375,14 +361,31 @@ namespace Game.Runtime.GameMode.Poker.Player
 				case PokerItemPropAction.Finish:
 					Stop();
 					break;
-				case PokerItemPropAction.DropCardPoint:
-					if (_cardPoint) _cardPoint.SetParent(transform, true);
+				case PokerItemPropAction.AttachCardPoint:
+					if (!_cardPoint) break;
+
+					var carrier = ResolveAnchor(action.Anchor);
+					_cardPoint.SetParent(carrier ? carrier : transform, true);
+					break;
+				case PokerItemPropAction.AimHand:
+					var spot = ResolveAnchor(action.Anchor);
+					if (_handIk && spot) _handIk.Aim(spot);
 					break;
 				case PokerItemPropAction.AimHandAtTarget:
 					var target = PokerPlayer.Find(_targetClientId);
 					if (_handIk && target && target.Rig) _handIk.Aim(target.Rig.FocusPoint);
 					break;
 			}
+		}
+
+		// Back on the prop, at the start of a play rather than the end of one: a card handed out may still be
+		// riding it in the hand after the performance is over, until it leaves for the hand's cards.
+		private void ReturnCardPoint()
+		{
+			if (!_cardPoint || !_cardPointParent || _cardPoint.parent == _cardPointParent) return;
+
+			_cardPoint.SetParent(_cardPointParent, false);
+			_cardPoint.SetLocalPositionAndRotation(_cardPointPosition, _cardPointRotation);
 		}
 
 		// On the drawn rig's bone the prop was authored on (the hand-only rig on its owner's screen), at its pose there.
@@ -538,6 +541,8 @@ namespace Game.Runtime.GameMode.Poker.Player
 					return FocusOf(_player);
 				case PokerItemPropAnchor.Body:
 					return _player.transform;
+				case PokerItemPropAnchor.CardPoint:
+					return _cardPoint;
 				default:
 					return null;
 			}

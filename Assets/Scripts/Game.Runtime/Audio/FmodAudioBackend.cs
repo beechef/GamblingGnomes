@@ -6,11 +6,14 @@ namespace Game.Runtime.Audio
 {
 	// Each sound is its own instance. A one-shot is released as soon as it starts, so FMOD frees it when it
 	// ends; one that plays until stopped is kept by id and released on Stop. An attached one is followed by
-	// RuntimeManager until it stops.
+	// RuntimeManager until it stops. Lookups go through the Studio system's RESULT calls, never RuntimeManager's
+	// throwing ones: without banks (a Multiplayer Play Mode clone runs outside the project root, where they are
+	// built) every sound is skipped, rather than the exception killing whatever played it (a button's click).
 	public class FmodAudioBackend : IAudioBackend
 	{
 		private readonly Dictionary<int, FMOD.Studio.EventInstance> _playing = new();
 		private int _nextId;
+		private bool _warnedMissing;
 
 		public FmodAudioBackend(GameObject listener)
 		{
@@ -68,14 +71,23 @@ namespace Game.Runtime.Audio
 		// Paths authored in the FMOD project: the master bus and one VCA per player-facing level.
 		public void SetVolumes(float master, float music, float sfx, bool muted)
 		{
-			var masterBus = RuntimeManager.GetBus("bus:/");
-			masterBus.setVolume(master);
-			masterBus.setMute(muted);
-			RuntimeManager.GetVCA("vca:/MUSIC").setVolume(music);
-			RuntimeManager.GetVCA("vca:/SFX").setVolume(sfx);
+			var studio = RuntimeManager.StudioSystem;
+
+			if (studio.getBus("bus:/", out var masterBus) == FMOD.RESULT.OK)
+			{
+				masterBus.setVolume(master);
+				masterBus.setMute(muted);
+			}
+			else WarnMissing("bus:/");
+
+			if (studio.getVCA("vca:/MUSIC", out var musicVca) == FMOD.RESULT.OK) musicVca.setVolume(music);
+			else WarnMissing("vca:/MUSIC");
+
+			if (studio.getVCA("vca:/SFX", out var sfxVca) == FMOD.RESULT.OK) sfxVca.setVolume(sfx);
+			else WarnMissing("vca:/SFX");
 		}
 
-		private static bool TryCreate(AudioEvent audioEvent, out FMOD.Studio.EventInstance instance)
+		private bool TryCreate(AudioEvent audioEvent, out FMOD.Studio.EventInstance instance)
 		{
 			instance = default;
 
@@ -85,8 +97,21 @@ namespace Game.Runtime.Audio
 				return false;
 			}
 
-			instance = RuntimeManager.CreateInstance(audioEvent.FmodEvent);
-			return instance.isValid();
+			if (RuntimeManager.StudioSystem.getEventByID(audioEvent.FmodEvent.Guid, out var description) != FMOD.RESULT.OK)
+			{
+				WarnMissing(audioEvent.name);
+				return false;
+			}
+
+			return description.createInstance(out instance) == FMOD.RESULT.OK && instance.isValid();
+		}
+
+		private void WarnMissing(string what)
+		{
+			if (_warnedMissing) return;
+
+			_warnedMissing = true;
+			Debug.LogWarning($"{nameof(FmodAudioBackend)}: '{what}' is not in the loaded banks; sounds are skipped (no banks in a Multiplayer Play Mode clone?).");
 		}
 
 		private static void Start(FMOD.Studio.EventInstance instance, AudioEvent audioEvent)
