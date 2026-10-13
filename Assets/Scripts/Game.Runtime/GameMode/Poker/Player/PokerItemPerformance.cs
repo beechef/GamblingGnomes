@@ -41,12 +41,13 @@ namespace Game.Runtime.GameMode.Poker.Player
 		[Tooltip("Where a card the item hands out flies from (when this player is the user).")]
 		[SerializeField] private PokerItemPropCardSource _cardsFrom;
 
-		[ShowIf(nameof(_cardsFrom), PokerItemPropCardSource.Prop)]
-		[Tooltip("The point on the prop a card handed out rides until it leaves (the tip of a vomit stream). Empty: the prop's root.")]
+		[ShowIf(nameof(_cardsFrom), PokerItemPropCardSource.CardPoint)]
+		[Tooltip("Where a card handed out appears and waits: a child of this performance, placed in the player's frame (the vomit's card on the table where its stream ends).")]
+		[Required]
 		[SerializeField] private Transform _cardPoint;
 
-		[ShowIf(nameof(_cardsFrom), PokerItemPropCardSource.Prop)]
-		[Tooltip("Seconds after the item is played before a card handed out leaves the card point for the hand: the moment the pick-up gesture reaches it.")]
+		[ShowIf(nameof(_cardsFrom), PokerItemPropCardSource.CardPoint)]
+		[Tooltip("Seconds after the item is played before a card handed out leaves the card point for the hand.")]
 		[MinValue(0f)]
 		[SerializeField] private float _cardDepartDelay;
 
@@ -77,9 +78,6 @@ namespace Game.Runtime.GameMode.Poker.Player
 		private Vector3 _homePosition;
 		private Quaternion _homeRotation;
 		private Vector3 _restScale;
-		private Transform _cardPointParent;
-		private Vector3 _cardPointPosition;
-		private Quaternion _cardPointRotation;
 		private Animator _propAnimator;
 		private PokerSuitDie _die;
 
@@ -131,13 +129,6 @@ namespace Game.Runtime.GameMode.Poker.Player
 			_propAnimator = _prop.GetComponentInChildren<Animator>(true);
 			_die = _prop.GetComponentInChildren<PokerSuitDie>(true);
 
-			if (_cardPoint)
-			{
-				_cardPointParent = _cardPoint.parent;
-				_cardPointPosition = _cardPoint.localPosition;
-				_cardPointRotation = _cardPoint.localRotation;
-			}
-
 			prop.SetParent(transform, true);
 			_prop.SetActive(false);
 		}
@@ -180,7 +171,6 @@ namespace Game.Runtime.GameMode.Poker.Player
 			_playing = true;
 
 			PutHome();
-			ReturnCardPoint();
 			if (_locksLook && _player.IsOwner && _playerController)
 			{
 				_playerController.BeginLookLock();
@@ -373,35 +363,11 @@ namespace Game.Runtime.GameMode.Poker.Player
 				case PokerItemPropAction.Finish:
 					Stop();
 					break;
-				case PokerItemPropAction.AttachCardPoint:
-					if (!_cardPoint) break;
-
-					var carrier = ResolveAnchor(action.Anchor);
-					_cardPoint.SetParent(carrier ? carrier : transform, true);
-					// Laid on the anchor's surface below where it is, turned in the chair's frame.
-					if (carrier)
-					{
-						var below = _cardPoint.position;
-						below.y = carrier.position.y;
-						_cardPoint.SetPositionAndRotation(below, Frame() * Quaternion.Euler(action.Rotation));
-					}
-
-					break;
 				case PokerItemPropAction.AimHandAtTarget:
 					var target = PokerPlayer.Find(_targetClientId);
 					if (_handIk && target && target.Rig) _handIk.Aim(target.Rig.FocusPoint);
 					break;
 			}
-		}
-
-		// Back on the prop, at the start of a play rather than the end of one: a card handed out may still be
-		// riding it in the hand after the performance is over, until it leaves for the hand's cards.
-		private void ReturnCardPoint()
-		{
-			if (!_cardPoint || !_cardPointParent || _cardPoint.parent == _cardPointParent) return;
-
-			_cardPoint.SetParent(_cardPointParent, false);
-			_cardPoint.SetLocalPositionAndRotation(_cardPointPosition, _cardPointRotation);
 		}
 
 		// On the drawn rig's bone the prop was authored on (the hand-only rig on its owner's screen), at its pose there.
@@ -496,12 +462,12 @@ namespace Game.Runtime.GameMode.Poker.Player
 			var seat = Seat();
 			_cardOrigin = _cardsFrom switch
 			{
-				PokerItemPropCardSource.Prop => _cardPoint ? _cardPoint : _prop.transform,
+				PokerItemPropCardSource.CardPoint => _cardPoint,
 				PokerItemPropCardSource.Stash => seat ? seat.ItemStashAnchor : null,
 				_ => null
 			};
 
-			var departAt = _cardsFrom == PokerItemPropCardSource.Prop ? Time.time + _cardDepartDelay : 0f;
+			var departAt = _cardsFrom == PokerItemPropCardSource.CardPoint ? Time.time + _cardDepartDelay : 0f;
 			if (_cardOrigin) deck.SetItemDrawOrigin(_cardOrigin, departAt);
 		}
 

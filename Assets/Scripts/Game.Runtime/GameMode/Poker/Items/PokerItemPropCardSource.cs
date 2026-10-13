@@ -5,8 +5,8 @@ namespace Game.Runtime.GameMode.Poker.Items
 	{
 		Deck = 0,
 
-		// A point on the user's prop (PokerItemPerformance's card point): a card carried down a vomit stream.
-		Prop = 1,
+		// The performance's own card point, placed in the player's frame: the vomit's card on the table.
+		CardPoint = 1,
 
 		// Under the table in front of the user (PokerSeat.ItemStashAnchor).
 		Stash = 2

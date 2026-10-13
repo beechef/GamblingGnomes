@@ -35,10 +35,6 @@ namespace Game.Runtime.GameMode.Poker.Items
 
 		// Aims the performer's hand IK at the player the item was used on (the knife pointed at them); the
 		// gesture's IK curve decides when the arm follows (PlayerHandIkController).
-		AimHandAtTarget = 13,
-
-		// The card point leaves the prop for an anchor, laid on its surface below where it is and turned by
-		// Rotation: the card handed out lies still on the table where the vomit stream ended.
-		AttachCardPoint = 14
+		AimHandAtTarget = 13
 	}
 }

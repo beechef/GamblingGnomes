@@ -1,36 +1,5 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &150337902384194347
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 8271126133831891800}
-  m_Layer: 0
-  m_Name: CardPoint
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &8271126133831891800
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 150337902384194347}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0.7071068, y: 0, z: 0, w: 0.7071068}
-  m_LocalPosition: {x: 0, y: 0.25, z: -0.04}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1808667966598231567}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &6537035695434604612
 GameObject:
   m_ObjectHideFlags: 0
@@ -62,7 +31,6 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 5233672878963984028}
-  - {fileID: 8271126133831891800}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &4583479388920105694
@@ -78,10 +46,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Props.PropGrowthStream
   _renderer: {fileID: 6407092976734010867}
-  _tip: {fileID: 8271126133831891800}
   _duration: 0.5
   _ease: 5
-  _centreSamples: 12
 --- !u!1001 &8680077222054615505
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -96,15 +62,15 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3518553755081039693, guid: 717028622b4e3a64da2d55c61a33df38, type: 3}
       propertyPath: m_LocalScale.x
-      value: 10
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3518553755081039693, guid: 717028622b4e3a64da2d55c61a33df38, type: 3}
       propertyPath: m_LocalScale.y
-      value: 10
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3518553755081039693, guid: 717028622b4e3a64da2d55c61a33df38, type: 3}
       propertyPath: m_LocalScale.z
-      value: 10
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3518553755081039693, guid: 717028622b4e3a64da2d55c61a33df38, type: 3}
       propertyPath: m_LocalPosition.x
@@ -145,10 +111,6 @@ PrefabInstance:
     - target: {fileID: 3518553755081039693, guid: 717028622b4e3a64da2d55c61a33df38, type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
-      objectReference: {fileID: 0}
-    - target: {fileID: 3518553755081039693, guid: 717028622b4e3a64da2d55c61a33df38, type: 3}
-      propertyPath: m_ConstrainProportionsScale
-      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4296356336138487287, guid: 717028622b4e3a64da2d55c61a33df38, type: 3}
       propertyPath: m_Name

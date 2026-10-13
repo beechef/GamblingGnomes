@@ -28,6 +28,8 @@ namespace Game.Runtime.GameMode.Poker
 
 		GalaxyFarm = 9,
 
-		SolarSystem = 10
+		SolarSystem = 10,
+
+		Monument = 11
 	}
 }
