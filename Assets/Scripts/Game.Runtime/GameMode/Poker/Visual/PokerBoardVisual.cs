@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using DG.Tweening;
+using Game.Runtime.Audio;
 using Game.Runtime.GameMode.Poker.Player;
 using Game.Runtime.GameMode.Poker.Stages;
 using Sirenix.OdinInspector;
@@ -53,6 +54,13 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		[SerializeField] private float _standDuration = 0.35f;
 
 		[SerializeField] private Ease _standEase = Ease.OutBack;
+
+		[Header("Sound")]
+		[Tooltip("Played as each community card turns face up.")]
+		[SerializeField] private AudioEvent _flipSound;
+
+		[Tooltip("Played as the board is stood up or laid back down.")]
+		[SerializeField] private AudioEvent _standSound;
 
 		private const float LyingTilt = 90f;
 
@@ -145,6 +153,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			if (IsStanding == standing) return;
 
 			IsStanding = standing;
+			PlaySound(_standSound);
 
 			_standTween?.Kill();
 			_standTween = DOTween.To(() => _standing, value => { _standing = value; ApplyPose(); }, standing ? 1f : 0f, _standDuration)
@@ -152,6 +161,11 @@ namespace Game.Runtime.GameMode.Poker.Visual
 				.SetLink(gameObject);
 
 			OnStandingChanged?.Invoke();
+		}
+
+		private void PlaySound(AudioEvent sound)
+		{
+			if (sound && AudioManager.Instance) AudioManager.Instance.PlayOneShot(sound, transform.position);
 		}
 
 		private void HandleLocalPlayerChanged(PokerPlayer player) => BindLocalPlayer(player);
@@ -266,7 +280,11 @@ namespace Game.Runtime.GameMode.Poker.Visual
 				if ((visible & bit) == 0 || (_shownMask & bit) != 0) continue;
 
 				var index = i;
-				_flips.Add(DOVirtual.DelayedCall(order++ * _flipStagger, () => DrawCard(index, true), false)
+				_flips.Add(DOVirtual.DelayedCall(order++ * _flipStagger, () =>
+					{
+						DrawCard(index, true);
+						PlaySound(_flipSound);
+					}, false)
 					.SetLink(gameObject));
 			}
 
