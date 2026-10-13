@@ -66,6 +66,7 @@ namespace Game.Runtime.GameMode.Poker.Camera
 				{
 					PokerSeatAnchor.BetItem => seat.BetItemAnchor,
 					PokerSeatAnchor.Ahead => seat.AheadAnchor,
+					PokerSeatAnchor.ItemTable => seat.ItemTableAnchor,
 					_ => seat.CardAnchor
 				};
 			}

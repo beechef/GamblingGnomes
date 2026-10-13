@@ -3,6 +3,7 @@ using DG.Tweening;
 using Game.Runtime.GameMode.Poker.Items;
 using Game.Runtime.GameMode.Poker.Visual;
 using Game.Runtime.Player;
+using Game.Runtime.Player.Camera;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -28,6 +29,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 		[Tooltip("The performer cannot turn their view while it plays (their own screen only).")]
 		[SerializeField] private bool _locksLook;
+
+		[Tooltip("The shot held on the performer's own screen while it plays (the vomit looks down at the table). Empty: the view stays as it is.")]
+		[SerializeField] private PlayerCameraState _cameraState;
 
 		[Header("Prop")]
 		[Tooltip("The prop (an instance of a Prefabs/Items prop), switched off, authored where it belongs: on a bone of the full-body rig (POT_attach_R for the hand, Jaw_M for the mouth) at its pose there. It returns there on the rig being drawn; it is lifted under this object on Awake.")]
@@ -62,6 +66,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		private PokerPlayer _player;
 		private PlayerController _playerController;
 		private PlayerHandIkController _handIk;
+		private PlayerCameraController _camera;
 		private PokerGameMode _gameMode;
 		private PokerItemModule _module;
 		private ulong _userClientId;
@@ -88,6 +93,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		private int _useStreetSerial;
 		private bool _playing;
 		private bool _lookLocked;
+		private int _cameraHandle;
 		private bool _outcomeKnown;
 		private bool _resolved;
 		private bool _foldLockLifted;
@@ -113,6 +119,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			_player = GetComponentInParent<PokerPlayer>(true);
 			_playerController = GetComponentInParent<PlayerController>(true);
 			_handIk = _player ? _player.GetComponentInChildren<PlayerHandIkController>(true) : null;
+			_camera = _player ? _player.GetComponentInChildren<PlayerCameraController>(true) : null;
 			if (!_prop) return;
 
 			var prop = _prop.transform;
@@ -179,6 +186,8 @@ namespace Game.Runtime.GameMode.Poker.Player
 				_playerController.BeginLookLock();
 				_lookLocked = true;
 			}
+
+			if (_cameraState && _player.IsOwner && _camera) _cameraHandle = _camera.Request(_cameraState);
 
 			if (_die) _die.ShowSecret(!_player.IsOwner);
 			if (_player.ClientId == userClientId) StartCardOrigin();
@@ -261,6 +270,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 			if (_lookLocked && _playerController) _playerController.EndLookLock();
 			_lookLocked = false;
+
+			if (_camera) _camera.Release(_cameraHandle);
+			_cameraHandle = 0;
 
 			if (_prop)
 			{
