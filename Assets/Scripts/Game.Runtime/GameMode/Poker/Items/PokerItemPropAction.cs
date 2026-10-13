@@ -24,7 +24,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 		// Plays a state on the prop's animator.
 		PlayState = 6,
 
-		// Sends a method to the prop's components (PropGrowthStream.Pour).
+		// Sends a method to the prop's components, for anything the prop does itself (its own effects).
 		SendMessage = 7,
 
 		// Plays a gesture on the performer.
@@ -41,6 +41,10 @@ namespace Game.Runtime.GameMode.Poker.Items
 
 		// Aims the performer's hand IK at the player the item was used on (the knife pointed at them); the
 		// gesture's IK curve decides when the arm follows (PlayerHandIkController).
-		AimHandAtTarget = 13
+		AimHandAtTarget = 13,
+
+		// The card point stays where it is in the world while the prop goes on: a card carried there lies still
+		// for the pick-up instead of riding a prop that shrinks away (the vomit landing on the table).
+		DropCardPoint = 14
 	}
 }
