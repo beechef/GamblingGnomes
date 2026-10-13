@@ -16,6 +16,9 @@ namespace Game.Runtime.GameMode.Poker.Items
 		Outcome = 3,
 
 		// The fold lock the item laid on the performer has run out.
-		FoldLockLifted = 4
+		FoldLockLifted = 4,
+
+		// The user's card the item rewrites starts flickering; it settles PokerCardExchangePacing.RewriteDuration later.
+		Rewriting = 5
 	}
 }

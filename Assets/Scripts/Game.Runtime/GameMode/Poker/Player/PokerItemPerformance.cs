@@ -62,9 +62,11 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 		private PokerPlayer _player;
 		private PlayerController _playerController;
+		private PlayerHandIkController _handIk;
 		private PokerGameMode _gameMode;
 		private PokerItemModule _module;
 		private ulong _userClientId;
+		private ulong _targetClientId;
 
 		private Transform _authoredParent;
 		private PlayerBone? _homeBone;
@@ -84,6 +86,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		private int _useStreetSerial;
 		private bool _playing;
 		private bool _lookLocked;
+		private bool _outcomeKnown;
 		private bool _resolved;
 		private bool _foldLockLifted;
 		private bool _dieThrown;
@@ -107,6 +110,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		{
 			_player = GetComponentInParent<PokerPlayer>(true);
 			_playerController = GetComponentInParent<PlayerController>(true);
+			_handIk = _player ? _player.GetComponentInChildren<PlayerHandIkController>(true) : null;
 			if (!_prop) return;
 
 			var prop = _prop.transform;
@@ -145,8 +149,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 			_ => isUser || isTarget
 		};
 
-		// A second use before the first is over (cuffs still on) starts over.
-		public void Play(PokerGameMode gameMode, PokerItemModule module, ulong userClientId)
+		// A second use before the first is over (cuffs still on) starts over. An outcome drawn as it was played is
+		// acted out from the start; one the item only announces later arrives through ReceiveOutcome.
+		public void Play(PokerGameMode gameMode, PokerItemModule module, ulong userClientId, ulong targetClientId, int outcome)
 		{
 			Stop();
 			if (!_player || !_prop || !gameMode || !module) return;
@@ -154,6 +159,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			_gameMode = gameMode;
 			_module = module;
 			_userClientId = userClientId;
+			_targetClientId = targetClientId;
 			_useStreetSerial = module.StreetSerial.Value;
 			_playing = true;
 
@@ -173,6 +179,12 @@ namespace Game.Runtime.GameMode.Poker.Player
 			}
 
 			Run(PokerItemMoment.Played);
+
+			if (outcome != PokerItemUseRequest.NoOutcome)
+			{
+				_outcomeKnown = true;
+				Run(PokerItemMoment.Outcome, null, outcome);
+			}
 		}
 
 		public void Resolve(ulong userClientId)
@@ -187,8 +199,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 		// A chance item's outcome reaches the table as a notice before the item is done.
 		public void ReceiveOutcome(ulong userClientId, int outcome)
 		{
-			if (!_playing || _resolved || userClientId != _userClientId) return;
+			if (!_playing || _resolved || _outcomeKnown || userClientId != _userClientId) return;
 
+			_outcomeKnown = true;
 			Run(PokerItemMoment.Outcome, null, outcome);
 		}
 
@@ -196,14 +209,17 @@ namespace Game.Runtime.GameMode.Poker.Player
 		// see the card gets the secret die, so it never tells the table.
 		public void ReceiveRewrite(PokerCardPlace place, CardData card)
 		{
-			if (!_playing || _resolved || !_die || place.HolderClientId != _userClientId) return;
+			if (!_playing || _resolved || _hasRewrite || place.HolderClientId != _userClientId) return;
+
+			_hasRewrite = true;
+			Run(PokerItemMoment.Rewriting);
+			if (!_die) return;
 
 			var holder = PokerPlayer.Find(place.HolderClientId);
 			var data = holder ? holder.Data : null;
 			var visible = data && place.Slot >= 0 && place.Slot < data.CardCount && data.IsHoleCardVisible(place.Slot);
 
 			_rewriteSuit = visible && card.IsValid && !card.IsJoker ? card.SuitType : null;
-			_hasRewrite = true;
 			TryRollDie();
 		}
 
@@ -252,6 +268,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			_resolved = false;
 			_foldLockLifted = false;
 			_dieThrown = false;
+			_outcomeKnown = false;
 			_dieRolled = false;
 			_hasRewrite = false;
 			_rewriteSuit = null;
@@ -341,6 +358,10 @@ namespace Game.Runtime.GameMode.Poker.Player
 					break;
 				case PokerItemPropAction.Finish:
 					Stop();
+					break;
+				case PokerItemPropAction.AimHandAtTarget:
+					var target = PokerPlayer.Find(_targetClientId);
+					if (_handIk && target && target.Rig) _handIk.Aim(target.Rig.FocusPoint);
 					break;
 			}
 		}

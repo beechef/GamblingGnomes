@@ -37,6 +37,10 @@ namespace Game.Runtime.GameMode.Poker.Items
 		RollDie = 11,
 
 		// The performance is over: the prop goes home, switched off.
-		Finish = 12
+		Finish = 12,
+
+		// Aims the performer's hand IK at the player the item was used on (the knife pointed at them); the
+		// gesture's IK curve decides when the arm follows (PlayerHandIkController).
+		AimHandAtTarget = 13
 	}
 }
