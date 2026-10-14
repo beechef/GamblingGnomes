@@ -31,6 +31,9 @@ namespace Game.Runtime.Player
 		// The colour this player wears, as every client resolves it from the replicated index. White until handed one.
 		public Color Color => _database && _data ? _database.Get(_data.ColorIndex.Value) : Color.white;
 
+		// The gnome icon in this player's colour, for UI that shows players as faces. Null until handed an index.
+		public Sprite Icon => _database && _data ? _database.GetIcon(_data.ColorIndex.Value) : null;
+
 		public override void OnNetworkSpawn()
 		{
 			if (!_data) _data = NetworkObject.GetComponent<PlayerData>();

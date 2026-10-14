@@ -134,6 +134,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			_allInCalled = false;
 
 			Data.Phase.Value = _phase;
+			Data.StreetNumber.Value++;
 
 			// Clears HasActed, which is what "who still owes a cap" is read off. Without it the second
 			// street would find everyone already marked from the first and end before asking anybody.
