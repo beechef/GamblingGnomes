@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using DG.Tweening;
+using Game.Runtime.Audio;
 using Game.Runtime.GameMode.Poker.Items;
 using Game.Runtime.Player;
 using Sirenix.OdinInspector;
@@ -73,6 +74,10 @@ namespace Game.Runtime.GameMode.Poker.Player
 		[ShowIf(nameof(Do), PokerItemPropAction.SpawnEffect)]
 		[MinValue(0f)]
 		public float EffectLifetime;
+
+		[ShowIf(nameof(Do), PokerItemPropAction.StartSound)]
+		[Tooltip("A sound that lasts (held by its handle), played from the prop.")]
+		public AudioEvent Sound;
 
 		public bool Matches(PokerItemMoment moment, string cue, int outcome) =>
 			When == moment && (moment != PokerItemMoment.Cue || Cue == cue) && (moment != PokerItemMoment.Outcome || Outcome == outcome);
