@@ -48,7 +48,9 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			mesh.hideFlags = HideFlags.DontSave;
 
 			var frontRect = RectOf(front);
+			// The box's +Z face is UV-mapped upside down against the front, so the back picture is turned 180°.
 			var backRect = RectOf(back);
+			backRect = new Vector4(backRect.x + backRect.z, backRect.y + backRect.w, -backRect.z, -backRect.w);
 
 			baseMesh.GetNormals(Normals);
 			Rects.Clear();
