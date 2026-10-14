@@ -69,15 +69,11 @@ namespace Game.Runtime.Audio
 		}
 
 		// Paths authored in the FMOD project: the master bus and one VCA per player-facing level.
-		public void SetVolumes(float master, float music, float sfx, bool muted)
+		public void SetVolumes(float master, float music, float sfx)
 		{
 			var studio = RuntimeManager.StudioSystem;
 
-			if (studio.getBus("bus:/", out var masterBus) == FMOD.RESULT.OK)
-			{
-				masterBus.setVolume(master);
-				masterBus.setMute(muted);
-			}
+			if (studio.getBus("bus:/", out var masterBus) == FMOD.RESULT.OK) masterBus.setVolume(master);
 			else WarnMissing("bus:/");
 
 			if (studio.getVCA("vca:/MUSIC", out var musicVca) == FMOD.RESULT.OK) musicVca.setVolume(music);

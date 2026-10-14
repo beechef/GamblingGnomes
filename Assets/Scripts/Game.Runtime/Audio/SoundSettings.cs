@@ -37,15 +37,5 @@ namespace Game.Runtime.Audio
 				SettingController.Save();
 			}
 		}
-
-		public static bool Muted
-		{
-			get => Data.AudioMuted;
-			set
-			{
-				Data.AudioMuted = value;
-				SettingController.Save();
-			}
-		}
 	}
 }
