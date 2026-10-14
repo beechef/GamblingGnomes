@@ -70,8 +70,10 @@ namespace Game.Runtime.GameMode.Poker.Camera
 
 			if (Data && turn == Data.OwnerClientId) return OwnSeatAnchor();
 
+			// The point in front of them rather than their face: the same line from across the table, and leaning
+			// toward the board from the side.
 			var player = PokerPlayer.Find(turn);
-			return player && player.Rig ? player.Rig.FocusPoint : null;
+			return player && player.Rig ? player.Rig.WatchPoint : null;
 		}
 	}
 }

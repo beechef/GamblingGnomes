@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using DG.Tweening;
+using Game.Runtime.Audio;
 using Game.Runtime.GameMode.Poker.Items;
 using Game.Runtime.GameMode.Poker.Visual;
 using Game.Runtime.Player;
@@ -87,6 +88,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		private readonly List<GameObject> _effects = new();
 		private Tween _moveTween;
 		private Tween _scaleTween;
+		private AudioHandle _sound;
 		private Transform _cardOrigin;
 		private int _useStreetSerial;
 		private bool _playing;
@@ -95,6 +97,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		private bool _outcomeKnown;
 		private bool _resolved;
 		private bool _foldLockLifted;
+		private bool _foldLockSeen;
 		private bool _dieThrown;
 		private bool _dieRolled;
 		private bool _hasRewrite;
@@ -233,9 +236,19 @@ namespace Game.Runtime.GameMode.Poker.Player
 		}
 
 		// A fold lock laid after the item was played lifts once the hand moves past it; the hand ending clears it too.
+		// Only a lock this screen has seen can lift: a client hears the item resolve before the table rule it laid
+		// replicates, and reading that gap as the lift dropped the cuffs the moment they closed.
 		public void RefreshFoldLock()
 		{
-			if (!_playing || !_resolved || _foldLockLifted || IsFoldLocked()) return;
+			if (!_playing || !_resolved || _foldLockLifted) return;
+
+			if (IsFoldLocked())
+			{
+				_foldLockSeen = true;
+				return;
+			}
+
+			if (!_foldLockSeen) return;
 
 			_foldLockLifted = true;
 			Run(PokerItemMoment.FoldLockLifted);
@@ -247,6 +260,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			_tweens.Clear();
 			_moveTween?.Kill();
 			_scaleTween?.Kill();
+			StopSound();
 
 			var deck = PokerDeckVisual.Instance;
 			if (_cardOrigin && deck) deck.ClearItemDrawOrigin(_cardOrigin);
@@ -279,6 +293,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			_playing = false;
 			_resolved = false;
 			_foldLockLifted = false;
+			_foldLockSeen = false;
 			_dieThrown = false;
 			_outcomeKnown = false;
 			_dieRolled = false;
@@ -363,11 +378,24 @@ namespace Game.Runtime.GameMode.Poker.Player
 				case PokerItemPropAction.Finish:
 					Stop();
 					break;
+				case PokerItemPropAction.StartSound:
+					StopSound();
+					if (action.Sound && AudioManager.Instance) _sound = AudioManager.Instance.Play(action.Sound, prop);
+					break;
+				case PokerItemPropAction.StopSound:
+					StopSound();
+					break;
 				case PokerItemPropAction.AimHandAtTarget:
 					var target = PokerPlayer.Find(_targetClientId);
 					if (_handIk && target && target.Rig) _handIk.Aim(target.Rig.FocusPoint);
 					break;
 			}
+		}
+
+		private void StopSound()
+		{
+			if (AudioManager.Instance) AudioManager.Instance.Stop(_sound);
+			_sound = default;
 		}
 
 		// On the drawn rig's bone the prop was authored on (the hand-only rig on its owner's screen), at its pose there.

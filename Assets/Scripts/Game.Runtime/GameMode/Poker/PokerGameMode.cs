@@ -667,6 +667,8 @@ namespace Game.Runtime.GameMode.Poker
 
 			// Who took the last hand of a finished match has no claim on the first hand of the next one.
 			_data.LastWinnerClientId.Value = PokerGameData.NoTurn;
+			_data.HandOpenerClientId.Value = PokerGameData.NoTurn;
+			_data.StreetNumber.Value = 0;
 
 			_data.Phase.Value = PokerPhase.Finished;
 		}
@@ -829,27 +831,27 @@ namespace Game.Runtime.GameMode.Poker
 
 		// Who opens this hand: every street starts from them and a tie at the showdown is broken toward them.
 		// Last hand's winner if they were dealt in, else the next player dealt in after their chair, else — the
-		// first hand of a match — the host, or the next player dealt in after the host. Server-only: nothing on a
-		// client asks it.
-		public ulong HandOpenerClientId { get; private set; } = PokerGameData.NoTurn;
+		// first hand of a match — the host, or the next player dealt in after the host. Replicated, since the
+		// turn order every screen draws walks from it.
+		public ulong HandOpenerClientId => _data ? _data.HandOpenerClientId.Value : PokerGameData.NoTurn;
 
 		public void ServerChooseHandOpener()
 		{
 			if (!IsServer) return;
 
-			HandOpenerClientId = PokerGameData.NoTurn;
+			_data.HandOpenerClientId.Value = PokerGameData.NoTurn;
 
 			var winner = FindSeatedPlayer(_data.LastWinnerClientId.Value);
 			if (winner && winner.Data.IsInHand)
 			{
-				HandOpenerClientId = winner.ClientId;
+				_data.HandOpenerClientId.Value = winner.ClientId;
 				return;
 			}
 
 			if (winner)
 			{
 				var next = PokerTableUtility.NextPlayer(_seatedPlayers, winner.Data.SeatIndex.Value, player => player.Data.IsInHand);
-				if (next) HandOpenerClientId = next.ClientId;
+				if (next) _data.HandOpenerClientId.Value = next.ClientId;
 				return;
 			}
 
@@ -858,13 +860,13 @@ namespace Game.Runtime.GameMode.Poker
 			var host = FindSeatedPlayer(NetworkManager.ServerClientId);
 			if (host && host.Data.IsInHand)
 			{
-				HandOpenerClientId = host.ClientId;
+				_data.HandOpenerClientId.Value = host.ClientId;
 				return;
 			}
 
 			var fromSeat = host ? host.Data.SeatIndex.Value : PokerPlayerData.NoSeat;
 			var first = PokerTableUtility.NextPlayer(_seatedPlayers, fromSeat, player => player.Data.IsInHand);
-			if (first) HandOpenerClientId = first.ClientId;
+			if (first) _data.HandOpenerClientId.Value = first.ClientId;
 		}
 
 		// The seat a walk starts *after*, so NextPlayer lands on the opener first. NoSeat with no opener,

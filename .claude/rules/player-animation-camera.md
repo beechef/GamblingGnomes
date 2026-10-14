@@ -84,7 +84,7 @@ paths:
 - **When one thing replaces another in a slot, outgoing teardown runs first.** `PlayerCameraController.Apply`
 - **Freefly raises nothing, only hands the look back.** A shot goes live by enabling its `CinemachineCamera` **component**; idle shots disabled, priority dropped, shipped disabled. Blend = brain's `DefaultBlend` in `Bootstrap`.
 - **The camera knows the round; the round knows nothing of the camera.** A shot = state + `PokerStageCameraBinder` listing picked `PokerStage` assets; binders release and request in one `Update` pass. Nothing in `Game.Runtime.GameMode.Poker.Stages` references a camera type.
-- **A turn-dependent shot re-aims inside one state**: `PokerStreetCameraState` frames a `PokerSeatAnchor` on your turn, the decider otherwise, else `FocusClientId`; `PokerAllInStage` walks pending players every `_focusDwell`. `_requiresPlaceInMatch` only for own-seat shots (`State_OwnCards`).
+- **A turn-dependent shot re-aims inside one state**: `PokerStreetCameraState` frames a `PokerSeatAnchor` on your turn, the decider's `PlayerRigController.WatchPoint` otherwise (`Player/WatchPoint` on the root, eye height, 0.9 m in front: on the face's line from across, toward the board from the side), else `FocusClientId`; `PokerAllInStage` walks pending players every `_focusDwell`. `_requiresPlaceInMatch` only for own-seat shots (`State_OwnCards`).
 - **`CurrentTurnClientId` and `FocusClientId` are separate**; `BeginTurn` writes both; `PokerBetItemConsumeStage` sets only focus; the machine clears focus at each handover.
 - **A shot waits `_aimDelay` (unscaled) before swinging**, in `PlayerCameraLookAtState.Aim`; the null-target retry waits none.
 - **A shot at a seated player turns the head, never a fixed height.**

@@ -137,6 +137,8 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 		public Color Color => _color ? _color.Color : Color.white;
 
+		public Sprite Icon => _color ? _color.Icon : null;
+
 		// The name in this player's own colour, for every UI line that names them (the name tag excepted).
 		// noparse, so a name can never carry rich text of its own.
 		public string ColoredName => Colorize(DisplayName, Color);

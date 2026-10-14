@@ -275,8 +275,13 @@ namespace Game.Runtime.GameMode.Poker.Items
 			{
 				if (player && player.ItemInventory) player.ItemInventory.ServerResetStreetUses();
 				if (player && player.Data) ServerHideExpiredCards(player);
+				if (player && player.ItemKnowledge) player.ItemKnowledge.ServerForgetExpired(StreetSerial.Value);
 			}
 		}
+
+		// The street number that turns a card seen now back down, for `streets` streets starting with this one;
+		// 0 (streets 0 or less) keeps it for the hand.
+		public int KnownUntil(int streets) => streets > 0 ? StreetSerial.Value + streets : 0;
 
 		// Shown to the whole table for `streets` streets, starting with this one.
 		public void ServerShowCard(PokerPlayer player, int slot, int streets)
@@ -326,13 +331,6 @@ namespace Game.Runtime.GameMode.Poker.Items
 					ServerRewardColorfulSurvivor();
 					break;
 
-				case PokerStreetStage:
-					foreach (var player in PokerPlayer.All)
-					{
-						if (player && player.ItemKnowledge) player.ItemKnowledge.ServerForgetBoard();
-					}
-
-					break;
 			}
 		}
 

@@ -46,6 +46,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 		protected override void OnStartStage()
 		{
+			Data.StreetNumber.Value = 0;
 			Data.Phase.Value = PokerPhase.Dealing;
 			GameMode.ClearTurn();
 			Data.Showdown.Clear();
