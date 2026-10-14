@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Game.Runtime.GameMode.Poker.Player;
 using Localization;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker.Items
@@ -15,6 +16,10 @@ namespace Game.Runtime.GameMode.Poker.Items
 		[Header("Swap")]
 		[Tooltip("Chosen: the user points at the card they give. Random: the table draws it.")]
 		[SerializeField] private PokerChoiceMode _ownChoice = PokerChoiceMode.Random;
+
+		[Tooltip("Streets each side keeps seeing the card they gave away, starting with the one the item is played on. 0: the rest of the hand.")]
+		[MinValue(0)]
+		[SerializeField] private int _knownStreets = 1;
 
 		public override bool NeedsResponse => true;
 
@@ -79,10 +84,11 @@ namespace Game.Runtime.GameMode.Poker.Items
 			target.Data.ServerMarkLookedAt(targetSlot);
 
 			// Each knows what they handed over and where it now lies, and the new holder knows they know.
-			user.ItemKnowledge.ServerLearn(target.ClientId, targetSlot, given);
-			target.ItemKnowledge.ServerRecordExposure(user.ClientId, targetSlot, given);
-			target.ItemKnowledge.ServerLearn(user.ClientId, ownSlot, taken);
-			user.ItemKnowledge.ServerRecordExposure(target.ClientId, ownSlot, taken);
+			var until = context.Module.KnownUntil(_knownStreets);
+			user.ItemKnowledge.ServerLearn(target.ClientId, targetSlot, given, until);
+			target.ItemKnowledge.ServerRecordExposure(user.ClientId, targetSlot, given, until);
+			target.ItemKnowledge.ServerLearn(user.ClientId, ownSlot, taken, until);
+			user.ItemKnowledge.ServerRecordExposure(target.ClientId, ownSlot, taken, until);
 		}
 
 		private static bool HasTradeableCard(PokerPlayer player)

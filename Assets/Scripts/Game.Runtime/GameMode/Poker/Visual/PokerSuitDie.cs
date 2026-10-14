@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using DG.Tweening;
+using Game.Runtime.Audio;
 using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker.Visual
@@ -58,8 +59,13 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 		[SerializeField] private Ease _tipEase = Ease.InQuad;
 
+		[Header("Audio")]
+		[Tooltip("Plays from the throw until the die comes to rest.")]
+		[SerializeField] private AudioEvent _rollSound;
+
 		private readonly List<Vector3> _matches = new();
 		private Sequence _roll;
+		private AudioHandle _rollHandle;
 		private float _halfSize;
 
 		private void Awake()
@@ -115,10 +121,25 @@ namespace Game.Runtime.GameMode.Poker.Visual
 					var turn = Quaternion.AngleAxis(angle, edgeAxis);
 					transform.SetPositionAndRotation(edge + turn * (centre - edge), turn * rest);
 				}).SetEase(_tipEase))
+				.OnComplete(StopSound)
 				.SetLink(gameObject);
+
+			if (_rollSound && AudioManager.Instance) _rollHandle = AudioManager.Instance.Play(_rollSound, transform);
 		}
 
-		public void Stop() => _roll?.Kill();
+		public void Stop()
+		{
+			_roll?.Kill();
+			StopSound();
+		}
+
+		private void OnDisable() => StopSound();
+
+		private void StopSound()
+		{
+			if (AudioManager.Instance) AudioManager.Instance.Stop(_rollHandle);
+			_rollHandle = default;
+		}
 
 		private Vector3 NormalFor(CardSuit suit)
 		{

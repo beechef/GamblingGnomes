@@ -147,6 +147,9 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 
 		public float HoldDuration => _pacing ? _pacing.HoldDuration : 0f;
 
+		// When, after the lids meet, the rungs actually land.
+		private float ApplyLag => _pacing ? _pacing.ApplyLag : 0f;
+
 		public float OpenDuration => _pacing ? _pacing.OpenDuration : 0f;
 
 		public VideoClip BlinkVideo => _pacing ? _pacing.BlinkVideo : null;
@@ -251,7 +254,7 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 
 				// Unscaled: a blink is exactly the sort of beat a paused game would otherwise hold open
 				// forever.
-				await AwaitableUtility.WaitUnscaledAsync(ApplyDelay, ct);
+				await AwaitableUtility.WaitUnscaledAsync(ApplyDelay + ApplyLag, ct);
 
 				ApplyRungs();
 
@@ -259,7 +262,7 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 				// closed eye, so it is applied before the eye opens rather than left to a blink of its own.
 				if (HoldDuration > 0f)
 				{
-					await AwaitableUtility.WaitUnscaledAsync(HoldDuration, ct);
+					await AwaitableUtility.WaitUnscaledAsync(Mathf.Max(0f, HoldDuration - ApplyLag), ct);
 
 					ApplyRungs();
 				}

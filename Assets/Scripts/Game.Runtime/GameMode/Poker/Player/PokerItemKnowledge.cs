@@ -117,18 +117,19 @@ namespace Game.Runtime.GameMode.Poker.Player
 			SuitCounts.Value = counts;
 		}
 
-		public void ServerLearn(ulong otherClientId, int slot, CardData card)
+		// untilStreet: PokerItemModule.KnownUntil, the street that turns it back down; 0 keeps it for the hand.
+		public void ServerLearn(ulong otherClientId, int slot, CardData card, int untilStreet)
 		{
 			if (!IsServer) return;
 
-			KnownCards.Add(new PokerKnownCard { OtherClientId = otherClientId, Slot = slot, Card = card });
+			KnownCards.Add(new PokerKnownCard { OtherClientId = otherClientId, Slot = slot, Card = card, UntilStreet = untilStreet });
 		}
 
-		public void ServerRecordExposure(ulong viewerClientId, int slot, CardData card)
+		public void ServerRecordExposure(ulong viewerClientId, int slot, CardData card, int untilStreet)
 		{
 			if (!IsServer) return;
 
-			ExposedCards.Add(new PokerKnownCard { OtherClientId = viewerClientId, Slot = slot, Card = card });
+			ExposedCards.Add(new PokerKnownCard { OtherClientId = viewerClientId, Slot = slot, Card = card, UntilStreet = untilStreet });
 		}
 
 		// The slot holds another card now, so what was seen there is no longer true.
@@ -142,16 +143,23 @@ namespace Game.Runtime.GameMode.Poker.Player
 			}
 		}
 
-		// A board card seen by a peek is only seen for the street it was played on.
-		public void ServerForgetBoard()
+		// What was seen for a number of streets is forgotten as the street after the last of them opens.
+		public void ServerForgetExpired(int streetSerial)
 		{
 			if (!IsServer) return;
 
 			for (var i = KnownCards.Count - 1; i >= 0; i--)
 			{
-				if (KnownCards[i].IsBoard) KnownCards.RemoveAt(i);
+				if (IsExpired(KnownCards[i], streetSerial)) KnownCards.RemoveAt(i);
+			}
+
+			for (var i = ExposedCards.Count - 1; i >= 0; i--)
+			{
+				if (IsExpired(ExposedCards[i], streetSerial)) ExposedCards.RemoveAt(i);
 			}
 		}
+
+		private static bool IsExpired(in PokerKnownCard card, int streetSerial) => card.UntilStreet > 0 && streetSerial >= card.UntilStreet;
 
 		public void ServerForgetExposure(int slot)
 		{

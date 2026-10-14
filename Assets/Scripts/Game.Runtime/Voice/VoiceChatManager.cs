@@ -216,7 +216,8 @@ namespace Game.Runtime.Voice
 		{
 			if (Vivox.IsLoggedIn) return;
 
-			var options = new LoginOptions { DisplayName = LocalDisplayName() };
+			// Energy is sent only on a speech state change by default, which leaves the jaw (PlayerVoiceJawVisual) still.
+			var options = new LoginOptions { DisplayName = LocalDisplayName(), ParticipantUpdateFrequency = ParticipantPropertyUpdateFrequency.TenPerSecond };
 			try
 			{
 				await Vivox.LoginAsync(options);

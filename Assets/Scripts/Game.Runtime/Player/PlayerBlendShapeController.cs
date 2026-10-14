@@ -25,6 +25,7 @@ namespace Game.Runtime.Player
 		private struct Target
 		{
 			public SkinnedMeshRenderer Renderer;
+			public Mesh Mesh;
 			public int Index;
 			public float Base;
 		}
@@ -43,6 +44,7 @@ namespace Game.Runtime.Player
 		private readonly Dictionary<string, ShapeStack> _shapes = new();
 
 		private readonly List<SkinnedMeshRenderer> _renderers = new();
+		private readonly List<Target> _previous = new();
 
 		public int ShapeCount => _shapes.Count;
 
@@ -133,14 +135,34 @@ namespace Game.Runtime.Player
 		}
 
 		// The meshes moved under us. The old renderers have already had their weights reset by the swap that
-		// caused this, so there is nothing to put back — only the new set to find.
+		// caused this, so there is nothing to put back — only the new set to find. An appearance change that
+		// kept a renderer's mesh left it carrying the pushed weight, so that renderer keeps the base it had:
+		// read again, the shape held at the match's end became the base and never came off.
 		private void Rebind()
 		{
 			foreach (var pair in _shapes)
 			{
+				_previous.Clear();
+				_previous.AddRange(pair.Value.Targets);
 				pair.Value.Targets.Clear();
 				Resolve(pair.Key, pair.Value);
+
+				for (var i = 0; i < pair.Value.Targets.Count; i++)
+				{
+					var target = pair.Value.Targets[i];
+
+					foreach (var previous in _previous)
+					{
+						if (previous.Renderer != target.Renderer || previous.Mesh != target.Mesh || previous.Index != target.Index) continue;
+
+						target.Base = previous.Base;
+						pair.Value.Targets[i] = target;
+						break;
+					}
+				}
 			}
+
+			_previous.Clear();
 		}
 
 		private void Resolve(string shape, ShapeStack stack)
@@ -161,6 +183,7 @@ namespace Game.Runtime.Player
 				stack.Targets.Add(new Target
 				{
 					Renderer = renderer,
+					Mesh = mesh,
 					Index = index,
 					Base = renderer.GetBlendShapeWeight(index)
 				});

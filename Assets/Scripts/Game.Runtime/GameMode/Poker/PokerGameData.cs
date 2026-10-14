@@ -47,6 +47,15 @@ namespace Game.Runtime.GameMode.Poker
 		[HideInInspector] public NetworkVariable<float> TurnDuration = new(0f,
 			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
 
+		// Which betting round of the hand is running, counted from 1 as each street opens. Zero from the deal
+		// until the first street, and outside a hand.
+		[HideInInspector] public NetworkVariable<int> StreetNumber = new(0,
+			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
+
+		// Who opens this hand: every street walks the seats from them, so it is the order the table plays in.
+		[HideInInspector] public NetworkVariable<ulong> HandOpenerClientId = new(NoTurn,
+			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
+
 		[HideInInspector] public NetworkVariable<ulong> LastWinnerClientId = new(NoTurn,
 			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
 

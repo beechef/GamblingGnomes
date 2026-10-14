@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using DG.Tweening;
+using Game.Runtime.Audio;
 using Game.Runtime.GameMode.Poker.Items;
 using Game.Runtime.GameMode.Poker.Player;
 using Unity.Netcode;
@@ -21,6 +22,9 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		}
 
 		private const int SuitCount = 4;
+
+		[Tooltip("Played on the card as it starts flickering.")]
+		[SerializeField] private AudioEvent _flickerSound;
 
 		private readonly List<Rewrite> _rewrites = new();
 		private readonly List<CardData> _faces = new();
@@ -64,6 +68,8 @@ namespace Game.Runtime.GameMode.Poker.Visual
 				.AppendCallback(() => card.SetCard(shown[step++ % shown.Count], true))
 				.SetLoops(-1)
 				.SetLink(card.gameObject);
+
+			if (_flickerSound && AudioManager.Instance) AudioManager.Instance.PlayOneShotAttached(_flickerSound, card.transform);
 
 			if (!_rewrites.Exists(r => r.Holder == player)) player.Data.OnHoleCardsChanged += HandleHoleCardsChanged;
 			_rewrites.Add(rewrite);

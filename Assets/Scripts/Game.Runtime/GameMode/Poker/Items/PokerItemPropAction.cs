@@ -35,6 +35,11 @@ namespace Game.Runtime.GameMode.Poker.Items
 
 		// Aims the performer's hand IK at the player the item was used on (the knife pointed at them); the
 		// gesture's IK curve decides when the arm follows (PlayerHandIkController).
-		AimHandAtTarget = 13
+		AimHandAtTarget = 13,
+
+		// Starts a sound that lasts, from the prop, until StopSound or the performance ends. One at a time.
+		StartSound = 14,
+
+		StopSound = 15
 	}
 }

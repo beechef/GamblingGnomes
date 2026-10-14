@@ -480,6 +480,11 @@ namespace Game.Runtime
 				}
 			}
 
+			public static class Round
+			{
+				public const string Title = "poker.round.title";
+			}
+
 			public static class Start
 			{
 				public const string ForTable = "poker.start.for_table";

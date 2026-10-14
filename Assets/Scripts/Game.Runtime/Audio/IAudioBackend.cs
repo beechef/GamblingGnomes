@@ -15,6 +15,6 @@ namespace Game.Runtime.Audio
 
 		void SetParameter(int id, string parameter, float value);
 
-		void SetVolumes(float master, float music, float sfx, bool muted);
+		void SetVolumes(float master, float music, float sfx);
 	}
 }

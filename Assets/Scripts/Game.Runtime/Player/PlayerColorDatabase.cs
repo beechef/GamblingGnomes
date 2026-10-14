@@ -22,6 +22,9 @@ namespace Game.Runtime.Player
 			new Color(0.706f, 0.533f, 0.173f)
 		};
 
+		[Tooltip("The gnome icon wearing each colour, in the same order as the colours: red, teal, purple, gold.")]
+		[SerializeField] private List<Sprite> _icons = new();
+
 		public int Count => _colors.Count;
 
 		public Color Get(int index)
@@ -34,6 +37,13 @@ namespace Game.Runtime.Player
 			if (index < 0) return Color.white;
 
 			return _colors[index % _colors.Count];
+		}
+
+		public Sprite GetIcon(int index)
+		{
+			if (_icons.Count == 0 || index < 0) return null;
+
+			return _icons[index % _icons.Count];
 		}
 	}
 }

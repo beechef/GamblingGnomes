@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using DG.Tweening;
+using Game.Runtime.Audio;
 using Game.Runtime.GameMode.Poker.Player;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -64,6 +65,10 @@ namespace Game.Runtime.UI.Poker
 		[SerializeField] private float _fadeOutDuration = 0.4f;
 
 		[SerializeField] private Ease _fadeOutEase = Ease.OutQuad;
+
+		[Header("Audio")]
+		[Tooltip("Played as the board goes up.")]
+		[SerializeField] private AudioEvent _revealSound;
 
 		private readonly List<UIPokerRankingRow> _rows = new();
 		private readonly List<UIPokerRankingEntryVisual> _rowVisuals = new();
@@ -133,7 +138,11 @@ namespace Game.Runtime.UI.Poker
 			if (_boardCards) _boardCards.Draw(Data);
 
 			RefreshWinner();
-			if (appearing) PlayHeadReveal();
+			if (appearing)
+			{
+				PlayHeadReveal();
+				if (_revealSound && AudioManager.Instance) AudioManager.Instance.PlayOneShot(_revealSound, transform.position);
+			}
 
 			RefreshRows(showdown.Count - FirstRowEntry, appearing);
 		}

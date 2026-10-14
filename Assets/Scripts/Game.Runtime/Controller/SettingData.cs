@@ -25,7 +25,6 @@ namespace Game.Runtime.Controller
 		public float MasterVolume = 1f;
 		public float MusicVolume = 1f;
 		public float SfxVolume = 1f;
-		public bool AudioMuted;
 
 		public float VoiceInputVolume = 0.5f;
 		public float VoiceOutputVolume = 1f;

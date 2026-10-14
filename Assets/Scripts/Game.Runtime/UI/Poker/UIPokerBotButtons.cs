@@ -7,8 +7,9 @@ using UnityEngine;
 
 namespace Game.Runtime.UI.Poker
 {
-	// The host's Add Bot and Clear Bot. Shown only to the host at a table that allows bots; Add Bot greys
-	// once every chair has a body, Clear Bot while there is no bot to clear.
+	// The host's Add Bot and Clear Bot. Shown only to the seated host in the waiting room before a match, like
+	// the start button, at a table that allows bots; Add Bot greys once every chair has a body, Clear Bot while
+	// there is no bot to clear.
 	public class UIPokerBotButtons : UIPokerView
 	{
 		[Tooltip("Switched off for anyone but the host. A child, so this keeps listening while hidden.")]
@@ -36,6 +37,8 @@ namespace Game.Runtime.UI.Poker
 
 			if (_players) _players.Players.OnListChanged += HandlePlayersChanged;
 			Data.ActiveSeatCount.OnValueChanged += HandleSeatCountChanged;
+			Data.Phase.OnValueChanged += HandlePhaseChanged;
+			LocalData.SeatIndex.OnValueChanged += HandleSeatChanged;
 
 			_addButton.OnClick += HandleAdd;
 			_clearButton.OnClick += HandleClear;
@@ -48,6 +51,8 @@ namespace Game.Runtime.UI.Poker
 			_clearButton.OnClick -= HandleClear;
 			_addButton.OnClick -= HandleAdd;
 
+			LocalData.SeatIndex.OnValueChanged -= HandleSeatChanged;
+			Data.Phase.OnValueChanged -= HandlePhaseChanged;
 			Data.ActiveSeatCount.OnValueChanged -= HandleSeatCountChanged;
 			if (_players) _players.Players.OnListChanged -= HandlePlayersChanged;
 
@@ -59,10 +64,12 @@ namespace Game.Runtime.UI.Poker
 
 		private void HandlePlayersChanged(NetworkListEvent<NetworkObjectReference> change) => Refresh();
 		private void HandleSeatCountChanged(int previous, int current) => Refresh();
+		private void HandlePhaseChanged(PokerPhase previous, PokerPhase current) => Refresh();
+		private void HandleSeatChanged(int previous, int current) => Refresh();
 
 		private void Refresh()
 		{
-			var shown = _spawner && _spawner.IsHost && _spawner.AllowsBots;
+			var shown = _spawner && _spawner.IsHost && _spawner.AllowsBots && _spawner.IsInWaitingRoom && LocalData.IsSeated;
 			if (_content) _content.SetActive(shown);
 			if (!shown) return;
 

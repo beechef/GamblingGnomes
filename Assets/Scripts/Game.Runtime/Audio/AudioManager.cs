@@ -44,7 +44,7 @@ namespace Game.Runtime.Audio
 		private void ApplyVolumes()
 		{
 			var data = SettingController.Data;
-			_backend.SetVolumes(data.MasterVolume, data.MusicVolume, data.SfxVolume, data.AudioMuted);
+			_backend.SetVolumes(data.MasterVolume, data.MusicVolume, data.SfxVolume);
 		}
 
 		public void PlayOneShot(AudioEvent audioEvent, Vector3 position)

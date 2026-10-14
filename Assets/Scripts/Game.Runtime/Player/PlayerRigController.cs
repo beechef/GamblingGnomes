@@ -35,6 +35,9 @@ namespace Game.Runtime.Player
 		[Tooltip("Where this player looks when a shot is about them — a fixed point out in front of their chest, authored on the prefab and hung off no model at all. Only the owner ever reads it, and the rig they render is the hand-only one: a point on the body rig would freeze for them, since that rig is switched off and culled. A point on the root cannot.")]
 		[SerializeField] private Transform _selfFocusPoint;
 
+		[Tooltip("Where somebody else at the table aims while watching this player decide: a point out in front of them, on the root. Seen from across it lies on this player; seen from the side it lies toward the table's middle, so the board stays in view.")]
+		[SerializeField] private Transform _watchPoint;
+
 		[Tooltip("A shot of this player from outside, for another client to cut to while a moment is about them. Never used by the owner, who stays in their own eyes.")]
 		[SerializeField] private Camera.PlayerSpectatorCamera _spectatorCamera;
 
@@ -46,6 +49,9 @@ namespace Game.Runtime.Player
 		// away: the solver has nothing sane to answer with and the head comes out wrenched round, which
 		// reads as a broken rig rather than as a shot pointed at itself. A shot about you looks here.
 		public Transform SelfFocusPoint => _selfFocusPoint;
+
+		// Falls back to the face when the prefab has no watch point.
+		public Transform WatchPoint => _watchPoint ? _watchPoint : _focusPoint;
 
 		public PlayerBoneRig FullBodyRig => _fullBodyRig;
 		public PlayerBoneRig HandOnlyRig => _handOnlyRig;
