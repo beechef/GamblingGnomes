@@ -22,12 +22,12 @@ namespace Game.Runtime.UI.Pause
 
 		[Header("Buttons")]
 		[SerializeField] private UIButton _resumeButton;
+		[SerializeField] private UIButton _closeButton;
 		[SerializeField] private UIButton _settingsButton;
 		[SerializeField] private UIButton _leaveButton;
 
 		[Tooltip("Opened over the table by the settings button; the pause panel comes back when it closes.")]
 		[SerializeField] private UISettingsScreen _settingsScreen;
-		[SerializeField] private UIButton _quitButton;
 
 		public bool IsOpen { get; private set; }
 
@@ -48,9 +48,9 @@ namespace Game.Runtime.UI.Pause
 			}
 
 			if (_resumeButton) _resumeButton.OnClick += Close;
+			if (_closeButton) _closeButton.OnClick += Close;
 			if (_settingsButton) _settingsButton.OnClick += HandleSettingsClicked;
 			if (_leaveButton) _leaveButton.OnClick += HandleLeaveClicked;
-			if (_quitButton) _quitButton.OnClick += HandleQuitClicked;
 		}
 
 		// The network manager wakes in the same scene as this screen, in no guaranteed order, so the
@@ -74,9 +74,9 @@ namespace Game.Runtime.UI.Pause
 			}
 
 			if (_resumeButton) _resumeButton.OnClick -= Close;
+			if (_closeButton) _closeButton.OnClick -= Close;
 			if (_settingsButton) _settingsButton.OnClick -= HandleSettingsClicked;
 			if (_leaveButton) _leaveButton.OnClick -= HandleLeaveClicked;
-			if (_quitButton) _quitButton.OnClick -= HandleQuitClicked;
 
 			ClosePanel();
 		}
@@ -187,18 +187,6 @@ namespace Game.Runtime.UI.Pause
 				if (_leaveButton) _leaveButton.IsInteractable = true;
 				_leaving = false;
 			}
-		}
-
-		private void HandleQuitClicked()
-		{
-			var network = GameNetworkManager.Instance;
-			if (network) network.Shutdown();
-
-#if UNITY_EDITOR
-			UnityEditor.EditorApplication.isPlaying = false;
-#else
-			Application.Quit();
-#endif
 		}
 
 		private PlayerController FindLocalPlayer()

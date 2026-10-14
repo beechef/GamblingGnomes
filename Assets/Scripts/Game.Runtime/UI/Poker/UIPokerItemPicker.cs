@@ -10,8 +10,8 @@ using UnityEngine;
 namespace Game.Runtime.UI.Poker
 {
 	// Which item to play, dropped up from the Items button: a column of item icons, the marked one showing its
-	// tooltip. One entry per card held; one that cannot be played right now is greyed with the reason in its
-	// tooltip. Clicking (or submitting) an entry plays it. The answer comes from PokerItemModule.GetAvailability,
+	// tooltip. One entry per card held; one that cannot be played right now is framed in red with the reason in
+	// its tooltip, which shakes when it is chosen. Clicking (or submitting) an entry plays it. The answer comes from PokerItemModule.GetAvailability,
 	// the call the server refuses with.
 	//
 	// Opened and closed by the bet bar, which owns the turn. Escape closes it through UIEscapeStack.
@@ -121,7 +121,7 @@ namespace Game.Runtime.UI.Poker
 				if (used == _entries.Count) _entries.Add(Instantiate(_entryPrefab, _entryRow));
 
 				// Every item held is drawn, even one the rules forbid right now: an item missing from the column
-				// reads as an item lost. What cannot be played is dimmed, and its tooltip says why.
+				// reads as an item lost. What cannot be played is framed in red, and its tooltip says why.
 				var entry = _entries[used++];
 				entry.gameObject.SetActive(true);
 				entry.Bind(item, _module.GetAvailability(_player, unit.Type));
@@ -150,7 +150,11 @@ namespace Game.Runtime.UI.Poker
 		{
 			var entry = EntryOf(selected);
 			if (!entry || !entry.Item || !_module || !_gameMode) return;
-			if (!_module.GetAvailability(_player, entry.Item.Type).IsUsable) return;
+			if (!_module.GetAvailability(_player, entry.Item.Type).IsUsable)
+			{
+				entry.ShakeTooltip();
+				return;
+			}
 
 			// Handed to the bar, which aims it if it needs aiming and sends it; the picker's part is over.
 			var chosen = _chosen;
