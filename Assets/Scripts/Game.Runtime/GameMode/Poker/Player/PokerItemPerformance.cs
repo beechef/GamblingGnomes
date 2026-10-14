@@ -97,6 +97,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		private bool _outcomeKnown;
 		private bool _resolved;
 		private bool _foldLockLifted;
+		private bool _foldLockSeen;
 		private bool _dieThrown;
 		private bool _dieRolled;
 		private bool _hasRewrite;
@@ -235,9 +236,19 @@ namespace Game.Runtime.GameMode.Poker.Player
 		}
 
 		// A fold lock laid after the item was played lifts once the hand moves past it; the hand ending clears it too.
+		// Only a lock this screen has seen can lift: a client hears the item resolve before the table rule it laid
+		// replicates, and reading that gap as the lift dropped the cuffs the moment they closed.
 		public void RefreshFoldLock()
 		{
-			if (!_playing || !_resolved || _foldLockLifted || IsFoldLocked()) return;
+			if (!_playing || !_resolved || _foldLockLifted) return;
+
+			if (IsFoldLocked())
+			{
+				_foldLockSeen = true;
+				return;
+			}
+
+			if (!_foldLockSeen) return;
 
 			_foldLockLifted = true;
 			Run(PokerItemMoment.FoldLockLifted);
@@ -282,6 +293,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			_playing = false;
 			_resolved = false;
 			_foldLockLifted = false;
+			_foldLockSeen = false;
 			_dieThrown = false;
 			_outcomeKnown = false;
 			_dieRolled = false;

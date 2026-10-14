@@ -36,6 +36,9 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 		[Tooltip("Seconds the eye stays shut after the change lands. Never shorter than Effect Ease, so the eye cannot open on an effect still moving.")]
 		[SerializeField, Min(0f)] private float _hold = 0.8f;
 
+		[Tooltip("Seconds after the shut frame's time before the rungs land: the video draws a frame or two behind the clock, and a change landing on the clock's shut frame is seen through lids still closing.")]
+		[SerializeField, Min(0f)] private float _applyLag = 0.15f;
+
 		[Header("Effects")]
 		[Tooltip("Seconds every effect takes to ease in or out: heads growing, a room or screen effect fading.")]
 		[SerializeField, Min(0f)] private float _effectEase = 0.7f;
@@ -58,7 +61,10 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 
 		public float CloseDuration => ShutTime / Speed;
 
-		public float HoldDuration => HasBlink ? Mathf.Max(_hold, _effectEase) : 0f;
+		public float ApplyLag => HasBlink ? _applyLag : 0f;
+
+		// Covers the lag as well, so the eye still cannot open on an effect still moving.
+		public float HoldDuration => HasBlink ? Mathf.Max(_hold, _effectEase + _applyLag) : 0f;
 
 		public float OpenDuration => HasBlink ? ((float)_blinkVideo.length - ReopenTime) / Speed : 0f;
 
