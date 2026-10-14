@@ -2,10 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using DG.Tweening;
-using Game.Runtime.UI.Progress;
+using Game.Runtime.UI.Motion;
 using Game.Runtime.Utility;
 using Sirenix.OdinInspector;
-using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -21,11 +20,8 @@ namespace Game.Runtime.UI.Loading
 		[Required]
 		[SerializeField] private CanvasGroup _group;
 
-		[Required]
-		[SerializeField] private UIProgressBar _bar;
-
 		[Tooltip("Optional. Left empty, the screen keeps whatever the prefab says.")]
-		[SerializeField] private TextMeshProUGUI _titleLabel;
+		[SerializeField] private UIEllipsisMotion _titleLabel;
 
 		[Required]
 		[Tooltip("Switched off while the screen is down. A child, never this object: whatever drives the screen sits here too, and a component on a disabled GameObject stops listening.")]
@@ -41,7 +37,7 @@ namespace Game.Runtime.UI.Loading
 		[SerializeField] private Ease _ease = Ease.OutQuad;
 
 		[Header("Minimum Time")]
-		[Tooltip("The shortest the screen stays up, however quickly the wait it covers turns out to end. A screen that flashes past reads as a glitch rather than as loading.")]
+		[Tooltip("Seconds the screen stays up at least: a wait that ends sooner holds the screen until this has passed. A screen that flashes past reads as a glitch rather than as loading.")]
 		[MinValue(0f)]
 		[SerializeField] private float _minimumShownDuration = 1f;
 
@@ -64,7 +60,6 @@ namespace Game.Runtime.UI.Loading
 		private void Reset()
 		{
 			_group = GetComponent<CanvasGroup>();
-			_bar = GetComponentInChildren<UIProgressBar>(true);
 			_content = transform.childCount > 0 ? transform.GetChild(0).gameObject : null;
 		}
 
@@ -86,30 +81,18 @@ namespace Game.Runtime.UI.Loading
 
 		public void Show(string title = null, bool instant = false)
 		{
-			if (_titleLabel && !string.IsNullOrEmpty(title)) _titleLabel.text = title;
+			if (_titleLabel && !string.IsNullOrEmpty(title)) _titleLabel.SetText(title);
 
 			CancelHold();
 
 			// The clock starts on the first Show and keeps running across the ones after it: the minimum
 			// covers the whole time the player is looking at the screen, not each phase that renames it.
-			if (!IsShown)
-			{
-				_shownAt = Time.unscaledTime;
-
-				// Reset before it is seen: a bar left at the end of the last wait reads as a load that
-				// finished the moment it started.
-				if (_bar) _bar.SetProgress(0f, true);
-			}
+			if (!IsShown) _shownAt = Time.unscaledTime;
 
 			IsShown = true;
 			ApplyShown(true, instant);
 
 			SuppressInput();
-		}
-
-		public void SetProgress(float value, bool instant = false)
-		{
-			if (_bar) _bar.SetProgress(value, instant);
 		}
 
 		public void Hide(bool instant = false)
@@ -122,10 +105,6 @@ namespace Game.Runtime.UI.Loading
 				ApplyHidden(instant);
 				return;
 			}
-
-			// The bar spends the hold arriving rather than sitting full — a finished bar waiting to
-			// disappear reads as a stall, which is the opposite of what the hold is there for.
-			if (_bar) _bar.SetProgress(1f, remaining);
 
 			HoldThenHide(remaining).LogExceptionsAndForget();
 		}

@@ -1,5 +1,3 @@
-using System;
-using System.Threading;
 using Game.Runtime.Controller;
 using Localization;
 using Sirenix.OdinInspector;
@@ -18,12 +16,7 @@ namespace Game.Runtime.UI.Loading
 		[Required]
 		[SerializeField] private UILoadingScreen _screen;
 
-		[Tooltip("How far the bar has come by the time the scene itself starts loading — the wait before that has no number to report.")]
-		[Range(0f, 1f)]
-		[SerializeField] private float _connectingProgress = 0.2f;
-
 		private NetworkSceneManager _sceneManager;
-		private CancellationTokenSource _sceneLoad;
 
 		// Subscribed from Start, not OnEnable: the network service wakes in the same scene as this screen in
 		// no guaranteed order, and an OnEnable that reads a null Instance subscribes to nothing and never
@@ -62,18 +55,14 @@ namespace Game.Runtime.UI.Loading
 			if (NetworkManager.Singleton) NetworkManager.Singleton.OnClientStarted -= BindSceneManager;
 
 			UnbindSceneManager();
-			CancelSceneLoad();
 		}
 
-		// The click itself, before Steam has been asked. Nothing here has a number to report yet — the bar
-		// starts from empty and only moves once the answer comes back.
+		// The click itself, before Steam has been asked.
 		private void HandleConnectStarted() => _screen.Show(Localizer.Get(LocalizationKeys.Loading.Connecting));
 
 		private void HandleConnected()
 		{
 			_screen.Show(Localizer.Get(LocalizationKeys.Loading.Connecting));
-			_screen.SetProgress(_connectingProgress);
-
 			BindSceneManager();
 		}
 
@@ -88,8 +77,6 @@ namespace Game.Runtime.UI.Loading
 			// The session that owned it is gone, so the subscription goes with it rather than sitting on a
 			// scene manager the next host will replace.
 			UnbindSceneManager();
-			CancelSceneLoad();
-
 			_screen.Hide();
 		}
 
@@ -129,62 +116,20 @@ namespace Game.Runtime.UI.Loading
 			if (clientId != NetworkManager.Singleton.LocalClientId) return;
 
 			_screen.Show(Localizer.Get(LocalizationKeys.Loading.Scene));
-			ReportProgress(operation).LogExceptionsAndForget();
 		}
 
 		private void HandleSceneLoadFinished(ulong clientId, string sceneName, LoadSceneMode mode)
 		{
 			if (clientId != NetworkManager.Singleton.LocalClientId) return;
 
-			FinishLoading();
+			_screen.Hide();
 		}
 
 		private void HandleSynchronizeComplete(ulong clientId)
 		{
 			if (clientId != NetworkManager.Singleton.LocalClientId) return;
 
-			FinishLoading();
-		}
-
-		private void FinishLoading()
-		{
-			CancelSceneLoad();
-
-			_screen.SetProgress(1f);
 			_screen.Hide();
-		}
-
-		// Watched frame by frame because that is the only shape Unity offers for a load in flight; the
-		// wait ends the moment the operation does, and cancels with the screen if the player leaves first.
-		private async Awaitable ReportProgress(AsyncOperation operation)
-		{
-			CancelSceneLoad();
-			_sceneLoad = CancellationTokenSource.CreateLinkedTokenSource(destroyCancellationToken);
-
-			var token = _sceneLoad.Token;
-
-			try
-			{
-				while (operation != null && !operation.isDone)
-				{
-					// Unity reports 0..0.9 while loading and only reaches 1 once activation happens.
-					_screen.SetProgress(Mathf.Lerp(_connectingProgress, 1f, operation.progress / 0.9f), true);
-
-					await Awaitable.NextFrameAsync(token);
-				}
-			}
-			catch (OperationCanceledException)
-			{
-			}
-		}
-
-		private void CancelSceneLoad()
-		{
-			if (_sceneLoad == null) return;
-
-			_sceneLoad.Cancel();
-			_sceneLoad.Dispose();
-			_sceneLoad = null;
 		}
 	}
 }
