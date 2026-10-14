@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using DG.Tweening;
+using Game.Runtime.Audio;
 using Game.Runtime.GameMode.Poker.Items;
 using Game.Runtime.GameMode.Poker.Visual;
 using Game.Runtime.Player;
@@ -87,6 +88,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 		private readonly List<GameObject> _effects = new();
 		private Tween _moveTween;
 		private Tween _scaleTween;
+		private AudioHandle _sound;
 		private Transform _cardOrigin;
 		private int _useStreetSerial;
 		private bool _playing;
@@ -247,6 +249,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			_tweens.Clear();
 			_moveTween?.Kill();
 			_scaleTween?.Kill();
+			StopSound();
 
 			var deck = PokerDeckVisual.Instance;
 			if (_cardOrigin && deck) deck.ClearItemDrawOrigin(_cardOrigin);
@@ -363,11 +366,24 @@ namespace Game.Runtime.GameMode.Poker.Player
 				case PokerItemPropAction.Finish:
 					Stop();
 					break;
+				case PokerItemPropAction.StartSound:
+					StopSound();
+					if (action.Sound && AudioManager.Instance) _sound = AudioManager.Instance.Play(action.Sound, prop);
+					break;
+				case PokerItemPropAction.StopSound:
+					StopSound();
+					break;
 				case PokerItemPropAction.AimHandAtTarget:
 					var target = PokerPlayer.Find(_targetClientId);
 					if (_handIk && target && target.Rig) _handIk.Aim(target.Rig.FocusPoint);
 					break;
 			}
+		}
+
+		private void StopSound()
+		{
+			if (AudioManager.Instance) AudioManager.Instance.Stop(_sound);
+			_sound = default;
 		}
 
 		// On the drawn rig's bone the prop was authored on (the hand-only rig on its owner's screen), at its pose there.

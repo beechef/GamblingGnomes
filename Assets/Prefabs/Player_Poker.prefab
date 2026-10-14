@@ -447,6 +447,7 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
+    Sound: {fileID: 0}
   - Label: Appears in the hand
     When: 1
     Cue: ItemGrab
@@ -464,6 +465,7 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
+    Sound: {fileID: 0}
   - Label: Throw
     When: 1
     Cue: ItemRelease
@@ -481,6 +483,7 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
+    Sound: {fileID: 0}
   - Label: Back in the hand
     When: 2
     Cue: 
@@ -498,6 +501,7 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
+    Sound: {fileID: 0}
   - Label: Gone
     When: 2
     Cue: 
@@ -515,6 +519,7 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
+    Sound: {fileID: 0}
   - Label: Done
     When: 2
     Cue: 
@@ -532,6 +537,7 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
+    Sound: {fileID: 0}
   _cueTimeout: 6
 --- !u!1 &1863945868604418551
 GameObject:
@@ -979,6 +985,7 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
+    Sound: {fileID: 0}
   - Label: Appears in the hand
     When: 1
     Cue: ItemGrab
@@ -996,6 +1003,7 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
+    Sound: {fileID: 0}
   - Label: Light up
     When: 1
     Cue: ItemUse
@@ -1013,6 +1021,7 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
+    Sound: {fileID: 0}
   - Label: Thrown away
     When: 1
     Cue: ItemRelease
@@ -1030,6 +1039,7 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
+    Sound: {fileID: 0}
   - Label: Gone
     When: 1
     Cue: ItemRelease
@@ -1047,6 +1057,7 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
+    Sound: {fileID: 0}
   - Label: Done
     When: 1
     Cue: ItemRelease
@@ -1064,6 +1075,7 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
+    Sound: {fileID: 0}
   _cueTimeout: 6
 --- !u!1 &2955366683832157649
 GameObject:
@@ -1182,6 +1194,7 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
+    Sound: {fileID: 0}
   - Label: Appears in the hand
     When: 1
     Cue: ItemGrab
@@ -1199,6 +1212,7 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
+    Sound: {fileID: 0}
   - Label: Lock
     When: 1
     Cue: ItemUse
@@ -1216,6 +1230,7 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
+    Sound: {fileID: 0}
   - Label: Left on the left wrist
     When: 1
     Cue: ItemRelease
@@ -1233,79 +1248,12 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
-  - Label: Back on the right hand
-    When: 4
-    Cue: 
-    Outcome: 0
-    Delay: 0
-    Do: 2
-    Anchor: 0
-    Offset: {x: 0, y: 0, z: 0}
-    Rotation: {x: 0, y: 0, z: 0}
-    Arc: 0
-    Duration: 0
-    Ease: 0
-    State: 
-    Gesture: 
-    Effect: {fileID: 0}
-    EffectPoint: {fileID: 0}
-    EffectLifetime: 0
-  - Label: Pop open
-    When: 4
-    Cue: 
-    Outcome: 0
-    Delay: 0
-    Do: 6
-    Anchor: 0
-    Offset: {x: 0, y: 0, z: 0}
-    Rotation: {x: 0, y: 0, z: 0}
-    Arc: 0
-    Duration: 0
-    Ease: 0
-    State: Open
-    Gesture: 
-    Effect: {fileID: 0}
-    EffectPoint: {fileID: 0}
-    EffectLifetime: 0
-  - Label: Jolt
-    When: 4
-    Cue: 
-    Outcome: 0
-    Delay: 0
-    Do: 8
-    Anchor: 0
-    Offset: {x: 0, y: 0, z: 0}
-    Rotation: {x: 0, y: 0, z: 0}
-    Arc: 0
-    Duration: 0
-    Ease: 0
-    State: 
-    Gesture: ItemCuffsBreak
-    Effect: {fileID: 0}
-    EffectPoint: {fileID: 0}
-    EffectLifetime: 0
-  - Label: Fall
-    When: 4
-    Cue: 
-    Outcome: 0
-    Delay: 0.5
-    Do: 5
-    Anchor: 9
-    Offset: {x: 0.15, y: 0.05, z: 0.2}
-    Rotation: {x: 0, y: 0, z: 0}
-    Arc: 0
-    Duration: 0.6
-    Ease: 0
-    State: 
-    Gesture: 
-    Effect: {fileID: 0}
-    EffectPoint: {fileID: 0}
-    EffectLifetime: 0
+    Sound: {fileID: 0}
   - Label: Gone
     When: 4
     Cue: 
     Outcome: 0
-    Delay: 1.1
+    Delay: 0
     Do: 1
     Anchor: 0
     Offset: {x: 0, y: 0, z: 0}
@@ -1318,11 +1266,12 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
+    Sound: {fileID: 0}
   - Label: Done
     When: 4
     Cue: 
     Outcome: 0
-    Delay: 1.45
+    Delay: 0.35
     Do: 12
     Anchor: 0
     Offset: {x: 0, y: 0, z: 0}
@@ -1335,6 +1284,7 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
+    Sound: {fileID: 0}
   _cueTimeout: 6
 --- !u!1 &3039617776115397076
 GameObject:
@@ -1409,6 +1359,7 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
+    Sound: {fileID: 0}
   - Label: Appears in the hand
     When: 1
     Cue: ItemGrab
@@ -1426,6 +1377,7 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
+    Sound: {fileID: 0}
   - Label: Inject
     When: 1
     Cue: ItemGrab
@@ -1443,6 +1395,7 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
+    Sound: {fileID: 0}
   - Label: Thrown away
     When: 1
     Cue: ItemRelease
@@ -1460,6 +1413,7 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
+    Sound: {fileID: 0}
   - Label: Gone
     When: 1
     Cue: ItemRelease
@@ -1477,6 +1431,7 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
+    Sound: {fileID: 0}
   - Label: Done
     When: 1
     Cue: ItemRelease
@@ -1494,6 +1449,7 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
+    Sound: {fileID: 0}
   _cueTimeout: 6
 --- !u!1 &3541410777383517755
 GameObject:
@@ -1568,6 +1524,7 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
+    Sound: {fileID: 0}
   - Label: Appears in the hand
     When: 1
     Cue: ItemGrab
@@ -1585,6 +1542,7 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
+    Sound: {fileID: 0}
   - Label: Put away
     When: 1
     Cue: ItemPutAway
@@ -1602,6 +1560,7 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
+    Sound: {fileID: 0}
   - Label: Done
     When: 1
     Cue: ItemPutAway
@@ -1619,6 +1578,7 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
+    Sound: {fileID: 0}
   _cueTimeout: 6
 --- !u!1 &3911585905989661448
 GameObject:
@@ -1742,6 +1702,7 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
+    Sound: {fileID: 0}
   - Label: Appears in the hand
     When: 1
     Cue: ItemGrab
@@ -1759,6 +1720,7 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
+    Sound: {fileID: 0}
   - Label: Thrown away
     When: 1
     Cue: ItemRelease
@@ -1776,6 +1738,7 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
+    Sound: {fileID: 0}
   - Label: Gone
     When: 1
     Cue: ItemRelease
@@ -1793,6 +1756,7 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
+    Sound: {fileID: 0}
   - Label: Done
     When: 1
     Cue: ItemRelease
@@ -1810,6 +1774,7 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
+    Sound: {fileID: 0}
   _cueTimeout: 6
 --- !u!1 &4361738276177124825
 GameObject:
@@ -2085,6 +2050,7 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
+    Sound: {fileID: 0}
   - Label: Appears in the hand
     When: 1
     Cue: ItemGrab
@@ -2102,6 +2068,7 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
+    Sound: {fileID: 0}
   - Label: Put away
     When: 1
     Cue: ItemPutAway
@@ -2119,6 +2086,7 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
+    Sound: {fileID: 0}
   - Label: Done
     When: 1
     Cue: ItemPutAway
@@ -2136,6 +2104,7 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
+    Sound: {fileID: 0}
   _cueTimeout: 6
 --- !u!1 &5025441949699639480
 GameObject:
@@ -2322,6 +2291,7 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
+    Sound: {fileID: 0}
   - Label: Appears in the hand
     When: 1
     Cue: ItemGrab
@@ -2339,6 +2309,7 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
+    Sound: {fileID: 0}
   - Label: Snapped onto the table
     When: 1
     Cue: ItemRelease
@@ -2356,11 +2327,12 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
-  - Label: Plays on the table
+    Sound: {fileID: 0}
+  - Label: Cranks while the card rolls
     When: 5
     Cue: 
     Outcome: 0
-    Delay: 2.5
+    Delay: 0
     Do: 6
     Anchor: 0
     Offset: {x: 0, y: 0, z: 0}
@@ -2368,16 +2340,17 @@ MonoBehaviour:
     Arc: 0
     Duration: 0
     Ease: 0
-    State: Play
+    State: Crank
     Gesture: 
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
-  - Label: Confetti
-    When: 2
+    Sound: {fileID: 0}
+  - Label: Confetti on a Joker
+    When: 3
     Cue: 
-    Outcome: 0
-    Delay: 0
+    Outcome: 1
+    Delay: 0.2
     Do: 9
     Anchor: 0
     Offset: {x: 0, y: 0, z: 0}
@@ -2390,6 +2363,7 @@ MonoBehaviour:
     Effect: {fileID: 7456413491343271369, guid: 8d147ab522008eb49ade0e3440a6eca9, type: 3}
     EffectPoint: {fileID: 0}
     EffectLifetime: 2
+    Sound: {fileID: 0}
   - Label: Gone
     When: 2
     Cue: 
@@ -2407,6 +2381,7 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
+    Sound: {fileID: 0}
   - Label: Done
     When: 2
     Cue: 
@@ -2424,6 +2399,115 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
+    Sound: {fileID: 0}
+  - Label: Pops out on a Joker
+    When: 3
+    Cue: 
+    Outcome: 1
+    Delay: 0
+    Do: 6
+    Anchor: 0
+    Offset: {x: 0, y: 0, z: 0}
+    Rotation: {x: 0, y: 0, z: 0}
+    Arc: 0
+    Duration: 0
+    Ease: 0
+    State: Pop
+    Gesture: 
+    Effect: {fileID: 0}
+    EffectPoint: {fileID: 0}
+    EffectLifetime: 0
+    Sound: {fileID: 0}
+  - Label: Stops cranking on a miss
+    When: 3
+    Cue: 
+    Outcome: 0
+    Delay: 0
+    Do: 6
+    Anchor: 0
+    Offset: {x: 0, y: 0, z: 0}
+    Rotation: {x: 0, y: 0, z: 0}
+    Arc: 0
+    Duration: 0
+    Ease: 0
+    State: Idle
+    Gesture: 
+    Effect: {fileID: 0}
+    EffectPoint: {fileID: 0}
+    EffectLifetime: 0
+    Sound: {fileID: 0}
+  - Label: Roll sound while cranking
+    When: 5
+    Cue: 
+    Outcome: 0
+    Delay: 0
+    Do: 14
+    Anchor: 0
+    Offset: {x: 0, y: 0, z: 0}
+    Rotation: {x: 0, y: 0, z: 0}
+    Arc: 0
+    Duration: 0
+    Ease: 0
+    State: 
+    Gesture: 
+    Effect: {fileID: 0}
+    EffectPoint: {fileID: 0}
+    EffectLifetime: 0
+    Sound: {fileID: 11400000, guid: e8c96b34bb54e87aad9942252a96eab5, type: 2}
+  - Label: Roll sound ends on a Joker
+    When: 3
+    Cue: 
+    Outcome: 1
+    Delay: 0
+    Do: 15
+    Anchor: 0
+    Offset: {x: 0, y: 0, z: 0}
+    Rotation: {x: 0, y: 0, z: 0}
+    Arc: 0
+    Duration: 0
+    Ease: 0
+    State: 
+    Gesture: 
+    Effect: {fileID: 0}
+    EffectPoint: {fileID: 0}
+    EffectLifetime: 0
+    Sound: {fileID: 0}
+  - Label: Roll sound ends on a miss
+    When: 3
+    Cue: 
+    Outcome: 0
+    Delay: 0
+    Do: 15
+    Anchor: 0
+    Offset: {x: 0, y: 0, z: 0}
+    Rotation: {x: 0, y: 0, z: 0}
+    Arc: 0
+    Duration: 0
+    Ease: 0
+    State: 
+    Gesture: 
+    Effect: {fileID: 0}
+    EffectPoint: {fileID: 0}
+    EffectLifetime: 0
+    Sound: {fileID: 0}
+  - Label: Roll sound ends
+    When: 2
+    Cue: 
+    Outcome: 0
+    Delay: 0
+    Do: 15
+    Anchor: 0
+    Offset: {x: 0, y: 0, z: 0}
+    Rotation: {x: 0, y: 0, z: 0}
+    Arc: 0
+    Duration: 0
+    Ease: 0
+    State: 
+    Gesture: 
+    Effect: {fileID: 0}
+    EffectPoint: {fileID: 0}
+    EffectLifetime: 0
+    Sound: {fileID: 0}
   _cueTimeout: 6
 --- !u!1 &5347883484298159708
 GameObject:
@@ -2687,6 +2771,7 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
+    Sound: {fileID: 0}
   - Label: From the mouth
     When: 1
     Cue: ItemUse
@@ -2704,6 +2789,7 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
+    Sound: {fileID: 0}
   - Label: Switched on (pours its stream)
     When: 1
     Cue: ItemUse
@@ -2721,6 +2807,7 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
+    Sound: {fileID: 0}
   - Label: Vomit gone
     When: 1
     Cue: ItemVanish
@@ -2738,6 +2825,7 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
+    Sound: {fileID: 0}
   - Label: Done
     When: 1
     Cue: ItemEnd
@@ -2755,6 +2843,7 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
+    Sound: {fileID: 0}
   _cueTimeout: 6
 --- !u!1 &6181049551853364098
 GameObject:
@@ -2829,6 +2918,7 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
+    Sound: {fileID: 0}
   - Label: Smells nice
     When: 3
     Cue: 
@@ -2846,6 +2936,7 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
+    Sound: {fileID: 0}
   - Label: Hearts
     When: 3
     Cue: 
@@ -2863,6 +2954,7 @@ MonoBehaviour:
     Effect: {fileID: 2382685537185476422, guid: 69d1f485224b1a840b9979ea4a3f30dc, type: 3}
     EffectPoint: {fileID: 0}
     EffectLifetime: 2
+    Sound: {fileID: 0}
   - Label: Stinks
     When: 3
     Cue: 
@@ -2880,6 +2972,7 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
+    Sound: {fileID: 0}
   - Label: Stink
     When: 3
     Cue: 
@@ -2897,6 +2990,7 @@ MonoBehaviour:
     Effect: {fileID: 8181316736752781129, guid: 3aa7aff27bdd76b43be019a54ec03ad6, type: 3}
     EffectPoint: {fileID: 0}
     EffectLifetime: 2
+    Sound: {fileID: 0}
   - Label: Thrown away
     When: 1
     Cue: ItemRelease
@@ -2914,6 +3008,7 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
+    Sound: {fileID: 0}
   - Label: Gone
     When: 1
     Cue: ItemRelease
@@ -2931,6 +3026,7 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
+    Sound: {fileID: 0}
   - Label: Done
     When: 1
     Cue: ItemRelease
@@ -2948,6 +3044,7 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
+    Sound: {fileID: 0}
   _cueTimeout: 6
 --- !u!1 &6630962242348187626
 GameObject:
@@ -3246,6 +3343,7 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
+    Sound: {fileID: 0}
   - Label: Appears in the hand
     When: 1
     Cue: ItemGrab
@@ -3263,6 +3361,7 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
+    Sound: {fileID: 0}
   - Label: Put away
     When: 1
     Cue: ItemPutAway
@@ -3280,6 +3379,7 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
+    Sound: {fileID: 0}
   - Label: Done
     When: 1
     Cue: ItemPutAway
@@ -3297,6 +3397,7 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
+    Sound: {fileID: 0}
   - Label: Point at the target
     When: 0
     Cue: 
@@ -3314,6 +3415,7 @@ MonoBehaviour:
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
+    Sound: {fileID: 0}
   _cueTimeout: 6
 --- !u!1 &7376730151611200368
 GameObject:
