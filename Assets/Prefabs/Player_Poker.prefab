@@ -2346,10 +2346,10 @@ MonoBehaviour:
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
     Sound: {fileID: 0}
-  - Label: Confetti on a Joker
-    When: 3
+  - Label: Confetti
+    When: 2
     Cue: 
-    Outcome: 1
+    Outcome: 0
     Delay: 0.2
     Do: 9
     Anchor: 0
@@ -2400,26 +2400,8 @@ MonoBehaviour:
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
     Sound: {fileID: 0}
-  - Label: Pops out on a Joker
-    When: 3
-    Cue: 
-    Outcome: 1
-    Delay: 0
-    Do: 6
-    Anchor: 0
-    Offset: {x: 0, y: 0, z: 0}
-    Rotation: {x: 0, y: 0, z: 0}
-    Arc: 0
-    Duration: 0
-    Ease: 0
-    State: Pop
-    Gesture: 
-    Effect: {fileID: 0}
-    EffectPoint: {fileID: 0}
-    EffectLifetime: 0
-    Sound: {fileID: 0}
-  - Label: Stops cranking on a miss
-    When: 3
+  - Label: Pops out as the roll ends
+    When: 2
     Cue: 
     Outcome: 0
     Delay: 0
@@ -2430,7 +2412,7 @@ MonoBehaviour:
     Arc: 0
     Duration: 0
     Ease: 0
-    State: Idle
+    State: Pop
     Gesture: 
     Effect: {fileID: 0}
     EffectPoint: {fileID: 0}
@@ -2454,42 +2436,6 @@ MonoBehaviour:
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
     Sound: {fileID: 11400000, guid: e8c96b34bb54e87aad9942252a96eab5, type: 2}
-  - Label: Roll sound ends on a Joker
-    When: 3
-    Cue: 
-    Outcome: 1
-    Delay: 0
-    Do: 15
-    Anchor: 0
-    Offset: {x: 0, y: 0, z: 0}
-    Rotation: {x: 0, y: 0, z: 0}
-    Arc: 0
-    Duration: 0
-    Ease: 0
-    State: 
-    Gesture: 
-    Effect: {fileID: 0}
-    EffectPoint: {fileID: 0}
-    EffectLifetime: 0
-    Sound: {fileID: 0}
-  - Label: Roll sound ends on a miss
-    When: 3
-    Cue: 
-    Outcome: 0
-    Delay: 0
-    Do: 15
-    Anchor: 0
-    Offset: {x: 0, y: 0, z: 0}
-    Rotation: {x: 0, y: 0, z: 0}
-    Arc: 0
-    Duration: 0
-    Ease: 0
-    State: 
-    Gesture: 
-    Effect: {fileID: 0}
-    EffectPoint: {fileID: 0}
-    EffectLifetime: 0
-    Sound: {fileID: 0}
   - Label: Roll sound ends
     When: 2
     Cue: 

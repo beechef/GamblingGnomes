@@ -1,17 +1,22 @@
 using System.Collections.Generic;
 using Localization;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace Game.Runtime.GameMode.Poker.Items
 {
-	// See one board card the streets have not turned yet, for the street it is played on only (it turns back
-	// down when that street ends), at the price of not folding on that street. Only the user sees it; the table hears that a board card was looked at.
+	// See one board card the streets have not turned yet, for _knownStreets streets starting with the one it is
+	// played on (it turns back down after), at the price of not folding on that street. Only the user sees it; the table hears that a board card was looked at.
 	[CreateAssetMenu(fileName = "PokerItem_PeekBoard", menuName = "Game/Poker/Items/Peek Board")]
 	public class PokerItemPeekBoard : PokerItem
 	{
 		[Header("Peek")]
 		[Tooltip("Chosen: the user points at the board card. Random: the table draws one of the face-down cards. LastFaceDown: the last card the streets will turn, the river.")]
 		[SerializeField] private PokerBoardPeekSlot _slotChoice = PokerBoardPeekSlot.Chosen;
+
+		[Tooltip("Streets the card stays seen, starting with the one the item is played on. 0: the rest of the hand.")]
+		[MinValue(0)]
+		[SerializeField] private int _knownStreets = 1;
 
 		protected override void OnCollectTargetSteps(List<PokerItemTargetKind> steps)
 		{
@@ -60,7 +65,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 
 			if (slot < 0 || !AcceptsBoardCard(context, slot)) return;
 
-			context.User.ItemKnowledge.ServerLearn(PokerGameData.NoTurn, slot, context.Data.CommunityCards[slot]);
+			context.User.ItemKnowledge.ServerLearn(PokerGameData.NoTurn, slot, context.Data.CommunityCards[slot], context.Module.KnownUntil(_knownStreets));
 
 			var module = context.Module;
 			module.ServerAddRule(PokerItemTableRuleKind.NoFoldSelf, module.StreetSerial.Value, 0, context.User.ClientId);
