@@ -93,81 +93,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 5944981265102789590}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1 &543860371170516195
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 4223687689234643287}
-  - component: {fileID: 2422552566501442221}
-  - component: {fileID: 1017933551037018745}
-  m_Layer: 0
-  m_Name: SpeakingIcon
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 0
---- !u!224 &4223687689234643287
-RectTransform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 543860371170516195}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 9200009390737698923}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 37, y: 32}
-  m_Pivot: {x: 1, y: 0.5}
---- !u!222 &2422552566501442221
-CanvasRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 543860371170516195}
-  m_CullTransparentMesh: 1
---- !u!114 &1017933551037018745
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 543860371170516195}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fe87c0e1cc204ed48ad3b37840f39efc, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
-  m_Material: {fileID: 0}
-  m_Color: {r: 0.95, g: 0.78, b: 0.32, a: 1}
-  m_RaycastTarget: 0
-  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
-  m_Maskable: 1
-  m_OnCullStateChanged:
-    m_PersistentCalls:
-      m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: c8772e9c26c78744d86d352b1780a49a, type: 3}
-  m_Type: 0
-  m_PreserveAspect: 1
-  m_FillCenter: 1
-  m_FillMethod: 4
-  m_FillAmount: 1
-  m_FillClockwise: 1
-  m_FillOrigin: 0
-  m_UseSpriteMesh: 0
-  m_PixelsPerUnitMultiplier: 1
 --- !u!1 &731775469798385725
 GameObject:
   m_ObjectHideFlags: 0
@@ -334,7 +259,6 @@ GameObject:
   - component: {fileID: 5361844972122410340}
   - component: {fileID: 8996715273764896689}
   - component: {fileID: 8372505286817105917}
-  - component: {fileID: 5446767500426550913}
   m_Layer: 0
   m_Name: Tag
   m_TagString: Untagged
@@ -428,22 +352,6 @@ MonoBehaviour:
   _hideForOwner: 1
   _enableBillboard: 0
   _highlightColor: {r: 1, g: 1, b: 1, a: 1}
---- !u!114 &5446767500426550913
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2706188752339442693}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: aa3d4d2d42eb15c4cb60fe76fce22743, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.PlayerSpeakingIndicatorVisual
-  _data: {fileID: 3942293894947819376}
-  _speakingIcon: {fileID: 4223687689234643287}
-  _nameLabel: {fileID: 4384528394672060480}
-  _gap: 8
 --- !u!1 &2875323534029960455
 GameObject:
   m_ObjectHideFlags: 0
@@ -579,8 +487,7 @@ RectTransform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children:
-  - {fileID: 4223687689234643287}
+  m_Children: []
   m_Father: {fileID: 143754864431922835}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -5169,11 +5076,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d365255615a44a3fac21dfe811cf74c6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.PlayerVoiceJawVisual
-  _openAxis: {x: 0, y: 0, z: 1}
-  _maxAngle: 25
+  _lowerJawAxis: {x: 0, y: 0, z: -1}
+  _lowerJawAngle: 40
+  _upperJaw: {fileID: 6779747319470900967}
+  _upperJawAxis: {x: 0, y: 0, z: 1}
+  _upperJawAngle: 10
   _quietLevel: 0.05
-  _loudLevel: 0.6
-  _speed: 12
+  _loudLevel: 0.35
+  _minOpen: 0.5
+  _syllableRate: 4
+  _speed: 30
 --- !u!4 &7790043551670116336 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -4902732183977445245, guid: ccae2c9bbf67cf945ae72b5a5898942a, type: 3}
@@ -7045,11 +6957,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d365255615a44a3fac21dfe811cf74c6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.PlayerVoiceJawVisual
-  _openAxis: {x: 0, y: 0, z: 1}
-  _maxAngle: 25
+  _lowerJawAxis: {x: 0, y: 0, z: -1}
+  _lowerJawAngle: 40
+  _upperJaw: {fileID: 5779907057414432645}
+  _upperJawAxis: {x: 0, y: 0, z: 1}
+  _upperJawAngle: 10
   _quietLevel: 0.05
-  _loudLevel: 0.6
-  _speed: 12
+  _loudLevel: 0.35
+  _minOpen: 0.5
+  _syllableRate: 4
+  _speed: 30
 --- !u!4 &7611957704961399758 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3489715716728331743, guid: 39bc1341774026a42bfa10073058dab3, type: 3}
