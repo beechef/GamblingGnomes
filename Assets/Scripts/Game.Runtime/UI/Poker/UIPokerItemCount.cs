@@ -11,8 +11,9 @@ namespace Game.Runtime.UI.Poker
 {
 	// How many item cards this player is holding, written into a label (the Items button's own). Which ones
 	// is shown in the item picker. At a table that deals no items the optional content is switched off.
-	// Cards arriving are counted in one at a time: each floats a "+1" up off the icon, pops the icon and adds
-	// one to the label, however many landed at once. Losing cards (played, a match ending) shows at once.
+	// Cards arriving are counted in one at a time: each floats a "+1" up off the icon and pops the button as if
+	// hovered, and the label adds one once the pop has settled; the next card waits its turn. Losing cards
+	// (played, a match ending) shows at once.
 	public class UIPokerItemCount : UIPokerView
 	{
 		[Tooltip("Optional. Shown only at a table that deals items. A child, so this view keeps listening while it is hidden.")]
@@ -21,8 +22,11 @@ namespace Game.Runtime.UI.Poker
 		[SerializeField] private TMP_Text _countLabel;
 
 		[Header("Gain")]
-		[Tooltip("The icon popped for each card gained, through its own scale visual (which owns its scale).")]
-		[SerializeField] private UIButtonScaleVisual _icon;
+		[Tooltip("Popped as if hovered for each card gained: the button's own scale visual and the icon's.")]
+		[SerializeField] private UIButtonScaleVisual[] _popVisuals;
+
+		[Tooltip("Where each \"+1\" floats up from.")]
+		[SerializeField] private RectTransform _icon;
 
 		[Tooltip("The \"+1\" floated up for each card gained; spawned beside the icon, destroyed when it has faded.")]
 		[SerializeField] private RectTransform _gainPopupPrefab;
@@ -38,14 +42,13 @@ namespace Game.Runtime.UI.Poker
 
 		[SerializeField] private Ease _gainPopupEase = Ease.OutCubic;
 
-		[Tooltip("Seconds between two \"+1\"s when several cards land together.")]
-		[MinValue(0.05f)]
-		[SerializeField] private float _gainInterval = 0.35f;
+		[Tooltip("Seconds the button holds its hovered size on each pop.")]
+		[MinValue(0f)]
+		[SerializeField] private float _popHold = 0.15f;
 
-		[SerializeField] private Vector3 _iconPunch = new(0.35f, 0.35f, 0f);
-
-		[MinValue(0.05f)]
-		[SerializeField] private float _iconPunchDuration = 0.35f;
+		[Tooltip("Seconds after one pop settles before the next card's starts, when several land together.")]
+		[MinValue(0f)]
+		[SerializeField] private float _gainInterval = 0.2f;
 
 		[Tooltip("Played with each \"+1\".")]
 		[SerializeField] private AudioEvent _gainSound;
@@ -101,24 +104,42 @@ namespace Game.Runtime.UI.Poker
 				return;
 			}
 
-			_shownCount++;
-			Refresh();
-			ShowGain();
+			var pop = ShowGain();
 
-			_gainTween = DOVirtual.DelayedCall(_gainInterval, CountInNextGain, true).SetLink(gameObject);
+			_gainTween = DOTween.Sequence()
+				.AppendInterval(pop)
+				.AppendCallback(CountInOne)
+				.AppendInterval(_gainInterval)
+				.AppendCallback(CountInNextGain)
+				.SetUpdate(true)
+				.SetLink(gameObject);
 		}
 
-		private void ShowGain()
+		private void CountInOne()
 		{
-			if (!isActiveAndEnabled) return;
+			_shownCount++;
+			Refresh();
+		}
+
+		// Returns how long the pop lasts, so the label waits for it.
+		private float ShowGain()
+		{
+			if (!isActiveAndEnabled) return 0f;
 
 			if (_gainSound && AudioManager.Instance) AudioManager.Instance.PlayOneShot(_gainSound, transform.position);
-			if (_icon) _icon.Punch(_iconPunch, _iconPunchDuration, 6, 0.5f);
-			if (!_gainPopupPrefab || !_icon) return;
 
-			var icon = (RectTransform)_icon.transform;
-			var popup = Instantiate(_gainPopupPrefab, icon.parent, false);
-			var start = (Vector2)icon.localPosition + _gainPopupOffset;
+			var pop = 0f;
+
+			foreach (var visual in _popVisuals)
+			{
+				var tween = visual ? visual.Pop(_popHold) : null;
+				if (tween != null) pop = Mathf.Max(pop, tween.Duration());
+			}
+
+			if (!_gainPopupPrefab || !_icon) return pop;
+
+			var popup = Instantiate(_gainPopupPrefab, _icon.parent, false);
+			var start = (Vector2)_icon.localPosition + _gainPopupOffset;
 			popup.localPosition = start;
 			popup.localScale = Vector3.zero;
 
@@ -133,6 +154,8 @@ namespace Game.Runtime.UI.Poker
 				.OnComplete(() => Destroy(popup.gameObject));
 
 			if (group) sequence.Insert(fadeAt, DOTween.To(() => group.alpha, alpha => group.alpha = alpha, 0f, _gainPopupDuration - fadeAt));
+
+			return pop;
 		}
 
 		private void Refresh()

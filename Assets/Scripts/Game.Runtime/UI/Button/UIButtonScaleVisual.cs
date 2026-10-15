@@ -65,16 +65,22 @@ namespace Game.Runtime.UI.Button
 				.SetLink(gameObject);
 		}
 
-		// A pop for attention (something arrived) from the scale this state rests at; the next state change takes over.
-		public void Punch(Vector3 punch, float duration, int vibrato, float elasticity)
+		// The hover played for attention (something arrived): up to the hovered scale, held, back to where this state rests.
+		public Tween Pop(float hold)
 		{
-			if (!_target || !Button) return;
+			if (!_target || !Button) return null;
 
 			KillTween();
-			_target.localScale = Vector3.one * ScaleFor(Button.State);
-			_tween = _target.DOPunchScale(punch, duration, vibrato, elasticity)
+
+			var rest = Vector3.one * ScaleFor(Button.State);
+			_tween = DOTween.Sequence()
+				.Append(_target.DOScale(Vector3.one * _hoveredScale, _duration).SetEase(_ease))
+				.AppendInterval(hold)
+				.Append(_target.DOScale(rest, _duration).SetEase(Ease.OutQuad))
 				.SetUpdate(true)
 				.SetLink(gameObject);
+
+			return _tween;
 		}
 
 		private float ScaleFor(UIButtonState state) => state switch
