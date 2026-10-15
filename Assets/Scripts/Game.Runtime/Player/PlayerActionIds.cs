@@ -23,6 +23,7 @@ namespace Game.Runtime.Player
 		public const string ItemThrowAway = "ItemThrowAway";
 		public const string ItemSpatulaFlip = "ItemSpatulaFlip";
 		public const string ItemKnifeThreaten = "ItemKnifeThreaten";
+		public const string ItemKnifeThreatenEnd = "ItemKnifeThreatenEnd";
 		public const string ItemVomit = "ItemVomit";
 		public const string ItemPickUpCard = "ItemPickUpCard";
 		public const string ItemSmoke = "ItemSmoke";

@@ -15,28 +15,28 @@ MonoBehaviour:
   _target: {fileID: 11400000, guid: 94616945efa12ae4a9a552b3dbfb9f98, type: 2}
   _visualEffect: {fileID: 8926484042661614526, guid: 4719ef896c6be4646926a7eab341a7be, type: 3}
   _pose: 0
-  _echoInterval: 0.75
-  _echoLifetime: 2.85
-  _motionThreshold: 0.02
-  _driftSpeed: 0.5
+  _echoInterval: 0.2
+  _echoLifetime: 1
+  _motionThreshold: 0.2
+  _driftSpeed: 1
   _tint: {r: 1, g: 1, b: 1, a: 1}
-  _alpha: 0.1
+  _alpha: 0.5
   _alphaOverLife:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
       time: 0
-      value: 1
-      inSlope: 0
-      outSlope: -1
+      value: 0
+      inSlope: 2
+      outSlope: 2
       tangentMode: 0
       weightedMode: 0
       inWeight: 0
       outWeight: 0
     - serializedVersion: 3
       time: 1
-      value: 0
-      inSlope: -1
+      value: 1
+      inSlope: 0
       outSlope: 0
       tangentMode: 0
       weightedMode: 0
