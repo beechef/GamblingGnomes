@@ -65,6 +65,18 @@ namespace Game.Runtime.UI.Button
 				.SetLink(gameObject);
 		}
 
+		// A pop for attention (something arrived) from the scale this state rests at; the next state change takes over.
+		public void Punch(Vector3 punch, float duration, int vibrato, float elasticity)
+		{
+			if (!_target || !Button) return;
+
+			KillTween();
+			_target.localScale = Vector3.one * ScaleFor(Button.State);
+			_tween = _target.DOPunchScale(punch, duration, vibrato, elasticity)
+				.SetUpdate(true)
+				.SetLink(gameObject);
+		}
+
 		private float ScaleFor(UIButtonState state) => state switch
 		{
 			UIButtonState.Hovered or UIButtonState.Selected => _hoveredScale,
