@@ -50,6 +50,10 @@ namespace Game.Runtime.Player
 		[Tooltip("How fast the jaw follows, openness per second; high enough to keep up with the syllables.")]
 		[SerializeField] private float _speed = 30f;
 
+		[Tooltip("Seconds a fully open mouth takes to close once the voice stops, instead of snapping shut.")]
+		[Min(0f)]
+		[SerializeField] private float _closeDuration = 0.3f;
+
 		private PlayerData _data;
 		private VoiceChatManager _voice;
 		private Quaternion _rest;
@@ -84,6 +88,7 @@ namespace Game.Runtime.Player
 		{
 			var voiceId = _data ? _data.VoiceId.Value.ToString() : string.Empty;
 			var target = 0f;
+			var speed = _closeDuration > 0f ? 1f / _closeDuration : float.PositiveInfinity;
 			var level = _voice && _voice.IsSpeaking(voiceId) ? _voice.GetAudioLevel(voiceId) : 0f;
 			// Vivox holds speech on for a moment after the voice stops; the level says when it really has.
 			if (level >= _quietLevel)
@@ -91,9 +96,10 @@ namespace Game.Runtime.Player
 				var loudness = Mathf.Lerp(_minOpen, 1f, Mathf.InverseLerp(_quietLevel, _loudLevel, level));
 				var syllable = Mathf.InverseLerp(0.25f, 0.75f, Mathf.PerlinNoise(Time.time * _syllableRate, _noiseSeed));
 				target = loudness * syllable;
+				speed = _speed;
 			}
 
-			_open = Mathf.MoveTowards(_open, target, _speed * Time.deltaTime);
+			_open = Mathf.MoveTowards(_open, target, speed * Time.deltaTime);
 			if (_open <= 0f) return;
 
 			transform.localRotation *= Quaternion.AngleAxis(_open * _lowerJawAngle, _lowerJawAxis);
