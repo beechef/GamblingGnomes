@@ -1,4 +1,5 @@
 using DG.Tweening;
+using Game.Runtime.Audio;
 using Game.Runtime.GameMode.Poker.Items;
 using Game.Runtime.UI.Button;
 using Localization;
@@ -45,6 +46,9 @@ namespace Game.Runtime.UI.Poker
 
 		[MinValue(0.05f)]
 		[SerializeField] private float _iconPunchDuration = 0.35f;
+
+		[Tooltip("Played with each \"+1\".")]
+		[SerializeField] private AudioEvent _gainSound;
 
 		private int _shownCount;
 		private Tween _gainTween;
@@ -108,6 +112,7 @@ namespace Game.Runtime.UI.Poker
 		{
 			if (!isActiveAndEnabled) return;
 
+			if (_gainSound && AudioManager.Instance) AudioManager.Instance.PlayOneShot(_gainSound, transform.position);
 			if (_icon) _icon.Punch(_iconPunch, _iconPunchDuration, 6, 0.5f);
 			if (!_gainPopupPrefab || !_icon) return;
 

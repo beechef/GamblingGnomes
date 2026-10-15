@@ -18,6 +18,9 @@ namespace Game.Runtime.World
 		[MinValue(0.01f)]
 		[SerializeField] private float _floatPeriod = 4f;
 
+		[Tooltip("Hop instead of float: it rises from its rest position and lands back on it, never sinking below.")]
+		[SerializeField] private bool _bounce;
+
 		[Header("Sway")]
 		[Tooltip("How far it tilts from its rest rotation on each local axis, in degrees. Each axis runs a third of a turn behind the last, so it circles rather than rocks in a line.")]
 		[SerializeField] private Vector3 _swayAmplitude = new(4f, 0f, 4f);
@@ -57,7 +60,7 @@ namespace Game.Runtime.World
 			var time = Time.time;
 
 			var floatAngle = time * Mathf.PI * 2f / _floatPeriod + _phase;
-			var drift = new Vector3(
+			var drift = _bounce ? _floatAmplitude * Mathf.Abs(Mathf.Sin(floatAngle * 0.5f)) : new Vector3(
 				_floatAmplitude.x * Mathf.Sin(floatAngle + ThirdTurn),
 				_floatAmplitude.y * Mathf.Sin(floatAngle),
 				_floatAmplitude.z * Mathf.Sin(floatAngle + ThirdTurn * 2f));
