@@ -96,6 +96,8 @@ namespace Game.Runtime.GameMode.Poker.Player
 		private int _cameraHandle;
 		private bool _outcomeKnown;
 		private bool _resolved;
+		private bool _awaitingAnswer;
+		private bool _answered;
 		private bool _foldLockLifted;
 		private bool _foldLockSeen;
 		private bool _dieThrown;
@@ -185,11 +187,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			if (_die) _die.ShowSecret(!_player.IsOwner);
 			if (_player.ClientId == userClientId) StartCardOrigin();
 
-			foreach (var action in _actions)
-			{
-				if (action.When == PokerItemMoment.Cue && !string.IsNullOrEmpty(action.Cue)) Schedule(_cueTimeout, () => HandleCue(action.Cue));
-			}
-
+			ScheduleCueTimeouts();
 			Run(PokerItemMoment.Played);
 
 			if (outcome != PokerItemUseRequest.NoOutcome)
@@ -204,8 +202,35 @@ namespace Game.Runtime.GameMode.Poker.Player
 			if (!_playing || _resolved || userClientId != _userClientId) return;
 
 			_resolved = true;
+			// A wait too short for this screen to see still ends the threat before the item is done.
+			Answer();
 			Run(PokerItemMoment.Resolved);
 			RefreshFoldLock();
+		}
+
+		// The table waits on the player this item asked, then stops waiting: answered or timed out.
+		public void ReceivePendingResponse(PokerItemResponse response)
+		{
+			if (!_playing || _answered) return;
+
+			if (response.IsPending && response.RequesterClientId == _userClientId && ActsOut(response.Item))
+			{
+				_awaitingAnswer = true;
+				return;
+			}
+
+			if (_awaitingAnswer) Answer();
+		}
+
+		private void Answer()
+		{
+			if (_answered) return;
+
+			_awaitingAnswer = false;
+			_answered = true;
+			Run(PokerItemMoment.Answered);
+			// Cues after the answer are counted from it, not from the play: the wait has no fixed length.
+			ScheduleCueTimeouts();
 		}
 
 		// A chance item's outcome reaches the table as a notice before the item is done.
@@ -292,6 +317,8 @@ namespace Game.Runtime.GameMode.Poker.Player
 			_cardOrigin = null;
 			_playing = false;
 			_resolved = false;
+			_awaitingAnswer = false;
+			_answered = false;
 			_foldLockLifted = false;
 			_foldLockSeen = false;
 			_dieThrown = false;
@@ -306,6 +333,20 @@ namespace Game.Runtime.GameMode.Poker.Player
 			if (!_playing || string.IsNullOrEmpty(cue) || !_heardCues.Add(cue)) return;
 
 			Run(PokerItemMoment.Cue, cue);
+		}
+
+		private void ScheduleCueTimeouts()
+		{
+			foreach (var action in _actions)
+			{
+				if (action.When != PokerItemMoment.Cue || string.IsNullOrEmpty(action.Cue) || _heardCues.Contains(action.Cue)) continue;
+
+				var cue = action.Cue;
+				Schedule(_cueTimeout, () =>
+				{
+					if (!_awaitingAnswer) HandleCue(cue);
+				});
+			}
 		}
 
 		private void Run(PokerItemMoment moment, string cue = null, int outcome = 0)

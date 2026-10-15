@@ -30,6 +30,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 				_module.OnItemUsed += HandleItemUsed;
 				_module.OnItemResolved += HandleItemResolved;
 				_module.OnCardRewriting += HandleCardRewriting;
+				_module.OnPendingResponseChanged += HandlePendingResponseChanged;
 				_module.StreetSerial.OnValueChanged += HandleStreetSerialChanged;
 				_module.TableRules.OnListChanged += HandleTableRulesChanged;
 			}
@@ -47,6 +48,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			{
 				_module.TableRules.OnListChanged -= HandleTableRulesChanged;
 				_module.StreetSerial.OnValueChanged -= HandleStreetSerialChanged;
+				_module.OnPendingResponseChanged -= HandlePendingResponseChanged;
 				_module.OnCardRewriting -= HandleCardRewriting;
 				_module.OnItemResolved -= HandleItemResolved;
 				_module.OnItemUsed -= HandleItemUsed;
@@ -82,6 +84,12 @@ namespace Game.Runtime.GameMode.Poker.Player
 		private void HandleCardRewriting(PokerCardPlace place, PokerCardFlickerFaces faces, CardData card)
 		{
 			foreach (var performance in _performances) performance.ReceiveRewrite(place, card);
+		}
+
+		private void HandlePendingResponseChanged()
+		{
+			var response = _module.PendingResponse.Value;
+			foreach (var performance in _performances) performance.ReceivePendingResponse(response);
 		}
 
 		private void HandleNotice(PokerNotice notice)

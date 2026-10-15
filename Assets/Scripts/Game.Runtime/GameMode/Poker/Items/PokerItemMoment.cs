@@ -19,6 +19,9 @@ namespace Game.Runtime.GameMode.Poker.Items
 		FoldLockLifted = 4,
 
 		// The user's card the item rewrites starts flickering; it settles PokerCardExchangePacing.RewriteDuration later.
-		Rewriting = 5
+		Rewriting = 5,
+
+		// The player the item asked has answered, or their clock ran out (the knife is lowered here).
+		Answered = 6
 	}
 }
