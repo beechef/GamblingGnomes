@@ -61,7 +61,7 @@ paths:
 - **What tells players apart replicates as an index owned by the spawner**: `PlayerData.ColorIndex` → `PlayerColorDatabase`; `PlayerManager` claims the lowest free, frees on disconnect.
 - **Everything about a place at the table is a transform on the chair prefab**: `PokerSeat.CardAnchor`, `BetItemAnchor`; `PokerBetItemPotVisual` places caps by `OwnerClientId`. Measure against the table's `Renderer.bounds`. No plausible fallbacks (`CardAnchor` → `SitAnchor` put cards at the ankles).
 - **`PokerSeat.AheadAnchor` is at seated-eye height (`0.819`, as `Player/FirstPersonCamera`) at ring radius**, no fallback.
-- **Where something goes is a prefab transform, not bone + code offset.** `PokerTurnArrowVisual` only turns; `PokerTableVisual/PokerTurnArrow/Arrow` at local y 0.425 (table top 0.4231 + 2 mm).
+- **Where something goes is a prefab transform, not bone + code offset.** `PokerTurnArrowVisual` only turns and signals (on a new turn holder: pops `_popScale` if the turn left someone else, turns, flashes the `Arrow` sprite's alpha once, then blinks it like an indicator until the next holder); `PokerTableVisual/PokerTurnArrow/Arrow` at local y 0.425 (table top 0.4231 + 2 mm).
 
 ### Betting, pot, eating
 - **Street, Bet, BetItem, PotEntry and Item are five different things**: Street = betting round (`PokerStreetStage`), Bet = act (`PokerActionType.Bet`), BetItem = cap staked and eaten, PotEntry = ledger line, Item = usable card (`docs/items-design.md`). "Wager" retired. Sizes are `*Size` (`_stakeSize`, `_biteSize`), never `_itemsPer*`. `CONTEXT.md`
