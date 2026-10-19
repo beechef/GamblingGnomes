@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using DG.Tweening;
 using Game.Runtime.Utility;
 using Sirenix.OdinInspector;
 using Unity.Netcode;
@@ -46,6 +47,15 @@ namespace Game.Runtime.Player
 		[SerializeField] private Color _idleOutlineColor = new(0f, 0f, 0f, 1f);
 
 		[SerializeField] private float _outlineWidth = 0.02f;
+
+		[Tooltip("What the pass pulses to while this player can be picked: an action is waiting on somebody being chosen. It swings between the idle colour and this, so a white one reads as the stroke's light fading in and out.")]
+		[SerializeField] private Color _promptOutlineColor = Color.white;
+
+		[Tooltip("Seconds from idle to the prompt colour; the pulse comes back the same way.")]
+		[Min(0.01f)]
+		[SerializeField] private float _promptPulseDuration = 0.5f;
+
+		[SerializeField] private Ease _promptPulseEase = Ease.InOutSine;
 
 		private static readonly int OutlineColorId = Shader.PropertyToID("_OutlineColor");
 		private static readonly int OutlineWidthId = Shader.PropertyToID("_OutlineWidth");
@@ -97,6 +107,11 @@ namespace Game.Runtime.Player
 
 		private bool IsOutlined => Outlined.Value || _localOutlined;
 
+		// Pickable on this screen alone, for as long as the local player is choosing someone.
+		private bool _localPrompted;
+		private float _promptWeight;
+		private Tween _promptTween;
+
 		private readonly Dictionary<SkinnedMeshRenderer, Dictionary<string, Transform>> _skeletons = new();
 
 		public PlayerModel Model => _modelOverride ? _modelOverride : _defaultModel;
@@ -135,6 +150,8 @@ namespace Game.Runtime.Player
 		{
 			base.OnDestroy();
 
+			_promptTween?.Kill();
+
 			if (_runtimeOutlineMaterial) Destroy(_runtimeOutlineMaterial);
 		}
 
@@ -157,6 +174,30 @@ namespace Game.Runtime.Player
 
 			_localOutlined = outlined;
 			ApplyOutline(IsOutlined);
+		}
+
+		public void SetLocalPrompted(bool prompted)
+		{
+			if (_localPrompted == prompted) return;
+
+			_localPrompted = prompted;
+			_promptTween?.Kill();
+			_promptTween = null;
+			_promptWeight = 0f;
+
+			if (prompted)
+			{
+				_promptTween = DOTween.To(() => _promptWeight, weight =>
+					{
+						_promptWeight = weight;
+						WriteOutlineColor();
+					}, 1f, _promptPulseDuration)
+					.SetEase(_promptPulseEase)
+					.SetLoops(-1, LoopType.Yoyo)
+					.SetLink(gameObject);
+			}
+
+			WriteOutlineColor();
 		}
 
 		public void ServerSetOutfit(PlayerOutfitId outfit)
@@ -312,9 +353,19 @@ namespace Game.Runtime.Player
 			var outline = ResolveOutlineMaterial();
 			if (!outline) return;
 
-			outline.SetColor(OutlineColorId, outlined ? _outlineColor : _idleOutlineColor);
+			WriteOutlineColor();
 
 			foreach (var slot in _slots) WearOutline(slot.Renderer, outline);
+		}
+
+		// Picked out wins over the pulse: what a click would commit reads as chosen, not as one of the options.
+		private void WriteOutlineColor()
+		{
+			var outline = ResolveOutlineMaterial();
+			if (!outline) return;
+
+			var idle = _localPrompted ? Color.Lerp(_idleOutlineColor, _promptOutlineColor, _promptWeight) : _idleOutlineColor;
+			outline.SetColor(OutlineColorId, IsOutlined ? _outlineColor : idle);
 		}
 
 		private static void WearOutline(Renderer renderer, Material outline)
