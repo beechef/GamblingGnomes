@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using DG.Tweening;
 using Game.Runtime.Audio;
+using Game.Runtime.GameMode.Poker.Hallucination;
 using Game.Runtime.GameMode.Poker.Player;
 using Game.Runtime.GameMode.Poker.Stages;
 using Sirenix.OdinInspector;
@@ -121,6 +122,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			Data.OnCommunityRevealChanged += HandleVisibilityChanged;
 			PokerGameData.OnCommunityVisibilityRulesChanged += HandleVisibilityChanged;
 			PokerPlayer.OnLocalPlayerChanged += HandleLocalPlayerChanged;
+			PokerHallucinationRollController.OnAnyRollStarted += HandleRollStarted;
 
 			BindLocalPlayer(PokerPlayer.Local);
 
@@ -132,7 +134,8 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		{
 			BindLocalPlayer(null);
 
-			PokerPlayer.OnLocalPlayerChanged -= HandleLocalPlayerChanged;
+			PokerHallucinationRollController.OnAnyRollStarted -= HandleRollStarted;
+			PokerPlayer.OnLocalPlayerChanged -=HandleLocalPlayerChanged;
 			PokerGameData.OnCommunityVisibilityRulesChanged -= HandleVisibilityChanged;
 			Data.OnCommunityRevealChanged -= HandleVisibilityChanged;
 			Data.OnCommunityCardsChanged -= HandleCommunityCardsChanged;
@@ -167,6 +170,9 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		{
 			if (sound && AudioManager.Instance) AudioManager.Instance.PlayOneShot(sound, transform.position);
 		}
+
+		// A death roll pulls every eye to the roller, so a board stood up to be read is laid down out of the way.
+		private void HandleRollStarted() => SetStanding(false);
 
 		private void HandleLocalPlayerChanged(PokerPlayer player) => BindLocalPlayer(player);
 

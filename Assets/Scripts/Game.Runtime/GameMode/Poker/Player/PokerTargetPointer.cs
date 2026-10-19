@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Game.Runtime.Controller;
 using Game.Runtime.GameMode.Poker.Visual;
 using Game.Runtime.UI.CursorVisuals;
@@ -45,6 +46,10 @@ namespace Game.Runtime.GameMode.Poker.Player
 		private PokerTarget _hovered;
 		private bool _hasHovered;
 
+		// Everything the asker would take, pulsing until the choice ends. Read once at Begin.
+		private readonly List<PokerPlayer> _promptedPlayers = new();
+		private readonly List<PokerCardVisual> _promptedCards = new();
+
 		private int _cursorHandle;
 		private int _lastPickFrame = -1;
 
@@ -77,6 +82,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 			_query = query;
 			_onPicked = onPicked;
 			SetCursor(query != null ? query.Cursor : (CursorVisualState?)null);
+			PromptTargets();
 		}
 
 		public void End()
@@ -86,6 +92,64 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 			Hover(default, false, null, null);
 			SetCursor(null);
+			ClearPrompts();
+		}
+
+		// ponytail: snapshot at Begin; a card dealt mid-choice does not pulse until the next Begin.
+		private void PromptTargets()
+		{
+			if (_query == null) return;
+
+			foreach (var player in PokerPlayer.All)
+			{
+				if (!player) continue;
+
+				if (_query.AcceptPlayer != null && player.ClientId != OwnerClientId && player.Visual && _query.AcceptPlayer(player))
+				{
+					player.Visual.SetLocalPrompted(true);
+					_promptedPlayers.Add(player);
+				}
+
+				var hand = player.HandVisual;
+				if (_query.AcceptHoleCard == null || !hand) continue;
+
+				foreach (var card in hand.Cards)
+				{
+					var slot = card ? hand.SlotOf(card) : -1;
+					if (slot < 0 || !_query.AcceptHoleCard(player, slot)) continue;
+
+					card.SetPrompted(true);
+					_promptedCards.Add(card);
+				}
+			}
+
+			var board = PokerBoardVisual.Instance;
+			if (_query.AcceptBoardCard == null || !board) return;
+
+			for (var slot = 0; slot < board.Cards.Count; slot++)
+			{
+				var card = board.Cards[slot];
+				if (!card || !_query.AcceptBoardCard(slot)) continue;
+
+				card.SetPrompted(true);
+				_promptedCards.Add(card);
+			}
+		}
+
+		private void ClearPrompts()
+		{
+			foreach (var player in _promptedPlayers)
+			{
+				if (player && player.Visual) player.Visual.SetLocalPrompted(false);
+			}
+
+			foreach (var card in _promptedCards)
+			{
+				if (card) card.SetPrompted(false);
+			}
+
+			_promptedPlayers.Clear();
+			_promptedCards.Clear();
 		}
 
 		// Genuinely continuous: what is under the cursor changes as it moves and as bodies and cards move.
