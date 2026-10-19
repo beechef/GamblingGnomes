@@ -194,7 +194,7 @@ namespace Game.Runtime.Player
 		}
 
 		// Another kind of eyes: the model's mask for them (PlayerModel.EyeMaskFor) painted on its eye submeshes,
-		// whatever the version and outfit.
+		// picked for the version, whatever the outfit.
 		public void SetEyes(PlayerEyeKind eyes)
 		{
 			if (_eyes == eyes) return;
@@ -205,7 +205,7 @@ namespace Game.Runtime.Player
 
 		private void PaintEyes(PlayerModel model, PlayerSlot slot, List<Material> materials)
 		{
-			var mask = model.EyeMaskFor(_eyes);
+			var mask = model.EyeMaskFor(_eyes, _version);
 			if (!mask) return;
 
 			foreach (var eye in model.Eyes)
