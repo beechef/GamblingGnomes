@@ -5,6 +5,7 @@ using Game.Runtime.GameMode.Poker.Items;
 using Game.Runtime.GameMode.Poker.Visual;
 using Game.Runtime.Player;
 using Game.Runtime.Player.Camera;
+using Game.Runtime.Props;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -38,6 +39,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 		[Tooltip("The prop (an instance of a Prefabs/Items prop), switched off, authored where it belongs: on a bone of the full-body rig (POT_attach_R for the hand, Jaw_M for the mouth) at its pose there. It returns there on the rig being drawn; it is lifted under this object on Awake.")]
 		[Required]
 		[SerializeField] private GameObject _prop;
+
+		[Tooltip("Where LeaveCopy sets a copy of the prop: the point holding fewest copies, first in list order on a tie, so copies stack. Children of a bone (Jaw_M for the mouth), posed as the copy should sit.")]
+		[SerializeField] private List<Transform> _copyPoints = new();
 
 		[Tooltip("Where a card the item hands out flies from (when this player is the user).")]
 		[SerializeField] private PokerItemPropCardSource _cardsFrom;
@@ -392,6 +396,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 				case PokerItemPropAction.MoveTo:
 					MoveTo(action);
 					break;
+				case PokerItemPropAction.LeaveCopy:
+					LeaveCopy();
+					break;
 				case PokerItemPropAction.PlayState:
 					if (_propAnimator && _propAnimator.isActiveAndEnabled)
 					{
@@ -431,6 +438,24 @@ namespace Game.Runtime.GameMode.Poker.Player
 					if (_handIk && target && target.Rig) _handIk.Aim(target.Rig.FocusPoint);
 					break;
 			}
+		}
+
+		// Not one of this performance's effects: the copy outlives it and destroys itself once burnt out.
+		private void LeaveCopy()
+		{
+			Transform point = null;
+			foreach (var candidate in _copyPoints)
+			{
+				if (candidate && (!point || candidate.childCount < point.childCount)) point = candidate;
+			}
+
+			if (!point) return;
+
+			var copy = Instantiate(_prop, point, false);
+			copy.transform.SetLocalPositionAndRotation(Vector3.zero, Quaternion.identity);
+			copy.transform.localScale = _restScale;
+			copy.SetActive(true);
+			if (copy.TryGetComponent(out PropBurnOut burnOut)) burnOut.Ignite();
 		}
 
 		private void StopSound()
