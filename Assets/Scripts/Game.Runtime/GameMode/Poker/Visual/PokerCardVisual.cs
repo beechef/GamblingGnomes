@@ -397,7 +397,6 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			_highlighted = highlighted;
 
 			if (_renderer) _renderer.sortingOrder = highlighted ? _hoverSortingOrder : 0;
-			if (_hoverOutlineRenderer) _hoverOutlineRenderer.sortingOrder = _hoverSortingOrder - 1;
 
 			ApplyRim();
 		}
@@ -437,6 +436,9 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		{
 			var shown = _highlighted || _prompted;
 			if (_hoverOutline && _hoverOutline.activeSelf != shown) _hoverOutline.SetActive(shown);
+
+			// Always one under its own card, which draws at 0 unless hovered: above it, the rim covers the face.
+			if (_hoverOutlineRenderer) _hoverOutlineRenderer.sortingOrder = _highlighted ? _hoverSortingOrder - 1 : -1;
 
 			if (_highlighted || !_prompted) WriteRimAlpha(1f);
 		}
