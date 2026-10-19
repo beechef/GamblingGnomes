@@ -47,6 +47,12 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 		// Anything that reacts to the result — a sound, a flash, a word on screen — hangs off this.
 		public event Action<int, bool> OnRollSettled;
 
+		// Any player's roll starting, for the table rather than one player's meter.
+		public static event Action OnAnyRollStarted;
+
+		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+		private static void ResetStatics() => OnAnyRollStarted = null;
+
 		public bool ServerHasQueuedRoll => _queued;
 
 		// How long the table still owes this roll, the hold on the result included.
@@ -136,6 +142,7 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 		private void RollRPC(float leadIn, float sweep, float hold, int roll, bool fatal)
 		{
 			OnRollStarted?.Invoke(leadIn, sweep, hold, roll);
+			OnAnyRollStarted?.Invoke();
 
 			_ = RaiseSettledAfter(leadIn + sweep, roll, fatal);
 		}

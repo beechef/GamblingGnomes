@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using Game.Runtime.GameMode.Poker.Hallucination;
+using Game.Runtime.GameMode.Poker.Player;
 using Game.Runtime.Utility;
 using Sirenix.OdinInspector;
 using UnityEngine;
@@ -20,12 +21,17 @@ namespace Game.Runtime.GameMode.Poker.Stages
 	{
 		private enum Step
 		{
+			Settling,
 			Announcing,
 			Closing,
 			Done
 		}
 
 		[Header("Timing")]
+		[Tooltip("Seconds after the last roll and death still playing out (every player's ServerOutcomeRemaining) before the survivor is announced. Two players going under at once both finish falling first; the margin covers the deaths reaching every screen a little after the server.")]
+		[MinValue(0f)]
+		[SerializeField] private float _settleDuration = 1f;
+
 		[Tooltip("Seconds the survivor is announced before the table blinks.")]
 		[MinValue(0f)]
 		[SerializeField] private float _announceDuration = 4f;
@@ -54,22 +60,29 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		{
 			GameMode.ClearTurn();
 			Data.Showdown.Clear();
-
-			Data.SurvivorClientId.Value = FindSurvivor();
 			Data.MatchResetting.Value = false;
-			Data.Phase.Value = PokerPhase.MatchOver;
 
-			_step = Step.Announcing;
-			_timer = _announceDuration;
+			_step = Step.Settling;
+			_timer = _settleDuration;
 		}
 
 		protected override void OnTickStage(float deltaTime)
 		{
+			// A death still playing out holds the announcement back, however the match was decided.
+			if (_step == Step.Settling && AnyOutcomePlaying()) _timer = _settleDuration;
+
 			_timer -= deltaTime;
 			if (_timer > 0f) return;
 
 			switch (_step)
 			{
+				case Step.Settling:
+					Data.SurvivorClientId.Value = FindSurvivor();
+					Data.Phase.Value = PokerPhase.MatchOver;
+					_step = Step.Announcing;
+					_timer = _announceDuration;
+					break;
+
 				case Step.Announcing:
 					Data.MatchResetting.Value = true;
 					_step = Step.Closing;
@@ -115,6 +128,16 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			PokerTableUtility.ResetPot(Data);
 
 			Data.SurvivorClientId.Value = PokerGameData.NoTurn;
+		}
+
+		private static bool AnyOutcomePlaying()
+		{
+			foreach (var player in PokerPlayer.All)
+			{
+				if (player && player.HallucinationRoll && player.HallucinationRoll.ServerOutcomeRemaining > 0f) return true;
+			}
+
+			return false;
 		}
 
 		private ulong FindSurvivor()

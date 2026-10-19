@@ -106,23 +106,32 @@ namespace Game.Runtime.Player
 		public struct EyeMask
 		{
 			public PlayerEyeKind Eyes;
+			public PlayerLookVersion Version;
 			public Material Material;
 		}
 
-		[Tooltip("One mask per kind of eyes, painted on Eyes in every version. A kind with none takes Default's; no Default keeps the version's own paint.")]
+		[Tooltip("Masks per kind of eyes and version, painted on Eyes. A version with no mask for the kind takes the kind's mask from another version; a kind with none takes Default's; no Default keeps the version's own paint.")]
 		[SerializeField] private List<EyeMask> _eyeMasks = new();
 
-		public Material EyeMaskFor(PlayerEyeKind eyes)
+		public Material EyeMaskFor(PlayerEyeKind eyes, PlayerLookVersion version)
 		{
-			Material fallback = null;
+			Material best = null;
+			var bestScore = 0;
 			foreach (var mask in _eyeMasks)
 			{
 				if (!mask.Material) continue;
-				if (mask.Eyes == eyes) return mask.Material;
-				if (mask.Eyes == PlayerEyeKind.Default) fallback = mask.Material;
+
+				// Kind outranks version: anime eyes on a realistic body stay anime.
+				var score = (mask.Eyes == eyes ? 4 : mask.Eyes == PlayerEyeKind.Default ? 2 : 0);
+				if (score == 0) continue;
+				if (mask.Version == version) score++;
+
+				if (score <= bestScore) continue;
+				best = mask.Material;
+				bestScore = score;
 			}
 
-			return fallback;
+			return best;
 		}
 
 		public IReadOnlyList<SubmeshRef> Eyes => _eyes;
