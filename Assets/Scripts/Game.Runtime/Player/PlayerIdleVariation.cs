@@ -24,6 +24,13 @@ namespace Game.Runtime.Player
 		[Tooltip("Trigger parameter that sends a resting state into its fidget.")]
 		[SerializeField] private string _trigger = "IdleVariation";
 
+		[Tooltip("Int parameter naming which fidget to play; picked at random before each trigger, the same for every rig.")]
+		[SerializeField] private string _variantParameter = "IdleVariant";
+
+		[Tooltip("How many fidgets the variant parameter chooses between: Animator_Gnome's Sit goes to Sit_IdleRandom on 0, Sit_IdleRandom01 on 1, Sit_IdleRandom02 on 2.")]
+		[Min(1)]
+		[SerializeField] private int _variantCount = 3;
+
 		[Tooltip("Base-layer states a fidget may start from.")]
 		[SerializeField] private List<string> _restingStates = new() { "Sit", "Sit_Peek" };
 
@@ -33,11 +40,13 @@ namespace Game.Runtime.Player
 		private readonly List<int> _restingHashes = new();
 
 		private int _triggerHash;
+		private int _variantHash;
 		private CancellationTokenSource _cancellation;
 
 		private void Awake()
 		{
 			_triggerHash = Animator.StringToHash(_trigger);
+			_variantHash = Animator.StringToHash(_variantParameter);
 
 			foreach (var state in _restingStates) _restingHashes.Add(Animator.StringToHash(state));
 		}
@@ -72,12 +81,17 @@ namespace Game.Runtime.Player
 
 		private void Fidget()
 		{
+			var variant = Random.Range(0, _variantCount);
+
 			foreach (var animator in _animators)
 			{
 				if (!animator || !animator.isActiveAndEnabled || animator.IsInTransition(0)) continue;
 
 				var current = animator.GetCurrentAnimatorStateInfo(0).shortNameHash;
-				if (_restingHashes.Contains(current)) animator.SetTrigger(_triggerHash);
+				if (!_restingHashes.Contains(current)) continue;
+
+				animator.SetInteger(_variantHash, variant);
+				animator.SetTrigger(_triggerHash);
 			}
 		}
 	}

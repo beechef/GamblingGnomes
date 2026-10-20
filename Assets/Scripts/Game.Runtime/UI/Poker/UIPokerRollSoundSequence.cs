@@ -2,6 +2,7 @@ using DG.Tweening;
 using Game.Runtime.Audio;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Game.Runtime.UI.Poker
 {
@@ -42,6 +43,10 @@ namespace Game.Runtime.UI.Poker
 		[Header("Stop")]
 		[Tooltip("The skull stopped on a death.")]
 		[SerializeField] private AudioEvent _deathSound;
+
+		[Tooltip("Also played the moment the skull stops on a death.")]
+		[FormerlySerializedAs("_sweepStartSound")]
+		[SerializeField] private AudioEvent _deathStingSound;
 
 		[Tooltip("The skull stopped short of a death.")]
 		[SerializeField] private AudioEvent _survivedSound;
@@ -108,6 +113,7 @@ namespace Game.Runtime.UI.Poker
 
 			var result = fatal ? _deathSound : _survivedSound;
 			if (result) audio.PlayOneShotAttached(result, transform);
+			if (fatal && _deathStingSound) audio.PlayOneShotAttached(_deathStingSound, transform);
 			if (_finishSound) audio.PlayOneShotAttached(_finishSound, transform);
 		}
 

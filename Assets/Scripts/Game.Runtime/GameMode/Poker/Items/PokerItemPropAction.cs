@@ -40,6 +40,10 @@ namespace Game.Runtime.GameMode.Poker.Items
 		// Starts a sound that lasts, from the prop, until StopSound or the performance ends. One at a time.
 		StartSound = 14,
 
-		StopSound = 15
+		StopSound = 15,
+
+		// Leaves a lit copy of the prop on a copy point (a cigarette at the mouth) that stays after the performance
+		// and burns out on its own (PropBurnOut); the prop itself is untouched.
+		LeaveCopy = 16
 	}
 }

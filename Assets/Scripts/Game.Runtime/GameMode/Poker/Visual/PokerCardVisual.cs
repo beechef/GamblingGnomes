@@ -37,7 +37,22 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		[Tooltip("The seen mark at the card's top edge, switched on while the table can see the holder's own card. Under the art, so it lifts, flips and hides with it; its sprites draw above every card's sorting order.")]
 		[SerializeField] private GameObject _exposedMark;
 
+		[Tooltip("Lowest alpha the rim fades to while the card can be picked but is not hovered; it pulses between this and full.")]
+		[Range(0f, 1f)]
+		[SerializeField] private float _promptMinAlpha = 0.15f;
+
+		[Tooltip("Seconds from full to the lowest alpha; the pulse comes back the same way.")]
+		[Min(0.01f)]
+		[SerializeField] private float _promptPulseDuration = 0.5f;
+
+		[SerializeField] private Ease _promptPulseEase = Ease.InOutSine;
+
+		private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
+
 		private Renderer _hoverOutlineRenderer;
+		private MaterialPropertyBlock _rimBlock;
+		private bool _prompted;
+		private Tween _promptTween;
 
 		[Header("Flip")]
 		[Tooltip("What actually turns over. Kept separate from the root so the fan and layout rotations are not fighting the flip.")]
@@ -145,6 +160,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			_flipTween?.Kill();
 			_moveTween?.Kill();
 			_liftTween?.Kill();
+			_promptTween?.Kill();
 		}
 
 		// Puts the card on top of the deck and holds it there for `delay` seconds; whatever places it next
@@ -381,7 +397,6 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			_highlighted = highlighted;
 
 			if (_renderer) _renderer.sortingOrder = highlighted ? _hoverSortingOrder : 0;
-			if (_hoverOutlineRenderer) _hoverOutlineRenderer.sortingOrder = _hoverSortingOrder - 1;
 
 			ApplyRim();
 		}
@@ -392,9 +407,56 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			if (_exposedMark && _exposedMark.activeSelf != exposed) _exposedMark.SetActive(exposed);
 		}
 
+		// Pickable while some action waits on a card being chosen: the rim is up and pulses until hovered.
+		public void SetPrompted(bool prompted)
+		{
+			if (_prompted == prompted) return;
+
+			_prompted = prompted;
+			_promptTween?.Kill();
+			_promptTween = null;
+
+			if (prompted)
+			{
+				var alpha = 1f;
+				_promptTween = DOTween.To(() => alpha, value =>
+					{
+						alpha = value;
+						if (!_highlighted) WriteRimAlpha(alpha);
+					}, _promptMinAlpha, _promptPulseDuration)
+					.SetEase(_promptPulseEase)
+					.SetLoops(-1, LoopType.Yoyo)
+					.SetLink(gameObject);
+			}
+
+			ApplyRim();
+		}
+
 		private void ApplyRim()
 		{
-			if (_hoverOutline && _hoverOutline.activeSelf != _highlighted) _hoverOutline.SetActive(_highlighted);
+			var shown = _highlighted || _prompted;
+			if (_hoverOutline && _hoverOutline.activeSelf != shown) _hoverOutline.SetActive(shown);
+
+			// Always one under its own card, which draws at 0 unless hovered: above it, the rim covers the face.
+			if (_hoverOutlineRenderer) _hoverOutlineRenderer.sortingOrder = _highlighted ? _hoverSortingOrder - 1 : -1;
+
+			if (_highlighted || !_prompted) WriteRimAlpha(1f);
+		}
+
+		// Full alpha clears the block, so a rim that is not pulsing batches like every other.
+		private void WriteRimAlpha(float alpha)
+		{
+			if (!_hoverOutlineRenderer) return;
+
+			if (alpha >= 1f)
+			{
+				_hoverOutlineRenderer.SetPropertyBlock(null);
+				return;
+			}
+
+			_rimBlock ??= new MaterialPropertyBlock();
+			_rimBlock.SetColor(BaseColorId, new Color(1f, 1f, 1f, alpha));
+			_hoverOutlineRenderer.SetPropertyBlock(_rimBlock);
 		}
 
 		public void SetLift(float lift)
