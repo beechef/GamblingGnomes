@@ -16,6 +16,7 @@ MonoBehaviour:
   _entries:
   - Id: Fold
     StateName: _Fold
+    Variants: []
     Layer: 1
     CrossFade: 0.15
     AlternateWhen: 
@@ -23,6 +24,7 @@ MonoBehaviour:
     Sound: {fileID: 0}
   - Id: Bet
     StateName: _Bet
+    Variants: []
     Layer: 1
     CrossFade: 0.15
     AlternateWhen: IsHaveCardOnHand
@@ -30,6 +32,7 @@ MonoBehaviour:
     Sound: {fileID: 0}
   - Id: Laugh
     StateName: _Laugh
+    Variants: []
     Layer: 1
     CrossFade: 0.15
     AlternateWhen: 
@@ -37,6 +40,7 @@ MonoBehaviour:
     Sound: {fileID: 11400000, guid: fcc4a7069c2902d439aa0b741cbe90cf, type: 2}
   - Id: Idle
     StateName: Empty
+    Variants: []
     Layer: 1
     CrossFade: 0.25
     AlternateWhen: 
@@ -44,6 +48,9 @@ MonoBehaviour:
     Sound: {fileID: 0}
   - Id: ConsumeItem
     StateName: _ConsumeItem
+    Variants:
+    - _ConsumeItem_Ver01
+    - _ConsumeItem_Ver02
     Layer: 1
     CrossFade: 0.15
     AlternateWhen: 
@@ -51,6 +58,9 @@ MonoBehaviour:
     Sound: {fileID: 0}
   - Id: Impact
     StateName: _Impact
+    Variants:
+    - _Impact_Ver01
+    - _Impact_Ver02
     Layer: 1
     CrossFade: 0.15
     AlternateWhen: 
@@ -58,6 +68,7 @@ MonoBehaviour:
     Sound: {fileID: 0}
   - Id: SnapFingers
     StateName: _SnapFingers
+    Variants: []
     Layer: 1
     CrossFade: 0.15
     AlternateWhen: 
@@ -65,6 +76,7 @@ MonoBehaviour:
     Sound: {fileID: 0}
   - Id: ItemTakeOut
     StateName: _ItemTakeOut
+    Variants: []
     Layer: 1
     CrossFade: 0.15
     AlternateWhen: 
@@ -72,6 +84,7 @@ MonoBehaviour:
     Sound: {fileID: 0}
   - Id: ItemPutAway
     StateName: _ItemPutAway
+    Variants: []
     Layer: 1
     CrossFade: 0.15
     AlternateWhen: 
@@ -79,6 +92,7 @@ MonoBehaviour:
     Sound: {fileID: 0}
   - Id: ItemThrowAway
     StateName: _ItemThrowAway
+    Variants: []
     Layer: 1
     CrossFade: 0.15
     AlternateWhen: 
@@ -86,6 +100,7 @@ MonoBehaviour:
     Sound: {fileID: 0}
   - Id: ItemSpatulaFlip
     StateName: _ItemSpatulaFlip
+    Variants: []
     Layer: 1
     CrossFade: 0.15
     AlternateWhen: 
@@ -93,6 +108,7 @@ MonoBehaviour:
     Sound: {fileID: 0}
   - Id: ItemKnifeThreaten
     StateName: _ItemKnifeThreaten
+    Variants: []
     Layer: 1
     CrossFade: 0.15
     AlternateWhen: 
@@ -100,6 +116,7 @@ MonoBehaviour:
     Sound: {fileID: 0}
   - Id: ItemKnifeThreatenEnd
     StateName: _ItemKnifeThreatenEnd
+    Variants: []
     Layer: 1
     CrossFade: 0.15
     AlternateWhen: 
@@ -107,6 +124,7 @@ MonoBehaviour:
     Sound: {fileID: 0}
   - Id: ItemVomit
     StateName: _ItemVomit
+    Variants: []
     Layer: 1
     CrossFade: 0.15
     AlternateWhen: 
@@ -114,6 +132,7 @@ MonoBehaviour:
     Sound: {fileID: 0}
   - Id: ItemPickUpCard
     StateName: _ItemPickUpCard
+    Variants: []
     Layer: 1
     CrossFade: 0.15
     AlternateWhen: 
@@ -121,6 +140,7 @@ MonoBehaviour:
     Sound: {fileID: 0}
   - Id: ItemSmoke
     StateName: _ItemSmoke
+    Variants: []
     Layer: 1
     CrossFade: 0.15
     AlternateWhen: 
@@ -128,6 +148,7 @@ MonoBehaviour:
     Sound: {fileID: 0}
   - Id: ItemDiceRoll
     StateName: _ItemDiceRoll
+    Variants: []
     Layer: 1
     CrossFade: 0.15
     AlternateWhen: 
@@ -135,6 +156,7 @@ MonoBehaviour:
     Sound: {fileID: 0}
   - Id: ItemJackBoxCrank
     StateName: _ItemJackBoxCrank
+    Variants: []
     Layer: 1
     CrossFade: 0.15
     AlternateWhen: 
@@ -142,6 +164,7 @@ MonoBehaviour:
     Sound: {fileID: 0}
   - Id: ItemSniff
     StateName: _ItemSniff
+    Variants: []
     Layer: 1
     CrossFade: 0.15
     AlternateWhen: 
@@ -149,6 +172,7 @@ MonoBehaviour:
     Sound: {fileID: 0}
   - Id: ItemSniffGross
     StateName: _ItemSniffGross
+    Variants: []
     Layer: 1
     CrossFade: 0.15
     AlternateWhen: 
@@ -156,6 +180,7 @@ MonoBehaviour:
     Sound: {fileID: 0}
   - Id: ItemInject
     StateName: _ItemInject
+    Variants: []
     Layer: 1
     CrossFade: 0.15
     AlternateWhen: 
@@ -163,6 +188,7 @@ MonoBehaviour:
     Sound: {fileID: 0}
   - Id: ItemDrink
     StateName: _ItemDrink
+    Variants: []
     Layer: 1
     CrossFade: 0.15
     AlternateWhen: 
@@ -170,6 +196,7 @@ MonoBehaviour:
     Sound: {fileID: 0}
   - Id: ItemMegaphone
     StateName: _ItemMegaphone
+    Variants: []
     Layer: 1
     CrossFade: 0.15
     AlternateWhen: 
@@ -177,6 +204,7 @@ MonoBehaviour:
     Sound: {fileID: 0}
   - Id: ItemCuffed
     StateName: _ItemCuffed
+    Variants: []
     Layer: 1
     CrossFade: 0.15
     AlternateWhen: 
@@ -184,6 +212,7 @@ MonoBehaviour:
     Sound: {fileID: 0}
   - Id: ItemCuffsBreak
     StateName: _ItemCuffsBreak
+    Variants: []
     Layer: 1
     CrossFade: 0.15
     AlternateWhen: 

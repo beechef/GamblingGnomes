@@ -9,6 +9,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 492303823033324731}
+  - component: {fileID: 1708534955446482967}
   m_Layer: 0
   m_Name: Prop_Cigarette
   m_TagString: Untagged
@@ -32,6 +33,23 @@ Transform:
   - {fileID: 7158827509336716756}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1708534955446482967
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2075498200954577541}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 25cf8efe37f9496f9aaf78e5e488b7b5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Props.PropBurnOut
+  _parameter: _Burn
+  _duration: 20
+  _ease: 1
+  _shrinkDuration: 0.3
+  _shrinkEase: 26
 --- !u!1001 &4025871034510790792
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -42,7 +60,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 4957525359363628595, guid: d326896cd97c8e546ac1609264e33936, type: 3}
       propertyPath: m_Materials.Array.size
-      value: 2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4957525359363628595, guid: d326896cd97c8e546ac1609264e33936, type: 3}
       propertyPath: 'm_Materials.Array.data[1]'

@@ -3,6 +3,7 @@ using Game.Runtime.Audio;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace Game.Runtime.Player
 {
@@ -76,34 +77,45 @@ namespace Game.Runtime.Player
 		{
 			if (!_database || !_database.TryFind(actionId, out var entry)) return;
 
-			CrossFade(_bodyAnimator, entry);
-			CrossFade(_handOnlyAnimator, entry);
+			// One take for both rigs, so the hands and the body never play different clips.
+			var take = PickTake(entry);
+			CrossFade(_bodyAnimator, entry, take);
+			CrossFade(_handOnlyAnimator, entry, take);
 
 			if (entry.Sound && AudioManager.Instance) AudioManager.Instance.PlayOneShotAttached(entry.Sound, transform);
 		}
 
 		// A state the controller does not have yet is quietly skipped, so gestures can be scripted ahead
 		// of their animations landing — the same tolerance the seat poses get.
-		private static void CrossFade(Animator animator, PlayerActionAnimationDatabase.Entry entry)
+		// Local and unsynced on purpose: which take a screen sees is set dressing.
+		private static string PickTake(PlayerActionAnimationDatabase.Entry entry)
+		{
+			var count = entry.Variants?.Count ?? 0;
+			var index = Random.Range(0, count + 1);
+			return index == 0 || string.IsNullOrEmpty(entry.Variants[index - 1]) ? entry.DefaultStateName : entry.Variants[index - 1];
+		}
+
+		private static void CrossFade(Animator animator, PlayerActionAnimationDatabase.Entry entry, string take)
 		{
 			if (!animator || !animator.isActiveAndEnabled) return;
 			if (entry.Layer >= animator.layerCount) return;
 
-			var stateName = StateFor(animator, entry);
+			var stateName = StateFor(animator, entry, take);
+			if (!animator.HasState(entry.Layer, Animator.StringToHash(stateName))) stateName = entry.DefaultStateName;
 			if (!animator.HasState(entry.Layer, Animator.StringToHash(stateName))) return;
 
 			animator.CrossFade(stateName, Mathf.Max(0f, entry.CrossFade), entry.Layer);
 		}
 
 		// The alternate only when this rig has the flag on and the state to play; anything missing falls
-		// back to the entry's own state, so an alternate can be authored before its clip lands.
-		private static string StateFor(Animator animator, PlayerActionAnimationDatabase.Entry entry)
+		// back to the picked take, so an alternate can be authored before its clip lands.
+		private static string StateFor(Animator animator, PlayerActionAnimationDatabase.Entry entry, string take)
 		{
-			if (!entry.HasAlternate || !IsBoolOn(animator, entry.AlternateWhen)) return entry.DefaultStateName;
+			if (!entry.HasAlternate || !IsBoolOn(animator, entry.AlternateWhen)) return take;
 
 			return animator.HasState(entry.Layer, Animator.StringToHash(entry.AlternateStateName))
 				? entry.AlternateStateName
-				: entry.DefaultStateName;
+				: take;
 		}
 
 		// Searched rather than read straight, because GetBool on a parameter the controller lacks logs a

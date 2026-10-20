@@ -26,6 +26,12 @@ namespace Game.Runtime.Player
 			[ValueDropdown(nameof(StateNames), AppendNextDrawer = true)]
 			public string StateName;
 
+			// Other takes of the same act. Each screen picks one at random as the gesture starts, so two
+			// screens may show different takes; anything clip-timed must hold for every take.
+			[Tooltip("Optional: more animator states for the same gesture, picked at random with the state above on each screen. Every take must raise the same cues at the same frames as the state above, unless its listener has a backstop.")]
+			[ValueDropdown(nameof(StateNames), AppendNextDrawer = true)]
+			public List<string> Variants;
+
 			[Tooltip("Animator layer the state lives on. Gestures belong on a layer that hands back to empty when they finish, so they never fight the seat poses on the base layer.")]
 			[MinValue(0)]
 			public int Layer;

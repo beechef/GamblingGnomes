@@ -424,6 +424,7 @@ MonoBehaviour:
   _locksLook: 0
   _cameraState: {fileID: 0}
   _prop: {fileID: 1652350754082826096}
+  _copyPoints: []
   _cardsFrom: 0
   _cardPoint: {fileID: 0}
   _cardDepartDelay: 0
@@ -539,6 +540,37 @@ MonoBehaviour:
     EffectLifetime: 0
     Sound: {fileID: 0}
   _cueTimeout: 6
+--- !u!1 &1665741570352107551
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6293884263739748871}
+  m_Layer: 0
+  m_Name: CigaretteMouthPoint_0
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6293884263739748871
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1665741570352107551}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0.034562, y: -0.081796624, z: 0.75431174, w: 0.65048337}
+  m_LocalPosition: {x: -0.0844, y: -0.0483, z: -0.0567}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2363415682305150268}
+  m_LocalEulerAnglesHint: {x: 4.499, y: -9.152, z: 98.094}
 --- !u!1 &1863945868604418551
 GameObject:
   m_ObjectHideFlags: 0
@@ -638,6 +670,68 @@ MonoBehaviour:
   _showingCardsParameter: IsShowingCards
   _data: {fileID: 6935137486891752095}
   _animatorStates: {fileID: 5503049138563897167}
+--- !u!1 &1882530453569425277
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 935001698296666599}
+  m_Layer: 0
+  m_Name: CigaretteMouthPoint_4
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &935001698296666599
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1882530453569425277}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.13855906, y: 0.3279258, z: 0.7076904, w: 0.61027896}
+  m_LocalPosition: {x: -0.084, y: -0.048, z: 0.064}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2363415682305150268}
+  m_LocalEulerAnglesHint: {x: -17.159, y: 38.62, z: 92.402}
+--- !u!1 &1930307356275769038
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7861684100424212926}
+  m_Layer: 0
+  m_Name: CigaretteMouthPoint_3
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7861684100424212926
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1930307356275769038}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.06307132, y: 0.14927016, z: 0.74729437, w: 0.64443135}
+  m_LocalPosition: {x: -0.084, y: -0.048, z: 0.042}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2363415682305150268}
+  m_LocalEulerAnglesHint: {x: -8.152, y: 16.833, z: 97.246}
 --- !u!1 &2062609971239066926
 GameObject:
   m_ObjectHideFlags: 0
@@ -962,6 +1056,12 @@ MonoBehaviour:
   _locksLook: 0
   _cameraState: {fileID: 0}
   _prop: {fileID: 3865452863626445314}
+  _copyPoints:
+  - {fileID: 6293884263739748871}
+  - {fileID: 2759788486152049413}
+  - {fileID: 6603213449970578863}
+  - {fileID: 7861684100424212926}
+  - {fileID: 935001698296666599}
   _cardsFrom: 2
   _cardPoint: {fileID: 0}
   _cardDepartDelay: 0
@@ -1004,35 +1104,17 @@ MonoBehaviour:
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
     Sound: {fileID: 0}
-  - Label: Light up
+  - Label: Left at the mouth
     When: 1
     Cue: ItemUse
     Outcome: 0
     Delay: 0
-    Do: 6
+    Do: 16
     Anchor: 0
     Offset: {x: 0, y: 0, z: 0}
     Rotation: {x: 0, y: 0, z: 0}
     Arc: 0
     Duration: 0
-    Ease: 0
-    State: Smoke
-    Gesture: 
-    Effect: {fileID: 0}
-    EffectPoint: {fileID: 0}
-    EffectLifetime: 0
-    Sound: {fileID: 0}
-  - Label: Thrown away
-    When: 1
-    Cue: ItemRelease
-    Outcome: 0
-    Delay: 0
-    Do: 5
-    Anchor: 9
-    Offset: {x: 0.45, y: 0.5, z: -0.2}
-    Rotation: {x: 0, y: 0, z: 0}
-    Arc: 0
-    Duration: 0.45
     Ease: 0
     State: 
     Gesture: 
@@ -1040,9 +1122,9 @@ MonoBehaviour:
     EffectPoint: {fileID: 0}
     EffectLifetime: 0
     Sound: {fileID: 0}
-  - Label: Gone
+  - Label: Template gone
     When: 1
-    Cue: ItemRelease
+    Cue: ItemUse
     Outcome: 0
     Delay: 0
     Do: 1
@@ -1050,7 +1132,7 @@ MonoBehaviour:
     Offset: {x: 0, y: 0, z: 0}
     Rotation: {x: 0, y: 0, z: 0}
     Arc: 0
-    Duration: 0.45
+    Duration: 0
     Ease: 0
     State: 
     Gesture: 
@@ -1060,9 +1142,9 @@ MonoBehaviour:
     Sound: {fileID: 0}
   - Label: Done
     When: 1
-    Cue: ItemRelease
+    Cue: ItemUse
     Outcome: 0
-    Delay: 0.5
+    Delay: 0.05
     Do: 12
     Anchor: 0
     Offset: {x: 0, y: 0, z: 0}
@@ -1171,6 +1253,7 @@ MonoBehaviour:
   _locksLook: 0
   _cameraState: {fileID: 0}
   _prop: {fileID: 3977947464334578970}
+  _copyPoints: []
   _cardsFrom: 0
   _cardPoint: {fileID: 0}
   _cardDepartDelay: 0
@@ -1336,6 +1419,7 @@ MonoBehaviour:
   _locksLook: 0
   _cameraState: {fileID: 0}
   _prop: {fileID: 3699094898483157565}
+  _copyPoints: []
   _cardsFrom: 0
   _cardPoint: {fileID: 0}
   _cardDepartDelay: 0
@@ -1501,6 +1585,7 @@ MonoBehaviour:
   _locksLook: 0
   _cameraState: {fileID: 0}
   _prop: {fileID: 5738111174628198107}
+  _copyPoints: []
   _cardsFrom: 0
   _cardPoint: {fileID: 0}
   _cardDepartDelay: 0
@@ -1629,6 +1714,37 @@ MonoBehaviour:
   _anchor: 3
   _aimHeight: 0
   _data: {fileID: 6935137486891752095}
+--- !u!1 &4099701893260136713
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6603213449970578863}
+  m_Layer: 0
+  m_Name: CigaretteMouthPoint_2
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &6603213449970578863
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4099701893260136713}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.06307132, y: 0.14927016, z: 0.74729437, w: 0.64443135}
+  m_LocalPosition: {x: -0.084, y: -0.048, z: -0.002}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2363415682305150268}
+  m_LocalEulerAnglesHint: {x: -8.152, y: 16.833, z: 97.246}
 --- !u!1 &4316887955309095392
 GameObject:
   m_ObjectHideFlags: 0
@@ -1679,6 +1795,7 @@ MonoBehaviour:
   _locksLook: 0
   _cameraState: {fileID: 0}
   _prop: {fileID: 5961990308723115178}
+  _copyPoints: []
   _cardsFrom: 0
   _cardPoint: {fileID: 0}
   _cardDepartDelay: 0
@@ -2027,6 +2144,7 @@ MonoBehaviour:
   _locksLook: 0
   _cameraState: {fileID: 0}
   _prop: {fileID: 3836441507046034475}
+  _copyPoints: []
   _cardsFrom: 0
   _cardPoint: {fileID: 0}
   _cardDepartDelay: 0
@@ -2268,6 +2386,7 @@ MonoBehaviour:
   _locksLook: 0
   _cameraState: {fileID: 0}
   _prop: {fileID: 3471148327486938038}
+  _copyPoints: []
   _cardsFrom: 0
   _cardPoint: {fileID: 0}
   _cardDepartDelay: 0
@@ -2643,6 +2762,37 @@ MonoBehaviour:
     - {fileID: 0}
     - {fileID: 0}
   _boneScale: {fileID: 338084876826924209}
+--- !u!1 &5583407447155048037
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2759788486152049413}
+  m_Layer: 0
+  m_Name: CigaretteMouthPoint_1
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &2759788486152049413
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5583407447155048037}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0.021570688, y: 0.051050264, z: 0.7561394, w: 0.6520597}
+  m_LocalPosition: {x: -0.0844, y: -0.0483, z: -0.0285}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2363415682305150268}
+  m_LocalEulerAnglesHint: {x: -2.813, y: 5.7, z: 98.314}
 --- !u!1 &6068800715179556877
 GameObject:
   m_ObjectHideFlags: 0
@@ -2694,6 +2844,7 @@ MonoBehaviour:
   _locksLook: 1
   _cameraState: {fileID: 1332360093427464006}
   _prop: {fileID: 5746880024715345707}
+  _copyPoints: []
   _cardsFrom: 1
   _cardPoint: {fileID: 4998852972900283699}
   _cardDepartDelay: 3.15
@@ -2841,6 +2992,7 @@ MonoBehaviour:
   _locksLook: 0
   _cameraState: {fileID: 0}
   _prop: {fileID: 9082974099659319165}
+  _copyPoints: []
   _cardsFrom: 0
   _cardPoint: {fileID: 0}
   _cardDepartDelay: 0
@@ -3266,6 +3418,7 @@ MonoBehaviour:
   _locksLook: 0
   _cameraState: {fileID: 0}
   _prop: {fileID: 326353555373725435}
+  _copyPoints: []
   _cardsFrom: 0
   _cardPoint: {fileID: 0}
   _cardDepartDelay: 0
@@ -5991,6 +6144,21 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 5132494714845482386, guid: 8a531d709826a264e9027ff908ced981, type: 3}
       insertIndex: -1
       addedObject: {fileID: 8200620999215931630}
+    - targetCorrespondingSourceObject: {fileID: 559940000026841067, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6293884263739748871}
+    - targetCorrespondingSourceObject: {fileID: 559940000026841067, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2759788486152049413}
+    - targetCorrespondingSourceObject: {fileID: 559940000026841067, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 6603213449970578863}
+    - targetCorrespondingSourceObject: {fileID: 559940000026841067, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 7861684100424212926}
+    - targetCorrespondingSourceObject: {fileID: 559940000026841067, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 935001698296666599}
     - targetCorrespondingSourceObject: {fileID: 6402216969967643271, guid: 8a531d709826a264e9027ff908ced981, type: 3}
       insertIndex: -1
       addedObject: {fileID: 8457618247727723098}
@@ -6099,6 +6267,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0acc1df1aad3599428a2d3278c4a36e1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.PlayerController
+--- !u!4 &2363415682305150268 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 559940000026841067, guid: 8a531d709826a264e9027ff908ced981, type: 3}
+  m_PrefabInstance: {fileID: 2812995479481287383}
+  m_PrefabAsset: {fileID: 0}
 --- !u!114 &2386824806186768469 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 438662258472082050, guid: 8a531d709826a264e9027ff908ced981, type: 3}
