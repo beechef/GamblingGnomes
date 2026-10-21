@@ -384,6 +384,53 @@ namespace Game.Runtime.GameMode.Poker
 		// start button permanently dead.
 		public bool IsPlayingThisMatch(PokerPlayerData data) => data && data.InMatch.Value && CanBeDealtIn(data);
 
+#if UNITY_EDITOR
+		// Puts every other player in the match under the way the game does, so the host survives and the match
+		// ends through the real flow: a death roll that cannot miss (against the ceiling), the skull sweep, the
+		// death played out, then the fold, exactly as an item that rolls against a life (PokerItemDeathRoll). The
+		// match-over stage then waits for those deaths like any other. Host only, in Play mode.
+		[FoldoutGroup("Debug"), Button("Kill Everyone Else"), EnableIf(nameof(CanDebugKillOthers))]
+		private void DebugKillOthers()
+		{
+			if (!CanDebugKillOthers) return;
+
+			_ = DebugKillOthersAsync(destroyCancellationToken);
+		}
+
+		private async Awaitable DebugKillOthersAsync(System.Threading.CancellationToken ct)
+		{
+			var rolled = new List<PokerPlayer>();
+			var wait = 0f;
+
+			foreach (var player in _seatedPlayers.ToArray())
+			{
+				if (!player || player.IsOwner || !IsPlayingThisMatch(player.Data) || !player.Data.IsAlive) continue;
+
+				var roller = player.HallucinationRoll;
+				if (!roller || !roller.ServerRoll(PokerPlayerData.MaxHallucination, player.Data.HallucinationRate.Value)) continue;
+
+				rolled.Add(player);
+				wait = Mathf.Max(wait, roller.ServerOutcomeRemaining);
+			}
+
+			try
+			{
+				await Awaitable.WaitForSecondsAsync(wait, ct);
+			}
+			catch (OperationCanceledException)
+			{
+				return;
+			}
+
+			foreach (var player in rolled)
+			{
+				if (player && player.HallucinationRoll.ServerRollFatal) ServerFoldOutOfHand(player);
+			}
+		}
+
+		private bool CanDebugKillOthers => Application.isPlaying && IsSpawned && IsServer && _data && _data.Phase.Value != PokerPhase.Waiting;
+#endif
+
 		// Those still playing the match that is running. What decides whether there is another hand in it,
 		// where DealablePlayerCount decides whether a new match can begin.
 		public int MatchPlayerCount
