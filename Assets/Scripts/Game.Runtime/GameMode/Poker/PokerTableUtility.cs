@@ -45,11 +45,16 @@ namespace Game.Runtime.GameMode.Poker
 		}
 
 		// A staked cap goes onto the table as one entry, stamped with the street it went up on.
-		public static void PlaceBet(PokerGameData data, PokerPlayer player, PokerBetItemType itemType)
+		public static void PlaceBet(PokerGameData data, PokerPlayer player, PokerBetItemType itemType) =>
+			PlaceBet(data, player, itemType, data ? data.Phase.Value : default);
+
+		// Stamped with a phase other than the table's own: going all in marks its caps AllIn while the street
+		// is still running, and that stamp is what the all-in stage reads.
+		public static void PlaceBet(PokerGameData data, PokerPlayer player, PokerBetItemType itemType, PokerPhase phase)
 		{
 			if (!data || !player || !player.Data) return;
 
-			AddPotEntry(data, player.ClientId, itemType);
+			AddPotEntry(data, player.ClientId, itemType, phase);
 		}
 
 		// The round's own settlement: what the winner put up is what every loser ends up holding, a full copy
@@ -144,14 +149,26 @@ namespace Game.Runtime.GameMode.Poker
 			return false;
 		}
 
-		public static bool HasStakedKind(PokerGameData data, ulong ownerClientId, PokerBetItemType itemType)
+		public static bool HasGoneAllIn(PokerGameData data, ulong ownerClientId)
 		{
 			if (!data) return false;
 
 			for (var i = 0; i < data.PotEntries.Count; i++)
 			{
 				var item = data.PotEntries[i];
-				if (item.OwnerClientId == ownerClientId && item.BetItemType == itemType) return true;
+				if (item.OwnerClientId == ownerClientId && item.Phase == PokerPhase.AllIn) return true;
+			}
+
+			return false;
+		}
+
+		public static bool AnyoneWentAllIn(PokerGameData data)
+		{
+			if (!data) return false;
+
+			for (var i = 0; i < data.PotEntries.Count; i++)
+			{
+				if (data.PotEntries[i].Phase == PokerPhase.AllIn) return true;
 			}
 
 			return false;
@@ -228,12 +245,15 @@ namespace Game.Runtime.GameMode.Poker
 		}
 
 		// One entry per cap, stamped with who it stands in front of, on which street and what it is.
-		private static void AddPotEntry(PokerGameData data, ulong ownerClientId, PokerBetItemType itemType)
+		private static void AddPotEntry(PokerGameData data, ulong ownerClientId, PokerBetItemType itemType) =>
+			AddPotEntry(data, ownerClientId, itemType, data.Phase.Value);
+
+		private static void AddPotEntry(PokerGameData data, ulong ownerClientId, PokerBetItemType itemType, PokerPhase phase)
 		{
 			data.PotEntries.Add(new PokerPotEntry
 			{
 				OwnerClientId = ownerClientId,
-				Phase = data.Phase.Value,
+				Phase = phase,
 				BetItemType = itemType
 			});
 		}

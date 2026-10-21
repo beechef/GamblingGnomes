@@ -12,12 +12,12 @@ namespace Game.Runtime.GameMode.Poker.Stages
 	// is in, so nobody can wait to see what the others did. Then the rest of the board is turned over.
 	//
 	// Sits in the sequence after the last street and passes straight through when nobody went all in, which
-	// is read off the pot rather than handed over by the street: the all-in cap on the table is the fact.
+	// is read off the pot rather than handed over by the street: caps stamped AllIn are the fact.
 	[CreateAssetMenu(fileName = "PokerStage_AllIn", menuName = "Game/Poker/Stages/All In")]
 	public class PokerAllInStage : PokerStage
 	{
 		[Header("Stake")]
-		[Tooltip("What going all in puts up. Whoever has one in the pot went all in; everyone else is asked to match it with one.")]
+		[Tooltip("The all-in cap, where the street puts one up: matching ends with one too. A pile with none is matched with drawn kinds alone.")]
 		[SerializeField] private PokerBetItemType _allInBetItemType = PokerBetItemType.Colorful;
 
 		[Header("Timing")]
@@ -57,7 +57,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			_asking = false;
 			_holding = false;
 
-			if (!PokerTableUtility.HasAnyStakedKind(Data, _allInBetItemType))
+			if (!PokerTableUtility.AnyoneWentAllIn(Data))
 			{
 				FinishStage();
 				return;
@@ -90,7 +90,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		// Still in the hand and not the one who went all in. Asked by the bar too, so the two agree on who is
 		// being offered the choice.
 		public bool IsAsked(PokerPlayer player) =>
-			player && PokerStreetStage.CanBet(player.Data) && !PokerTableUtility.HasStakedKind(Data, player.ClientId, _allInBetItemType);
+			player && PokerStreetStage.CanBet(player.Data) && !PokerTableUtility.HasGoneAllIn(Data, player.ClientId);
 
 		// Whether folding is an answer here at all. A module can take it away, and then going all in is the only one.
 		public bool CanFold(PokerPlayerData player) => GameMode && GameMode.IsActionAllowed(player, PokerActionType.Fold);
@@ -168,24 +168,24 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		}
 
 		// Matching is having as many caps in the pot as whoever went all in, their all-in cap as the last of
-		// them: whatever this street's bet was never paid is made up with drawn kinds first, so no pile ends
-		// taller or shorter than another however the hand got here.
-		private void MatchAllIn(PokerPlayer player, PokerBetItemDatabase database)
+		// them when they put one up: the rest is made up with drawn kinds, so no pile ends taller or shorter
+		// than another however the hand got here. At least one goes up, which is what marks the answer.
+		private void MatchAllIn(PokerPlayer player, PokerBetItemDatabase database, bool withCap)
 		{
 			var target = 0;
 			foreach (var other in GameMode.SeatedPlayers)
 			{
-				if (other && PokerTableUtility.HasStakedKind(Data, other.ClientId, _allInBetItemType))
+				if (other && PokerTableUtility.HasGoneAllIn(Data, other.ClientId))
 					target = Mathf.Max(target, PokerTableUtility.CountPotEntries(Data, other.ClientId));
 			}
 
-			var owed = target - PokerTableUtility.CountPotEntries(Data, player.ClientId) - 1;
-			for (var i = 0; i < owed; i++)
+			var drawn = Mathf.Max(withCap ? 0 : 1, target - PokerTableUtility.CountPotEntries(Data, player.ClientId) - (withCap ? 1 : 0));
+			for (var i = 0; i < drawn; i++)
 			{
 				PokerTableUtility.PlaceBet(Data, player, database.DrawBetItemType());
 			}
 
-			PokerTableUtility.PlaceBet(Data, player, _allInBetItemType);
+			if (withCap) PokerTableUtility.PlaceBet(Data, player, _allInBetItemType);
 		}
 
 		// Every answer lands at once: the caps go up and the folds go down, and they are sealed, so none is
@@ -197,7 +197,8 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			GameMode.ServerSetFocus(PokerGameData.NoTurn);
 
 			var database = GameMode.BetItemDatabase;
-			var hasCap = database && database.TryGetEntry(_allInBetItemType, out _);
+			var withCap = PokerTableUtility.HasAnyStakedKind(Data, _allInBetItemType);
+			var hasCap = database && (!withCap || database.TryGetEntry(_allInBetItemType, out _));
 
 			foreach (var player in _asked)
 			{
@@ -213,7 +214,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 				if (allIn)
 				{
-					MatchAllIn(player, database);
+					MatchAllIn(player, database, withCap);
 					player.ActionAnimator?.ServerPlay(PlayerActionIds.Bet);
 				}
 				else

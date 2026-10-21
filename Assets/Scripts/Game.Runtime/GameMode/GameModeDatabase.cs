@@ -27,6 +27,15 @@ namespace Game.Runtime.GameMode
 
 			public string DisplayName => Localizer.Get(NameKey);
 
+			[Tooltip("What the play mode screen says the mode is, under its picture.")]
+			[LocalizationKey]
+			public string DescriptionKey;
+
+			public string Description => Localizer.Get(DescriptionKey);
+
+			[Tooltip("Picture the play mode screen shows for this mode.")]
+			public Sprite Preview;
+
 			[Tooltip("Mode prefab the room screen reads match settings from before any scene is loaded. Left empty, the mode simply offers none.")]
 			public GameObject ModePrefab;
 

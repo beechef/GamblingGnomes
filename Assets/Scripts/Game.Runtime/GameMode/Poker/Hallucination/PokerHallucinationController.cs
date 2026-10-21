@@ -176,7 +176,7 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 		{
 			// Going under is a blink of its own, even past the last rung: the eye closes on the way out.
 			if (CrossesDeath(previousRate, currentRate)) return true;
-			if (!_tiers) return false;
+			if (!_tiers || !EffectsAllowed) return false;
 
 			var rungs = _tiers.Rungs;
 
@@ -188,6 +188,15 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 			}
 
 			return false;
+		}
+
+		public static bool EffectsAllowed
+		{
+			get
+			{
+				var mode = PokerGameMode.Instance;
+				return mode && mode.Rules && mode.Rules.HallucinationEffects;
+			}
 		}
 
 		private static bool CrossesDeath(int previousRate, int currentRate) =>
@@ -204,6 +213,7 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 			if (!_data) return;
 
 			_data.OnHallucinationChanged += HandleChanged;
+			PokerGameMode.OnInstanceChanged += HandleModeChanged;
 
 			// Read rather than waited for: a client arriving at a table already halfway under has no
 			// change coming to tell it so.
@@ -212,6 +222,7 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 
 		public override void OnNetworkDespawn()
 		{
+			PokerGameMode.OnInstanceChanged -= HandleModeChanged;
 			if (_data) _data.OnHallucinationChanged -= HandleChanged;
 
 			// Everything comes off on the way out: an effect is a change to this client's whole view, and
@@ -224,6 +235,8 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 
 		private void HandleChanged(int previous, int current) => Refresh(CrossesDeath(previous, current));
 
+		private void HandleModeChanged(PokerGameMode mode) => Refresh();
+
 		// The blink is there to cover the swap, so the rungs are not allowed to land while the eye is open.
 		// A change arriving mid-blink is folded into the one already running rather than queued behind it:
 		// ApplyRungs reads the rate at the moment it runs, so the later change is what lands anyway, and a
@@ -231,6 +244,14 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 		private void Refresh(bool blinkAnyway = false)
 		{
 			if (!_tiers || !_data) return;
+
+			// The mode decides whether rungs are seen at all; a table that plays sober keeps nothing running.
+			if (!EffectsAllowed)
+			{
+				EndAll();
+				return;
+			}
+
 			if (!blinkAnyway && !AnyRungWouldChange()) return;
 
 			if (TransitionDuration <= 0f)
