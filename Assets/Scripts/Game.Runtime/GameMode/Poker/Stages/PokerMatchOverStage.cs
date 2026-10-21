@@ -25,6 +25,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		{
 			Settling,
 			IntroClosing,
+			IntroShut,
 			Dancing,
 			Announcing,
 			Closing,
@@ -100,18 +101,22 @@ namespace Game.Runtime.GameMode.Poker.Stages
 						break;
 					}
 
-					// The shot is named a beat before the phase, so no screen ever reads MatchOver without it and
-					// shows the name board over the dance. The cameras and the lift land behind the closing eye.
-					Data.VictoryShot.Value = PokerVictoryShot.Wide;
 					Data.MatchResetting.Value = true;
 					_step = Step.IntroClosing;
-					_timer = BlinkCloseDuration + _introHoldDuration;
+					_timer = BlinkCloseDuration;
 					break;
 
-				// Behind the shut eye: the survivor is on the table and dancing before anybody sees the room again.
+				// Named only once the eye is shut, so the cut and the lift onto the table land behind the black on
+				// every screen; a screen that hears it early still waits out its own close (PokerVictoryVisual).
 				case Step.IntroClosing:
+					Data.VictoryShot.Value = PokerVictoryShot.Wide;
 					SetSurvivorDancing(true);
 					Data.Phase.Value = PokerPhase.MatchOver;
+					_step = Step.IntroShut;
+					_timer = _introHoldDuration;
+					break;
+
+				case Step.IntroShut:
 					Data.MatchResetting.Value = false;
 					_step = Step.Dancing;
 					_timer = _danceDuration;

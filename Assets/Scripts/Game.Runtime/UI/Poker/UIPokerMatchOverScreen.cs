@@ -73,8 +73,10 @@ namespace Game.Runtime.UI.Poker
 		}
 
 		// The name goes up once the camera is face to face with the survivor; on the wide shot the board would
-		// cover the dance. Nobody surviving has no dance, so it goes up at once.
-		private bool ShouldAnnounce => Data.Phase.Value == PokerPhase.MatchOver && Data.VictoryShot.Value != PokerVictoryShot.Wide;
+		// cover the dance. Nobody surviving has no dance, so it goes up at once. Asked of the close-up itself
+		// rather than "not the wide shot": the phase and the shot change together and land in either order.
+		private bool ShouldAnnounce => Data.Phase.Value == PokerPhase.MatchOver &&
+			(Data.VictoryShot.Value == PokerVictoryShot.CloseUp || Data.SurvivorClientId.Value == PokerGameData.NoTurn);
 
 		// Leaving the phase happens behind the shut eye, so the announcement goes at once rather than fading.
 		private void HandlePhaseChanged(PokerPhase previous, PokerPhase current) => ShowAnnouncement(ShouldAnnounce, animate: ShouldAnnounce);
