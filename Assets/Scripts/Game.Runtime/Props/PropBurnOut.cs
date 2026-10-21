@@ -1,3 +1,4 @@
+using System;
 using DG.Tweening;
 using UnityEngine;
 
@@ -26,6 +27,17 @@ namespace Game.Runtime.Props
 		private MaterialPropertyBlock _block;
 		private int _parameterId;
 		private Sequence _sequence;
+		private bool _lit;
+
+		public static event Action<PropBurnOut> OnLit;
+		public static event Action<PropBurnOut> OnBurntOut;
+
+		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+		private static void ResetStatics()
+		{
+			OnLit = null;
+			OnBurntOut = null;
+		}
 
 		private void Awake()
 		{
@@ -34,7 +46,11 @@ namespace Game.Runtime.Props
 			_parameterId = Shader.PropertyToID(_parameter);
 		}
 
-		private void OnDestroy() => _sequence?.Kill();
+		private void OnDestroy()
+		{
+			_sequence?.Kill();
+			if (_lit) OnBurntOut?.Invoke(this);
+		}
 
 		public void Ignite()
 		{
@@ -46,6 +62,11 @@ namespace Game.Runtime.Props
 				.Append(transform.DOScale(Vector3.zero, _shrinkDuration).SetEase(_shrinkEase))
 				.OnComplete(() => Destroy(gameObject))
 				.SetLink(gameObject);
+
+			if (_lit) return;
+
+			_lit = true;
+			OnLit?.Invoke(this);
 		}
 
 		private void SetBurn(float burn)
