@@ -1,5 +1,9 @@
+using System;
+using System.Threading;
 using Game.Runtime.GameMode.Poker.Player;
+using Game.Runtime.GameMode.Poker.Stages;
 using Game.Runtime.Player.Camera;
+using Game.Runtime.Utility;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.Serialization;
@@ -35,6 +39,12 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		private bool _wideHeld;
 		private bool _closeUpHeld;
 
+		// When this screen's own eye finished closing for the match-over blink, unscaled.
+		private float _shutAt;
+		private CancellationTokenSource _pending;
+
+		private void OnDestroy() => CancelPending();
+
 		protected override void OnBind()
 		{
 			Data.VictoryShot.OnValueChanged += HandleShotChanged;
@@ -50,24 +60,72 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			Data.SurvivorClientId.OnValueChanged -= HandleSurvivorChanged;
 			Data.VictoryShot.OnValueChanged -= HandleShotChanged;
 
+			CancelPending();
 			Apply(PokerVictoryShot.None);
 		}
 
 		private void HandleShotChanged(PokerVictoryShot previous, PokerVictoryShot current) => Refresh();
 
-		private void HandleResettingChanged(bool previous, bool current) => Refresh();
+		private void HandleResettingChanged(bool previous, bool current)
+		{
+			if (current) _shutAt = Time.unscaledTime + CloseDuration;
+		}
+
+		private float CloseDuration
+		{
+			get
+			{
+				var stage = GameMode.FindStage(Data.StageId.Value.ToString()) as PokerMatchOverStage;
+				return stage && stage.Blink ? stage.Blink.CloseDuration : 0f;
+			}
+		}
 
 		private void HandleSurvivorChanged(ulong previous, ulong current) => PlaceSurvivor(_shown);
 
-		// The cut waits behind the blink: a shot named while the eye is closing goes up only as it opens, so
-		// nobody sees the survivor lifted onto the table. Ending is written behind the shut eye, so it lands at once.
+		// The server names the shot once its own eye is shut, and every screen's blink is driven by the same
+		// replicated flag, so the shot normally arrives behind this screen's shut eye too. A screen whose packets
+		// bunched up can hear both together, while its eye is still closing: the cut then waits out the rest of
+		// that close, so nobody ever sees the survivor lifted onto the table. Ending lands at once, behind the
+		// eye the reset is written under.
 		private void Refresh()
 		{
+			CancelPending();
+
 			var shot = Data.VictoryShot.Value;
-			if (shot != PokerVictoryShot.None && Data.MatchResetting.Value && _shown == PokerVictoryShot.None) return;
 			if (shot == _shown) return;
 
+			var wait = _shutAt - Time.unscaledTime;
+			if (shot != PokerVictoryShot.None && _shown == PokerVictoryShot.None && Data.MatchResetting.Value && wait > 0f)
+			{
+				_pending = CancellationTokenSource.CreateLinkedTokenSource(destroyCancellationToken);
+				_ = ApplyAfter(wait, _pending.Token);
+				return;
+			}
+
 			Apply(shot);
+		}
+
+		private async Awaitable ApplyAfter(float seconds, CancellationToken ct)
+		{
+			try
+			{
+				await AwaitableUtility.WaitUnscaledAsync(seconds, ct);
+			}
+			catch (OperationCanceledException)
+			{
+				return;
+			}
+
+			if (IsBound) Apply(Data.VictoryShot.Value);
+		}
+
+		private void CancelPending()
+		{
+			if (_pending == null) return;
+
+			_pending.Cancel();
+			_pending.Dispose();
+			_pending = null;
 		}
 
 		private void Apply(PokerVictoryShot shot)
