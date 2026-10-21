@@ -8,6 +8,8 @@ namespace Game.Runtime.GameMode.Poker
 		Room,
 		Table,
 		Chairs,
-		Props
+		Props,
+		// Room props that grow arms and legs (PropLimbs).
+		LimbedProps
 	}
 }

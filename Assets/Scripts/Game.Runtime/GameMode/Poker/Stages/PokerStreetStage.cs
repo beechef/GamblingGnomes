@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using Game.Runtime.GameMode.Config;
 using Game.Runtime.GameMode.Poker.BetItems;
 using Game.Runtime.GameMode.Poker.Player;
 using Game.Runtime.Player;
@@ -57,11 +59,16 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		[SerializeField] private float _revealHold = 1f;
 
 		[Header("All In")]
-		[Tooltip("On, a player may go all in instead of betting: they stake this street's bet and the cap below, the betting closes, and everyone else answers at once in the all-in stage.")]
+		[Tooltip("On, a player may go all in instead of betting: the caps below go up stamped AllIn, the betting closes, and everyone else answers at once in the all-in stage.")]
 		[SerializeField] private bool _allowAllIn;
 
-		[Tooltip("What going all in puts up, on top of this street's bet.")]
+		[Tooltip("How many caps the player's pile holds once they go all in, made up with drawn kinds (at least one goes up). Zero pays this street's bet plus the all-in cap below instead.")]
 		[ShowIf(nameof(_allowAllIn))]
+		[MinValue(0)]
+		[SerializeField] private int _allInPileSize;
+
+		[Tooltip("What going all in puts up on top of this street's bet, when no pile size is set.")]
+		[ShowIf(nameof(UsesAllInCap))]
 		[SerializeField] private PokerBetItemType _allInBetItemType = PokerBetItemType.Colorful;
 
 		[Tooltip("Where the betting goes once somebody is all in. Must be in the sequence, since the table jumps to it.")]
@@ -98,6 +105,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		private bool _allInCalled;
 
 		public bool AllowAllIn => _allowAllIn && _allInStage;
+		private bool UsesAllInCap => _allowAllIn && _allInPileSize <= 0;
 		public bool PicksKind => _kindSelection == PokerBetKindSelection.Chosen;
 
 		// What a bet here puts up right now: the street's own size, as the table's modules have changed it.
@@ -124,6 +132,15 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			}
 
 			return false;
+		}
+
+		protected override void OnCollectConfigEntries(List<MatchConfigEntry> entries)
+		{
+			if (_turnDuration <= 0f) return;
+
+			entries.Add(new MatchConfigInt(StageId, LocalizationKeys.Config.Section.Match, MatchConfigKeys.TurnDuration, LocalizationKeys.Config.TurnDuration, 5, 300, 5,
+				() => Mathf.RoundToInt(_turnDuration),
+				value => _turnDuration = value));
 		}
 
 		protected override void OnStartStage()
@@ -256,23 +273,25 @@ namespace Game.Runtime.GameMode.Poker.Stages
 					if (!AllowAllIn) return false;
 
 					var database = GameMode.BetItemDatabase;
-					if (!database || !database.TryGetEntry(_allInBetItemType, out _))
+					if (!database || (UsesAllInCap && !database.TryGetEntry(_allInBetItemType, out _)))
 					{
 						Debug.LogWarning($"[{StageId}] All in refused: no entry for {_allInBetItemType} in the table's mushroom database.");
 						return false;
 					}
 
-					// Going all in still pays this street's bet, so nobody's pile ends shorter than the others';
-					// the button asks no kind, so the table draws one, as a bet run out of time does.
-					var allInStake = StakeSize;
+					// Stamped AllIn, which is how the all-in stage knows who went in. The button asks no kind, so
+					// the table draws them, as a bet run out of time does.
+					var allInStake = UsesAllInCap
+						? StakeSize
+						: Mathf.Max(1, _allInPileSize - PokerTableUtility.CountPotEntries(Data, player.ClientId));
 					for (var i = 0; i < allInStake; i++)
 					{
-						PokerTableUtility.PlaceBet(Data, player, database.DrawBetItemType());
+						PokerTableUtility.PlaceBet(Data, player, database.DrawBetItemType(), PokerPhase.AllIn);
 					}
 
-					// Then the cap itself, staked outright rather than through IsBettable: nobody may choose to
-					// bet it, and going all in is the only way it goes up.
-					PokerTableUtility.PlaceBet(Data, player, _allInBetItemType);
+					// The cap itself, staked outright rather than through IsBettable: nobody may choose to bet it,
+					// and going all in is the only way it goes up.
+					if (UsesAllInCap) PokerTableUtility.PlaceBet(Data, player, _allInBetItemType, PokerPhase.AllIn);
 					player.ActionAnimator?.ServerPlay(PlayerActionIds.Bet);
 					_allInCalled = true;
 					break;

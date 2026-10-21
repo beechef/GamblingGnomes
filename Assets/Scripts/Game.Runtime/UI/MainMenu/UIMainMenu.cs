@@ -62,6 +62,9 @@ namespace Game.Runtime.UI.MainMenu
 		[SerializeField] private UIRoomSetting _roomSettingUI;
 
 		[Required]
+		[SerializeField] private UIGameModeSelect _gameModeSelectUI;
+
+		[Required]
 		[SerializeField] private UIFindLobby _findLobbyUI;
 
 		[SerializeField] private UIMatchmakingPopup _matchmakingPopup;
@@ -85,6 +88,9 @@ namespace Game.Runtime.UI.MainMenu
 			if (_playCloseButton) _playCloseButton.OnClick += ShowRootMenu;
 			_roomSettingUI.OnCloseRequested += ShowRootMenu;
 			_roomSettingUI.OnBackRequested += ShowPlayMenu;
+			_roomSettingUI.OnNextRequested += ShowGameModeSelect;
+			_gameModeSelectUI.OnCloseRequested += ShowRootMenu;
+			_gameModeSelectUI.OnBackRequested += CreateLobby;
 			_findLobbyUI.OnCloseRequested += ShowRootMenu;
 			_findLobbyUI.OnBackRequested += ShowPlayMenu;
 
@@ -99,6 +105,9 @@ namespace Game.Runtime.UI.MainMenu
 		{
 			_findLobbyUI.OnBackRequested -= ShowPlayMenu;
 			_findLobbyUI.OnCloseRequested -= ShowRootMenu;
+			_gameModeSelectUI.OnBackRequested -= CreateLobby;
+			_gameModeSelectUI.OnCloseRequested -= ShowRootMenu;
+			_roomSettingUI.OnNextRequested -= ShowGameModeSelect;
 			_roomSettingUI.OnBackRequested -= ShowPlayMenu;
 			_roomSettingUI.OnCloseRequested -= ShowRootMenu;
 			if (_playCloseButton) _playCloseButton.OnClick -= ShowRootMenu;
@@ -228,6 +237,8 @@ namespace Game.Runtime.UI.MainMenu
 		}
 
 		public void FindLobby() => ShowPanel(_findLobbyUI.gameObject);
+
+		private void ShowGameModeSelect() => ShowPanel(_gameModeSelectUI.gameObject);
 
 		// Hosts on whatever the network manager is already carrying — the same settings the room panel
 		// would have opened with, rather than a second set of defaults written here to drift from them.

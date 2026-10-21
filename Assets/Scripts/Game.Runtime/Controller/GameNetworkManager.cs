@@ -27,7 +27,7 @@ namespace Game.Runtime.Controller
 		[field: SerializeField] public LobbySettings LobbySettings { get; private set; } = new(
 			6,
 			false,
-			GameModeType.Main,
+			GameModeType.Default,
 			new List<LobbyData>(),
 			new List<LobbyData>()
 		);
