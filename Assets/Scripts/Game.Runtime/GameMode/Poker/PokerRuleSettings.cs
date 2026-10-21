@@ -20,8 +20,13 @@ namespace Game.Runtime.GameMode.Poker
 		[PropertyRange(0, 4)]
 		[SerializeField] private int _jokerCount;
 
+		[Header("Hallucination")]
+		[Tooltip("Off, crossing a rung on the meter runs no effect and no blink: the rate, the meter and its rolls still count, only what the player sees stays sober.")]
+		[SerializeField] private bool _hallucinationEffects = true;
+
 		public int MinimumPlayersToStart => Mathf.Max(2, _minimumPlayersToStart);
 		public int JokerCount => Mathf.Clamp(_jokerCount, 0, 4);
 		public int SeatCount => Mathf.Clamp(_seatCount, 2, 6);
+		public bool HallucinationEffects => _hallucinationEffects;
 	}
 }

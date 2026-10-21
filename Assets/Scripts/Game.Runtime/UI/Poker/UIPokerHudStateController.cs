@@ -36,6 +36,7 @@ namespace Game.Runtime.UI.Poker
 		{
 			Data.OnShowdownChanged += Refresh;
 			Data.Phase.OnValueChanged += HandlePhaseChanged;
+			Data.VictoryShot.OnValueChanged += HandleVictoryShotChanged;
 			LocalData.OnHallucinationChanged += HandleHallucinationChanged;
 
 			Refresh();
@@ -44,6 +45,7 @@ namespace Game.Runtime.UI.Poker
 		protected override void OnUnbind()
 		{
 			LocalData.OnHallucinationChanged -= HandleHallucinationChanged;
+			Data.VictoryShot.OnValueChanged -= HandleVictoryShotChanged;
 			Data.Phase.OnValueChanged -= HandlePhaseChanged;
 			Data.OnShowdownChanged -= Refresh;
 
@@ -54,10 +56,12 @@ namespace Game.Runtime.UI.Poker
 
 		private void HandlePhaseChanged(PokerPhase previous, PokerPhase current) => Refresh();
 		private void HandleHallucinationChanged(int previous, int current) => Refresh();
+		private void HandleVictoryShotChanged(PokerVictoryShot previous, PokerVictoryShot current) => Refresh();
 
 		private void Refresh()
 		{
-			var state = Data.Showdown.Count > 0 ? UIPokerHudState.Ranking
+			var state = Data.VictoryShot.Value != PokerVictoryShot.None ? UIPokerHudState.Victory
+				: Data.Showdown.Count > 0 ? UIPokerHudState.Ranking
 				: IsOut ? UIPokerHudState.Out
 				: UIPokerHudState.Playing;
 

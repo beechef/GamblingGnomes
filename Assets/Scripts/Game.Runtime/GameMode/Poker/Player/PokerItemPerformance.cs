@@ -477,14 +477,8 @@ namespace Game.Runtime.GameMode.Poker.Player
 		private PlayerBone? BoneOf(Transform bone)
 		{
 			var rig = _player && _player.Rig ? _player.Rig.FullBodyRig : null;
-			if (!rig || !bone) return null;
 
-			foreach (PlayerBone candidate in System.Enum.GetValues(typeof(PlayerBone)))
-			{
-				if (rig.TryGet(candidate, out var found) && found == bone) return candidate;
-			}
-
-			return null;
+			return rig && rig.TryGetBoneOf(bone, out var found) ? found : null;
 		}
 
 		private void ScaleTo(Vector3 scale, in PokerItemPerformanceAction action, bool switchOff)

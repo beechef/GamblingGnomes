@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -41,6 +42,10 @@ namespace Game.Runtime.Player
 		[Tooltip("A shot of this player from outside, for another client to cut to while a moment is about them. Never used by the owner, who stays in their own eyes.")]
 		[SerializeField] private Camera.PlayerSpectatorCamera _spectatorCamera;
 
+		[Header("Mounts")]
+		[Tooltip("Points authored under a bone of the full body rig (the cigarettes at the mouth, their smoke). On the owner's screen they move onto the same bone of the hand-only rig, keeping their pose, so they turn with the head the owner looks through.")]
+		[SerializeField] private List<Transform> _ownerMounts = new();
+
 		public Transform FocusPoint => _focusPoint;
 
 		public Camera.PlayerSpectatorCamera SpectatorCamera => _spectatorCamera;
@@ -62,6 +67,30 @@ namespace Game.Runtime.Player
 
 		// The head itself — the bone the mesh is skinned to and the one anything posing a head has to drive.
 		public Transform RenderedHead => GetBone(PlayerBone.Head);
+
+		public override void OnNetworkSpawn()
+		{
+			base.OnNetworkSpawn();
+			if (IsOwner) MoveMounts(_fullBodyRig, _handOnlyRig);
+		}
+
+		public override void OnNetworkDespawn()
+		{
+			if (IsOwner) MoveMounts(_handOnlyRig, _fullBodyRig);
+			base.OnNetworkDespawn();
+		}
+
+		private void MoveMounts(PlayerBoneRig from, PlayerBoneRig to)
+		{
+			if (!from || !to) return;
+
+			foreach (var mount in _ownerMounts)
+			{
+				if (!mount || !from.TryGetBoneOf(mount.parent, out var bone) || !to.TryGet(bone, out var target)) continue;
+
+				mount.SetParent(target, false);
+			}
+		}
 
 		public Transform GetBone(PlayerBone bone)
 		{

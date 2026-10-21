@@ -85,6 +85,22 @@ namespace Game.Runtime.Player
 			return _resolved.TryGetValue(bone, out boneTransform) && boneTransform;
 		}
 
+		public bool TryGetBoneOf(Transform boneTransform, out PlayerBone bone)
+		{
+			if (!_built) Build();
+
+			foreach (var pair in _resolved)
+			{
+				if (!boneTransform || pair.Value != boneTransform) continue;
+
+				bone = pair.Key;
+				return true;
+			}
+
+			bone = default;
+			return false;
+		}
+
 		// Falls back to the rig itself: a caller asking where a bone this model has no equivalent for is
 		// gets somewhere on the model rather than a point in the middle of the level.
 		public Vector3 GetPosition(PlayerBone bone) => TryGet(bone, out var boneTransform) ? boneTransform.position : Root.position;

@@ -47,6 +47,8 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 
 		private void Apply(int rate)
 		{
+			if (!PokerHallucinationController.EffectsAllowed) rate = 0;
+
 			Hold(ref _mild, _mildSnapshot, rate >= _mildThreshold);
 			Hold(ref _strong, _strongSnapshot, rate >= _strongThreshold);
 		}

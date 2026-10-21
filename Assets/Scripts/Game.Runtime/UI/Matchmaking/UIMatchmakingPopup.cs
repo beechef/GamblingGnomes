@@ -1,6 +1,8 @@
 using System;
+using System.Threading;
 using Game.Runtime.Controller;
 using Game.Runtime.UI.Button;
+using Game.Runtime.UI.MainMenu;
 using Localization;
 using Sirenix.OdinInspector;
 using TMPro;
@@ -8,8 +10,8 @@ using UnityEngine;
 
 namespace Game.Runtime.UI.Matchmaking
 {
-	// What the player looks at while quick match runs: the search, then the count until the room is full,
-	// with Cancel to walk out (Escape presses whichever cross is up). A failure stays up with its reason until
+	// What the player looks at for quick match: the mode first, then Play starts the search, the clock and the
+	// count until the room is full, with Cancel to step back to the mode (Escape presses whichever cross is up). A failure stays up with its reason until
 	// closed. The root stays active and toggles _content, because a failure can arrive after the popup has stepped aside for the
 	// loading screen. Whoever opened it hears OnClosed when the player is back to choosing.
 	public class UIMatchmakingPopup : MonoBehaviour
@@ -19,6 +21,26 @@ namespace Game.Runtime.UI.Matchmaking
 
 		[Required]
 		[SerializeField] private TMP_Text _title;
+
+		[Header("Mode")]
+		[Tooltip("The mode picker and Play, shown before the search starts.")]
+		[Required]
+		[SerializeField] private GameObject _pickView;
+
+		[Required]
+		[SerializeField] private UIGameModePicker _picker;
+
+		[Required]
+		[SerializeField] private UIButton _playButton;
+
+		[Header("Search")]
+		[Tooltip("How long the search has run, mm:ss.")]
+		[Required]
+		[SerializeField] private TMP_Text _elapsed;
+
+		[Tooltip("Stops the search and goes back to the mode.")]
+		[Required]
+		[SerializeField] private UIButton _stopButton;
 
 		[Required]
 		[SerializeField] private TMP_Text _status;
@@ -38,6 +60,8 @@ namespace Game.Runtime.UI.Matchmaking
 
 		private MatchmakingController _matchmaking;
 		private bool _showingFailure;
+		private bool _picking;
+		private CancellationTokenSource _clock;
 
 		public event Action OnClosed;
 
@@ -60,12 +84,17 @@ namespace Game.Runtime.UI.Matchmaking
 		{
 			_cancelButton.OnClick += HandleCancel;
 			_closeButton.OnClick += Close;
+			_playButton.OnClick += HandlePlay;
+			_stopButton.OnClick += HandleStop;
 		}
 
 		private void OnDisable()
 		{
+			_stopButton.OnClick -= HandleStop;
+			_playButton.OnClick -= HandlePlay;
 			_closeButton.OnClick -= Close;
 			_cancelButton.OnClick -= HandleCancel;
+			StopClock();
 		}
 
 		private void Start()
@@ -101,8 +130,60 @@ namespace Game.Runtime.UI.Matchmaking
 			if (!CanOpen) return;
 
 			_showingFailure = false;
+			_picking = true;
 			Show();
-			_matchmaking.StartMatchmaking();
+		}
+
+		private void HandlePlay()
+		{
+			if (!_picking || !_picker.HasMode || !CanOpen) return;
+
+			_picking = false;
+			_matchmaking.StartMatchmaking(_picker.Selected);
+			StartClock();
+			Redraw();
+		}
+
+		private void HandleStop()
+		{
+			if (_matchmaking) _matchmaking.CancelMatchmaking();
+			StopClock();
+			_picking = true;
+			Redraw();
+		}
+
+		private void StartClock()
+		{
+			StopClock();
+			_clock = CancellationTokenSource.CreateLinkedTokenSource(destroyCancellationToken);
+			_ = RunClockAsync(_clock.Token);
+		}
+
+		private void StopClock()
+		{
+			if (_clock == null) return;
+
+			_clock.Cancel();
+			_clock.Dispose();
+			_clock = null;
+		}
+
+		private async Awaitable RunClockAsync(CancellationToken ct)
+		{
+			var started = Time.unscaledTime;
+
+			try
+			{
+				while (!ct.IsCancellationRequested)
+				{
+					var seconds = Mathf.FloorToInt(Time.unscaledTime - started);
+					_elapsed.text = $"{seconds / 60:00}:{seconds % 60:00}";
+					await Awaitable.WaitForSecondsAsync(1f - (Time.unscaledTime - started) % 1f, ct);
+				}
+			}
+			catch (OperationCanceledException)
+			{
+			}
 		}
 
 		private void HandleStateChanged(MatchmakingState state)
@@ -111,6 +192,7 @@ namespace Game.Runtime.UI.Matchmaking
 			// itself, so there is nothing to go back to.
 			if (state == MatchmakingState.Starting)
 			{
+				StopClock();
 				Hide();
 				return;
 			}
@@ -127,6 +209,8 @@ namespace Game.Runtime.UI.Matchmaking
 		private void HandleFailed(MatchmakingFailure failure)
 		{
 			_showingFailure = true;
+			_picking = false;
+			StopClock();
 			_status.text = Localizer.Get(FailureKey(failure));
 			Show();
 		}
@@ -134,6 +218,7 @@ namespace Game.Runtime.UI.Matchmaking
 		private void Close()
 		{
 			_showingFailure = false;
+			StopClock();
 			Hide();
 			OnClosed?.Invoke();
 		}
@@ -168,10 +253,16 @@ namespace Game.Runtime.UI.Matchmaking
 		{
 			if (!IsOpen || !_matchmaking) return;
 
-			_cancelButton.gameObject.SetActive(!_showingFailure);
-			_closeButton.gameObject.SetActive(_showingFailure);
+			var searching = !_picking && !_showingFailure;
 
-			var waiting = !_showingFailure && _matchmaking.State == MatchmakingState.Waiting;
+			_pickView.SetActive(_picking);
+			_cancelButton.gameObject.SetActive(searching);
+			_closeButton.gameObject.SetActive(!searching);
+			_elapsed.gameObject.SetActive(searching);
+			_stopButton.gameObject.SetActive(searching);
+			_status.gameObject.SetActive(!_picking);
+
+			var waiting = searching && _matchmaking.State == MatchmakingState.Waiting;
 			_count.gameObject.SetActive(waiting);
 
 			if (_showingFailure)
@@ -181,7 +272,7 @@ namespace Game.Runtime.UI.Matchmaking
 			}
 
 			_title.text = Localizer.Get(LocalizationKeys.Matchmaking.Title);
-			_status.text = Localizer.Get(LocalizationKeys.Matchmaking.Searching);
+			_status.text = Localizer.Get(waiting ? LocalizationKeys.Matchmaking.LookingForPlayers : LocalizationKeys.Matchmaking.Searching);
 
 			if (waiting)
 			{

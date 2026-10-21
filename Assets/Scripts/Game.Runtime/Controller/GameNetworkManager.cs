@@ -27,7 +27,7 @@ namespace Game.Runtime.Controller
 		[field: SerializeField] public LobbySettings LobbySettings { get; private set; } = new(
 			6,
 			false,
-			GameModeType.Main,
+			GameModeType.Default,
 			new List<LobbyData>(),
 			new List<LobbyData>()
 		);
@@ -152,6 +152,14 @@ namespace Game.Runtime.Controller
 			settings.RoomName = roomName;
 			settings.MaxPlayers = maxPlayers;
 			settings.IsPrivate = isPrivate;
+			settings.SelectedGameMode = gameMode;
+			LobbySettings = settings;
+		}
+
+		// Quick match opens or joins a room of this mode; hosting picks it through ConfigureLobby.
+		public void SelectGameMode(GameModeType gameMode)
+		{
+			var settings = LobbySettings;
 			settings.SelectedGameMode = gameMode;
 			LobbySettings = settings;
 		}
@@ -339,7 +347,7 @@ namespace Game.Runtime.Controller
 			StartListenGameplaySceneLoad();
 		}
 
-		public async Awaitable<IReadOnlyList<ILobby>> SearchLobby(CancellationToken ct = default)
+		public async Awaitable<IReadOnlyList<ILobby>> SearchLobby(GameModeType gameMode, CancellationToken ct = default)
 		{
 			ct.ThrowIfCancellationRequested();
 
@@ -347,7 +355,8 @@ namespace Game.Runtime.Controller
 			// for the room to fill or hear that it started.
 			var filters = new List<LobbyData>(LobbySettings.GameSearchStrings)
 			{
-				new(LobbyConstant.MatchmakingKey, LobbyConstant.HostedValue)
+				new(LobbyConstant.MatchmakingKey, LobbyConstant.HostedValue),
+				new(LobbyConstant.GameModeKey, gameMode.ToString())
 			};
 
 			var lobbies = await ResolveLobbyService().SearchAsync(filters, ct);

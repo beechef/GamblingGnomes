@@ -19,6 +19,8 @@ namespace Game.Runtime.Props
 		// A mushroom growing out of the chest, worn alongside the other attachments.
 		ChestMushroom = 6,
 		// A pile of dung sitting where the hat was; the hat itself is hidden by the same effect.
-		DungHat = 7
+		DungHat = 7,
+		// Arms and legs grown out of a piece of scenery, flailing while worn.
+		Limbs = 8
 	}
 }

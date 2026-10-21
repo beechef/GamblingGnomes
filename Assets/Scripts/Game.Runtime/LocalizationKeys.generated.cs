@@ -31,6 +31,7 @@ namespace Game.Runtime
 			public const string LoserBonus = "config.loser_bonus";
 			public const string StartingHealth = "config.starting_health";
 			public const string Title = "config.title";
+			public const string TurnDuration = "config.turn_duration";
 
 			public static class Section
 			{
@@ -347,6 +348,8 @@ namespace Game.Runtime
 		public static class Matchmaking
 		{
 			public const string Failed = "matchmaking.failed";
+			public const string LookingForPlayers = "matchmaking.looking_for_players";
+			public const string Play = "matchmaking.play";
 			public const string Searching = "matchmaking.searching";
 			public const string Title = "matchmaking.title";
 			public const string Waiting = "matchmaking.waiting";
@@ -374,7 +377,17 @@ namespace Game.Runtime
 
 		public static class Mode
 		{
-			public const string Main = "mode.main";
+			public static class Default
+			{
+				public const string Description = "mode.default.description";
+				public const string Name = "mode.default.name";
+			}
+
+			public static class Poker
+			{
+				public const string Description = "mode.poker.description";
+				public const string Name = "mode.poker.name";
+			}
 		}
 
 		public static class Pause
@@ -507,10 +520,14 @@ namespace Game.Runtime
 		public static class Room
 		{
 			public const string Create = "room.create";
+			public const string CreateRoom = "room.create_room";
 			public const string GameMode = "room.game_mode";
 			public const string MaxPlayers = "room.max_players";
 			public const string Name = "room.name";
+			public const string Next = "room.next";
+			public const string PlayMode = "room.play_mode";
 			public const string Private = "room.private";
+			public const string Timer = "room.timer";
 			public const string Title = "room.title";
 		}
 

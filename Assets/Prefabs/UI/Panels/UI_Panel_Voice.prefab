@@ -35,7 +35,7 @@ RectTransform:
   - {fileID: 6565258086544958685}
   - {fileID: 9053330924108708074}
   - {fileID: 3325060405008432234}
-  - {fileID: 4324604169151869273}
+  - {fileID: 332055742357614598}
   m_Father: {fileID: 3193087737611039940}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
@@ -218,7 +218,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0}
   m_AnchorMax: {x: 0.5, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 6, y: 0}
+  m_SizeDelta: {x: 5, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &6450574588699783737
 CanvasRenderer:
@@ -1502,7 +1502,7 @@ MonoBehaviour:
   _noiseSuppression: {fileID: 8987765390552924382}
   _inputVolume: {fileID: 1140433348372690344}
   _outputVolume: {fileID: 5003224338614635317}
-  _peerHeader: {fileID: 2436271944153915856}
+  _peerHeader: {fileID: 8008139043421486488}
   _peerParent: {fileID: 6052277111886323115}
   _peerRowPrefab: {fileID: 6829163641392656690, guid: e56ed8bb4a7a0774ea8b360a806dbf00, type: 3}
 --- !u!1 &9149148873459413118 stripped
@@ -1531,10 +1531,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 6052277111886323115}
     m_Modifications:
-    - target: {fileID: 6290330105492206654, guid: dbf40ebc5a59d23498fc44f25c0267a3, type: 3}
-      propertyPath: m_text
-      value: Player Volume
-      objectReference: {fileID: 0}
     - target: {fileID: 1105938476345961388, guid: dbf40ebc5a59d23498fc44f25c0267a3, type: 3}
       propertyPath: m_Name
       value: Row_PlayersHeader
@@ -1542,6 +1538,10 @@ PrefabInstance:
     - target: {fileID: 1105938476345961388, guid: dbf40ebc5a59d23498fc44f25c0267a3, type: 3}
       propertyPath: m_IsActive
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6290330105492206654, guid: dbf40ebc5a59d23498fc44f25c0267a3, type: 3}
+      propertyPath: m_text
+      value: Player Volume
       objectReference: {fileID: 0}
     - target: {fileID: 7268818425047279154, guid: dbf40ebc5a59d23498fc44f25c0267a3, type: 3}
       propertyPath: m_Pivot.x
@@ -1628,14 +1628,14 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: dbf40ebc5a59d23498fc44f25c0267a3, type: 3}
---- !u!1 &2436271944153915856 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 1105938476345961388, guid: dbf40ebc5a59d23498fc44f25c0267a3, type: 3}
-  m_PrefabInstance: {fileID: 6952349636285388340}
-  m_PrefabAsset: {fileID: 0}
---- !u!224 &4324604169151869273 stripped
+--- !u!224 &332055742357614598 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 7268818425047279154, guid: dbf40ebc5a59d23498fc44f25c0267a3, type: 3}
+  m_PrefabInstance: {fileID: 6952349636285388340}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &8008139043421486488 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1105938476345961388, guid: dbf40ebc5a59d23498fc44f25c0267a3, type: 3}
   m_PrefabInstance: {fileID: 6952349636285388340}
   m_PrefabAsset: {fileID: 0}
 --- !u!1001 &8240282673191148295

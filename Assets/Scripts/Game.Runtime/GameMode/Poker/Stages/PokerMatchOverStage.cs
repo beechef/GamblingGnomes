@@ -5,11 +5,13 @@ using Game.Runtime.GameMode.Poker.Player;
 using Game.Runtime.Utility;
 using Sirenix.OdinInspector;
 using UnityEngine;
+using UnityEngine.Serialization;
 
 namespace Game.Runtime.GameMode.Poker.Stages
 {
-	// The match has one player left in it (or none). The table says who, blinks, and puts everything back
-	// behind the closed eye — blood, hallucination, what was eaten, the pot, the cards — so the idle table
+	// The match has one player left in it (or none). Every screen blinks into the survivor dancing on the
+	// table, the camera comes round to their face, the table names them, then it blinks again and puts
+	// everything back behind the closed eye — blood, hallucination, what was eaten, the pot, the cards — so the idle table
 	// that opens is the one a new match starts from, not the wreck of the last one.
 	//
 	// The blink is replicated as a flag rather than timed on each client: every screen shuts when the flag
@@ -22,6 +24,8 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		private enum Step
 		{
 			Settling,
+			IntroClosing,
+			Dancing,
 			Announcing,
 			Closing,
 			Done
@@ -31,6 +35,15 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		[Tooltip("Seconds after the last roll and death still playing out (every player's ServerOutcomeRemaining) before the survivor is announced. Two players going under at once both finish falling first; the margin covers the deaths reaching every screen a little after the server.")]
 		[MinValue(0f)]
 		[SerializeField] private float _settleDuration = 1f;
+
+		[Tooltip("Seconds the eye stays shut after the intro blink closes, while the survivor is lifted onto the table.")]
+		[MinValue(0f)]
+		[SerializeField] private float _introHoldDuration = 0.3f;
+
+		[Tooltip("Seconds the wide shot of the survivor dancing on the table holds before the close-up.")]
+		[FormerlySerializedAs("_orbitDuration")]
+		[MinValue(0f)]
+		[SerializeField] private float _danceDuration = 4f;
 
 		[Tooltip("Seconds the survivor is announced before the table blinks.")]
 		[MinValue(0f)]
@@ -61,6 +74,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			GameMode.ClearTurn();
 			Data.Showdown.Clear();
 			Data.MatchResetting.Value = false;
+			Data.VictoryShot.Value = PokerVictoryShot.None;
 
 			_step = Step.Settling;
 			_timer = _settleDuration;
@@ -78,9 +92,34 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			{
 				case Step.Settling:
 					Data.SurvivorClientId.Value = FindSurvivor();
+
+					// Nobody left standing has nobody to dance: the table just says so.
+					if (Data.SurvivorClientId.Value == PokerGameData.NoTurn)
+					{
+						Announce();
+						break;
+					}
+
+					// The shot is named a beat before the phase, so no screen ever reads MatchOver without it and
+					// shows the name board over the dance. The cameras and the lift land behind the closing eye.
+					Data.VictoryShot.Value = PokerVictoryShot.Wide;
+					Data.MatchResetting.Value = true;
+					_step = Step.IntroClosing;
+					_timer = BlinkCloseDuration + _introHoldDuration;
+					break;
+
+				// Behind the shut eye: the survivor is on the table and dancing before anybody sees the room again.
+				case Step.IntroClosing:
+					SetSurvivorDancing(true);
 					Data.Phase.Value = PokerPhase.MatchOver;
-					_step = Step.Announcing;
-					_timer = _announceDuration;
+					Data.MatchResetting.Value = false;
+					_step = Step.Dancing;
+					_timer = _danceDuration;
+					break;
+
+				case Step.Dancing:
+					Data.VictoryShot.Value = PokerVictoryShot.CloseUp;
+					Announce();
 					break;
 
 				case Step.Announcing:
@@ -101,10 +140,33 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			}
 		}
 
-		// Cut short before the reset, the screens must not stay shut. After it, the hold below opens them.
+		private void Announce()
+		{
+			Data.Phase.Value = PokerPhase.MatchOver;
+			_step = Step.Announcing;
+			_timer = _announceDuration;
+		}
+
+		// Cut short before the reset, the screens must not stay shut and the survivor must come down. After
+		// it, the hold below opens them.
 		protected override void OnEndStage()
 		{
-			if (_step != Step.Done) Data.MatchResetting.Value = false;
+			if (_step == Step.Done) return;
+
+			Data.MatchResetting.Value = false;
+			EndVictory();
+		}
+
+		private void EndVictory()
+		{
+			SetSurvivorDancing(false);
+			Data.VictoryShot.Value = PokerVictoryShot.None;
+		}
+
+		private void SetSurvivorDancing(bool dancing)
+		{
+			var survivor = PokerPlayer.Find(Data.SurvivorClientId.Value);
+			if (survivor && survivor.WinnerPose) survivor.WinnerPose.ServerSetDancing(dancing);
 		}
 
 		private async Awaitable OpenAfterHold(PokerGameData data, CancellationToken ct)
@@ -123,6 +185,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 		private void ResetTable()
 		{
+			EndVictory();
 			GameMode.EndGame();
 			GameMode.ServerResetMatchStats();
 			PokerTableUtility.ResetPot(Data);
