@@ -1,10 +1,13 @@
 using System;
 using System.Threading;
+using Game.Runtime.Audio;
+using Game.Runtime.Player;
 using Game.Runtime.GameMode.Poker.Player;
 using Game.Runtime.GameMode.Poker.Stages;
 using Game.Runtime.Player.Camera;
 using Game.Runtime.Utility;
 using Sirenix.OdinInspector;
+using Unity.Cinemachine;
 using UnityEngine;
 using UnityEngine.Serialization;
 
@@ -25,10 +28,21 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		[SerializeField] private Transform _stage;
 
 		[Header("Shots")]
-		[Tooltip("The whole survivor dancing on the table, from the side of their chair.")]
+		[Tooltip("The whole survivor dancing on the table: comes round from behind them along its spline and settles on the side of their chair.")]
 		[FormerlySerializedAs("_orbitCamera")]
 		[Required]
 		[SerializeField] private PlayerSpectatorCamera _wideCamera;
+
+		[Tooltip("Carries the wide shot along its spline, from behind the survivor to in front of them. Restarted from the beginning every time the shot goes up.")]
+		[Required]
+		[SerializeField] private CinemachineSplineDolly _wideDolly;
+
+		[Tooltip("Seconds the wide shot takes coming round from behind to the front, where it then holds. Starts with the dance, on PokerMatchOverStage.PerformanceDelay.")]
+		[MinValue(0.01f)]
+		[SerializeField] private float _orbitDuration = 3f;
+
+		[Tooltip("Played as the performance starts, with the camera's move and the dance.")]
+		[SerializeField] private AudioEvent _performanceSound;
 
 		[Tooltip("Face to face with the survivor while the table names them.")]
 		[Required]
@@ -38,12 +52,18 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		private PokerWinnerPoseController _onStage;
 		private bool _wideHeld;
 		private bool _closeUpHeld;
+		private bool _tagsHidden;
+		private CancellationTokenSource _performance;
 
 		// When this screen's own eye finished closing for the match-over blink, unscaled.
 		private float _shutAt;
 		private CancellationTokenSource _pending;
 
-		private void OnDestroy() => CancelPending();
+		private void OnDestroy()
+		{
+			CancelPending();
+			CancelPerformance();
+		}
 
 		protected override void OnBind()
 		{
@@ -64,6 +84,8 @@ namespace Game.Runtime.GameMode.Poker.Visual
 			Apply(PokerVictoryShot.None);
 		}
 
+		private PokerMatchOverStage RunningStage => GameMode.FindStage(Data.StageId.Value.ToString()) as PokerMatchOverStage;
+
 		private void HandleShotChanged(PokerVictoryShot previous, PokerVictoryShot current) => Refresh();
 
 		private void HandleResettingChanged(bool previous, bool current)
@@ -75,7 +97,7 @@ namespace Game.Runtime.GameMode.Poker.Visual
 		{
 			get
 			{
-				var stage = GameMode.FindStage(Data.StageId.Value.ToString()) as PokerMatchOverStage;
+				var stage = RunningStage;
 				return stage && stage.Blink ? stage.Blink.CloseDuration : 0f;
 			}
 		}
@@ -134,8 +156,70 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 			PlaceSurvivor(shot);
 
+			if (shot == PokerVictoryShot.Wide && !_wideHeld) BeginPerformance();
+			if (shot == PokerVictoryShot.None) CancelPerformance();
+
 			SetHeld(ref _wideHeld, _wideCamera, shot == PokerVictoryShot.Wide);
 			SetHeld(ref _closeUpHeld, _closeUpCamera, shot == PokerVictoryShot.CloseUp);
+			SetTagsHidden(shot != PokerVictoryShot.None);
+		}
+
+		// The camera waits at the start of its path and goes on the same number the server starts the dance on,
+		// counted from this screen's own shut eye, so the move, the dance and the sound begin together. A screen
+		// that joined late, with no close of its own to count from, starts at once.
+		private void BeginPerformance()
+		{
+			CancelPerformance();
+			HoldOrbitAtStart();
+
+			var stage = RunningStage;
+			var delay = (stage ? stage.PerformanceDelay : 0f) - Mathf.Max(0f, Time.unscaledTime - _shutAt);
+			if (_shutAt <= 0f || delay <= 0f)
+			{
+				StartPerformance();
+				return;
+			}
+
+			_performance = CancellationTokenSource.CreateLinkedTokenSource(destroyCancellationToken);
+			_ = StartPerformanceAfter(delay, _performance.Token);
+		}
+
+		private async Awaitable StartPerformanceAfter(float seconds, CancellationToken ct)
+		{
+			try
+			{
+				await AwaitableUtility.WaitUnscaledAsync(seconds, ct);
+			}
+			catch (OperationCanceledException)
+			{
+				return;
+			}
+
+			if (IsBound && _shown == PokerVictoryShot.Wide) StartPerformance();
+		}
+
+		private void StartPerformance()
+		{
+			if (_wideDolly && _wideDolly.AutomaticDolly.Method is SplineAutoDolly.FixedSpeed speed) speed.Speed = 1f / _orbitDuration;
+			if (_performanceSound && AudioManager.Instance) AudioManager.Instance.PlayOneShot(_performanceSound, _stage.position);
+		}
+
+		private void CancelPerformance()
+		{
+			if (_performance == null) return;
+
+			_performance.Cancel();
+			_performance.Dispose();
+			_performance = null;
+		}
+
+		private void SetTagsHidden(bool hidden)
+		{
+			if (_tagsHidden == hidden) return;
+
+			_tagsHidden = hidden;
+			if (hidden) PlayerNameTagVisual.RequestAllHidden();
+			else PlayerNameTagVisual.ReleaseAllHidden();
 		}
 
 		private void PlaceSurvivor(PokerVictoryShot shot)
@@ -150,6 +234,17 @@ namespace Game.Runtime.GameMode.Poker.Visual
 
 			FaceChair(survivor.transform.position);
 			_onStage.PlaceOnStage(_stage);
+		}
+
+		// Cinemachine's own auto-dolly moves it at a fixed speed along the spline (positions authored Normalized,
+		// so 1 is the whole path) and stops at the end of an open spline: the move ends in front of the survivor
+		// and holds there. Held still at the start until the performance begins.
+		private void HoldOrbitAtStart()
+		{
+			if (!_wideDolly) return;
+
+			_wideDolly.CameraPosition = 0f;
+			if (_wideDolly.AutomaticDolly.Method is SplineAutoDolly.FixedSpeed speed) speed.Speed = 0f;
 		}
 
 		// The player root stays in the chair while the body is on the table, so it is where the chair is.

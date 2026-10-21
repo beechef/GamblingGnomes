@@ -1,5 +1,4 @@
 using DG.Tweening;
-using Game.Runtime.Audio;
 using Game.Runtime.GameMode.Poker;
 using Game.Runtime.GameMode.Poker.Player;
 using Game.Runtime.GameMode.Poker.Stages;
@@ -26,9 +25,6 @@ namespace Game.Runtime.UI.Poker
 
 		[SerializeField] private float _announceFadeDuration = 0.4f;
 		[SerializeField] private Ease _announceEase = Ease.OutQuad;
-
-		[Tooltip("Played as the announcement fades in (not for a late joiner landing on it).")]
-		[SerializeField] private AudioEvent _announceSound;
 
 		[Header("Blink")]
 		[Tooltip("The eyelids shut while the table is put back, from the stage's blink video.")]
@@ -100,7 +96,6 @@ namespace Game.Runtime.UI.Poker
 
 			var target = show ? 1f : 0f;
 
-			if (show && animate && _announceSound && AudioManager.Instance) AudioManager.Instance.PlayOneShot(_announceSound, transform.position);
 
 			if (!animate || _announceFadeDuration <= 0f)
 			{

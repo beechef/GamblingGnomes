@@ -41,6 +41,11 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		[MinValue(0f)]
 		[SerializeField] private float _introHoldDuration = 0.3f;
 
+		[Tooltip("Seconds after the intro blink is shut before the performance starts: the dance, the camera's move and the winner sound, all on this one number (PokerVictoryVisual reads it). Past the hold, so it starts with the eye open rather than spending its first beats behind the black.")]
+		[FormerlySerializedAs("_danceDelay")]
+		[MinValue(0f)]
+		[SerializeField] private float _performanceDelay = 1.3f;
+
 		[Tooltip("Seconds the wide shot of the survivor dancing on the table holds before the close-up.")]
 		[FormerlySerializedAs("_orbitDuration")]
 		[MinValue(0f)]
@@ -65,8 +70,11 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 		private Step _step;
 		private float _timer;
+		private float _danceIn = -1f;
 
 		public PokerHallucinationPacing Blink => _blink;
+
+		public float PerformanceDelay => _performanceDelay;
 
 		private float BlinkCloseDuration => _blink ? _blink.CloseDuration : 0f;
 
@@ -76,6 +84,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			Data.Showdown.Clear();
 			Data.MatchResetting.Value = false;
 			Data.VictoryShot.Value = PokerVictoryShot.None;
+			_danceIn = -1f;
 
 			_step = Step.Settling;
 			_timer = _settleDuration;
@@ -85,6 +94,12 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		{
 			// A death still playing out holds the announcement back, however the match was decided.
 			if (_step == Step.Settling && AnyOutcomePlaying()) _timer = _settleDuration;
+
+			if (_danceIn >= 0f)
+			{
+				_danceIn -= deltaTime;
+				if (_danceIn < 0f) SetSurvivorDancing(true);
+			}
 
 			_timer -= deltaTime;
 			if (_timer > 0f) return;
@@ -110,7 +125,8 @@ namespace Game.Runtime.GameMode.Poker.Stages
 				// every screen; a screen that hears it early still waits out its own close (PokerVictoryVisual).
 				case Step.IntroClosing:
 					Data.VictoryShot.Value = PokerVictoryShot.Wide;
-					SetSurvivorDancing(true);
+					SetSurvivorOnStage(true);
+					_danceIn = _performanceDelay;
 					Data.Phase.Value = PokerPhase.MatchOver;
 					_step = Step.IntroShut;
 					_timer = _introHoldDuration;
@@ -164,8 +180,16 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 		private void EndVictory()
 		{
+			_danceIn = -1f;
 			SetSurvivorDancing(false);
+			SetSurvivorOnStage(false);
 			Data.VictoryShot.Value = PokerVictoryShot.None;
+		}
+
+		private void SetSurvivorOnStage(bool onStage)
+		{
+			var survivor = PokerPlayer.Find(Data.SurvivorClientId.Value);
+			if (survivor && survivor.WinnerPose) survivor.WinnerPose.ServerSetOnStage(onStage);
 		}
 
 		private void SetSurvivorDancing(bool dancing)

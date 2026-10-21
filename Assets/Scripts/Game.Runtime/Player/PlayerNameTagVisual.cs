@@ -30,6 +30,17 @@ namespace Game.Runtime.Player
 		private Color _normalColor;
 		private bool _highlighted;
 
+		// Every tag on this screen steps aside while anything asks: a cutscene owns the frame. Counted, so two
+		// askers cannot show each other's tags.
+		private static int _allHiddenRequests;
+
+		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+		private static void ResetStatics() => _allHiddenRequests = 0;
+
+		public static void RequestAllHidden() => _allHiddenRequests++;
+
+		public static void ReleaseAllHidden() => _allHiddenRequests = Mathf.Max(0, _allHiddenRequests - 1);
+
 		private void Awake()
 		{
 			if (!_data) _data = GetComponentInParent<PlayerData>();
@@ -81,7 +92,7 @@ namespace Game.Runtime.Player
 			if (!view) return;
 
 			var toCamera = transform.position - view.position;
-			var visible = _maxDistance <= 0f || toCamera.sqrMagnitude <= _maxDistance * _maxDistance;
+			var visible = _allHiddenRequests == 0 && (_maxDistance <= 0f || toCamera.sqrMagnitude <= _maxDistance * _maxDistance);
 
 			if (_canvas.enabled != visible) _canvas.enabled = visible;
 			if (!visible) return;

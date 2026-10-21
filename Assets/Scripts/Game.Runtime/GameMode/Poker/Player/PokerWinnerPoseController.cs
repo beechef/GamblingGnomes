@@ -19,6 +19,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 		[Tooltip("Bool held on both rigs while this player is celebrating a hand they took.")]
 		[SerializeField] private string _smilingParameter = "IsSmiling";
 
+		[Tooltip("Bool held on both rigs while this player stands on the table as the match's survivor, posed on the dance's first frame until the dance starts.")]
+		[SerializeField] private string _onStageParameter = "IsOnStage";
+
 		[Tooltip("Bool held on both rigs while this player dances as the match's survivor.")]
 		[SerializeField] private string _dancingParameter = "IsDancing";
 
@@ -49,6 +52,13 @@ namespace Game.Runtime.GameMode.Poker.Player
 			if (!IsServer || !_animatorStates) return;
 
 			_animatorStates.ServerSetBool(_smilingParameter, smiling);
+		}
+
+		public void ServerSetOnStage(bool onStage)
+		{
+			if (!IsServer || !_animatorStates) return;
+
+			_animatorStates.ServerSetBool(_onStageParameter, onStage);
 		}
 
 		public void ServerSetDancing(bool dancing)
