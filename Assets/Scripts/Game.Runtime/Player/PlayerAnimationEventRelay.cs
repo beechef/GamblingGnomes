@@ -23,7 +23,8 @@ namespace Game.Runtime.Player
 
 		private Renderer[] _renderers;
 
-		private void Awake() => _renderers = GetComponentsInChildren<Renderer>(true);
+		// The model's own skin: a prop or effect hung on a bone stays lit on the rig nobody draws.
+		private void Awake() => _renderers = GetComponentsInChildren<SkinnedMeshRenderer>(true);
 
 		// Named by the clip, so renaming it breaks every event authored against it — grep before touching.
 		private void OnAnimationCueEvent(string cue)

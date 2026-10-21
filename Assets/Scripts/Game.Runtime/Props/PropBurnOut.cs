@@ -1,21 +1,26 @@
 using System;
+using System.Collections.Generic;
 using DG.Tweening;
+using Sirenix.OdinInspector;
 using UnityEngine;
 
 namespace Game.Runtime.Props
 {
-	// A prop that burns down once lit: its materials' burn parameter runs 0 to 1 over the duration, then it shrinks
-	// away and is destroyed. Only a lit copy burns (Ignite); the template it was copied from never does.
+	// A prop that burns down once lit: its animator plays the burn state, whose clip is authored one second long and
+	// slowed to last the duration, then it shrinks away and is destroyed. Only a lit copy burns (Ignite); the
+	// template it was copied from never does.
 	public class PropBurnOut : MonoBehaviour
 	{
-		[Tooltip("Float the prop's materials read: 0 whole, 1 burnt down. Renderers without it are unaffected.")]
-		[SerializeField] private string _parameter = "_Burn";
+		[Required]
+		[SerializeField] private Animator _animator;
+
+		[Tooltip("State played when lit; its clip runs one second, so the animator's speed is 1 / duration.")]
+		[ValueDropdown(nameof(StateNames))]
+		[SerializeField] private string _burnState = "Smoke";
 
 		[Tooltip("Seconds from lit to burnt down.")]
 		[Min(0.01f)]
 		[SerializeField] private float _duration = 20f;
-
-		[SerializeField] private Ease _ease = Ease.Linear;
 
 		[Tooltip("Seconds it takes to shrink away once burnt down.")]
 		[Min(0f)]
@@ -23,9 +28,6 @@ namespace Game.Runtime.Props
 
 		[SerializeField] private Ease _shrinkEase = Ease.InBack;
 
-		private Renderer[] _renderers;
-		private MaterialPropertyBlock _block;
-		private int _parameterId;
 		private Sequence _sequence;
 		private bool _lit;
 
@@ -39,13 +41,6 @@ namespace Game.Runtime.Props
 			OnBurntOut = null;
 		}
 
-		private void Awake()
-		{
-			_renderers = GetComponentsInChildren<Renderer>(true);
-			_block = new MaterialPropertyBlock();
-			_parameterId = Shader.PropertyToID(_parameter);
-		}
-
 		private void OnDestroy()
 		{
 			_sequence?.Kill();
@@ -55,10 +50,15 @@ namespace Game.Runtime.Props
 		public void Ignite()
 		{
 			_sequence?.Kill();
-			SetBurn(0f);
+
+			if (_animator)
+			{
+				_animator.speed = 1f / _duration;
+				_animator.Play(_burnState, 0, 0f);
+			}
 
 			_sequence = DOTween.Sequence()
-				.Append(DOVirtual.Float(0f, 1f, _duration, SetBurn).SetEase(_ease))
+				.AppendInterval(_duration)
 				.Append(transform.DOScale(Vector3.zero, _shrinkDuration).SetEase(_shrinkEase))
 				.OnComplete(() => Destroy(gameObject))
 				.SetLink(gameObject);
@@ -69,15 +69,23 @@ namespace Game.Runtime.Props
 			OnLit?.Invoke(this);
 		}
 
-		private void SetBurn(float burn)
+		private IEnumerable<string> StateNames
 		{
-			foreach (var target in _renderers)
+			get
 			{
-				if (!target) continue;
+				var names = new List<string>();
 
-				target.GetPropertyBlock(_block);
-				_block.SetFloat(_parameterId, burn);
-				target.SetPropertyBlock(_block);
+#if UNITY_EDITOR
+				if (_animator && _animator.runtimeAnimatorController is UnityEditor.Animations.AnimatorController controller)
+				{
+					foreach (var state in controller.layers[0].stateMachine.states)
+					{
+						names.Add(state.state.name);
+					}
+				}
+#endif
+
+				return names;
 			}
 		}
 	}

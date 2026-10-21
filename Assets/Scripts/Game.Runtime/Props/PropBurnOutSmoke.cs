@@ -10,7 +10,7 @@ namespace Game.Runtime.Props
 	// plays the effects, then stops them: the graph's OnStop ends spawning and the smoke already out fades on its own.
 	public class PropBurnOutSmoke : MonoBehaviour
 	{
-		[Tooltip("Lit props under this transform make smoke (the jaw bone holding the cigarette copies).")]
+		[Tooltip("Lit props under this transform make smoke (the player root: on the owner's screen the mouth points sit on the hand-only rig).")]
 		[Required]
 		[SerializeField] private Transform _holder;
 

@@ -31,7 +31,7 @@ namespace Game.Runtime.AnimationVfx
 
 		private void Awake()
 		{
-			_renderers = GetComponentsInChildren<Renderer>(true);
+			_renderers = GetComponentsInChildren<SkinnedMeshRenderer>(true);
 
 			if (_database) _database.InstallEvents();
 		}
