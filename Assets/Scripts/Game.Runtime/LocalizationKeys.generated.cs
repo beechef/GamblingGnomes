@@ -348,6 +348,8 @@ namespace Game.Runtime
 		public static class Matchmaking
 		{
 			public const string Failed = "matchmaking.failed";
+			public const string LookingForPlayers = "matchmaking.looking_for_players";
+			public const string Play = "matchmaking.play";
 			public const string Searching = "matchmaking.searching";
 			public const string Title = "matchmaking.title";
 			public const string Waiting = "matchmaking.waiting";

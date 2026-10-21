@@ -1,6 +1,8 @@
 using System;
 using Game.Runtime.Controller;
 using Game.Runtime.Lobby;
+using Game.Runtime.GameMode;
+using Game.Runtime.UI.MainMenu;
 using Game.Runtime.UI.Button;
 using Localization;
 using TMPro;
@@ -21,6 +23,9 @@ namespace Game.Runtime.UI.FindLobby
 		[Tooltip("Searches again.")]
 		[SerializeField] private UIButton _refreshButton;
 
+		[Tooltip("Which mode's rooms the list shows.")]
+		[SerializeField] private UIGameModePicker _modeFilter;
+
 		[Tooltip("Shown in place of the rows while searching, and when the search finds no room.")]
 		[SerializeField] private TMP_Text _statusLabel;
 
@@ -28,6 +33,7 @@ namespace Game.Runtime.UI.FindLobby
 		public event Action OnBackRequested;
 
 		private bool _isRefreshing;
+		private bool _refreshAgain;
 		private bool _joiningLobby;
 
 		private void OnEnable()
@@ -35,12 +41,14 @@ namespace Game.Runtime.UI.FindLobby
 			if (_closeButton) _closeButton.OnClick += HandleClose;
 			if (_backButton) _backButton.OnClick += HandleBack;
 			if (_refreshButton) _refreshButton.OnClick += Refresh;
+			_modeFilter.OnModeChanged += HandleModeChanged;
 
 			Refresh();
 		}
 
 		private void OnDisable()
 		{
+			_modeFilter.OnModeChanged -= HandleModeChanged;
 			if (_refreshButton) _refreshButton.OnClick -= Refresh;
 			if (_backButton) _backButton.OnClick -= HandleBack;
 			if (_closeButton) _closeButton.OnClick -= HandleClose;
@@ -49,10 +57,20 @@ namespace Game.Runtime.UI.FindLobby
 		// async void because a UI callback has nowhere to hand a task back to — so it catches its own
 		// exceptions, and the guard flag comes off on every path. Left standing it would make the
 		// button dead for the rest of the session.
+		private void HandleModeChanged(GameModeType gameMode) => Refresh();
+
+		// A refresh asked for mid-search runs once that search lands, so the list always answers the latest
+		// filter rather than the one the slow search started with.
 		public async void Refresh()
 		{
-			if (_isRefreshing) return;
+			if (_isRefreshing)
+			{
+				_refreshAgain = true;
+				return;
+			}
+
 			_isRefreshing = true;
+			_refreshAgain = false;
 
 			ClearItems();
 			ShowStatus(LocalizationKeys.Lobby.Searching);
@@ -61,7 +79,7 @@ namespace Game.Runtime.UI.FindLobby
 
 			try
 			{
-				var lobbies = await GameNetworkManager.Instance.SearchLobby(destroyCancellationToken);
+				var lobbies = await GameNetworkManager.Instance.SearchLobby(_modeFilter.Selected, destroyCancellationToken);
 				foreach (var lobby in lobbies)
 				{
 					AddItem(lobby);
@@ -82,6 +100,8 @@ namespace Game.Runtime.UI.FindLobby
 			{
 				_isRefreshing = false;
 			}
+
+			if (_refreshAgain && isActiveAndEnabled) Refresh();
 		}
 
 		// The list's empty state: what the search is doing, or that it found nothing. Null hides it.

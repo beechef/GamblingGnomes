@@ -704,6 +704,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Matchmaking.UIMatchmakingPopup
   _content: {fileID: 5244871537765178878}
   _title: {fileID: 7764675171792189650}
+  _pickView: {fileID: 6290922455461196929}
+  _picker: {fileID: 9136734802169913202}
+  _playButton: {fileID: 8059557854278623343}
+  _elapsed: {fileID: 6789404286451842068}
+  _stopButton: {fileID: 8565943545169843683}
   _status: {fileID: 5294823810405377125}
   _count: {fileID: 3614159864738757603}
   _joinedColor: {r: 0.788, g: 0.243, b: 0.251, a: 1}
@@ -2309,6 +2314,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
+--- !u!1 &6290922455461196929 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 8987273458080634556, guid: 6158376d41d9ebd4e9e6f83af2019917, type: 3}
+  m_PrefabInstance: {fileID: 3167417243587551805}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &6789404286451842068 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8488196821901008425, guid: 6158376d41d9ebd4e9e6f83af2019917, type: 3}
+  m_PrefabInstance: {fileID: 3167417243587551805}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
 --- !u!114 &7764675171792189650 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 4626683209014074095, guid: 6158376d41d9ebd4e9e6f83af2019917, type: 3}
@@ -2320,6 +2341,39 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
+--- !u!114 &8059557854278623343 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4912758799066399314, guid: 6158376d41d9ebd4e9e6f83af2019917, type: 3}
+  m_PrefabInstance: {fileID: 3167417243587551805}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 84f47ffb0cc60f8409595baa4eeeef58, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Button.UIButton
+--- !u!114 &8565943545169843683 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6707185265965643742, guid: 6158376d41d9ebd4e9e6f83af2019917, type: 3}
+  m_PrefabInstance: {fileID: 3167417243587551805}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 84f47ffb0cc60f8409595baa4eeeef58, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Button.UIButton
+--- !u!114 &9136734802169913202 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6140903108683955535, guid: 6158376d41d9ebd4e9e6f83af2019917, type: 3}
+  m_PrefabInstance: {fileID: 3167417243587551805}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4029821d256f4e8ca9dddc7f0d1a46ab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.MainMenu.UIGameModePicker
 --- !u!114 &9209614681860150215 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 6069712042481463802, guid: 6158376d41d9ebd4e9e6f83af2019917, type: 3}
@@ -3181,6 +3235,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
+--- !u!114 &2007072890732525733 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 8344948636243617056, guid: 04d6f99330774d042b60a0af7d33c446, type: 3}
+  m_PrefabInstance: {fileID: 7500103868798459269}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4029821d256f4e8ca9dddc7f0d1a46ab, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.MainMenu.UIGameModePicker
 --- !u!1 &2757665912082380883 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 5643162282404636118, guid: 04d6f99330774d042b60a0af7d33c446, type: 3}
@@ -3203,6 +3268,7 @@ MonoBehaviour:
   _closeButton: {fileID: 3364262993549557326}
   _backButton: {fileID: 8164040405347586488}
   _refreshButton: {fileID: 8537940597918434864}
+  _modeFilter: {fileID: 2007072890732525733}
   _statusLabel: {fileID: 1277731162370936530}
 --- !u!114 &3364262993549557326 stripped
 MonoBehaviour:

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading;
+using Game.Runtime.GameMode;
 using Game.Runtime.Lobby;
 using Sirenix.OdinInspector;
 using Unity.Netcode;
@@ -96,9 +97,11 @@ namespace Game.Runtime.Controller
 
 		private void OnApplicationQuit() => Abandon();
 
-		public void StartMatchmaking()
+		public void StartMatchmaking(GameModeType gameMode)
 		{
 			if (State != MatchmakingState.Idle || _network.IsInGame) return;
+
+			_network.SelectGameMode(gameMode);
 
 			_search = CancellationTokenSource.CreateLinkedTokenSource(destroyCancellationToken);
 			SearchAsync(_search.Token).LogExceptionsAndForget();
