@@ -52,8 +52,9 @@ namespace Game.Runtime.UI.Poker
 			Data.Phase.OnValueChanged += HandlePhaseChanged;
 			Data.SurvivorClientId.OnValueChanged += HandleSurvivorChanged;
 			Data.MatchResetting.OnValueChanged += HandleResettingChanged;
+			Data.VictoryShot.OnValueChanged += HandleVictoryShotChanged;
 
-			ShowAnnouncement(Data.Phase.Value == PokerPhase.MatchOver, animate: false);
+			ShowAnnouncement(ShouldAnnounce, animate: false);
 			SetBlink(Data.MatchResetting.Value, animate: false);
 		}
 
@@ -62,6 +63,7 @@ namespace Game.Runtime.UI.Poker
 			Data.Phase.OnValueChanged -= HandlePhaseChanged;
 			Data.SurvivorClientId.OnValueChanged -= HandleSurvivorChanged;
 			Data.MatchResetting.OnValueChanged -= HandleResettingChanged;
+			Data.VictoryShot.OnValueChanged -= HandleVictoryShotChanged;
 
 			_announceTween?.Kill();
 			_stage = null;
@@ -70,13 +72,18 @@ namespace Game.Runtime.UI.Poker
 			if (_blink) _blink.Hide();
 		}
 
+		// The name goes up once the camera is face to face with the survivor; on the wide shot the board would
+		// cover the dance. Nobody surviving has no dance, so it goes up at once.
+		private bool ShouldAnnounce => Data.Phase.Value == PokerPhase.MatchOver && Data.VictoryShot.Value != PokerVictoryShot.Wide;
+
 		// Leaving the phase happens behind the shut eye, so the announcement goes at once rather than fading.
-		private void HandlePhaseChanged(PokerPhase previous, PokerPhase current) =>
-			ShowAnnouncement(current == PokerPhase.MatchOver, animate: current == PokerPhase.MatchOver);
+		private void HandlePhaseChanged(PokerPhase previous, PokerPhase current) => ShowAnnouncement(ShouldAnnounce, animate: ShouldAnnounce);
+
+		private void HandleVictoryShotChanged(PokerVictoryShot previous, PokerVictoryShot current) => ShowAnnouncement(ShouldAnnounce, animate: ShouldAnnounce);
 
 		private void HandleSurvivorChanged(ulong previous, ulong current)
 		{
-			if (Data.Phase.Value == PokerPhase.MatchOver) FillAnnouncement();
+			if (ShouldAnnounce) FillAnnouncement();
 		}
 
 		private void HandleResettingChanged(bool previous, bool current) => SetBlink(current, animate: true);

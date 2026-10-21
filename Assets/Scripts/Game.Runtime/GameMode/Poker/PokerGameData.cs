@@ -68,6 +68,10 @@ namespace Game.Runtime.GameMode.Poker
 		[HideInInspector] public NetworkVariable<bool> MatchResetting = new(false,
 			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
 
+		// The survivor's victory shot every screen cuts to together. None outside the match-over cutscene.
+		[HideInInspector] public NetworkVariable<PokerVictoryShot> VictoryShot = new(PokerVictoryShot.None,
+			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
+
 		// One clock any stage can run, separate from the turn clock: a deal that plays out, a showdown
 		// that lingers, a beat the whole table answers at once — none of them belong to a single seat.
 		[HideInInspector] public NetworkVariable<double> StageEndTime = new(0d,

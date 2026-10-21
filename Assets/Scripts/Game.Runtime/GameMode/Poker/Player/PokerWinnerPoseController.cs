@@ -19,13 +19,29 @@ namespace Game.Runtime.GameMode.Poker.Player
 		[Tooltip("Bool held on both rigs while this player is celebrating a hand they took.")]
 		[SerializeField] private string _smilingParameter = "IsSmiling";
 
+		[Tooltip("Bool held on both rigs while this player dances as the match's survivor.")]
+		[SerializeField] private string _dancingParameter = "IsDancing";
+
+		[Header("Stage")]
+		[Tooltip("What is lifted onto the table for the victory dance: the models, both rigs, never the root the seat and the network own.")]
+		[SerializeField] private Transform _modelRoot;
+
+		[SerializeField] private PlayerController _controller;
+
+		private bool _onStage;
+		private Vector3 _restPosition;
+		private Quaternion _restRotation;
+
 		private void Awake()
 		{
+			if (!_controller) _controller = GetComponentInParent<PlayerController>();
 			if (_animatorStates) return;
 
 			var player = GetComponentInParent<PokerPlayer>();
 			if (player) _animatorStates = player.GetComponentInChildren<PlayerAnimatorStateController>(true);
 		}
+
+		public override void OnNetworkDespawn() => LeaveStage();
 
 		// Idempotent, so a beat may say it on every change without the flag growing a history.
 		public void ServerSetSmiling(bool smiling)
@@ -33,6 +49,40 @@ namespace Game.Runtime.GameMode.Poker.Player
 			if (!IsServer || !_animatorStates) return;
 
 			_animatorStates.ServerSetBool(_smilingParameter, smiling);
+		}
+
+		public void ServerSetDancing(bool dancing)
+		{
+			if (!IsServer || !_animatorStates) return;
+
+			_animatorStates.ServerSetBool(_dancingParameter, dancing);
+		}
+
+		// Local on every screen, read off the replicated victory shot: the body is drawn standing on the table
+		// while the root stays in its chair, so nothing the seat or the network owns ever moves.
+		public void PlaceOnStage(Transform stage)
+		{
+			if (!_modelRoot || !stage) return;
+
+			if (!_onStage)
+			{
+				_restPosition = _modelRoot.localPosition;
+				_restRotation = _modelRoot.localRotation;
+				_onStage = true;
+			}
+
+			_modelRoot.SetPositionAndRotation(stage.position, stage.rotation);
+			if (_controller) _controller.SetHeadLookSuspended(true);
+		}
+
+		public void LeaveStage()
+		{
+			if (!_onStage) return;
+
+			_onStage = false;
+			_modelRoot.localPosition = _restPosition;
+			_modelRoot.localRotation = _restRotation;
+			if (_controller) _controller.SetHeadLookSuspended(false);
 		}
 	}
 }
