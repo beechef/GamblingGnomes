@@ -40,6 +40,21 @@ namespace Game.Runtime
 			}
 		}
 
+		public static class Error
+		{
+			public const string Title = "error.title";
+
+			public static class Connect
+			{
+				public const string Disconnected = "error.connect.disconnected";
+				public const string RoomFull = "error.connect.room_full";
+				public const string RoomGone = "error.connect.room_gone";
+				public const string Timeout = "error.connect.timeout";
+				public const string Unavailable = "error.connect.unavailable";
+				public const string Unknown = "error.connect.unknown";
+			}
+		}
+
 		public static class Hand
 		{
 			public static class FiveOfAKind

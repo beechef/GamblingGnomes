@@ -1,4 +1,5 @@
 using Game.Runtime.Controller;
+using Game.Runtime.Lobby;
 using Sirenix.OdinInspector;
 using UnityEngine;
 
@@ -62,7 +63,7 @@ namespace Game.Runtime.Audio
 		}
 
 		// A failed attempt may leave nothing to tear down, so OnGameLeft never comes to bring the menu back.
-		private void HandleConnectFailed(string reason)
+		private void HandleConnectFailed(ConnectFailure failure)
 		{
 			if (_network.IsInGame) return;
 

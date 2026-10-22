@@ -1,4 +1,5 @@
 using Game.Runtime.Controller;
+using Game.Runtime.Lobby;
 using Localization;
 using Sirenix.OdinInspector;
 using Unity.Netcode;
@@ -70,7 +71,7 @@ namespace Game.Runtime.UI.Loading
 		// this the table blinks out and the menu appears over whatever is left of the frame.
 		private void HandleGameLeaving() => _screen.Show(Localizer.Get(LocalizationKeys.Loading.Leaving));
 
-		private void HandleConnectFailed(string reason) => _screen.Hide();
+		private void HandleConnectFailed(ConnectFailure failure) => _screen.Hide();
 
 		private void HandleGameLeft()
 		{

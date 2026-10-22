@@ -43,10 +43,11 @@ namespace Game.Runtime.UI.FindLobby
 			_currentLobby = lobby;
 
 			_nameText.text = lobby.GetData(LobbyConstant.RoomNameKey);
-			var open = lobby.MemberCount < lobby.MaxMembers;
+			var players = lobby.PlayerCount;
+			var open = players < lobby.MaxMembers;
 			var count = open
-				? $"<color=#{ColorUtility.ToHtmlStringRGB(_openCountColor)}>{lobby.MemberCount}</color>"
-				: lobby.MemberCount.ToString();
+				? $"<color=#{ColorUtility.ToHtmlStringRGB(_openCountColor)}>{players}</color>"
+				: players.ToString();
 			_playerCountText.text = $"{count}/{lobby.MaxMembers}";
 			_joinButton.IsInteractable = open;
 

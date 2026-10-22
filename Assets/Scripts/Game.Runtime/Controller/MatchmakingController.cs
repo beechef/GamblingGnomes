@@ -190,7 +190,7 @@ namespace Game.Runtime.Controller
 			var attempts = Mathf.Min(_maxJoinAttempts, _candidates.Count);
 			for (var i = 0; i < attempts; i++)
 			{
-				var joined = await service.JoinAsync(_candidates[i].Id, ct);
+				var joined = (await service.JoinAsync(_candidates[i].Id, ct)).Lobby;
 
 				if (ct.IsCancellationRequested)
 				{
@@ -322,12 +322,14 @@ namespace Game.Runtime.Controller
 			SetState(MatchmakingState.Idle);
 		}
 
-		private void HandleConnectFailed(string reason)
+		private void HandleConnectFailed(ConnectFailure failure)
 		{
 			if (!_awaitingSession) return;
 
-			Debug.LogWarning($"[MatchmakingController] The match could not be joined: {reason}");
-			Fail(MatchmakingFailure.ConnectFailed);
+			// Reported by the error popup like any other failed way in; matchmaking only stands down.
+			Debug.LogWarning($"[MatchmakingController] The match could not be joined: {failure}");
+			Abandon();
+			SetState(MatchmakingState.Idle);
 		}
 
 		// A way into a table taken from elsewhere while waiting (an invite) wins over matchmaking.

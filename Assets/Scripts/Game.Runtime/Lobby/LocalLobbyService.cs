@@ -82,15 +82,15 @@ namespace Game.Runtime.Lobby
 			return Completed<ILobby>(lobby);
 		}
 
-		public Awaitable<ILobby> JoinAsync(ulong lobbyId, CancellationToken ct = default)
+		public Awaitable<LobbyJoinResult> JoinAsync(ulong lobbyId, CancellationToken ct = default)
 		{
 			var lobby = Read<LocalLobby>(RoomPath(lobbyId));
-			var joinable = lobby != null && !lobby.IsStale(StaleAfter) && lobby.IsJoinable && lobby.MemberCount < lobby.MaxMembers;
-			if (!joinable) return Completed<ILobby>(null);
+			if (lobby == null || lobby.IsStale(StaleAfter) || !lobby.IsJoinable) return Completed(LobbyJoinResult.Failed(ConnectFailure.RoomGone));
+			if (((ILobby)lobby).PlayerCount >= lobby.MaxMembers) return Completed(LobbyJoinResult.Failed(ConnectFailure.RoomFull));
 
 			LeaveCurrent();
 			Enter(lobby);
-			return Completed<ILobby>(lobby);
+			return Completed(LobbyJoinResult.Joined(lobby));
 		}
 
 		public Awaitable<IReadOnlyList<ILobby>> SearchAsync(IReadOnlyList<LobbyData> filters, CancellationToken ct = default)

@@ -6,8 +6,8 @@ using UnityEngine;
 
 namespace Game.Runtime.Lobby
 {
-	// Where rooms are opened, listed and joined. A failed create or join answers null rather than throwing,
-	// so the caller reports it the same way whichever service it asked.
+	// Where rooms are opened, listed and joined. A failed create answers null and a failed join says why,
+	// rather than throwing, so the caller reports it the same way whichever service it asked.
 	public interface ILobbyService : IDisposable
 	{
 		string Name { get; }
@@ -33,7 +33,7 @@ namespace Game.Runtime.Lobby
 		void Initialize();
 
 		Awaitable<ILobby> CreateAsync(LobbyCreateRequest request, CancellationToken ct = default);
-		Awaitable<ILobby> JoinAsync(ulong lobbyId, CancellationToken ct = default);
+		Awaitable<LobbyJoinResult> JoinAsync(ulong lobbyId, CancellationToken ct = default);
 		Awaitable<IReadOnlyList<ILobby>> SearchAsync(IReadOnlyList<LobbyData> filters, CancellationToken ct = default);
 
 		void Leave(ILobby lobby);
