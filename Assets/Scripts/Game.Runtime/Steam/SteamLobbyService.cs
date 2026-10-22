@@ -122,16 +122,25 @@ namespace Game.Runtime.Steam
 			return new SteamLobby(lobby);
 		}
 
-		public async Awaitable<ILobby> JoinAsync(ulong lobbyId, CancellationToken ct = default)
+		public async Awaitable<LobbyJoinResult> JoinAsync(ulong lobbyId, CancellationToken ct = default)
 		{
-			if (!IsAvailable) return null;
+			if (!IsAvailable) return LobbyJoinResult.Failed(ConnectFailure.Unavailable);
 
-			var joined = await SteamMatchmaking.JoinLobbyAsync(lobbyId);
-			if (!joined.HasValue) return null;
+			var lobby = new Steamworks.Data.Lobby(lobbyId);
+			var entered = await lobby.Join();
+			if (entered != RoomEnter.Success) return LobbyJoinResult.Failed(FailureOf(entered));
 
-			_joined[lobbyId] = joined.Value;
-			return new SteamLobby(joined.Value);
+			_joined[lobbyId] = lobby;
+			return LobbyJoinResult.Joined(new SteamLobby(lobby));
 		}
+
+		private static ConnectFailure FailureOf(RoomEnter entered) => entered switch
+		{
+			RoomEnter.Full => ConnectFailure.RoomFull,
+			RoomEnter.DoesntExist => ConnectFailure.RoomGone,
+			RoomEnter.NotAllowed => ConnectFailure.RoomGone,
+			_ => ConnectFailure.Unknown
+		};
 
 		public async Awaitable<IReadOnlyList<ILobby>> SearchAsync(IReadOnlyList<LobbyData> filters, CancellationToken ct = default)
 		{

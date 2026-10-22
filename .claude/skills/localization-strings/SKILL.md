@@ -9,9 +9,9 @@ The Google Sheet is the source of truth. An Import overwrites every section asse
 
 Assets:
 - Importer: `Assets/Settings/Localization/LocalizationImporter.asset` (`Localization.Import.LocalizationImporter`)
-- Sections: `Assets/Settings/Localization/<CODE>/Locale_<CODE>_<Tab>.asset` (tabs `UI`, `Poker`, `Items`, `Hands`; codes `EN`, `VI`), entries in `_entries` (`Key`, `Value`)
+- Sections: `Assets/Settings/Localization/<CODE>/Locale_<CODE>_<Tab>.asset` (tabs `UI`, `Poker`, `Items`, `Hands`; codes `EN`, `FR`, `IT`, `DE`, `ES`, `ES-419`, `PT-BR`, `RU`, `ZH-HANS`, `ZH-HANT`, `JA`, `KO`, `PL`, `TR`, `UK`, `VI`), entries in `_entries` (`Key`, `Value`)
 - Generated keys: `Assets/Scripts/Game.Runtime/LocalizationKeys.generated.cs` (never hand-edit)
-- Export: `LocalizationExport/<Tab>.csv` (columns `key,en,vi`)
+- Export: `LocalizationExport/<Tab>.csv` (columns `key` then every catalog locale code in order, `en` … `vi`)
 
 Run every step through Unity MCP `Unity_RunCommand`, on the main editor, not in Play mode (compiling waits for Play mode to end).
 
@@ -30,7 +30,7 @@ Before importing, check `git status` for section assets with uncommitted local k
 
 ## 2. Add the keys
 
-Pick the tab by area (`ui.*` → UI, `poker.*` → Poker, `item.*` → Items, `hand.*` → Hands). Key shape `area.group.name`, lower snake case; a key that equals its parent's name or prefixes another gets a `Key` suffix. Add the key to every locale's section of that tab, through `SerializedObject` (never sed on the YAML; Vietnamese is escaped there):
+Pick the tab by area (`ui.*` → UI, `poker.*` → Poker, `item.*` → Items, `hand.*` → Hands). Key shape `area.group.name`, lower snake case; a key that equals its parent's name or prefixes another gets a `Key` suffix. Add the key to every locale's section of that tab, through `SerializedObject` (never sed on the YAML; non-ASCII text is escaped there):
 
 ```csharp
 var so = new SerializedObject(AssetDatabase.LoadMainAssetAtPath(path));
@@ -48,7 +48,7 @@ To reword an existing key, find its entry and set `Value` the same way.
 Text conventions:
 - Keywords to stand out: `<Highlight>…</Highlight>` (expanded by `UITextHighlighter`), never a hand `<color>`.
 - Runtime values: `{0}`, `{1}`, filled by `Localizer.Format(key, args)`. A label filled this way is set from code, so remove its `LocalizedText`.
-- Write the Vietnamese yourself, and tell the user it is your translation.
+- Write every language yourself, in context (where the string shows, how it is assembled: a notice is `<actor> <lowered verb> [<target>]`), and tell the user these are your translations. A language switched off (`_isEnabled`) is still translated.
 - **A value Google Sheets would read as a formula (starts with `=`, `+`, `-` or `@`, e.g. `+{0} ITEM`) is written in the sheet with a leading `'`.** Otherwise the sheet turns it into a formula error and Import refuses everything (`The source holds formula errors; nothing was imported`). Tell the user which cells need it when they upload.
 
 ## 3. Regenerate keys

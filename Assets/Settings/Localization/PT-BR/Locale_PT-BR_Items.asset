@@ -1,0 +1,275 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 48cfa9c17f2bc884ba9c1aad02a042a1, type: 3}
+  m_Name: Locale_PT-BR_Items
+  m_EditorClassIdentifier: Localization::Localization.LocaleSection
+  _entries:
+  - Key: item.prompt.player
+    Value: APONTE PARA UM JOGADOR
+  - Key: item.prompt.opponent_card
+    Value: APONTE PARA A CARTA DE OUTRO JOGADOR
+  - Key: item.prompt.own_card
+    Value: APONTE PARA UMA DAS SUAS CARTAS
+  - Key: item.prompt.board_card
+    Value: APONTE PARA UMA CARTA FECHADA DA MESA
+  - Key: item.reason.not_dealt
+    Value: "Esta mesa n\xE3o distribui este item."
+  - Key: item.reason.not_held
+    Value: "N\xE3o est\xE1 na sua m\xE3o."
+  - Key: item.reason.out_of_match
+    Value: "Voc\xEA est\xE1 fora desta partida."
+  - Key: item.reason.street_only
+    Value: "S\xF3 numa rodada de apostas."
+  - Key: item.reason.turn_only
+    Value: "S\xF3 na sua vez."
+  - Key: item.reason.locked_out
+    Value: Itens bloqueados nesta rodada.
+  - Key: item.reason.used_one
+    Value: "Voc\xEA j\xE1 usou um item nesta rodada."
+  - Key: item.reason.used_many
+    Value: "Voc\xEA j\xE1 usou {0} itens nesta rodada."
+  - Key: item.reason.waiting_other
+    Value: Aguardando outro item.
+  - Key: item.reason.no_time
+    Value: "N\xE3o sobra tempo para responderem."
+  - Key: item.reason.not_in_hand
+    Value: "Voc\xEA n\xE3o est\xE1 nesta m\xE3o."
+  - Key: item.reason.hand_full
+    Value: "Sua m\xE3o est\xE1 cheia."
+  - Key: item.reason.deck_empty
+    Value: "O baralho est\xE1 vazio."
+  - Key: item.reason.no_street_left
+    Value: "N\xE3o h\xE1 mais rodadas nesta m\xE3o."
+  - Key: item.reason.no_board
+    Value: "Esta mesa n\xE3o tem cartas comunit\xE1rias."
+  - Key: item.reason.last_board_seen
+    Value: "A \xFAltima carta comunit\xE1ria j\xE1 est\xE1 aberta para voc\xEA."
+  - Key: item.reason.board_seen
+    Value: "Todas as cartas comunit\xE1rias j\xE1 est\xE3o abertas para voc\xEA."
+  - Key: item.reason.board_face_up
+    Value: "Todas as cartas comunit\xE1rias j\xE1 est\xE3o abertas."
+  - Key: item.reason.board_full
+    Value: "As cartas comunit\xE1rias est\xE3o completas."
+  - Key: item.reason.no_card_to_lay
+    Value: "Voc\xEA n\xE3o tem carta para baixar."
+  - Key: item.reason.no_card_to_give
+    Value: "Voc\xEA n\xE3o tem mais cartas para dar."
+  - Key: item.reason.cards_face_up
+    Value: "Suas cartas j\xE1 est\xE3o abertas."
+  - Key: item.reason.all_face_up
+    Value: "Todas as cartas j\xE1 est\xE3o abertas."
+  - Key: item.reason.cant_change
+    Value: Nenhuma das suas cartas pode mudar.
+  - Key: item.reason.already_under
+    Value: "Voc\xEA j\xE1 apagou."
+  - Key: item.reason.no_count_place
+    Value: "N\xE3o h\xE1 onde guardar a contagem."
+  - Key: item.reason.already_counted
+    Value: "Voc\xEA j\xE1 contou nesta m\xE3o."
+  - Key: item.reason.nobody_to_halve
+    Value: "Ningu\xE9m tem nada para cortar ao meio."
+  - Key: item.reason.nobody_to_spike
+    Value: "N\xE3o sobrou ningu\xE9m para batizar."
+  - Key: item.reason.nobody_to_show
+    Value: "Ningu\xE9m mais tem carta para mostrar."
+  - Key: item.reason.nobody_in_hand
+    Value: "N\xE3o sobrou mais ningu\xE9m na m\xE3o."
+  - Key: item.reason.nobody_unseen
+    Value: "Ningu\xE9m tem uma carta que voc\xEA n\xE3o viu."
+  - Key: item.reason.nobody_to_shake
+    Value: "N\xE3o sobrou ningu\xE9m para mexer na dose."
+  - Key: item.reason.nobody_to_roll
+    Value: "N\xE3o sobrou ningu\xE9m para rolar junto."
+  - Key: item.reason.nobody_to_swap
+    Value: "Ningu\xE9m mais tem carta para trocar."
+  - Key: item.copy_card.name
+    Value: "C\xF3pia"
+  - Key: item.copy_card.description
+    Value: "35% de chance de uma das suas cartas virar c\xF3pia de outra carta da
+      sua m\xE3o."
+  - Key: item.copy_card.notice
+    Value: "TENTOU UMA C\xD3PIA"
+  - Key: item.copy_card.copied
+    Value: COPIOU
+  - Key: item.copy_card.failed
+    Value: "FALHOU NA C\xD3PIA"
+  - Key: item.deck_count.name
+    Value: Conta Naipes
+  - Key: item.deck_count.description
+    Value: "Veja quantas cartas de cada naipe, e quantos Coringas se o baralho tiver,
+      ainda restam no baralho. S\xF3 voc\xEA v\xEA a contagem, e ela fica com voc\xEA
+      at\xE9 a m\xE3o acabar."
+  - Key: item.deck_count.notice
+    Value: CONTOU O BARALHO
+  - Key: item.extra_draw.name
+    Value: "V\xF4mito"
+  - Key: item.extra_draw.description
+    Value: "Compre mais uma carta do baralho. Voc\xEA n\xE3o pode desistir pelo resto
+      da m\xE3o."
+  - Key: item.extra_draw.notice
+    Value: COMPROU MAIS UMA
+  - Key: item.half_dose.name
+    Value: Seringa
+  - Key: item.half_dose.description
+    Value: 'Escolha um jogador: a chance de morte dele cai pela metade, depois ele
+      rola contra o que sobrou.'
+  - Key: item.half_dose.notice
+    Value: CORTOU AO MEIO A DOSE DE
+  - Key: item.half_dose.prompt
+    Value: "APONTE PARA QUEM TER\xC1 A DOSE CORTADA AO MEIO"
+  - Key: item.joker_card.name
+    Value: Caixa Surpresa
+  - Key: item.joker_card.description
+    Value: "50% de chance de uma carta escolhida da sua m\xE3o virar um Coringa.
+      S\xF3 voc\xEA sabe se deu certo."
+  - Key: item.joker_card.joker
+    Value: GANHOU UM CORINGA
+  - Key: item.joker_card.failed
+    Value: FICOU SEM CORINGA
+  - Key: item.lock_fold.name
+    Value: Cadeado
+  - Key: item.lock_fold.description
+    Value: "Ningu\xE9m pode desistir na pr\xF3xima rodada, nem voc\xEA."
+  - Key: item.lock_fold.notice
+    Value: "BLOQUEOU AS DESIST\xCANCIAS"
+  - Key: item.mushroom_dose.name
+    Value: Batizada
+  - Key: item.mushroom_dose.description
+    Value: "Os pr\xF3ximos 2 cogumelos do jogador escolhido n\xE3o fazem nada ou
+      batem em dobro, 50/50."
+  - Key: item.mushroom_dose.notice
+    Value: BATIZOU OS COGUMELOS DE
+  - Key: item.mushroom_dose.nullified
+    Value: ANULOU {0} COGUMELOS DE
+  - Key: item.mushroom_dose.doubled
+    Value: DOBROU {0} COGUMELOS DE
+  - Key: item.mushroom_dose.prompt
+    Value: "APONTE PARA QUEM TER\xC1 OS COGUMELOS BATIZADOS"
+  - Key: item.mutual_reveal.name
+    Value: Mostrar Juntos
+  - Key: item.mutual_reveal.description
+    Value: "Voc\xEA e um jogador escolhido viram uma carta cada para a mesa toda
+      at\xE9 a m\xE3o acabar. Ele escolhe qual das dele."
+  - Key: item.mutual_reveal.notice
+    Value: REVELA JUNTO COM
+  - Key: item.mutual_reveal.prompt_own
+    Value: "APONTE PARA A CARTA QUE VOC\xCA VAI MOSTRAR"
+  - Key: item.mutual_reveal.prompt_player
+    Value: "APONTE PARA QUEM MOSTRA UMA CARTA COM VOC\xCA"
+  - Key: item.mutual_reveal.response
+    Value: "QUER QUE VOC\xCA MOSTRE UMA CARTA: APONTE PARA UMA"
+  - Key: item.pair_lock_fold.name
+    Value: Algemas
+  - Key: item.pair_lock_fold.description
+    Value: "Voc\xEA e um jogador escolhido n\xE3o podem desistir na pr\xF3xima rodada."
+  - Key: item.pair_lock_fold.notice
+    Value: ALGEMOU
+  - Key: item.pair_lock_items.name
+    Value: Sem Itens
+  - Key: item.pair_lock_items.description
+    Value: "Voc\xEA e um jogador escolhido n\xE3o podem usar itens na pr\xF3xima
+      rodada."
+  - Key: item.pair_lock_items.notice
+    Value: BLOQUEOU OS ITENS DE
+  - Key: item.pair_lock.prompt
+    Value: "APONTE PARA QUEM FICA TRAVADO COM VOC\xCA"
+  - Key: item.peek_board.name
+    Value: "Esp\xE1tula"
+  - Key: item.peek_board.description
+    Value: "Veja uma carta comunit\xE1ria antes de ser virada. Voc\xEA n\xE3o pode
+      desistir nesta rodada."
+  - Key: item.peek_board.notice
+    Value: ESPIOU A MESA
+  - Key: item.peek_board_main.description
+    Value: "Veja a \xFAltima carta comunit\xE1ria antes de ser virada. Voc\xEA n\xE3o
+      pode desistir nesta rodada."
+  - Key: item.peek_hand.name
+    Value: Espiada
+  - Key: item.peek_hand.description
+    Value: "Veja uma carta de um jogador ainda na m\xE3o. Ele fica sabendo qual carta
+      voc\xEA viu."
+  - Key: item.peek_hand.notice
+    Value: "ESPIOU A M\xC3O DE"
+  - Key: item.peek_hand.private
+    Value: VIU SEU {0}
+  - Key: item.place_on_board.name
+    Value: Cigarro
+  - Key: item.place_on_board.description
+    Value: Coloque uma das suas cartas aberta na mesa para todos e compre uma nova
+      do baralho no lugar dela.
+  - Key: item.place_on_board.notice
+    Value: BAIXOU UMA CARTA
+  - Key: item.place_on_board.prompt
+    Value: "APONTE PARA A CARTA QUE VOC\xCA BAIXA NA MESA"
+  - Key: item.raise_stakes.name
+    Value: Aumento
+  - Key: item.raise_stakes.description
+    Value: "Cada aposta na pr\xF3xima rodada leva um cogumelo a mais, inclusive a
+      sua."
+  - Key: item.raise_stakes.notice
+    Value: AUMENTOU A APOSTA
+  - Key: item.random_suit.name
+    Value: Dado
+  - Key: item.random_suit.description
+    Value: "Uma das suas cartas mant\xE9m o valor e ganha outro naipe aleat\xF3rio."
+  - Key: item.random_suit.notice
+    Value: TROCOU O NAIPE
+  - Key: item.random_suit.prompt
+    Value: APONTE PARA A CARTA QUE VAI MUDAR
+  - Key: item.rate_shift.name
+    Value: Calcinha
+  - Key: item.rate_shift.description
+    Value: 'Escolha um jogador: a chance de morte dele sobe ou desce 20, ao acaso.'
+  - Key: item.rate_shift.raised
+    Value: DEU +{0} DE DOSE PARA
+  - Key: item.rate_shift.lowered
+    Value: DEU -{0} DE DOSE PARA
+  - Key: item.rate_shift.prompt
+    Value: "APONTE PARA QUEM TER\xC1 A DOSE ALTERADA"
+  - Key: item.shared_roll.name
+    Value: Cerveja
+  - Key: item.shared_roll.description
+    Value: "Voc\xEA e um jogador escolhido rolam ao mesmo tempo, cada um contra a
+      pr\xF3pria chance de morte."
+  - Key: item.shared_roll.notice
+    Value: ROLOU JUNTO COM
+  - Key: item.shared_roll.prompt
+    Value: "APONTE PARA QUEM ROLA COM VOC\xCA"
+  - Key: item.swap_board.name
+    Value: Cigarro
+  - Key: item.swap_board.description
+    Value: "Uma carta comunit\xE1ria fechada \xE9 aberta para todos e depois trocada
+      por uma das suas, que fica aberta na mesa."
+  - Key: item.swap_board.notice
+    Value: TROCOU COM A MESA
+  - Key: item.swap_board.prompt
+    Value: "APONTE PARA A CARTA QUE VOC\xCA P\xD5E NA MESA"
+  - Key: item.swap_hand.name
+    Value: Faca
+  - Key: item.swap_hand.description
+    Value: "Troque uma das suas cartas com um jogador ainda na m\xE3o. Ele escolhe
+      qual das dele vai dar."
+  - Key: item.swap_hand.notice
+    Value: TROCOU CARTA COM
+  - Key: item.swap_hand.prompt_own
+    Value: "APONTE PARA A CARTA QUE VOC\xCA D\xC1"
+  - Key: item.swap_hand.prompt_player
+    Value: "APONTE PARA QUEM VAI TROCAR COM VOC\xCA"
+  - Key: item.swap_hand.response
+    Value: "troca uma carta com voc\xEA - escolha uma para trocar"
+  - Key: item.table_reveal.name
+    Value: Megafone
+  - Key: item.table_reveal.description
+    Value: "Todo jogador ainda na m\xE3o mostra uma carta aleat\xF3ria para a mesa
+      toda nesta rodada."
+  - Key: item.table_reveal.notice
+    Value: "EXP\xD4S TODO MUNDO"

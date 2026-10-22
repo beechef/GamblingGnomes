@@ -23,6 +23,7 @@ namespace Localization
 		private static LocalizationCatalog _catalog;
 		private static LocaleTable _current;
 		private static LocaleTable _fallback;
+		private static readonly List<LocaleTable> _enabled = new();
 		private static readonly HashSet<string> _reportedMissing = new();
 
 		/// <summary>
@@ -49,7 +50,8 @@ namespace Localization
 
 		public static string CurrentDisplayName => _current ? _current.DisplayName : string.Empty;
 
-		public static IReadOnlyList<LocaleTable> Locales => _catalog ? _catalog.Locales : Array.Empty<LocaleTable>();
+		/// <summary>The languages a player may pick, in the catalog's order; a table switched off is left out.</summary>
+		public static IReadOnlyList<LocaleTable> Locales => _enabled;
 
 		/// <summary>
 		/// The language <see cref="CycleLocale"/> would move to, in its own name. Empty when there is
@@ -76,6 +78,7 @@ namespace Localization
 			_catalog = null;
 			_current = null;
 			_fallback = null;
+			_enabled.Clear();
 			_reportedMissing.Clear();
 			_processed.Clear();
 			_textProcessor = null;
@@ -105,9 +108,13 @@ namespace Localization
 
 			// Re-read every table: domain reload is off, so an index built in an earlier Play session
 			// would otherwise survive an edit made to a section since.
+			_enabled.Clear();
 			foreach (var locale in catalog.Locales)
 			{
-				if (locale) locale.Invalidate();
+				if (!locale) continue;
+
+				locale.Invalidate();
+				if (locale.IsEnabled) _enabled.Add(locale);
 			}
 
 			_catalog.TryGetLocale(catalog.DefaultLocaleCode, out _fallback);
@@ -121,6 +128,7 @@ namespace Localization
 			_catalog = null;
 			_current = null;
 			_fallback = null;
+			_enabled.Clear();
 			_reportedMissing.Clear();
 			_processed.Clear();
 		}
@@ -128,7 +136,7 @@ namespace Localization
 		/// <summary>Switches language, remembers the choice, and tells every listener.</summary>
 		public static bool TrySetLocale(string code)
 		{
-			if (!_catalog || !_catalog.TryGetLocale(code, out var locale)) return false;
+			if (!_catalog || !_catalog.TryGetLocale(code, out var locale) || !locale.IsEnabled) return false;
 
 			_current = locale;
 			_processed.Clear();

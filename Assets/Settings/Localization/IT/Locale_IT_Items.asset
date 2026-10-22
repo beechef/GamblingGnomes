@@ -1,0 +1,272 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 48cfa9c17f2bc884ba9c1aad02a042a1, type: 3}
+  m_Name: Locale_IT_Items
+  m_EditorClassIdentifier: Localization::Localization.LocaleSection
+  _entries:
+  - Key: item.prompt.player
+    Value: INDICA UN GIOCATORE
+  - Key: item.prompt.opponent_card
+    Value: INDICA LA CARTA DI UN ALTRO GIOCATORE
+  - Key: item.prompt.own_card
+    Value: INDICA UNA DELLE TUE CARTE
+  - Key: item.prompt.board_card
+    Value: INDICA UNA CARTA COMUNE COPERTA
+  - Key: item.reason.not_dealt
+    Value: Questo tavolo non lo distribuisce.
+  - Key: item.reason.not_held
+    Value: Non ce l'hai in mano.
+  - Key: item.reason.out_of_match
+    Value: Sei fuori da questa partita.
+  - Key: item.reason.street_only
+    Value: Solo durante un giro di puntate.
+  - Key: item.reason.turn_only
+    Value: Solo nel tuo turno.
+  - Key: item.reason.locked_out
+    Value: Oggetti bloccati in questo giro.
+  - Key: item.reason.used_one
+    Value: "Hai gi\xE0 usato un oggetto in questo giro."
+  - Key: item.reason.used_many
+    Value: "Hai gi\xE0 usato {0} oggetti in questo giro."
+  - Key: item.reason.waiting_other
+    Value: In attesa di un altro oggetto.
+  - Key: item.reason.no_time
+    Value: Non resta abbastanza tempo per rispondere.
+  - Key: item.reason.not_in_hand
+    Value: Non sei in questa mano.
+  - Key: item.reason.hand_full
+    Value: Hai la mano piena.
+  - Key: item.reason.deck_empty
+    Value: "Il mazzo \xE8 vuoto."
+  - Key: item.reason.no_street_left
+    Value: Non restano giri in questa mano.
+  - Key: item.reason.no_board
+    Value: Questo tavolo non ha carte comuni.
+  - Key: item.reason.last_board_seen
+    Value: "L'ultima carta comune \xE8 gi\xE0 scoperta per te."
+  - Key: item.reason.board_seen
+    Value: "Tutte le carte comuni sono gi\xE0 scoperte per te."
+  - Key: item.reason.board_face_up
+    Value: "Tutte le carte comuni sono gi\xE0 scoperte."
+  - Key: item.reason.board_full
+    Value: Le carte comuni sono al completo.
+  - Key: item.reason.no_card_to_lay
+    Value: Non hai carte da posare.
+  - Key: item.reason.no_card_to_give
+    Value: "Non hai pi\xF9 carte da dare."
+  - Key: item.reason.cards_face_up
+    Value: "Le tue carte sono gi\xE0 scoperte."
+  - Key: item.reason.all_face_up
+    Value: "Tutte le carte sono gi\xE0 scoperte."
+  - Key: item.reason.cant_change
+    Value: "Nessuna delle tue carte pu\xF2 cambiare."
+  - Key: item.reason.already_under
+    Value: "Sei gi\xE0 al tappeto."
+  - Key: item.reason.no_count_place
+    Value: "Non c'\xE8 dove tenere il conto."
+  - Key: item.reason.already_counted
+    Value: "Hai gi\xE0 contato in questa mano."
+  - Key: item.reason.nobody_to_halve
+    Value: Nessuno ha qualcosa da dimezzare.
+  - Key: item.reason.nobody_to_spike
+    Value: Non resta nessuno da drogare.
+  - Key: item.reason.nobody_to_show
+    Value: Nessun altro ha carte da mostrare.
+  - Key: item.reason.nobody_in_hand
+    Value: Non resta nessun altro nella mano.
+  - Key: item.reason.nobody_unseen
+    Value: Nessuno ha una carta che non hai visto.
+  - Key: item.reason.nobody_to_shake
+    Value: Non resta nessuno a cui cambiare la dose.
+  - Key: item.reason.nobody_to_roll
+    Value: Non resta nessun altro con cui tirare.
+  - Key: item.reason.nobody_to_swap
+    Value: Nessun altro ha carte da scambiare.
+  - Key: item.copy_card.name
+    Value: Copia
+  - Key: item.copy_card.description
+    Value: "35% di probabilit\xE0 che una tua carta diventi la copia di un'altra
+      carta della tua mano."
+  - Key: item.copy_card.notice
+    Value: HA TENTATO UNA COPIA
+  - Key: item.copy_card.copied
+    Value: HA COPIATO
+  - Key: item.copy_card.failed
+    Value: HA FALLITO LA COPIA
+  - Key: item.deck_count.name
+    Value: Conta Semi
+  - Key: item.deck_count.description
+    Value: Vedi quante carte di ogni seme, e quanti Jolly se il mazzo li ha, restano
+      nel mazzo non distribuito. Solo tu vedi il conto, e resta con te fino a fine
+      mano.
+  - Key: item.deck_count.notice
+    Value: HA CONTATO IL MAZZO
+  - Key: item.extra_draw.name
+    Value: Vomito
+  - Key: item.extra_draw.description
+    Value: Pesca un'altra carta dal mazzo. Non puoi lasciare per il resto della mano.
+  - Key: item.extra_draw.notice
+    Value: "HA PESCATO UNA CARTA IN PI\xD9"
+  - Key: item.half_dose.name
+    Value: Siringa
+  - Key: item.half_dose.description
+    Value: 'Scegli un giocatore: il suo rischio di morte si dimezza, poi tira contro
+      quel che resta.'
+  - Key: item.half_dose.notice
+    Value: HA DIMEZZATO LA DOSE DI
+  - Key: item.half_dose.prompt
+    Value: INDICA A CHI DIMEZZARE LA DOSE
+  - Key: item.joker_card.name
+    Value: Scatola a Molla
+  - Key: item.joker_card.description
+    Value: "50% di probabilit\xE0 che una carta scelta della tua mano diventi un
+      Jolly. Solo tu sai se ha funzionato."
+  - Key: item.joker_card.joker
+    Value: HA OTTENUTO UN JOLLY
+  - Key: item.joker_card.failed
+    Value: "\xC8 RIMASTO SENZA JOLLY"
+  - Key: item.lock_fold.name
+    Value: Lucchetto
+  - Key: item.lock_fold.description
+    Value: "Nessuno pu\xF2 lasciare nel prossimo giro, tu compreso."
+  - Key: item.lock_fold.notice
+    Value: HA VIETATO DI LASCIARE
+  - Key: item.mushroom_dose.name
+    Value: Intruglio
+  - Key: item.mushroom_dose.description
+    Value: I prossimi 2 funghi del giocatore scelto non fanno nulla oppure colpiscono
+      il doppio, 50/50.
+  - Key: item.mushroom_dose.notice
+    Value: HA CORRETTO I FUNGHI DI
+  - Key: item.mushroom_dose.nullified
+    Value: HA DISINNESCATO {0} FUNGHI DI
+  - Key: item.mushroom_dose.doubled
+    Value: HA RADDOPPIATO {0} FUNGHI DI
+  - Key: item.mushroom_dose.prompt
+    Value: INDICA A CHI CORREGGERE I FUNGHI
+  - Key: item.mutual_reveal.name
+    Value: Mostra Insieme
+  - Key: item.mutual_reveal.description
+    Value: Tu e un giocatore scelto scoprite una carta ciascuno per tutto il tavolo
+      fino a fine mano. L'altro sceglie quale delle sue.
+  - Key: item.mutual_reveal.notice
+    Value: SCOPRE UNA CARTA INSIEME A
+  - Key: item.mutual_reveal.prompt_own
+    Value: INDICA LA CARTA CHE MOSTRERAI
+  - Key: item.mutual_reveal.prompt_player
+    Value: INDICA CHI MOSTRA UNA CARTA CON TE
+  - Key: item.mutual_reveal.response
+    Value: 'VUOLE CHE MOSTRI UNA CARTA: INDICANE UNA'
+  - Key: item.pair_lock_fold.name
+    Value: Manette
+  - Key: item.pair_lock_fold.description
+    Value: Tu e un giocatore scelto non potete lasciare nel prossimo giro.
+  - Key: item.pair_lock_fold.notice
+    Value: HA AMMANETTATO
+  - Key: item.pair_lock_items.name
+    Value: Niente Oggetti
+  - Key: item.pair_lock_items.description
+    Value: Tu e un giocatore scelto non potete usare oggetti nel prossimo giro.
+  - Key: item.pair_lock_items.notice
+    Value: HA BLOCCATO GLI OGGETTI DI
+  - Key: item.pair_lock.prompt
+    Value: INDICA CHI VIENE BLOCCATO CON TE
+  - Key: item.peek_board.name
+    Value: Spatola
+  - Key: item.peek_board.description
+    Value: Guarda una carta comune prima che venga girata. Non puoi lasciare in questo
+      giro.
+  - Key: item.peek_board.notice
+    Value: HA SBIRCIATO LE CARTE COMUNI
+  - Key: item.peek_board_main.description
+    Value: Guarda l'ultima carta comune prima che venga girata. Non puoi lasciare
+      in questo giro.
+  - Key: item.peek_hand.name
+    Value: Sbirciata
+  - Key: item.peek_hand.description
+    Value: "Guarda una carta di un giocatore ancora in mano. Sapr\xE0 quale carta
+      hai visto."
+  - Key: item.peek_hand.notice
+    Value: HA SBIRCIATO LA MANO DI
+  - Key: item.peek_hand.private
+    Value: HA VISTO IL TUO {0}
+  - Key: item.place_on_board.name
+    Value: Sigaretta
+  - Key: item.place_on_board.description
+    Value: Posa una tua carta scoperta sul tavolo per tutti, e pesca una nuova carta
+      dal mazzo al suo posto.
+  - Key: item.place_on_board.notice
+    Value: HA POSATO UNA CARTA
+  - Key: item.place_on_board.prompt
+    Value: INDICA LA CARTA DA POSARE SUL TAVOLO
+  - Key: item.raise_stakes.name
+    Value: Rilancio
+  - Key: item.raise_stakes.description
+    Value: "Ogni puntata nel prossimo giro mette un fungo in pi\xF9, anche la tua."
+  - Key: item.raise_stakes.notice
+    Value: HA ALZATO LA POSTA
+  - Key: item.random_suit.name
+    Value: Dado
+  - Key: item.random_suit.description
+    Value: Una tua carta mantiene il valore e prende un altro seme a caso.
+  - Key: item.random_suit.notice
+    Value: HA CAMBIATO SEME
+  - Key: item.random_suit.prompt
+    Value: INDICA LA CARTA DA CAMBIARE
+  - Key: item.rate_shift.name
+    Value: Mutande
+  - Key: item.rate_shift.description
+    Value: 'Scegli un giocatore: il suo rischio di morte sale o scende di 20, a caso.'
+  - Key: item.rate_shift.raised
+    Value: HA DATO +{0} DI DOSE A
+  - Key: item.rate_shift.lowered
+    Value: HA DATO -{0} DI DOSE A
+  - Key: item.rate_shift.prompt
+    Value: INDICA A CHI CAMBIARE LA DOSE
+  - Key: item.shared_roll.name
+    Value: Birra
+  - Key: item.shared_roll.description
+    Value: Tu e un giocatore scelto tirate insieme, ognuno contro il proprio rischio
+      di morte.
+  - Key: item.shared_roll.notice
+    Value: HA TIRATO INSIEME A
+  - Key: item.shared_roll.prompt
+    Value: INDICA CHI TIRA CON TE
+  - Key: item.swap_board.name
+    Value: Sigaretta
+  - Key: item.swap_board.description
+    Value: Una carta comune coperta viene girata per tutti, poi scambiata con una
+      tua carta, che resta scoperta sul tavolo.
+  - Key: item.swap_board.notice
+    Value: HA SCAMBIATO UNA CARTA COMUNE
+  - Key: item.swap_board.prompt
+    Value: INDICA LA CARTA DA METTERE SUL TAVOLO
+  - Key: item.swap_hand.name
+    Value: Coltello
+  - Key: item.swap_hand.description
+    Value: Scambia una tua carta con un giocatore ancora in mano. L'altro sceglie
+      quale delle sue darti.
+  - Key: item.swap_hand.notice
+    Value: HA SCAMBIATO UNA CARTA CON
+  - Key: item.swap_hand.prompt_own
+    Value: INDICA LA CARTA CHE DAI
+  - Key: item.swap_hand.prompt_player
+    Value: INDICA CON CHI SCAMBIARE
+  - Key: item.swap_hand.response
+    Value: scambia una carta con te - scegline una da scambiare
+  - Key: item.table_reveal.name
+    Value: Megafono
+  - Key: item.table_reveal.description
+    Value: Ogni giocatore ancora in mano mostra una carta a caso a tutto il tavolo
+      in questo giro.
+  - Key: item.table_reveal.notice
+    Value: HA SMASCHERATO TUTTI

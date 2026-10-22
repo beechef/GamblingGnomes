@@ -1,5 +1,6 @@
 using System;
 using Game.Runtime.Controller;
+using Game.Runtime.Lobby;
 using Game.Runtime.UI.Button;
 using Game.Runtime.UI.FindLobby;
 using Game.Runtime.UI.Matchmaking;
@@ -177,7 +178,7 @@ namespace Game.Runtime.UI.MainMenu
 			}
 		}
 
-		private void HandleConnectFailed(string reason) => Show();
+		private void HandleConnectFailed(ConnectFailure failure) => Show();
 
 		private void HandleClientStopped(bool wasHost) => Show();
 		private void HandleServerStopped(bool wasHost) => Show();

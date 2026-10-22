@@ -18,5 +18,11 @@ namespace Game.Runtime.Controller
 		public const string MatchStateKey = "MatchState";
 		public const string MatchStateGathering = "Gathering";
 		public const string MatchStateStarted = "Started";
+
+		// Bots seated by the host, written by the host, counted into ILobby.PlayerCount.
+		public const string BotCountKey = "BotCount";
+
+		// The disconnect reason a host refusing a full room sends.
+		public const string RoomFullReason = "RoomFull";
 	}
 }

@@ -49,7 +49,7 @@ namespace Game.Runtime.Controller
 		[FormerlySerializedAs("_editorTransport")]
 		[SerializeField] private UnityTransport _localTransport;
 
-		public event Action<string> OnConnectFailed;
+		public event Action<ConnectFailure> OnConnectFailed;
 		public event Action OnLobbyEnter;
 		public event Action OnHostStarted;
 
@@ -78,6 +78,12 @@ namespace Game.Runtime.Controller
 
 		private bool _joiningLobby;
 		private bool _leavingGame;
+
+		// Whether the local client reached the table this session: a drop before it is a timeout, after it a lost connection.
+		private bool _connected;
+
+		// Bots hold chairs without ever joining the room, so the host's table reports them for the room to count.
+		private int _botCount;
 		private Scene _gameplayScene;
 		private string _gameplaySceneName;
 
@@ -94,6 +100,8 @@ namespace Game.Runtime.Controller
 			_steamLobby = new SteamLobbyService(_steamTransport, _localTransport);
 			_localLobby = new LocalLobbyService(_localTransport);
 
+			_networkManager.NetworkConfig.ConnectionApproval = true;
+
 			LobbySettings.GameSearchStrings.Add(new LobbyData(LobbyConstant.GameIDKey, LobbyConstant.GameIDValue));
 		}
 
@@ -103,6 +111,7 @@ namespace Game.Runtime.Controller
 			_networkManager.OnClientDisconnectCallback += OnClientDisconnected;
 			_networkManager.OnTransportFailure += OnTransportFailure;
 			_networkManager.OnServerStopped += OnServerStopped;
+			_networkManager.ConnectionApprovalCallback = ApproveConnection;
 		}
 
 		private void OnDisable()
@@ -111,6 +120,7 @@ namespace Game.Runtime.Controller
 			_networkManager.OnClientDisconnectCallback -= OnClientDisconnected;
 			_networkManager.OnTransportFailure -= OnTransportFailure;
 			_networkManager.OnServerStopped -= OnServerStopped;
+			_networkManager.ConnectionApprovalCallback = null;
 		}
 
 		// Steam binds its callbacks once SteamClient.Init has run, which happens in the same scene in no
@@ -177,13 +187,13 @@ namespace Game.Runtime.Controller
 			// whatever covered the wait is left up with nothing coming to take it down.
 			if (!service.IsAvailable)
 			{
-				OnConnectFailed?.Invoke($"{service.Name} lobby is not available.");
+				Fail(ConnectFailure.Unavailable, $"{service.Name} lobby is not available.");
 				return;
 			}
 
 			if (!TryGetSelectedGameMode(out var entry))
 			{
-				OnConnectFailed?.Invoke($"No GameModeDatabase entry for mode {LobbySettings.SelectedGameMode}.");
+				Fail(ConnectFailure.Unknown, $"No GameModeDatabase entry for mode {LobbySettings.SelectedGameMode}.");
 				return;
 			}
 
@@ -206,7 +216,7 @@ namespace Game.Runtime.Controller
 
 			if (lobby == null)
 			{
-				OnConnectFailed?.Invoke($"Failed to create a {service.Name} lobby.");
+				Fail(ConnectFailure.Unknown, $"Failed to create a {service.Name} lobby.");
 				return;
 			}
 
@@ -219,7 +229,7 @@ namespace Game.Runtime.Controller
 		{
 			if (!TryGetSelectedGameMode(out var entry))
 			{
-				OnConnectFailed?.Invoke($"No GameModeDatabase entry for mode {LobbySettings.SelectedGameMode}.");
+				Fail(ConnectFailure.Unknown, $"No GameModeDatabase entry for mode {LobbySettings.SelectedGameMode}.");
 				return false;
 			}
 
@@ -239,7 +249,7 @@ namespace Game.Runtime.Controller
 
 			if (!_networkManager.StartHost())
 			{
-				OnConnectFailed?.Invoke("NetworkManager.StartHost() failed.");
+				Fail(ConnectFailure.Unknown, "NetworkManager.StartHost() failed.");
 				LeaveLobby(false);
 				return false;
 			}
@@ -257,7 +267,7 @@ namespace Game.Runtime.Controller
 		{
 			if (CurrentLobby != null || _joiningLobby)
 			{
-				OnConnectFailed?.Invoke("Already joining or in a room.");
+				Fail(ConnectFailure.Unknown, "Already joining or in a room.");
 				return;
 			}
 
@@ -300,21 +310,21 @@ namespace Game.Runtime.Controller
 
 				OnConnectStarted?.Invoke();
 
-				var lobby = await service.JoinAsync(lobbyId, ct);
+				var joined = await service.JoinAsync(lobbyId, ct);
 
 				if (ct.IsCancellationRequested)
 				{
-					if (lobby != null) service.Leave(lobby);
+					if (joined.Lobby != null) service.Leave(joined.Lobby);
 					ct.ThrowIfCancellationRequested();
 				}
 
-				if (lobby == null)
+				if (joined.Lobby == null)
 				{
-					OnConnectFailed?.Invoke($"Failed to join the {service.Name} lobby (timeout, full or gone).");
+					Fail(joined.Failure, $"Failed to join the {service.Name} lobby.");
 					return;
 				}
 
-				EnterAsClient(service, lobby);
+				EnterAsClient(service, joined.Lobby);
 			}
 			finally
 			{
@@ -339,7 +349,7 @@ namespace Game.Runtime.Controller
 
 			if (!_networkManager.StartClient())
 			{
-				OnConnectFailed?.Invoke("NetworkManager.StartClient() failed.");
+				Fail(ConnectFailure.Unknown, "NetworkManager.StartClient() failed.");
 				LeaveLobby(false);
 				return;
 			}
@@ -438,6 +448,8 @@ namespace Game.Runtime.Controller
 		private void OnClientConnected(ulong clientId)
 		{
 			if (clientId != _networkManager.LocalClientId) return;
+
+			_connected = true;
 			Debug.Log("[GameNetworkManager] Connected to server successfully.");
 		}
 
@@ -450,12 +462,12 @@ namespace Game.Runtime.Controller
 			if (_leavingGame) return;
 
 			var reason = _networkManager.DisconnectReason;
-			if (string.IsNullOrEmpty(reason)) reason = "Connection lost or rejected (no reason provided).";
-
-			Debug.Log($"[GameNetworkManager] Disconnected from server: {reason}");
+			var failure = reason == LobbyConstant.RoomFullReason ? ConnectFailure.RoomFull
+				: _connected ? ConnectFailure.Disconnected
+				: ConnectFailure.Timeout;
 
 			Shutdown();
-			OnConnectFailed?.Invoke(reason);
+			Fail(failure, $"Disconnected from server: {(string.IsNullOrEmpty(reason) ? "no reason provided" : reason)}");
 		}
 
 		private void OnServerStopped(bool isStopped)
@@ -472,7 +484,33 @@ namespace Game.Runtime.Controller
 
 			Shutdown();
 
-			OnConnectFailed?.Invoke("Transport-level failure (NAT/relay/socket error).");
+			Fail(_connected ? ConnectFailure.Disconnected : ConnectFailure.Timeout, "Transport-level failure (NAT/relay/socket error).");
+		}
+
+		private void Fail(ConnectFailure failure, string detail)
+		{
+			Debug.LogWarning($"[GameNetworkManager] {failure}: {detail}");
+			OnConnectFailed?.Invoke(failure);
+		}
+
+		private int RoomCapacity => CurrentLobby?.MaxMembers ?? LobbySettings.MaxPlayers;
+
+		// Server only: connected players and seated bots against the room's size.
+		public bool IsRoomFull => _networkManager.ConnectedClientsIds.Count + _botCount >= RoomCapacity;
+
+		// Called by the host's table whenever it seats or removes a bot.
+		public void SetBotCount(int count)
+		{
+			_botCount = count;
+			if (CurrentLobby != null) _lobbyService?.SetData(CurrentLobby, LobbyConstant.BotCountKey, count.ToString());
+		}
+
+		// The one gate into a session: the room list and the lobby's own limit only count members, and bots are not.
+		private void ApproveConnection(NetworkManager.ConnectionApprovalRequest request, NetworkManager.ConnectionApprovalResponse response)
+		{
+			response.CreatePlayerObject = false;
+			response.Approved = !IsRoomFull;
+			if (!response.Approved) response.Reason = LobbyConstant.RoomFullReason;
 		}
 
 		// The single way out, whatever the reason. It runs to completion even when there is no lobby or
@@ -503,6 +541,8 @@ namespace Game.Runtime.Controller
 			{
 				_gameplaySceneName = null;
 				_joiningLobby = false;
+				_connected = false;
+				_botCount = 0;
 				_leavingGame = false;
 			}
 

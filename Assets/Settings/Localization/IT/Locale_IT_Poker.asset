@@ -1,0 +1,199 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 48cfa9c17f2bc884ba9c1aad02a042a1, type: 3}
+  m_Name: Locale_IT_Poker
+  m_EditorClassIdentifier: Localization::Localization.LocaleSection
+  _entries:
+  - Key: poker.action.bet
+    Value: PUNTA
+  - Key: poker.action.call
+    Value: CHIAMA
+  - Key: poker.action.fold
+    Value: LASCIA
+  - Key: poker.button.all_in
+    Value: '[ALL-IN]'
+  - Key: poker.button.fold
+    Value: '[LASCIA]'
+  - Key: poker.button.choose
+    Value: SCEGLI
+  - Key: poker.button.items
+    Value: OGGETTI ({0})
+  - Key: poker.button.view_board
+    Value: '[GUARDA BOARD]'
+  - Key: poker.button.lay_board
+    Value: '[POSA BOARD]'
+  - Key: poker.button.helper
+    Value: AIUTO
+  - Key: poker.button.start
+    Value: INIZIA
+  - Key: poker.button.invite
+    Value: INVITA
+  - Key: poker.button.add_bot
+    Value: AGGIUNGI BOT
+  - Key: poker.button.clear_bot
+    Value: RIMUOVI BOT
+  - Key: poker.button.match_settings
+    Value: Impostazioni
+  - Key: poker.targeting.hint
+    Value: Esc per riporlo
+  - Key: poker.helper.title
+    Value: CLASSIFICA DELLE MANI
+  - Key: poker.helper.your_hand
+    Value: LA TUA MANO
+  - Key: poker.helper.empty
+    Value: Non hai ancora carte in mano.
+  - Key: poker.items.left_in_deck
+    Value: RIMASTI NEL MAZZO
+  - Key: poker.ranking.title
+    Value: RISULTATO
+  - Key: poker.ranking.place.st
+    Value: "{0}\xBA"
+  - Key: poker.ranking.place.nd
+    Value: "{0}\xBA"
+  - Key: poker.ranking.place.rd
+    Value: "{0}\xBA"
+  - Key: poker.ranking.place.th
+    Value: "{0}\xBA"
+  - Key: poker.colorful.prompt
+    Value: "Chi manger\xE0 il <Highlight>fungo letale</Highlight> e ricever\xE0 <Highlight>oggetti
+      \xD7{0}</Highlight>?"
+  - Key: poker.turn.yours
+    Value: IL TUO TURNO
+  - Key: poker.turn.other
+    Value: TURNO DI {0}
+  - Key: poker.player.fallback
+    Value: Giocatore
+  - Key: poker.phase.waiting
+    Value: IN ATTESA
+  - Key: poker.phase.dealing
+    Value: DISTRIBUZIONE
+  - Key: poker.phase.first_street
+    Value: PRIMO GIRO
+  - Key: poker.phase.second_street
+    Value: SECONDO GIRO
+  - Key: poker.phase.looking
+    Value: GUARDATE LE CARTE
+  - Key: poker.phase.eating
+    Value: SI MANGIA
+  - Key: poker.phase.showdown
+    Value: SHOWDOWN
+  - Key: poker.phase.finished
+    Value: FINE
+  - Key: poker.phase.match_over
+    Value: PARTITA FINITA
+  - Key: poker.phase.all_in
+    Value: ALL-IN
+  - Key: poker.phase.ante
+    Value: ANTE
+  - Key: poker.start.ready
+    Value: '{0} giocatori pronti'
+  - Key: poker.start.for_table
+    Value: Avvia per il tavolo
+  - Key: poker.start.waiting
+    Value: In attesa di giocatori ({0}/{1})
+  - Key: poker.pot
+    Value: 'Piatto: {0}'
+  - Key: poker.match_over.survivor
+    Value: ULTIMO GNOMO IN PIEDI
+  - Key: poker.match_over.nobody
+    Value: NESSUNO CE L'HA FATTA
+  - Key: poker.notice.item_bonus
+    Value: OGGETTI +{0}
+  - Key: poker.notice.item_reward
+    Value: 'SOPRAVVIVE: OGGETTI +{0}'
+  - Key: poker.notice.items_lost
+    Value: 'PERDE OGGETTI: {0}'
+  - Key: poker.notice.match_started
+    Value: INIZIO PARTITA
+  - Key: poker.notice.match_players
+    Value: '{0} GIOCATORI'
+  - Key: poker.notice.item_used
+    Value: HA USATO {0}
+  - Key: poker.notice.bet
+    Value: PUNTA
+  - Key: poker.notice.fold
+    Value: LASCIA
+  - Key: poker.notice.all_in
+    Value: VA ALL-IN
+  - Key: config.title
+    Value: IMPOSTAZIONI PARTITA
+  - Key: config.section.match
+    Value: Partita
+  - Key: config.section.items
+    Value: Oggetti
+  - Key: config.starting_health
+    Value: Salute iniziale
+  - Key: config.items_per_hand
+    Value: Oggetti per mano
+  - Key: config.loser_bonus
+    Value: Bonus perdente
+  - Key: config.item_capacity
+    Value: "Capacit\xE0 oggetti"
+  - Key: bet_item.green
+    Value: Verde
+  - Key: bet_item.red
+    Value: Rosso
+  - Key: bet_item.purple
+    Value: Viola
+  - Key: bet_item.yellow
+    Value: Giallo
+  - Key: bet_item.colorful
+    Value: Multicolore
+  - Key: poker.round.title
+    Value: Round
+  - Key: poker.helper.tab.helper
+    Value: Aiuto
+  - Key: poker.helper.tab.ruleset
+    Value: Regole
+  - Key: poker.helper.tab.define
+    Value: Glossario
+  - Key: poker.helper.joker_title
+    Value: Jolly
+  - Key: poker.helper.joker_caption
+    Value: Carta matta
+  - Key: poker.ruleset.deal_cards
+    Value: All'inizio della partita, ogni giocatore riceve 2 carte coperte personali.
+  - Key: poker.ruleset.deal_cards_items
+    Value: All'inizio della partita, ogni giocatore riceve 2 carte coperte personali
+      e 2 oggetti.
+  - Key: poker.ruleset.turn_actions
+    Value: "Nel suo turno, un giocatore pu\xF2 Chiamare, andare All-in o Lasciare."
+  - Key: poker.ruleset.turn_actions_items
+    Value: "Nel suo turno, un giocatore pu\xF2 usare fino a 2 oggetti, poi Chiamare
+      o Lasciare."
+  - Key: poker.ruleset.community_cards
+    Value: Alla fine di ogni giro si girano, una dopo l'altra, 3 - 1 - 1 carte comuni.
+  - Key: poker.ruleset.all_in
+    Value: Quando qualcuno va All-in, gli altri possono solo seguire l'All-in o Lasciare.
+      Poi si girano tutte le carte rimaste.
+  - Key: poker.ruleset.showdown
+    Value: "Girate tutte le carte, vince il giocatore con la combinazione pi\xF9
+      alta."
+  - Key: poker.ruleset.winner_feeds
+    Value: Il vincitore sceglie chi deve mangiare il Fungo Velenoso.
+  - Key: poker.ruleset.winner_feeds_item
+    Value: "Il vincitore sceglie chi deve mangiare il Fungo Velenoso e riceve un
+      oggetto in pi\xF9."
+  - Key: poker.ruleset.losers_eat
+    Value: I perdenti devono mangiare tutti i funghi che hanno puntato.
+  - Key: poker.define.title
+    Value: Allucinazione & Fungo Velenoso
+  - Key: poker.define.meter_title
+    Value: Barra allucinazione
+  - Key: poker.define.meter_description
+    Value: "Ogni fungo mangiato aggiunge il 10% di allucinazione. Pi\xF9 \xE8 alta,
+      pi\xF9 effetti subisci. Al 100% vai in overdose e perdi."
+  - Key: poker.define.poison_title
+    Value: Fungo velenoso
+  - Key: poker.define.poison_description
+    Value: "Non aggiunge allucinazione: provoca invece un Tiro della Morte, una probabilit\xE0
+      casuale di overdose basata sull'allucinazione attuale."

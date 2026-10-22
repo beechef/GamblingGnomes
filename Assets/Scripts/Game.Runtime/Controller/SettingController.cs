@@ -70,10 +70,28 @@ namespace Game.Runtime.Controller
 			}
 		}
 
-		// A first launch on a Vietnamese system starts in Vietnamese, every later one in whatever the player chose.
+		// A first launch starts in the system's language when it ships (Spanish as Spain's: the system does not
+		// tell the regions apart), every later one in whatever the player chose.
 		private static SettingData CreateDefault() => new()
 		{
-			Language = Application.systemLanguage == SystemLanguage.Vietnamese ? "vi" : string.Empty
+			Language = Application.systemLanguage switch
+			{
+				SystemLanguage.French => "fr",
+				SystemLanguage.Italian => "it",
+				SystemLanguage.German => "de",
+				SystemLanguage.Spanish => "es",
+				SystemLanguage.Portuguese => "pt-br",
+				SystemLanguage.Russian => "ru",
+				SystemLanguage.ChineseSimplified or SystemLanguage.Chinese => "zh-hans",
+				SystemLanguage.ChineseTraditional => "zh-hant",
+				SystemLanguage.Japanese => "ja",
+				SystemLanguage.Korean => "ko",
+				SystemLanguage.Polish => "pl",
+				SystemLanguage.Turkish => "tr",
+				SystemLanguage.Ukrainian => "uk",
+				SystemLanguage.Vietnamese => "vi",
+				_ => string.Empty
+			}
 		};
 	}
 }

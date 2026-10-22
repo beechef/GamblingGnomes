@@ -40,6 +40,21 @@ namespace Game.Runtime
 			}
 		}
 
+		public static class Error
+		{
+			public const string Title = "error.title";
+
+			public static class Connect
+			{
+				public const string Disconnected = "error.connect.disconnected";
+				public const string RoomFull = "error.connect.room_full";
+				public const string RoomGone = "error.connect.room_gone";
+				public const string Timeout = "error.connect.timeout";
+				public const string Unavailable = "error.connect.unavailable";
+				public const string Unknown = "error.connect.unknown";
+			}
+		}
+
 		public static class Hand
 		{
 			public static class FiveOfAKind
@@ -405,7 +420,6 @@ namespace Game.Runtime
 
 			public static class Action
 			{
-				public const string AllIn = "poker.action.all_in";
 				public const string Bet = "poker.action.bet";
 				public const string Call = "poker.action.call";
 				public const string Fold = "poker.action.fold";
@@ -470,6 +484,9 @@ namespace Game.Runtime
 
 			public static class Notice
 			{
+				public const string AllIn = "poker.notice.all_in";
+				public const string Bet = "poker.notice.bet";
+				public const string Fold = "poker.notice.fold";
 				public const string ItemBonus = "poker.notice.item_bonus";
 				public const string ItemReward = "poker.notice.item_reward";
 				public const string ItemUsed = "poker.notice.item_used";

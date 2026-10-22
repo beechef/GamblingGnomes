@@ -1,0 +1,203 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 48cfa9c17f2bc884ba9c1aad02a042a1, type: 3}
+  m_Name: Locale_TR_Poker
+  m_EditorClassIdentifier: Localization::Localization.LocaleSection
+  _entries:
+  - Key: poker.action.bet
+    Value: "BAH\u0130S"
+  - Key: poker.action.call
+    Value: "G\xD6R"
+  - Key: poker.action.fold
+    Value: "\xC7EK\u0130L"
+  - Key: poker.button.all_in
+    Value: '[ALL-IN]'
+  - Key: poker.button.fold
+    Value: "[\xC7EK\u0130L]"
+  - Key: poker.button.choose
+    Value: "SE\xC7"
+  - Key: poker.button.items
+    Value: "E\u015EYA ({0})"
+  - Key: poker.button.view_board
+    Value: '[TAHTAYI KALDIR]'
+  - Key: poker.button.lay_board
+    Value: '[TAHTAYI YATIR]'
+  - Key: poker.button.helper
+    Value: YARDIM
+  - Key: poker.button.start
+    Value: "BA\u015ELA"
+  - Key: poker.button.invite
+    Value: DAVET ET
+  - Key: poker.button.add_bot
+    Value: BOT EKLE
+  - Key: poker.button.clear_bot
+    Value: "BOTLARI S\u0130L"
+  - Key: poker.button.match_settings
+    Value: Ayarlar
+  - Key: poker.targeting.hint
+    Value: "Geri koymak i\xE7in Esc"
+  - Key: poker.helper.title
+    Value: POKER EL SIRALAMASI
+  - Key: poker.helper.your_hand
+    Value: "EL\u0130N"
+  - Key: poker.helper.empty
+    Value: "Hen\xFCz elinde kart yok."
+  - Key: poker.items.left_in_deck
+    Value: DESTEDE KALAN
+  - Key: poker.ranking.title
+    Value: "SONU\xC7"
+  - Key: poker.ranking.place.st
+    Value: '{0}.'
+  - Key: poker.ranking.place.nd
+    Value: '{0}.'
+  - Key: poker.ranking.place.rd
+    Value: '{0}.'
+  - Key: poker.ranking.place.th
+    Value: '{0}.'
+  - Key: poker.colorful.prompt
+    Value: "<Highlight>\xD6l\xFCmc\xFCl mantar\u0131</Highlight> kim yiyip <Highlight>{0}
+      e\u015Fya</Highlight> alacak?"
+  - Key: poker.turn.yours
+    Value: "SEN\u0130N SIRAN"
+  - Key: poker.turn.other
+    Value: 'SIRA: {0}'
+  - Key: poker.player.fallback
+    Value: Oyuncu
+  - Key: poker.phase.waiting
+    Value: "BEKLEN\u0130YOR"
+  - Key: poker.phase.dealing
+    Value: "DA\u011EITILIYOR"
+  - Key: poker.phase.first_street
+    Value: "B\u0130R\u0130NC\u0130 TUR"
+  - Key: poker.phase.second_street
+    Value: "\u0130K\u0130NC\u0130 TUR"
+  - Key: poker.phase.looking
+    Value: KARTLARA BAKILIYOR
+  - Key: poker.phase.eating
+    Value: "YEME VAKT\u0130"
+  - Key: poker.phase.showdown
+    Value: "KARTLAR A\xC7ILIYOR"
+  - Key: poker.phase.finished
+    Value: "B\u0130TT\u0130"
+  - Key: poker.phase.match_over
+    Value: "MA\xC7 B\u0130TT\u0130"
+  - Key: poker.phase.all_in
+    Value: ALL-IN
+  - Key: poker.phase.ante
+    Value: ANTE
+  - Key: poker.start.ready
+    Value: "{0} oyuncu haz\u0131r"
+  - Key: poker.start.for_table
+    Value: "Masa i\xE7in ba\u015Flat"
+  - Key: poker.start.waiting
+    Value: Oyuncular bekleniyor ({0}/{1})
+  - Key: poker.pot
+    Value: 'Pot: {0}'
+  - Key: poker.match_over.survivor
+    Value: "AYAKTA KALAN SON C\xDCCE"
+  - Key: poker.match_over.nobody
+    Value: "K\u0130MSE HAYATTA KALMADI"
+  - Key: poker.notice.item_bonus
+    Value: "+{0} e\u015Fya"
+  - Key: poker.notice.item_reward
+    Value: "hayatta kald\u0131, +{0} e\u015Fya"
+  - Key: poker.notice.items_lost
+    Value: "{0} e\u015Fya kaybetti"
+  - Key: poker.notice.match_started
+    Value: "ma\xE7 ba\u015Flad\u0131"
+  - Key: poker.notice.match_players
+    Value: '{0} oyuncu'
+  - Key: poker.notice.item_used
+    Value: "{0} kulland\u0131"
+  - Key: poker.notice.bet
+    Value: "bahis yapt\u0131"
+  - Key: poker.notice.fold
+    Value: "\xE7ekildi"
+  - Key: poker.notice.all_in
+    Value: all-in dedi
+  - Key: config.title
+    Value: "MA\xC7 AYARLARI"
+  - Key: config.section.match
+    Value: "Ma\xE7"
+  - Key: config.section.items
+    Value: "E\u015Fyalar"
+  - Key: config.starting_health
+    Value: "Ba\u015Flang\u0131\xE7 Can\u0131"
+  - Key: config.items_per_hand
+    Value: "El Ba\u015F\u0131na E\u015Fya"
+  - Key: config.loser_bonus
+    Value: Kaybeden Bonusu
+  - Key: config.item_capacity
+    Value: "E\u015Fya Kapasitesi"
+  - Key: bet_item.green
+    Value: "Ye\u015Fil"
+  - Key: bet_item.red
+    Value: "K\u0131rm\u0131z\u0131"
+  - Key: bet_item.purple
+    Value: Mor
+  - Key: bet_item.yellow
+    Value: "Sar\u0131"
+  - Key: bet_item.colorful
+    Value: Rengarenk
+  - Key: poker.round.title
+    Value: Tur
+  - Key: poker.helper.tab.helper
+    Value: "Yard\u0131m"
+  - Key: poker.helper.tab.ruleset
+    Value: Kurallar
+  - Key: poker.helper.tab.define
+    Value: Terimler
+  - Key: poker.helper.joker_title
+    Value: Joker
+  - Key: poker.helper.joker_caption
+    Value: "Her kart\u0131n yerine ge\xE7er"
+  - Key: poker.ruleset.deal_cards
+    Value: "Ma\xE7\u0131n ba\u015F\u0131nda her oyuncuya 2 kapal\u0131 kart (el kart\u0131)
+      da\u011F\u0131t\u0131l\u0131r."
+  - Key: poker.ruleset.deal_cards_items
+    Value: "Ma\xE7\u0131n ba\u015F\u0131nda her oyuncuya 2 kapal\u0131 kart (el kart\u0131)
+      ve 2 e\u015Fya da\u011F\u0131t\u0131l\u0131r."
+  - Key: poker.ruleset.turn_actions
+    Value: "S\u0131ras\u0131 gelen oyuncu g\xF6rebilir, all-in yapabilir ya da \xE7ekilebilir."
+  - Key: poker.ruleset.turn_actions_items
+    Value: "S\u0131ras\u0131 gelen oyuncu en fazla 2 e\u015Fya kullanabilir, sonra
+      g\xF6rebilir ya da \xE7ekilebilir."
+  - Key: poker.ruleset.community_cards
+    Value: "Her turun sonunda s\u0131rayla 3 - 1 - 1 ortak kart (masa kart\u0131)
+      a\xE7\u0131l\u0131r."
+  - Key: poker.ruleset.all_in
+    Value: "Biri all-in yap\u0131nca di\u011Fer herkes ya o all-in'i g\xF6r\xFCr
+      ya da \xE7ekilir. Ard\u0131ndan kalan t\xFCm kartlar a\xE7\u0131l\u0131r."
+  - Key: poker.ruleset.showdown
+    Value: "T\xFCm kartlar a\xE7\u0131l\u0131nca en y\xFCksek poker eline sahip oyuncu
+      kazan\u0131r."
+  - Key: poker.ruleset.winner_feeds
+    Value: "Kazanan, Zehirli Mantar\u0131 yiyecek bir oyuncu se\xE7er."
+  - Key: poker.ruleset.winner_feeds_item
+    Value: "Kazanan, Zehirli Mantar\u0131 yiyecek bir oyuncu se\xE7er ve bir e\u015Fya
+      daha al\u0131r."
+  - Key: poker.ruleset.losers_eat
+    Value: "Kaybedenler, bahse koyduklar\u0131 t\xFCm mantarlar\u0131 yemek zorundad\u0131r."
+  - Key: poker.define.title
+    Value: "Hal\xFCsinasyon & Zehirli Mantar"
+  - Key: poker.define.meter_title
+    Value: "Hal\xFCsinasyon \xE7ubu\u011Fu"
+  - Key: poker.define.meter_description
+    Value: "Yenen her mantar %10 hal\xFCsinasyon ekler. Oran y\xFCkseldik\xE7e daha
+      \xE7ok efektle kar\u015F\u0131la\u015F\u0131rs\u0131n. %100'de a\u015F\u0131r\u0131
+      doz al\u0131r ve kaybedersin."
+  - Key: poker.define.poison_title
+    Value: Zehirli mantar
+  - Key: poker.define.poison_description
+    Value: "Hal\xFCsinasyon eklemez; bunun yerine \xD6l\xFCm Zar\u0131 at\u0131l\u0131r
+      - mevcut hal\xFCsinasyon oran\u0131na ba\u011Fl\u0131 rastgele bir a\u015F\u0131r\u0131
+      doz \u015Fans\u0131."

@@ -1,0 +1,277 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 48cfa9c17f2bc884ba9c1aad02a042a1, type: 3}
+  m_Name: Locale_TR_Items
+  m_EditorClassIdentifier: Localization::Localization.LocaleSection
+  _entries:
+  - Key: item.prompt.player
+    Value: "B\u0130R OYUNCUYU \u0130\u015EARET ET"
+  - Key: item.prompt.opponent_card
+    Value: "BA\u015EKA B\u0130R OYUNCUNUN KARTINI \u0130\u015EARET ET"
+  - Key: item.prompt.own_card
+    Value: "KEND\u0130 KARTLARINDAN B\u0130R\u0130N\u0130 \u0130\u015EARET ET"
+  - Key: item.prompt.board_card
+    Value: "KAPALI B\u0130R MASA KARTINI \u0130\u015EARET ET"
+  - Key: item.reason.not_dealt
+    Value: "Bu masada bu e\u015Fya da\u011F\u0131t\u0131lm\u0131yor."
+  - Key: item.reason.not_held
+    Value: Elinde yok.
+  - Key: item.reason.out_of_match
+    Value: "Bu ma\xE7tan elendin."
+  - Key: item.reason.street_only
+    Value: Sadece bahis turunda.
+  - Key: item.reason.turn_only
+    Value: "Sadece senin s\u0131randa."
+  - Key: item.reason.locked_out
+    Value: "Bu tur e\u015Fya kullanman engellendi."
+  - Key: item.reason.used_one
+    Value: "Bu tur zaten bir e\u015Fya kulland\u0131n."
+  - Key: item.reason.used_many
+    Value: "Bu tur zaten {0} e\u015Fya kulland\u0131n."
+  - Key: item.reason.waiting_other
+    Value: "Ba\u015Fka bir e\u015Fya bekleniyor."
+  - Key: item.reason.no_time
+    Value: "Cevap vermeleri i\xE7in yeterli s\xFCre yok."
+  - Key: item.reason.not_in_hand
+    Value: "Bu elde de\u011Filsin."
+  - Key: item.reason.hand_full
+    Value: Elin dolu.
+  - Key: item.reason.deck_empty
+    Value: "Deste bo\u015F."
+  - Key: item.reason.no_street_left
+    Value: "Bu elde ba\u015Fka bahis turu kalmad\u0131."
+  - Key: item.reason.no_board
+    Value: "Bu masada ortak kart da\u011F\u0131t\u0131lm\u0131yor."
+  - Key: item.reason.last_board_seen
+    Value: "Son masa kart\u0131 sana zaten a\xE7\u0131k."
+  - Key: item.reason.board_seen
+    Value: "T\xFCm masa kartlar\u0131 sana zaten a\xE7\u0131k."
+  - Key: item.reason.board_face_up
+    Value: "T\xFCm masa kartlar\u0131 zaten a\xE7\u0131k."
+  - Key: item.reason.board_full
+    Value: Masa dolu.
+  - Key: item.reason.no_card_to_lay
+    Value: "Masaya koyacak kart\u0131n yok."
+  - Key: item.reason.no_card_to_give
+    Value: "Verecek kart\u0131n kalmad\u0131."
+  - Key: item.reason.cards_face_up
+    Value: "Kartlar\u0131n zaten a\xE7\u0131k."
+  - Key: item.reason.all_face_up
+    Value: "T\xFCm kartlar zaten a\xE7\u0131k."
+  - Key: item.reason.cant_change
+    Value: "Kartlar\u0131n\u0131n hi\xE7biri de\u011Fi\u015Ftirilemez."
+  - Key: item.reason.already_under
+    Value: "Zaten yere y\u0131\u011F\u0131ld\u0131n."
+  - Key: item.reason.no_count_place
+    Value: "Say\u0131m\u0131 tutacak yer yok."
+  - Key: item.reason.already_counted
+    Value: "Bu elde zaten sayd\u0131n."
+  - Key: item.reason.nobody_to_halve
+    Value: "Dozu yar\u0131ya inecek kimse yok."
+  - Key: item.reason.nobody_to_spike
+    Value: "\u0130la\xE7 kat\u0131lacak kimse kalmad\u0131."
+  - Key: item.reason.nobody_to_show
+    Value: "Ba\u015Fka kimsenin a\xE7acak kart\u0131 kalmad\u0131."
+  - Key: item.reason.nobody_in_hand
+    Value: "Elde ba\u015Fka kimse kalmad\u0131."
+  - Key: item.reason.nobody_unseen
+    Value: "Kimsede g\xF6rmedi\u011Fin bir kart yok."
+  - Key: item.reason.nobody_to_shake
+    Value: "Dozu oynanacak kimse kalmad\u0131."
+  - Key: item.reason.nobody_to_roll
+    Value: "Birlikte zar atacak kimse kalmad\u0131."
+  - Key: item.reason.nobody_to_swap
+    Value: "Ba\u015Fka kimsenin de\u011Fi\u015Ftirecek kart\u0131 yok."
+  - Key: item.copy_card.name
+    Value: Kopya
+  - Key: item.copy_card.description
+    Value: "%35 ihtimalle kartlar\u0131ndan biri elindeki ba\u015Fka bir kart\u0131n
+      kopyas\u0131 olur."
+  - Key: item.copy_card.notice
+    Value: "kopyalamay\u0131 denedi"
+  - Key: item.copy_card.copied
+    Value: "kopyalad\u0131"
+  - Key: item.copy_card.failed
+    Value: "kopyalayamad\u0131"
+  - Key: item.deck_count.name
+    Value: "Renk Say\u0131m\u0131"
+  - Key: item.deck_count.description
+    Value: "Da\u011F\u0131t\u0131lmam\u0131\u015F destede her renkten ka\xE7 kart
+      ve deste Joker i\xE7eriyorsa ka\xE7 Joker kald\u0131\u011F\u0131n\u0131 g\xF6r.
+      Say\u0131m\u0131 sadece sen g\xF6r\xFCrs\xFCn ve el bitene kadar sende kal\u0131r."
+  - Key: item.deck_count.notice
+    Value: "desteyi sayd\u0131"
+  - Key: item.extra_draw.name
+    Value: Kusmuk
+  - Key: item.extra_draw.description
+    Value: "Desteden bir kart daha \xE7ek. Bu elin sonuna kadar \xE7ekilemezsin."
+  - Key: item.extra_draw.notice
+    Value: "fazladan kart \xE7ekti"
+  - Key: item.half_dose.name
+    Value: "\u015E\u0131r\u0131nga"
+  - Key: item.half_dose.description
+    Value: "Bir oyuncu se\xE7: \xF6l\xFCm oran\u0131 yar\u0131ya iner, sonra kalan
+      orana kar\u015F\u0131 zar atar."
+  - Key: item.half_dose.notice
+    Value: "dozu yar\u0131lad\u0131 \u2192"
+  - Key: item.half_dose.prompt
+    Value: "DOZU YARIYA \u0130NECEK K\u0130\u015E\u0130Y\u0130 \u0130\u015EARET ET"
+  - Key: item.joker_card.name
+    Value: "Palya\xE7o Kutusu"
+  - Key: item.joker_card.description
+    Value: "%50 ihtimalle elinden se\xE7ti\u011Fin bir kart Joker olur. Tutup tutmad\u0131\u011F\u0131n\u0131
+      sadece sen \xF6\u011Frenirsin."
+  - Key: item.joker_card.joker
+    Value: joker buldu
+  - Key: item.joker_card.failed
+    Value: "joker bulamad\u0131"
+  - Key: item.lock_fold.name
+    Value: Kilit
+  - Key: item.lock_fold.description
+    Value: "Bir sonraki turda sen dahil kimse \xE7ekilemez."
+  - Key: item.lock_fold.notice
+    Value: "\xE7ekilmeyi kilitledi"
+  - Key: item.mushroom_dose.name
+    Value: "Katk\u0131"
+  - Key: item.mushroom_dose.description
+    Value: "Se\xE7ilen oyuncunun sonraki 2 mantar\u0131 ya hi\xE7bir \u015Fey yapmaz
+      ya da iki kat sert vurur, 50/50."
+  - Key: item.mushroom_dose.notice
+    Value: "mantarlara ila\xE7 katt\u0131 \u2192"
+  - Key: item.mushroom_dose.nullified
+    Value: "{0} mantar\u0131 bo\u015Faltt\u0131 \u2192"
+  - Key: item.mushroom_dose.doubled
+    Value: "{0} mantar\u0131 ikiye katlad\u0131 \u2192"
+  - Key: item.mushroom_dose.prompt
+    Value: "MANTARLARINA \u0130LA\xC7 KATACA\u011EIN K\u0130\u015E\u0130Y\u0130 \u0130\u015EARET
+      ET"
+  - Key: item.mutual_reveal.name
+    Value: "Birlikte A\xE7"
+  - Key: item.mutual_reveal.description
+    Value: "Sen ve se\xE7ti\u011Fin oyuncu el bitene kadar t\xFCm masaya birer kart
+      a\xE7ars\u0131n\u0131z. Hangi kart\u0131n\u0131 a\xE7aca\u011F\u0131n\u0131
+      o se\xE7er."
+  - Key: item.mutual_reveal.notice
+    Value: "birlikte kart a\xE7\u0131yor \u2192"
+  - Key: item.mutual_reveal.prompt_own
+    Value: "A\xC7ACA\u011EIN KARTI \u0130\u015EARET ET"
+  - Key: item.mutual_reveal.prompt_player
+    Value: "SEN\u0130NLE KART A\xC7ACAK K\u0130\u015E\u0130Y\u0130 \u0130\u015EARET
+      ET"
+  - Key: item.mutual_reveal.response
+    Value: "SENDEN B\u0130R KART A\xC7MANI \u0130ST\u0130YOR: B\u0130R\u0130N\u0130
+      \u0130\u015EARET ET"
+  - Key: item.pair_lock_fold.name
+    Value: "Kelep\xE7e"
+  - Key: item.pair_lock_fold.description
+    Value: "Sen ve se\xE7ti\u011Fin oyuncu bir sonraki turda \xE7ekilemezsiniz."
+  - Key: item.pair_lock_fold.notice
+    Value: "kelep\xE7elendi \u2192"
+  - Key: item.pair_lock_items.name
+    Value: "E\u015Fya Yasak"
+  - Key: item.pair_lock_items.description
+    Value: "Sen ve se\xE7ti\u011Fin oyuncu bir sonraki turda e\u015Fya kullanamazs\u0131n\u0131z."
+  - Key: item.pair_lock_items.notice
+    Value: "e\u015Fyalar\u0131 engelledi \u2192"
+  - Key: item.pair_lock.prompt
+    Value: "SEN\u0130NLE K\u0130L\u0130TLENECEK K\u0130\u015E\u0130Y\u0130 \u0130\u015EARET
+      ET"
+  - Key: item.peek_board.name
+    Value: Spatula
+  - Key: item.peek_board.description
+    Value: "Bir masa kart\u0131n\u0131 a\xE7\u0131lmadan \xF6nce g\xF6r. Bu tur \xE7ekilemezsin."
+  - Key: item.peek_board.notice
+    Value: "masa kart\u0131na g\xF6z att\u0131"
+  - Key: item.peek_board_main.description
+    Value: "Son masa kart\u0131n\u0131 a\xE7\u0131lmadan \xF6nce g\xF6r. Bu tur \xE7ekilemezsin."
+  - Key: item.peek_hand.name
+    Value: "G\xF6z At"
+  - Key: item.peek_hand.description
+    Value: "H\xE2l\xE2 elde olan bir oyuncunun bir kart\u0131n\u0131 g\xF6r. Hangi
+      kart\u0131 g\xF6rd\xFC\u011F\xFCn ona s\xF6ylenir."
+  - Key: item.peek_hand.notice
+    Value: "kart\u0131na g\xF6z att\u0131 \u2192"
+  - Key: item.peek_hand.private
+    Value: "senin {0} kart\u0131n\u0131 g\xF6rd\xFC"
+  - Key: item.place_on_board.name
+    Value: Sigara
+  - Key: item.place_on_board.description
+    Value: "Kartlar\u0131ndan birini herkes i\xE7in masaya a\xE7\u0131k koy ve yerine
+      desteden yeni bir kart \xE7ek."
+  - Key: item.place_on_board.notice
+    Value: masaya kart koydu
+  - Key: item.place_on_board.prompt
+    Value: "MASAYA KOYACA\u011EIN KARTI \u0130\u015EARET ET"
+  - Key: item.raise_stakes.name
+    Value: "Y\xFCkselt"
+  - Key: item.raise_stakes.description
+    Value: Bir sonraki turda, seninki dahil her bahse bir mantar daha eklenir.
+  - Key: item.raise_stakes.notice
+    Value: "bahsi y\xFCkseltti"
+  - Key: item.random_suit.name
+    Value: Zar
+  - Key: item.random_suit.description
+    Value: "Kartlar\u0131ndan biri de\u011Ferini korur ve rastgele ba\u015Fka bir
+      renge ge\xE7er."
+  - Key: item.random_suit.notice
+    Value: "kart\u0131n rengini de\u011Fi\u015Ftirdi"
+  - Key: item.random_suit.prompt
+    Value: "DE\u011E\u0130\u015EECEK KARTI \u0130\u015EARET ET"
+  - Key: item.rate_shift.name
+    Value: "K\xFClot"
+  - Key: item.rate_shift.description
+    Value: "Bir oyuncu se\xE7: \xF6l\xFCm oran\u0131 rastgele 20 artar ya da azal\u0131r."
+  - Key: item.rate_shift.raised
+    Value: "+{0} doz \u2192"
+  - Key: item.rate_shift.lowered
+    Value: "-{0} doz \u2192"
+  - Key: item.rate_shift.prompt
+    Value: "DOZUNU OYNATACA\u011EIN K\u0130\u015E\u0130Y\u0130 \u0130\u015EARET ET"
+  - Key: item.shared_roll.name
+    Value: Bira
+  - Key: item.shared_roll.description
+    Value: "Sen ve se\xE7ti\u011Fin oyuncu ayn\u0131 anda, her biriniz kendi \xF6l\xFCm
+      oran\u0131na kar\u015F\u0131 zar atars\u0131n\u0131z."
+  - Key: item.shared_roll.notice
+    Value: "birlikte zar att\u0131 \u2192"
+  - Key: item.shared_roll.prompt
+    Value: "SEN\u0130NLE ZAR ATACAK K\u0130\u015E\u0130Y\u0130 \u0130\u015EARET ET"
+  - Key: item.swap_board.name
+    Value: Sigara
+  - Key: item.swap_board.description
+    Value: "Kapal\u0131 bir masa kart\u0131 herkese a\xE7\u0131l\u0131r, sonra kartlar\u0131ndan
+      biriyle de\u011Fi\u015Ftirilir; o kart masada a\xE7\u0131k kal\u0131r."
+  - Key: item.swap_board.notice
+    Value: "masayla kart de\u011Fi\u015Ftirdi"
+  - Key: item.swap_board.prompt
+    Value: "MASAYA KOYACA\u011EIN KARTI \u0130\u015EARET ET"
+  - Key: item.swap_hand.name
+    Value: "B\u0131\xE7ak"
+  - Key: item.swap_hand.description
+    Value: "H\xE2l\xE2 elde olan bir oyuncuyla bir kart\u0131n\u0131 de\u011Fi\u015Ftir.
+      Hangi kart\u0131n\u0131 verece\u011Fini o se\xE7er."
+  - Key: item.swap_hand.notice
+    Value: "kart de\u011Fi\u015Ftirdi \u2192"
+  - Key: item.swap_hand.prompt_own
+    Value: "VERECE\u011E\u0130N KARTI \u0130\u015EARET ET"
+  - Key: item.swap_hand.prompt_player
+    Value: "KART DE\u011E\u0130\u015EECE\u011E\u0130N K\u0130\u015E\u0130Y\u0130
+      \u0130\u015EARET ET"
+  - Key: item.swap_hand.response
+    Value: "seninle kart de\u011Fi\u015Ftiriyor - verece\u011Fin kart\u0131 se\xE7"
+  - Key: item.table_reveal.name
+    Value: Megafon
+  - Key: item.table_reveal.description
+    Value: "Bu tur, elde kalan her oyuncu t\xFCm masaya rastgele bir kart\u0131n\u0131
+      a\xE7ar."
+  - Key: item.table_reveal.notice
+    Value: "herkesi if\u015Fa etti"

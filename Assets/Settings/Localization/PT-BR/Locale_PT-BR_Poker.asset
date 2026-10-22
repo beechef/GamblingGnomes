@@ -1,0 +1,199 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 48cfa9c17f2bc884ba9c1aad02a042a1, type: 3}
+  m_Name: Locale_PT-BR_Poker
+  m_EditorClassIdentifier: Localization::Localization.LocaleSection
+  _entries:
+  - Key: poker.action.bet
+    Value: APOSTAR
+  - Key: poker.action.call
+    Value: PAGAR
+  - Key: poker.action.fold
+    Value: DESISTIR
+  - Key: poker.button.all_in
+    Value: '[ALL-IN]'
+  - Key: poker.button.fold
+    Value: '[DESISTIR]'
+  - Key: poker.button.choose
+    Value: ESCOLHER
+  - Key: poker.button.items
+    Value: ITENS ({0})
+  - Key: poker.button.view_board
+    Value: '[VER BOARD]'
+  - Key: poker.button.lay_board
+    Value: '[BAIXAR BOARD]'
+  - Key: poker.button.helper
+    Value: AJUDA
+  - Key: poker.button.start
+    Value: INICIAR
+  - Key: poker.button.invite
+    Value: CONVIDAR
+  - Key: poker.button.add_bot
+    Value: ADICIONAR BOT
+  - Key: poker.button.clear_bot
+    Value: REMOVER BOTS
+  - Key: poker.button.match_settings
+    Value: "Configura\xE7\xF5es"
+  - Key: poker.targeting.hint
+    Value: Esc para guardar
+  - Key: poker.helper.title
+    Value: "RANKING DE M\xC3OS"
+  - Key: poker.helper.your_hand
+    Value: "SUA M\xC3O"
+  - Key: poker.helper.empty
+    Value: "Voc\xEA ainda n\xE3o tem cartas na m\xE3o."
+  - Key: poker.items.left_in_deck
+    Value: RESTAM NO BARALHO
+  - Key: poker.ranking.title
+    Value: RESULTADO
+  - Key: poker.ranking.place.st
+    Value: "{0}\xBA"
+  - Key: poker.ranking.place.nd
+    Value: "{0}\xBA"
+  - Key: poker.ranking.place.rd
+    Value: "{0}\xBA"
+  - Key: poker.ranking.place.th
+    Value: "{0}\xBA"
+  - Key: poker.colorful.prompt
+    Value: "Quem vai comer o <Highlight>cogumelo mortal</Highlight> e ganhar <Highlight>itens
+      \xD7{0}</Highlight>?"
+  - Key: poker.turn.yours
+    Value: SUA VEZ
+  - Key: poker.turn.other
+    Value: VEZ DE {0}
+  - Key: poker.player.fallback
+    Value: Jogador
+  - Key: poker.phase.waiting
+    Value: AGUARDANDO
+  - Key: poker.phase.dealing
+    Value: DISTRIBUINDO
+  - Key: poker.phase.first_street
+    Value: PRIMEIRA RODADA
+  - Key: poker.phase.second_street
+    Value: SEGUNDA RODADA
+  - Key: poker.phase.looking
+    Value: OLHANDO AS CARTAS
+  - Key: poker.phase.eating
+    Value: HORA DE COMER
+  - Key: poker.phase.showdown
+    Value: SHOWDOWN
+  - Key: poker.phase.finished
+    Value: FIM
+  - Key: poker.phase.match_over
+    Value: FIM DE PARTIDA
+  - Key: poker.phase.all_in
+    Value: ALL-IN
+  - Key: poker.phase.ante
+    Value: ANTE
+  - Key: poker.start.ready
+    Value: '{0} jogadores prontos'
+  - Key: poker.start.for_table
+    Value: Iniciar para a mesa
+  - Key: poker.start.waiting
+    Value: Aguardando jogadores ({0}/{1})
+  - Key: poker.pot
+    Value: 'Pote: {0}'
+  - Key: poker.match_over.survivor
+    Value: "\xDALTIMO GNOMO DE P\xC9"
+  - Key: poker.match_over.nobody
+    Value: "NINGU\xC9M SOBREVIVEU"
+  - Key: poker.notice.item_bonus
+    Value: ITENS +{0}
+  - Key: poker.notice.item_reward
+    Value: 'SOBREVIVEU: ITENS +{0}'
+  - Key: poker.notice.items_lost
+    Value: 'PERDEU ITENS: {0}'
+  - Key: poker.notice.match_started
+    Value: PARTIDA INICIADA
+  - Key: poker.notice.match_players
+    Value: '{0} JOGADORES'
+  - Key: poker.notice.item_used
+    Value: USOU {0}
+  - Key: poker.notice.bet
+    Value: APOSTA
+  - Key: poker.notice.fold
+    Value: DESISTE
+  - Key: poker.notice.all_in
+    Value: VAI ALL-IN
+  - Key: config.title
+    Value: "CONFIGURA\xC7\xD5ES DA PARTIDA"
+  - Key: config.section.match
+    Value: Partida
+  - Key: config.section.items
+    Value: Itens
+  - Key: config.starting_health
+    Value: Vida inicial
+  - Key: config.items_per_hand
+    Value: "Itens por m\xE3o"
+  - Key: config.loser_bonus
+    Value: "B\xF4nus do perdedor"
+  - Key: config.item_capacity
+    Value: Limite de itens
+  - Key: bet_item.green
+    Value: Verde
+  - Key: bet_item.red
+    Value: Vermelho
+  - Key: bet_item.purple
+    Value: Roxo
+  - Key: bet_item.yellow
+    Value: Amarelo
+  - Key: bet_item.colorful
+    Value: Colorido
+  - Key: poker.round.title
+    Value: Rodada
+  - Key: poker.helper.tab.helper
+    Value: Ajuda
+  - Key: poker.helper.tab.ruleset
+    Value: Regras
+  - Key: poker.helper.tab.define
+    Value: "Gloss\xE1rio"
+  - Key: poker.helper.joker_title
+    Value: Coringa
+  - Key: poker.helper.joker_caption
+    Value: Vale qualquer carta
+  - Key: poker.ruleset.deal_cards
+    Value: "No in\xEDcio da partida, cada jogador recebe 2 cartas fechadas s\xF3
+      suas."
+  - Key: poker.ruleset.deal_cards_items
+    Value: "No in\xEDcio da partida, cada jogador recebe 2 cartas fechadas s\xF3
+      suas e 2 itens."
+  - Key: poker.ruleset.turn_actions
+    Value: Na sua vez, o jogador pode Pagar, ir de All-in ou Desistir.
+  - Key: poker.ruleset.turn_actions_items
+    Value: "Na sua vez, o jogador pode usar at\xE9 2 itens e depois Pagar ou Desistir."
+  - Key: poker.ruleset.community_cards
+    Value: "No fim de cada rodada, s\xE3o viradas em sequ\xEAncia 3 - 1 - 1 cartas
+      comunit\xE1rias."
+  - Key: poker.ruleset.all_in
+    Value: "Quando algu\xE9m vai de All-in, os outros s\xF3 podem acompanhar o All-in
+      ou Desistir. Depois, todas as cartas restantes s\xE3o viradas."
+  - Key: poker.ruleset.showdown
+    Value: "Com todas as cartas viradas, vence quem tiver a melhor m\xE3o."
+  - Key: poker.ruleset.winner_feeds
+    Value: O vencedor escolhe um jogador para comer o Cogumelo Venenoso.
+  - Key: poker.ruleset.winner_feeds_item
+    Value: O vencedor escolhe um jogador para comer o Cogumelo Venenoso e ganha mais
+      um item.
+  - Key: poker.ruleset.losers_eat
+    Value: Os perdedores devem comer todos os cogumelos que apostaram.
+  - Key: poker.define.title
+    Value: "Alucina\xE7\xE3o & Cogumelo Venenoso"
+  - Key: poker.define.meter_title
+    Value: "Barra de alucina\xE7\xE3o"
+  - Key: poker.define.meter_description
+    Value: "Cada cogumelo comido soma 10% de alucina\xE7\xE3o. Quanto maior a taxa,
+      mais efeitos voc\xEA sofre. Em 100% voc\xEA tem overdose e perde."
+  - Key: poker.define.poison_title
+    Value: Cogumelo venenoso
+  - Key: poker.define.poison_description
+    Value: "N\xE3o soma alucina\xE7\xE3o; em vez disso, faz uma Rolagem da Morte
+      - uma chance aleat\xF3ria de overdose baseada na taxa de alucina\xE7\xE3o atual."

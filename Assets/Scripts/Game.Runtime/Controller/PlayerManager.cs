@@ -127,6 +127,7 @@ namespace Game.Runtime.Controller
 
 			// Counted before the spawn: the spawn raises the roster change, and whoever hears it asks BotCount.
 			_botClientIds.Add(clientId);
+			ReportBotCount();
 			var player = SpawnPlayer(clientId, botPrefab, isPlayerObject: false);
 
 			var data = player.GetComponent<PlayerData>();
@@ -141,10 +142,18 @@ namespace Game.Runtime.Controller
 
 			var clientId = _botClientIds[^1];
 			_botClientIds.RemoveAt(_botClientIds.Count - 1);
+			ReportBotCount();
 
 			// Leaves the way a disconnecting player does, so the table cleans up after it the same way.
 			HandlePlayerDisconnected(clientId);
 			return true;
+		}
+
+		// The room only sees members who joined it, so a full table of bots would otherwise still list free places.
+		private void ReportBotCount()
+		{
+			var network = GameNetworkManager.Instance;
+			if (network) network.SetBotCount(_botClientIds.Count);
 		}
 
 		private void HandleNewPlayer(ulong clientId)

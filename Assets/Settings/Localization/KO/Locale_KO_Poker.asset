@@ -1,0 +1,214 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 48cfa9c17f2bc884ba9c1aad02a042a1, type: 3}
+  m_Name: Locale_KO_Poker
+  m_EditorClassIdentifier: Localization::Localization.LocaleSection
+  _entries:
+  - Key: poker.action.bet
+    Value: "\uBCA0\uD305"
+  - Key: poker.action.call
+    Value: "\uCF5C"
+  - Key: poker.action.fold
+    Value: "\uD3F4\uB4DC"
+  - Key: poker.button.all_in
+    Value: "[\uC62C\uC778]"
+  - Key: poker.button.fold
+    Value: "[\uD3F4\uB4DC]"
+  - Key: poker.button.choose
+    Value: "\uC120\uD0DD"
+  - Key: poker.button.items
+    Value: "\uC544\uC774\uD15C ({0})"
+  - Key: poker.button.view_board
+    Value: "[\uBCF4\uB4DC \uBCF4\uAE30]"
+  - Key: poker.button.lay_board
+    Value: "[\uBCF4\uB4DC \uB0B4\uB824\uB193\uAE30]"
+  - Key: poker.button.helper
+    Value: "\uB3C4\uC6C0\uB9D0"
+  - Key: poker.button.start
+    Value: "\uC2DC\uC791"
+  - Key: poker.button.invite
+    Value: "\uCD08\uB300"
+  - Key: poker.button.add_bot
+    Value: "\uBD07 \uCD94\uAC00"
+  - Key: poker.button.clear_bot
+    Value: "\uBD07 \uC81C\uAC70"
+  - Key: poker.button.match_settings
+    Value: "\uC124\uC815"
+  - Key: poker.targeting.hint
+    Value: "Esc\uB85C \uB418\uB3CC\uB9AC\uAE30"
+  - Key: poker.helper.title
+    Value: "\uD3EC\uCEE4 \uC871\uBCF4"
+  - Key: poker.helper.your_hand
+    Value: "\uB0B4 \uD328"
+  - Key: poker.helper.empty
+    Value: "\uC544\uC9C1 \uD328\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4."
+  - Key: poker.items.left_in_deck
+    Value: "\uB371\uC5D0 \uB0A8\uC740 \uC218"
+  - Key: poker.ranking.title
+    Value: "\uACB0\uACFC"
+  - Key: poker.ranking.place.st
+    Value: "{0}\uC704"
+  - Key: poker.ranking.place.nd
+    Value: "{0}\uC704"
+  - Key: poker.ranking.place.rd
+    Value: "{0}\uC704"
+  - Key: poker.ranking.place.th
+    Value: "{0}\uC704"
+  - Key: poker.colorful.prompt
+    Value: "\uB204\uAC00 <Highlight>\uB3C5\uBC84\uC12F</Highlight>\uC744 \uBA39\uACE0
+      <Highlight>\uC544\uC774\uD15C {0}\uAC1C</Highlight>\uB97C \uBC1B\uC744\uAE4C?"
+  - Key: poker.turn.yours
+    Value: "\uB0B4 \uD134"
+  - Key: poker.turn.other
+    Value: "{0}\uC758 \uD134"
+  - Key: poker.player.fallback
+    Value: "\uD50C\uB808\uC774\uC5B4"
+  - Key: poker.phase.waiting
+    Value: "\uB300\uAE30 \uC911"
+  - Key: poker.phase.dealing
+    Value: "\uB51C\uB9C1"
+  - Key: poker.phase.first_street
+    Value: "1\uCC28 \uBCA0\uD305"
+  - Key: poker.phase.second_street
+    Value: "2\uCC28 \uBCA0\uD305"
+  - Key: poker.phase.looking
+    Value: "\uCE74\uB4DC \uD655\uC778"
+  - Key: poker.phase.eating
+    Value: "\uBC84\uC12F \uBA39\uB294 \uC911"
+  - Key: poker.phase.showdown
+    Value: "\uC1FC\uB2E4\uC6B4"
+  - Key: poker.phase.finished
+    Value: "\uC885\uB8CC"
+  - Key: poker.phase.match_over
+    Value: "\uB9E4\uCE58 \uC885\uB8CC"
+  - Key: poker.phase.all_in
+    Value: "\uC62C\uC778"
+  - Key: poker.phase.ante
+    Value: "\uC564\uD2F0"
+  - Key: poker.start.ready
+    Value: "{0}\uBA85 \uC900\uBE44 \uC644\uB8CC"
+  - Key: poker.start.for_table
+    Value: "\uD14C\uC774\uBE14 \uC2DC\uC791"
+  - Key: poker.start.waiting
+    Value: "\uD50C\uB808\uC774\uC5B4 \uB300\uAE30 \uC911 ({0}/{1})"
+  - Key: poker.pot
+    Value: "\uD31F: {0}"
+  - Key: poker.match_over.survivor
+    Value: "\uCD5C\uD6C4\uC758 \uB178\uC6C0"
+  - Key: poker.match_over.nobody
+    Value: "\uC0DD\uC874\uC790 \uC5C6\uC74C"
+  - Key: poker.notice.item_bonus
+    Value: "\uB2D8\uC5D0\uAC8C \uC544\uC774\uD15C +{0}"
+  - Key: poker.notice.item_reward
+    Value: "\uB2D8 \uC0DD\uC874 \uC544\uC774\uD15C +{0}"
+  - Key: poker.notice.items_lost
+    Value: "\uB2D8\uC774 \uC544\uC774\uD15C {0}\uAC1C \uC783\uC74C"
+  - Key: poker.notice.match_started
+    Value: "\uB9E4\uCE58 \uC2DC\uC791"
+  - Key: poker.notice.match_players
+    Value: "{0}\uBA85 \uCC38\uAC00"
+  - Key: poker.notice.item_used
+    Value: "\uB2D8\uC774 {0} \uC0AC\uC6A9"
+  - Key: poker.notice.bet
+    Value: "\uB2D8\uC774 \uBCA0\uD305"
+  - Key: poker.notice.fold
+    Value: "\uB2D8\uC774 \uD3F4\uB4DC"
+  - Key: poker.notice.all_in
+    Value: "\uB2D8\uC774 \uC62C\uC778"
+  - Key: config.title
+    Value: "\uB9E4\uCE58 \uC124\uC815"
+  - Key: config.section.match
+    Value: "\uB9E4\uCE58"
+  - Key: config.section.items
+    Value: "\uC544\uC774\uD15C"
+  - Key: config.starting_health
+    Value: "\uC2DC\uC791 \uCCB4\uB825"
+  - Key: config.items_per_hand
+    Value: "\uD578\uB4DC\uB2F9 \uC544\uC774\uD15C"
+  - Key: config.loser_bonus
+    Value: "\uD328\uC790 \uBCF4\uB108\uC2A4"
+  - Key: config.item_capacity
+    Value: "\uC544\uC774\uD15C \uBCF4\uC720 \uD55C\uB3C4"
+  - Key: bet_item.green
+    Value: "\uCD08\uB85D"
+  - Key: bet_item.red
+    Value: "\uBE68\uAC15"
+  - Key: bet_item.purple
+    Value: "\uBCF4\uB77C"
+  - Key: bet_item.yellow
+    Value: "\uB178\uB791"
+  - Key: bet_item.colorful
+    Value: "\uBB34\uC9C0\uAC1C"
+  - Key: poker.round.title
+    Value: "\uB77C\uC6B4\uB4DC"
+  - Key: poker.helper.tab.helper
+    Value: "\uB3C4\uC6C0\uB9D0"
+  - Key: poker.helper.tab.ruleset
+    Value: "\uADDC\uCE59"
+  - Key: poker.helper.tab.define
+    Value: "\uC6A9\uC5B4 \uC124\uBA85"
+  - Key: poker.helper.joker_title
+    Value: "\uC870\uCEE4"
+  - Key: poker.helper.joker_caption
+    Value: "\uC640\uC77C\uB4DC\uCE74\uB4DC"
+  - Key: poker.ruleset.deal_cards
+    Value: "\uB9E4\uCE58\uAC00 \uC2DC\uC791\uB418\uBA74 \uAC01 \uD50C\uB808\uC774\uC5B4\uC5D0\uAC8C
+      \uBE44\uACF5\uAC1C \uCE74\uB4DC 2\uC7A5(\uD640 \uCE74\uB4DC)\uC774 \uC8FC\uC5B4\uC9D1\uB2C8\uB2E4."
+  - Key: poker.ruleset.deal_cards_items
+    Value: "\uB9E4\uCE58\uAC00 \uC2DC\uC791\uB418\uBA74 \uAC01 \uD50C\uB808\uC774\uC5B4\uC5D0\uAC8C
+      \uBE44\uACF5\uAC1C \uCE74\uB4DC 2\uC7A5(\uD640 \uCE74\uB4DC)\uACFC \uC544\uC774\uD15C
+      2\uAC1C\uAC00 \uC8FC\uC5B4\uC9D1\uB2C8\uB2E4."
+  - Key: poker.ruleset.turn_actions
+    Value: "\uC790\uAE30 \uD134\uC5D0\uB294 \uCF5C, \uC62C\uC778, \uD3F4\uB4DC \uC911
+      \uD558\uB098\uB97C \uD560 \uC218 \uC788\uC2B5\uB2C8\uB2E4."
+  - Key: poker.ruleset.turn_actions_items
+    Value: "\uC790\uAE30 \uD134\uC5D0\uB294 \uC544\uC774\uD15C\uC744 \uCD5C\uB300
+      2\uAC1C\uAE4C\uC9C0 \uC4F4 \uB4A4 \uCF5C\uC774\uB098 \uD3F4\uB4DC\uB97C \uD560
+      \uC218 \uC788\uC2B5\uB2C8\uB2E4."
+  - Key: poker.ruleset.community_cards
+    Value: "\uB77C\uC6B4\uB4DC\uAC00 \uB05D\uB0A0 \uB54C\uB9C8\uB2E4 \uACF5\uC6A9
+      \uCE74\uB4DC(\uCEE4\uBBA4\uB2C8\uD2F0 \uCE74\uB4DC)\uAC00 3\uC7A5 - 1\uC7A5
+      - 1\uC7A5 \uC21C\uC11C\uB85C \uACF5\uAC1C\uB429\uB2C8\uB2E4."
+  - Key: poker.ruleset.all_in
+    Value: "\uB204\uAD70\uAC00 \uC62C\uC778\uD558\uBA74 \uBAA8\uB450 \uADF8 \uC62C\uC778\uC744
+      \uB530\uB77C\uAC00\uAC70\uB098 \uD3F4\uB4DC\uD560 \uC218\uBC16\uC5D0 \uC5C6\uC2B5\uB2C8\uB2E4.
+      \uADF8 \uD6C4 \uB0A8\uC740 \uCE74\uB4DC\uAC00 \uBAA8\uB450 \uACF5\uAC1C\uB429\uB2C8\uB2E4."
+  - Key: poker.ruleset.showdown
+    Value: "\uBAA8\uB4E0 \uCE74\uB4DC\uAC00 \uACF5\uAC1C\uB418\uBA74 \uAC00\uC7A5
+      \uB192\uC740 \uC871\uBCF4(\uD3EC\uCEE4 \uD578\uB4DC)\uB97C \uAC00\uC9C4 \uD50C\uB808\uC774\uC5B4\uAC00
+      \uC2B9\uB9AC\uD569\uB2C8\uB2E4."
+  - Key: poker.ruleset.winner_feeds
+    Value: "\uC2B9\uC790\uB294 \uB3C5\uBC84\uC12F\uC744 \uBA39\uC744 \uD50C\uB808\uC774\uC5B4
+      \uD55C \uBA85\uC744 \uC9C0\uBAA9\uD569\uB2C8\uB2E4."
+  - Key: poker.ruleset.winner_feeds_item
+    Value: "\uC2B9\uC790\uB294 \uB3C5\uBC84\uC12F\uC744 \uBA39\uC744 \uD50C\uB808\uC774\uC5B4
+      \uD55C \uBA85\uC744 \uC9C0\uBAA9\uD558\uACE0 \uC544\uC774\uD15C\uC744 \uD558\uB098
+      \uB354 \uBC1B\uC2B5\uB2C8\uB2E4."
+  - Key: poker.ruleset.losers_eat
+    Value: "\uD328\uC790\uB294 \uBCA0\uD305\uD55C \uBC84\uC12F\uC744 \uBAA8\uB450
+      \uBA39\uC5B4\uC57C \uD569\uB2C8\uB2E4."
+  - Key: poker.define.title
+    Value: "\uD658\uAC01\uACFC \uB3C5\uBC84\uC12F"
+  - Key: poker.define.meter_title
+    Value: "\uD658\uAC01 \uAC8C\uC774\uC9C0"
+  - Key: poker.define.meter_description
+    Value: "\uBC84\uC12F\uC744 \uD558\uB098 \uBA39\uC744 \uB54C\uB9C8\uB2E4 \uD658\uAC01\uC774
+      10% \uC624\uB985\uB2C8\uB2E4. \uC218\uCE58\uAC00 \uB192\uC744\uC218\uB85D \uB354
+      \uB9CE\uC740 \uD6A8\uACFC\uAC00 \uB098\uD0C0\uB0A9\uB2C8\uB2E4. 100%\uAC00
+      \uB418\uBA74 \uACFC\uB2E4 \uBCF5\uC6A9\uC73C\uB85C \uD328\uBC30\uD569\uB2C8\uB2E4."
+  - Key: poker.define.poison_title
+    Value: "\uB3C5\uBC84\uC12F"
+  - Key: poker.define.poison_description
+    Value: "\uD658\uAC01\uC740 \uC624\uB974\uC9C0 \uC54A\uB294 \uB300\uC2E0 \uB370\uC2A4
+      \uB864\uC774 \uBC1C\uC0DD\uD569\uB2C8\uB2E4. \uD604\uC7AC \uD658\uAC01 \uC218\uCE58\uC5D0
+      \uB530\uB978 \uD655\uB960\uB85C \uACFC\uB2E4 \uBCF5\uC6A9 \uC5EC\uBD80\uB97C
+      \uBB34\uC791\uC704\uB85C \uD310\uC815\uD569\uB2C8\uB2E4."

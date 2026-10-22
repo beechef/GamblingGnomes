@@ -23,14 +23,16 @@ namespace Game.Runtime.GameMode.Poker
 
 		public bool IsInWaitingRoom => _gameMode && _gameMode.Data && _gameMode.Data.Phase.Value == PokerPhase.Waiting && !_gameMode.CanDealAnotherHand;
 
-		// A body with no chair would stand around the table for the whole match.
+		// A body with no chair would stand around the table for the whole match, and a bot past the room's size
+		// would turn away a player the room list still offered a place to.
 		public bool CanAddBot
 		{
 			get
 			{
 				var players = PlayerManager.Instance;
 				var seats = _gameMode && _gameMode.Data ? _gameMode.Data.ActiveSeatCount.Value : 0;
-				return IsHost && AllowsBots && IsInWaitingRoom && players && players.Players.Count < seats;
+				var network = GameNetworkManager.Instance;
+				return IsHost && AllowsBots && IsInWaitingRoom && players && players.Players.Count < seats && network && !network.IsRoomFull;
 			}
 		}
 

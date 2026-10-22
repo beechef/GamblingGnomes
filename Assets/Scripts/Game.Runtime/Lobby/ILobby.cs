@@ -1,3 +1,5 @@
+using Game.Runtime.Controller;
+
 namespace Game.Runtime.Lobby
 {
 	// A room players gather in before a session starts, as the service that listed it describes it.
@@ -6,6 +8,9 @@ namespace Game.Runtime.Lobby
 		ulong Id { get; }
 		int MemberCount { get; }
 		int MaxMembers { get; }
+
+		// Members plus the bots the host has seated: bots never join the room, so the host writes how many there are.
+		int PlayerCount => MemberCount + (int.TryParse(GetData(LobbyConstant.BotCountKey), out var bots) ? bots : 0);
 
 		// The member the room answers to: who may change its data, and who hosts the session it opens.
 		ulong OwnerId { get; }
