@@ -365,53 +365,53 @@ MonoBehaviour:
       TangentIn:
         x: -0
         y: -0
-        z: -0.22447641
+        z: -0.22843602
       TangentOut:
         x: 0
         y: 0
-        z: 0.21301596
+        z: 0.22862332
       Rotation:
         value:
-          x: 0.044143055
-          y: -0.35603315
-          z: 0.037942335
-          w: 0.9326587
+          x: 0.041932367
+          y: -0.37097114
+          z: 0.03610913
+          w: 0.9269942
     - Position:
-        x: 0.5708333
+        x: 0.48583332
         y: 0.9916667
         z: 0.9887123
       TangentIn:
         x: -0
         y: -0
-        z: -0.20141378
+        z: -0.22760516
       TangentOut:
         x: 0
         y: 0
-        z: 0.19003978
+        z: 0.21804482
       Rotation:
         value:
-          x: 0.03172955
-          y: -0.59538585
-          z: 0.060007535
-          w: 0.80056727
+          x: 0.025870457
+          y: -0.60875756
+          z: 0.05451915
+          w: 0.7910579
     - Position:
-        x: 0
+        x: -0.17
         y: 0.92
         z: 1
       TangentIn:
         x: -0
         y: -0
-        z: -0.057542525
+        z: -0.0659834
       TangentOut:
         x: 0
         y: 0
-        z: 0.057542525
+        z: 0.0659834
       Rotation:
         value:
-          x: 0.055702094
-          y: 0.69791776
-          z: -0.14502501
-          w: -0.6991251
+          x: 0.061504386
+          y: 0.69832927
+          z: -0.13936332
+          w: -0.69937915
     m_MetaData:
     - Mode: 0
       Tension: 0.5
@@ -628,9 +628,9 @@ GameObject:
   m_Component:
   - component: {fileID: 6595800956411854834}
   - component: {fileID: 928636866661698124}
-  - component: {fileID: 9103869219120685893}
   - component: {fileID: 7417261189247036302}
   - component: {fileID: 386563515291018305}
+  - component: {fileID: 9103869219120685893}
   m_Layer: 0
   m_Name: Cam_Wide
   m_TagString: Untagged
@@ -696,20 +696,6 @@ MonoBehaviour:
       BarrelClipping: 0.25
       Anamorphism: 0
   BlendHint: 0
---- !u!114 &9103869219120685893
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4496072129877437396}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0af805cfc64977e0cfcc3f7589e6294c, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.Camera.PlayerSpectatorCamera
-  _camera: {fileID: 928636866661698124}
-  _livePriority: 30
 --- !u!114 &7417261189247036302
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -758,7 +744,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1e8b78ac948f05a46a6d8339a503172b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Unity.Cinemachine::Unity.Cinemachine.CinemachineHardLookAt
-  LookAtOffset: {x: 0, y: 0, z: 0}
+  LookAtOffset: {x: -0.17, y: 0, z: 0}
+--- !u!114 &9103869219120685893
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4496072129877437396}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0af805cfc64977e0cfcc3f7589e6294c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.Camera.PlayerSpectatorCamera
+  _camera: {fileID: 928636866661698124}
+  _livePriority: 30
 --- !u!1 &5037729505197023643
 GameObject:
   m_ObjectHideFlags: 0

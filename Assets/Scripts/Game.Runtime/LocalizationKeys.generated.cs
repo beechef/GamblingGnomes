@@ -432,11 +432,29 @@ namespace Game.Runtime
 				public const string Prompt = "poker.colorful.prompt";
 			}
 
+			public static class Define
+			{
+				public const string MeterDescription = "poker.define.meter_description";
+				public const string MeterTitle = "poker.define.meter_title";
+				public const string PoisonDescription = "poker.define.poison_description";
+				public const string PoisonTitle = "poker.define.poison_title";
+				public const string Title = "poker.define.title";
+			}
+
 			public static class Helper
 			{
 				public const string Empty = "poker.helper.empty";
+				public const string JokerCaption = "poker.helper.joker_caption";
+				public const string JokerTitle = "poker.helper.joker_title";
 				public const string Title = "poker.helper.title";
 				public const string YourHand = "poker.helper.your_hand";
+
+				public static class Tab
+				{
+					public const string Define = "poker.helper.tab.define";
+					public const string Helper = "poker.helper.tab.helper";
+					public const string Ruleset = "poker.helper.tab.ruleset";
+				}
 			}
 
 			public static class Items
@@ -496,6 +514,20 @@ namespace Game.Runtime
 			public static class Round
 			{
 				public const string Title = "poker.round.title";
+			}
+
+			public static class Ruleset
+			{
+				public const string AllIn = "poker.ruleset.all_in";
+				public const string CommunityCards = "poker.ruleset.community_cards";
+				public const string DealCards = "poker.ruleset.deal_cards";
+				public const string DealCardsItems = "poker.ruleset.deal_cards_items";
+				public const string LosersEat = "poker.ruleset.losers_eat";
+				public const string Showdown = "poker.ruleset.showdown";
+				public const string TurnActions = "poker.ruleset.turn_actions";
+				public const string TurnActionsItems = "poker.ruleset.turn_actions_items";
+				public const string WinnerFeeds = "poker.ruleset.winner_feeds";
+				public const string WinnerFeedsItem = "poker.ruleset.winner_feeds_item";
 			}
 
 			public static class Start
