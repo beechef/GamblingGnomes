@@ -44,6 +44,9 @@ namespace Game.Runtime.GameMode.Poker
 		[Tooltip("Spawned locally on every peer while the mode is alive. Presentation only, so it is a plain prefab and never travels over the network.")]
 		[SerializeField] private GameObject _hudPrefab;
 
+		[Tooltip("This mode's rules as the helper's rule set page draws them (UIPokerRuleset).")]
+		[SerializeField] private GameObject _rulesetPrefab;
+
 		[Header("References")]
 		[SerializeField] private PokerGameData _data;
 		[SerializeField] private MatchConfigData _configData;
@@ -68,6 +71,7 @@ namespace Game.Runtime.GameMode.Poker
 		public PokerGameData Data => _data;
 		public MatchConfigData ConfigData => _configData;
 		public PokerNoticeChannel Notices => _notices;
+		public GameObject RulesetPrefab => _rulesetPrefab;
 		public BetItems.PokerBetItemDatabase BetItemDatabase => _betItemDatabase;
 		public Hands.PokerHandDatabase HandDatabase => _handDatabase;
 		public PokerRuleSettings Rules => _rules;
