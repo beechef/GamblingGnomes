@@ -1,0 +1,273 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 48cfa9c17f2bc884ba9c1aad02a042a1, type: 3}
+  m_Name: Locale_FR_Items
+  m_EditorClassIdentifier: Localization::Localization.LocaleSection
+  _entries:
+  - Key: item.prompt.player
+    Value: VISE UN JOUEUR
+  - Key: item.prompt.opponent_card
+    Value: VISE UNE CARTE D'UN AUTRE JOUEUR
+  - Key: item.prompt.own_card
+    Value: VISE UNE DE TES CARTES
+  - Key: item.prompt.board_card
+    Value: "VISE UNE CARTE COMMUNE FACE CACH\xC9E"
+  - Key: item.reason.not_dealt
+    Value: Cette table ne le distribue pas.
+  - Key: item.reason.not_held
+    Value: Pas dans ta main.
+  - Key: item.reason.out_of_match
+    Value: "Tu es \xE9limin\xE9 de ce match."
+  - Key: item.reason.street_only
+    Value: "Seulement pendant un tour d'ench\xE8res."
+  - Key: item.reason.turn_only
+    Value: Seulement pendant ton tour.
+  - Key: item.reason.locked_out
+    Value: "Objets bloqu\xE9s pour ce tour."
+  - Key: item.reason.used_one
+    Value: "D\xE9j\xE0 un objet jou\xE9 ce tour."
+  - Key: item.reason.used_many
+    Value: "D\xE9j\xE0 {0} objets jou\xE9s ce tour."
+  - Key: item.reason.waiting_other
+    Value: En attente d'un autre objet.
+  - Key: item.reason.no_time
+    Value: "Plus assez de temps pour qu'il r\xE9ponde."
+  - Key: item.reason.not_in_hand
+    Value: Tu n'es pas dans cette main.
+  - Key: item.reason.hand_full
+    Value: Ta main est pleine.
+  - Key: item.reason.deck_empty
+    Value: Le paquet est vide.
+  - Key: item.reason.no_street_left
+    Value: "Plus aucun tour d'ench\xE8res dans cette main."
+  - Key: item.reason.no_board
+    Value: Cette table ne distribue pas de cartes communes.
+  - Key: item.reason.last_board_seen
+    Value: "Tu vois d\xE9j\xE0 la derni\xE8re carte commune."
+  - Key: item.reason.board_seen
+    Value: "Tu vois d\xE9j\xE0 toutes les cartes communes."
+  - Key: item.reason.board_face_up
+    Value: "Toutes les cartes communes sont d\xE9j\xE0 visibles."
+  - Key: item.reason.board_full
+    Value: Le board est plein.
+  - Key: item.reason.no_card_to_lay
+    Value: "Tu n'as aucune carte \xE0 poser."
+  - Key: item.reason.no_card_to_give
+    Value: "Tu n'as plus de carte \xE0 donner."
+  - Key: item.reason.cards_face_up
+    Value: "Tes cartes sont d\xE9j\xE0 visibles."
+  - Key: item.reason.all_face_up
+    Value: "Toutes les cartes sont d\xE9j\xE0 visibles."
+  - Key: item.reason.cant_change
+    Value: Aucune de tes cartes ne peut changer.
+  - Key: item.reason.already_under
+    Value: "Tu es d\xE9j\xE0 dans les vapes."
+  - Key: item.reason.no_count_place
+    Value: "Nulle part o\xF9 garder le compte."
+  - Key: item.reason.already_counted
+    Value: "Tu as d\xE9j\xE0 compt\xE9 dans cette main."
+  - Key: item.reason.nobody_to_halve
+    Value: "Personne n'a rien \xE0 diviser par deux."
+  - Key: item.reason.nobody_to_spike
+    Value: "Plus personne \xE0 droguer."
+  - Key: item.reason.nobody_to_show
+    Value: "Personne d'autre n'a de carte \xE0 montrer."
+  - Key: item.reason.nobody_in_hand
+    Value: Plus personne d'autre dans la main.
+  - Key: item.reason.nobody_unseen
+    Value: Personne n'a de carte que tu n'as pas vue.
+  - Key: item.reason.nobody_to_shake
+    Value: "Plus personne \xE0 secouer."
+  - Key: item.reason.nobody_to_roll
+    Value: Plus personne d'autre pour lancer.
+  - Key: item.reason.nobody_to_swap
+    Value: "Personne d'autre n'a de carte \xE0 \xE9changer."
+  - Key: item.copy_card.name
+    Value: Copie
+  - Key: item.copy_card.description
+    Value: "35\_% de chances qu'une de tes cartes devienne la copie d'une autre carte
+      de ta main."
+  - Key: item.copy_card.notice
+    Value: TENTE UNE COPIE
+  - Key: item.copy_card.copied
+    Value: "R\xC9USSIT SA COPIE"
+  - Key: item.copy_card.failed
+    Value: RATE SA COPIE
+  - Key: item.deck_count.name
+    Value: Compte-couleurs
+  - Key: item.deck_count.description
+    Value: "Vois combien de cartes de chaque couleur, et combien de Jokers si le
+      paquet en a, restent \xE0 distribuer. Toi seul vois le compte, et il te reste
+      jusqu'\xE0 la fin de la main."
+  - Key: item.deck_count.notice
+    Value: COMPTE LE PAQUET
+  - Key: item.extra_draw.name
+    Value: Vomi
+  - Key: item.extra_draw.description
+    Value: "Pioche une carte de plus. Tu ne peux plus te coucher jusqu'\xE0 la fin
+      de la main."
+  - Key: item.extra_draw.notice
+    Value: PIOCHE EN RAB
+  - Key: item.half_dose.name
+    Value: Seringue
+  - Key: item.half_dose.description
+    Value: "Choisis un joueur\_: son risque de mort est divis\xE9 par deux, puis
+      il fait un jet contre ce qui reste."
+  - Key: item.half_dose.notice
+    Value: SOULAGE
+  - Key: item.half_dose.prompt
+    Value: VISE CELUI DONT TU DIVISES LA DOSE
+  - Key: item.joker_card.name
+    Value: "Diable en bo\xEEte"
+  - Key: item.joker_card.description
+    Value: "50\_% de chances qu'une carte choisie de ta main devienne un Joker. Toi
+      seul sais si \xE7a a march\xE9."
+  - Key: item.joker_card.joker
+    Value: "D\xC9CROCHE UN JOKER"
+  - Key: item.joker_card.failed
+    Value: RATE LE JOKER
+  - Key: item.lock_fold.name
+    Value: Verrou
+  - Key: item.lock_fold.description
+    Value: Personne ne peut se coucher au prochain tour, toi compris.
+  - Key: item.lock_fold.notice
+    Value: INTERDIT DE SE COUCHER
+  - Key: item.mushroom_dose.name
+    Value: Dopage
+  - Key: item.mushroom_dose.description
+    Value: Les 2 prochains champignons d'un joueur choisi ne font rien ou frappent
+      deux fois plus fort, 50/50.
+  - Key: item.mushroom_dose.notice
+    Value: DROGUE
+  - Key: item.mushroom_dose.nullified
+    Value: VIDE {0} CHAMPIS CHEZ
+  - Key: item.mushroom_dose.doubled
+    Value: DOUBLE {0} CHAMPIS CHEZ
+  - Key: item.mushroom_dose.prompt
+    Value: VISE CELUI DONT TU DROGUES LES CHAMPIS
+  - Key: item.mutual_reveal.name
+    Value: "\xC0 d\xE9couvert"
+  - Key: item.mutual_reveal.description
+    Value: "Toi et un joueur choisi retournez chacun une carte face visible pour
+      toute la table jusqu'\xE0 la fin de la main. Il choisit laquelle des siennes."
+  - Key: item.mutual_reveal.notice
+    Value: "R\xC9V\xC8LE AVEC"
+  - Key: item.mutual_reveal.prompt_own
+    Value: VISE LA CARTE QUE TU VAS MONTRER
+  - Key: item.mutual_reveal.prompt_player
+    Value: VISE QUI MONTRE UNE CARTE AVEC TOI
+  - Key: item.mutual_reveal.response
+    Value: "VEUT QUE TU MONTRES UNE CARTE\_: VISES-EN UNE"
+  - Key: item.pair_lock_fold.name
+    Value: Menottes
+  - Key: item.pair_lock_fold.description
+    Value: Toi et un joueur choisi ne pouvez pas vous coucher au prochain tour.
+  - Key: item.pair_lock_fold.notice
+    Value: "S'ENCHA\xCENE \xC0"
+  - Key: item.pair_lock_items.name
+    Value: Sans objets
+  - Key: item.pair_lock_items.description
+    Value: Toi et un joueur choisi ne pouvez pas jouer d'objets au prochain tour.
+  - Key: item.pair_lock_items.notice
+    Value: "COUPE LES OBJETS \xC0"
+  - Key: item.pair_lock.prompt
+    Value: "VISE QUI EST BLOQU\xC9 AVEC TOI"
+  - Key: item.peek_board.name
+    Value: Spatule
+  - Key: item.peek_board.description
+    Value: "Regarde une carte commune avant qu'elle soit retourn\xE9e. Tu ne peux
+      pas te coucher ce tour-ci."
+  - Key: item.peek_board.notice
+    Value: LORGNE LE BOARD
+  - Key: item.peek_board_main.description
+    Value: "Regarde la derni\xE8re carte commune avant qu'elle soit retourn\xE9e.
+      Tu ne peux pas te coucher ce tour-ci."
+  - Key: item.peek_hand.name
+    Value: "Coup d'\u0153il"
+  - Key: item.peek_hand.description
+    Value: Regarde une carte d'un joueur encore dans la main. Il saura quelle carte
+      tu as vue.
+  - Key: item.peek_hand.notice
+    Value: ESPIONNE
+  - Key: item.peek_hand.private
+    Value: A VU TON {0}
+  - Key: item.place_on_board.name
+    Value: Cigarette
+  - Key: item.place_on_board.description
+    Value: "Pose une de tes cartes face visible sur le board pour tous, et pioche
+      une nouvelle carte \xE0 sa place."
+  - Key: item.place_on_board.notice
+    Value: POSE UNE CARTE
+  - Key: item.place_on_board.prompt
+    Value: "VISE LA CARTE \xC0 POSER SUR LE BOARD"
+  - Key: item.raise_stakes.name
+    Value: Relance
+  - Key: item.raise_stakes.description
+    Value: "Chaque mise au prochain tour co\xFBte un champi de plus, la tienne comprise."
+  - Key: item.raise_stakes.notice
+    Value: RELANCE
+  - Key: item.random_suit.name
+    Value: "D\xE9s"
+  - Key: item.random_suit.description
+    Value: Une de tes cartes garde sa valeur et prend une autre couleur au hasard.
+  - Key: item.random_suit.notice
+    Value: REPEINT UNE CARTE
+  - Key: item.random_suit.prompt
+    Value: "VISE LA CARTE \xC0 CHANGER"
+  - Key: item.rate_shift.name
+    Value: Culotte
+  - Key: item.rate_shift.description
+    Value: "Choisis un joueur\_: son risque de mort monte ou baisse de 20, au hasard."
+  - Key: item.rate_shift.raised
+    Value: "+{0} DE DOSE \xC0"
+  - Key: item.rate_shift.lowered
+    Value: "-{0} DE DOSE \xC0"
+  - Key: item.rate_shift.prompt
+    Value: VISE CELUI DONT TU SECOUES LA DOSE
+  - Key: item.shared_roll.name
+    Value: "Bi\xE8re"
+  - Key: item.shared_roll.description
+    Value: "Toi et un joueur choisi faites chacun un jet contre votre propre risque
+      de mort, en m\xEAme temps."
+  - Key: item.shared_roll.notice
+    Value: TENTE SA CHANCE AVEC
+  - Key: item.shared_roll.prompt
+    Value: VISE QUI LANCE AVEC TOI
+  - Key: item.swap_board.name
+    Value: Cigarette
+  - Key: item.swap_board.description
+    Value: "Une carte commune face cach\xE9e est retourn\xE9e pour tous, puis \xE9chang\xE9e
+      contre une de tes cartes, qui reste face visible sur le board."
+  - Key: item.swap_board.notice
+    Value: "\xC9CHANGE AVEC LE BOARD"
+  - Key: item.swap_board.prompt
+    Value: VISE LA CARTE QUE TU METS SUR LE BOARD
+  - Key: item.swap_hand.name
+    Value: Couteau
+  - Key: item.swap_hand.description
+    Value: "\xC9change une de tes cartes avec un joueur encore dans la main. Il choisit
+      laquelle des siennes donner."
+  - Key: item.swap_hand.notice
+    Value: "\xC9CHANGE AVEC"
+  - Key: item.swap_hand.prompt_own
+    Value: VISE LA CARTE QUE TU DONNES
+  - Key: item.swap_hand.prompt_player
+    Value: "VISE AVEC QUI TU \xC9CHANGES"
+  - Key: item.swap_hand.response
+    Value: "\xE9change une carte avec toi - choisis-en une \xE0 \xE9changer"
+  - Key: item.table_reveal.name
+    Value: "M\xE9gaphone"
+  - Key: item.table_reveal.description
+    Value: "Chaque joueur encore dans la main montre une carte au hasard \xE0 toute
+      la table pendant ce tour."
+  - Key: item.table_reveal.notice
+    Value: EXPOSE TOUTE LA TABLE

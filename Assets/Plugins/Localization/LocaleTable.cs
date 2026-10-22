@@ -41,6 +41,10 @@ namespace Localization
 		[Tooltip("How this language names itself, shown on a language switch.")]
 		[SerializeField] private string _displayName = "English";
 
+		[Tooltip("Offered to players. Off keeps the language imported and exported, but hides it from the " +
+		         "switch and refuses it as a saved choice, so it can be translated before it ships.")]
+		[SerializeField] private bool _isEnabled = true;
+
 		[Title("Sections")]
 		[Tooltip("This language's strings, one asset per category. A key in two sections is read from " +
 		         "the first that has it.")]
@@ -57,6 +61,8 @@ namespace Localization
 		public string LocaleCode => _localeCode;
 
 		public string DisplayName => _displayName;
+
+		public bool IsEnabled => _isEnabled;
 
 		public IReadOnlyList<LocaleSection> Sections => _sections;
 

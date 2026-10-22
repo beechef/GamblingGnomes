@@ -80,9 +80,10 @@ namespace Game.Runtime.UI.Poker
 
 		private string ActionText(PokerActionType action) => action switch
 		{
-			PokerActionType.Bet => Localizer.Get(LocalizationKeys.Poker.Action.Bet),
-			PokerActionType.Fold => Localizer.Get(LocalizationKeys.Poker.Action.Fold),
-			PokerActionType.AllIn => Localizer.Get(LocalizationKeys.Poker.Action.AllIn),
+			// Not the bet bar's keys: a button reads as a command, a notice as what the player did.
+			PokerActionType.Bet => Localizer.Get(LocalizationKeys.Poker.Notice.Bet),
+			PokerActionType.Fold => Localizer.Get(LocalizationKeys.Poker.Notice.Fold),
+			PokerActionType.AllIn => Localizer.Get(LocalizationKeys.Poker.Notice.AllIn),
 			_ => action.ToString().ToUpperInvariant()
 		};
 

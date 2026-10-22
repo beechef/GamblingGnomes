@@ -1,0 +1,278 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 48cfa9c17f2bc884ba9c1aad02a042a1, type: 3}
+  m_Name: Locale_PL_Items
+  m_EditorClassIdentifier: Localization::Localization.LocaleSection
+  _entries:
+  - Key: item.prompt.player
+    Value: "WSKA\u017B GRACZA"
+  - Key: item.prompt.opponent_card
+    Value: "WSKA\u017B KART\u0118 INNEGO GRACZA"
+  - Key: item.prompt.own_card
+    Value: "WSKA\u017B JEDN\u0104 ZE SWOICH KART"
+  - Key: item.prompt.board_card
+    Value: "WSKA\u017B ZAKRYT\u0104 KART\u0118 WSP\xD3LN\u0104"
+  - Key: item.reason.not_dealt
+    Value: "Ten st\xF3\u0142 tego nie rozdaje."
+  - Key: item.reason.not_held
+    Value: "Nie masz tego w r\u0119ce."
+  - Key: item.reason.out_of_match
+    Value: "Jeste\u015B ju\u017C poza tym meczem."
+  - Key: item.reason.street_only
+    Value: Tylko w rundzie licytacji.
+  - Key: item.reason.turn_only
+    Value: Tylko w twojej turze.
+  - Key: item.reason.locked_out
+    Value: Przedmioty zablokowane w tej rundzie.
+  - Key: item.reason.used_one
+    Value: "W tej rundzie u\u017Cyto ju\u017C przedmiotu."
+  - Key: item.reason.used_many
+    Value: "Limit przedmiot\xF3w w tej rundzie ({0}) wyczerpany."
+  - Key: item.reason.waiting_other
+    Value: Czekanie na inny przedmiot.
+  - Key: item.reason.no_time
+    Value: "Za ma\u0142o czasu na odpowied\u017A."
+  - Key: item.reason.not_in_hand
+    Value: "Nie bierzesz udzia\u0142u w tym rozdaniu."
+  - Key: item.reason.hand_full
+    Value: "Masz pe\u0142n\u0105 r\u0119k\u0119."
+  - Key: item.reason.deck_empty
+    Value: Talia jest pusta.
+  - Key: item.reason.no_street_left
+    Value: "W tym rozdaniu nie ma ju\u017C rund."
+  - Key: item.reason.no_board
+    Value: "Ten st\xF3\u0142 nie rozdaje kart wsp\xF3lnych."
+  - Key: item.reason.last_board_seen
+    Value: "Ostatni\u0105 kart\u0119 wsp\xF3ln\u0105 ju\u017C widzisz."
+  - Key: item.reason.board_seen
+    Value: "Wszystkie karty wsp\xF3lne ju\u017C widzisz."
+  - Key: item.reason.board_face_up
+    Value: "Wszystkie karty wsp\xF3lne s\u0105 ju\u017C odkryte."
+  - Key: item.reason.board_full
+    Value: "St\xF3\u0142 jest pe\u0142ny."
+  - Key: item.reason.no_card_to_lay
+    Value: "Nie masz karty do wy\u0142o\u017Cenia."
+  - Key: item.reason.no_card_to_give
+    Value: "Nie masz ju\u017C karty do oddania."
+  - Key: item.reason.cards_face_up
+    Value: "Twoje karty s\u0105 ju\u017C odkryte."
+  - Key: item.reason.all_face_up
+    Value: "Wszystkie karty s\u0105 ju\u017C odkryte."
+  - Key: item.reason.cant_change
+    Value: "\u017Badnej z twoich kart nie mo\u017Cna zmieni\u0107."
+  - Key: item.reason.already_under
+    Value: "Ju\u017C le\u017Cysz pod sto\u0142em."
+  - Key: item.reason.no_count_place
+    Value: "Nie ma gdzie trzyma\u0107 wyniku."
+  - Key: item.reason.already_counted
+    Value: "Talia ju\u017C policzona w tym rozdaniu."
+  - Key: item.reason.nobody_to_halve
+    Value: "Nie ma komu zmniejszy\u0107 dawki."
+  - Key: item.reason.nobody_to_spike
+    Value: "Nie ma ju\u017C komu doprawi\u0107 grzyb\xF3w."
+  - Key: item.reason.nobody_to_show
+    Value: "Nikt inny nie ma ju\u017C karty do pokazania."
+  - Key: item.reason.nobody_in_hand
+    Value: "W rozdaniu nie zosta\u0142 nikt inny."
+  - Key: item.reason.nobody_unseen
+    Value: "Widzisz ju\u017C wszystkie karty innych."
+  - Key: item.reason.nobody_to_shake
+    Value: "Nie ma ju\u017C komu zmieni\u0107 dawki."
+  - Key: item.reason.nobody_to_roll
+    Value: "Nie ma ju\u017C nikogo do wsp\xF3lnego rzutu."
+  - Key: item.reason.nobody_to_swap
+    Value: Nikt inny nie ma karty do wymiany.
+  - Key: item.copy_card.name
+    Value: Kopia
+  - Key: item.copy_card.description
+    Value: "35% szans, \u017Ce jedna z twoich kart stanie si\u0119 kopi\u0105 innej
+      karty z r\u0119ki."
+  - Key: item.copy_card.notice
+    Value: "PR\xD3BUJE KOPIOWA\u0106"
+  - Key: item.copy_card.copied
+    Value: "MA KOPI\u0118"
+  - Key: item.copy_card.failed
+    Value: NIE MA KOPII
+  - Key: item.deck_count.name
+    Value: Licz kolory
+  - Key: item.deck_count.description
+    Value: "Zobacz, ile kart ka\u017Cdego koloru (i ile Joker\xF3w, je\u015Bli talia
+      je ma) zosta\u0142o w nierozdanej talii. Tylko ty widzisz wynik i zostaje on
+      z tob\u0105 do ko\u0144ca rozdania."
+  - Key: item.deck_count.notice
+    Value: "LICZY TALI\u0118"
+  - Key: item.extra_draw.name
+    Value: Wymioty
+  - Key: item.extra_draw.description
+    Value: "Dobierz jeszcze jedn\u0105 kart\u0119 z talii. Do ko\u0144ca rozdania
+      nie mo\u017Cesz spasowa\u0107."
+  - Key: item.extra_draw.notice
+    Value: "DOBIERA KART\u0118"
+  - Key: item.half_dose.name
+    Value: Strzykawka
+  - Key: item.half_dose.description
+    Value: "Wybierz gracza: jego szansa na \u015Bmier\u0107 spada o po\u0142ow\u0119,
+      a potem rzuca o to, co zosta\u0142o."
+  - Key: item.half_dose.notice
+    Value: "PO\u0141OWI DAWK\u0118"
+  - Key: item.half_dose.prompt
+    Value: "WSKA\u017B, KOMU PO\u0141OWISZ DAWK\u0118"
+  - Key: item.joker_card.name
+    Value: "Diabe\u0142ek z pude\u0142ka"
+  - Key: item.joker_card.description
+    Value: "50% szans, \u017Ce wybrana karta z twojej r\u0119ki stanie si\u0119 Jokerem.
+      Tylko ty wiesz, czy si\u0119 uda\u0142o."
+  - Key: item.joker_card.joker
+    Value: MA JOKERA
+  - Key: item.joker_card.failed
+    Value: NIE MA JOKERA
+  - Key: item.lock_fold.name
+    Value: Blokada
+  - Key: item.lock_fold.description
+    Value: "W nast\u0119pnej rundzie nikt nie mo\u017Ce spasowa\u0107, ty te\u017C
+      nie."
+  - Key: item.lock_fold.notice
+    Value: BLOKUJE PASOWANIE
+  - Key: item.mushroom_dose.name
+    Value: Domieszka
+  - Key: item.mushroom_dose.description
+    Value: "Nast\u0119pne 2 grzyby wybranego gracza albo nic nie zrobi\u0105, albo
+      uderz\u0105 podw\xF3jnie, 50/50."
+  - Key: item.mushroom_dose.notice
+    Value: DOPRAWIA GRZYBY
+  - Key: item.mushroom_dose.nullified
+    Value: "ZERUJE GRZYBY \xD7{0}"
+  - Key: item.mushroom_dose.doubled
+    Value: "PODWAJA GRZYBY \xD7{0}"
+  - Key: item.mushroom_dose.prompt
+    Value: "WSKA\u017B, KOMU DOPRAWIASZ GRZYBY"
+  - Key: item.mutual_reveal.name
+    Value: "Wsp\xF3lny pokaz"
+  - Key: item.mutual_reveal.description
+    Value: "Ty i wybrany gracz odkrywacie po jednej karcie dla ca\u0142ego sto\u0142u
+      do ko\u0144ca rozdania. On wybiera, kt\xF3r\u0105 ze swoich."
+  - Key: item.mutual_reveal.notice
+    Value: ODKRYWA RAZEM Z
+  - Key: item.mutual_reveal.prompt_own
+    Value: "WSKA\u017B KART\u0118, KT\xD3R\u0104 POKA\u017BESZ"
+  - Key: item.mutual_reveal.prompt_player
+    Value: "WSKA\u017B, KTO POKA\u017BE KART\u0118 Z TOB\u0104"
+  - Key: item.mutual_reveal.response
+    Value: "KA\u017BE CI POKAZA\u0106 KART\u0118: WSKA\u017B JEDN\u0104"
+  - Key: item.pair_lock_fold.name
+    Value: Kajdanki
+  - Key: item.pair_lock_fold.description
+    Value: "Ty i wybrany gracz nie mo\u017Cecie spasowa\u0107 w nast\u0119pnej rundzie."
+  - Key: item.pair_lock_fold.notice
+    Value: "SKUWA SI\u0118 Z"
+  - Key: item.pair_lock_items.name
+    Value: "Bez przedmiot\xF3w"
+  - Key: item.pair_lock_items.description
+    Value: "Ty i wybrany gracz nie mo\u017Cecie u\u017Cywa\u0107 przedmiot\xF3w w
+      nast\u0119pnej rundzie."
+  - Key: item.pair_lock_items.notice
+    Value: BLOKUJE PRZEDMIOTY
+  - Key: item.pair_lock.prompt
+    Value: "WSKA\u017B, KTO ZOSTANIE ZABLOKOWANY Z TOB\u0104"
+  - Key: item.peek_board.name
+    Value: "\u0141opatka"
+  - Key: item.peek_board.description
+    Value: "Zobacz jedn\u0105 kart\u0119 wsp\xF3ln\u0105, zanim zostanie odkryta.
+      W tej rundzie nie mo\u017Cesz spasowa\u0107."
+  - Key: item.peek_board.notice
+    Value: "ZERKA NA ST\xD3\u0141"
+  - Key: item.peek_board_main.description
+    Value: "Zobacz ostatni\u0105 kart\u0119 wsp\xF3ln\u0105, zanim zostanie odkryta.
+      W tej rundzie nie mo\u017Cesz spasowa\u0107."
+  - Key: item.peek_hand.name
+    Value: "Podgl\u0105d"
+  - Key: item.peek_hand.description
+    Value: "Zobacz jedn\u0105 kart\u0119 gracza, kt\xF3ry jest jeszcze w rozdaniu.
+      Dowie si\u0119, kt\xF3r\u0105 kart\u0119 podejrzano."
+  - Key: item.peek_hand.notice
+    Value: ZERKA W KARTY
+  - Key: item.peek_hand.private
+    Value: "WIDZI TWOJ\u0104 KART\u0118 {0}"
+  - Key: item.place_on_board.name
+    Value: Papieros
+  - Key: item.place_on_board.description
+    Value: "Wy\u0142\xF3\u017C jedn\u0105 ze swoich kart odkryt\u0105 na st\xF3\u0142
+      dla wszystkich i dobierz na jej miejsce now\u0105 z talii."
+  - Key: item.place_on_board.notice
+    Value: "WYK\u0141ADA KART\u0118"
+  - Key: item.place_on_board.prompt
+    Value: "WSKA\u017B KART\u0118 DO WY\u0141O\u017BENIA NA ST\xD3\u0141"
+  - Key: item.raise_stakes.name
+    Value: Podbicie
+  - Key: item.raise_stakes.description
+    Value: "Ka\u017Cdy zak\u0142ad w nast\u0119pnej rundzie kosztuje o jeden grzyb
+      wi\u0119cej, tw\xF3j te\u017C."
+  - Key: item.raise_stakes.notice
+    Value: "PODNOSI STAWK\u0118"
+  - Key: item.random_suit.name
+    Value: "Ko\u015Bci"
+  - Key: item.random_suit.description
+    Value: "Jedna z twoich kart zachowuje warto\u015B\u0107 i dostaje inny, losowy
+      kolor."
+  - Key: item.random_suit.notice
+    Value: ZMIENIA KOLOR
+  - Key: item.random_suit.prompt
+    Value: "WSKA\u017B KART\u0118 DO ZMIANY"
+  - Key: item.rate_shift.name
+    Value: Majtki
+  - Key: item.rate_shift.description
+    Value: "Wybierz gracza: jego szansa na \u015Bmier\u0107 losowo ro\u015Bnie lub
+      spada o 20."
+  - Key: item.rate_shift.raised
+    Value: +{0} DO DAWKI
+  - Key: item.rate_shift.lowered
+    Value: -{0} Z DAWKI
+  - Key: item.rate_shift.prompt
+    Value: "WSKA\u017B, KOMU ZMIENIASZ DAWK\u0118"
+  - Key: item.shared_roll.name
+    Value: Piwo
+  - Key: item.shared_roll.description
+    Value: "Ty i wybrany gracz rzucacie jednocze\u015Bnie, ka\u017Cdy o swoj\u0105
+      szans\u0119 na \u015Bmier\u0107."
+  - Key: item.shared_roll.notice
+    Value: RZUCA RAZEM Z
+  - Key: item.shared_roll.prompt
+    Value: "WSKA\u017B, KTO RZUCA Z TOB\u0104"
+  - Key: item.swap_board.name
+    Value: Papieros
+  - Key: item.swap_board.description
+    Value: "Zakryta karta wsp\xF3lna zostaje odkryta dla wszystkich, a potem wymieniona
+      na jedn\u0105 z twoich kart, kt\xF3ra zostaje odkryta na stole."
+  - Key: item.swap_board.notice
+    Value: "WYMIENIA ZE STO\u0141EM"
+  - Key: item.swap_board.prompt
+    Value: "WSKA\u017B KART\u0118, KT\xD3R\u0104 K\u0141ADZIESZ NA ST\xD3\u0141"
+  - Key: item.swap_hand.name
+    Value: "N\xF3\u017C"
+  - Key: item.swap_hand.description
+    Value: "Wymie\u0144 jedn\u0105 ze swoich kart z graczem, kt\xF3ry jest jeszcze
+      w rozdaniu. On wybiera, kt\xF3r\u0105 ze swoich odda."
+  - Key: item.swap_hand.notice
+    Value: "WYMIENIA SI\u0118 Z"
+  - Key: item.swap_hand.prompt_own
+    Value: "WSKA\u017B KART\u0118, KT\xD3R\u0104 ODDAJESZ"
+  - Key: item.swap_hand.prompt_player
+    Value: "WSKA\u017B, Z KIM SI\u0118 WYMIENIASZ"
+  - Key: item.swap_hand.response
+    Value: "wymienia si\u0119 z tob\u0105 kart\u0105 - wybierz jedn\u0105 do wymiany"
+  - Key: item.table_reveal.name
+    Value: Megafon
+  - Key: item.table_reveal.description
+    Value: "W tej rundzie ka\u017Cdy gracz w rozdaniu pokazuje ca\u0142emu sto\u0142owi
+      jedn\u0105 losow\u0105 kart\u0119."
+  - Key: item.table_reveal.notice
+    Value: "ODS\u0141ANIA WSZYSTKICH"

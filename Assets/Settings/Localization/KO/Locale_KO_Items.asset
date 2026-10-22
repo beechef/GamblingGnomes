@@ -1,0 +1,305 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 48cfa9c17f2bc884ba9c1aad02a042a1, type: 3}
+  m_Name: Locale_KO_Items
+  m_EditorClassIdentifier: Localization::Localization.LocaleSection
+  _entries:
+  - Key: item.prompt.player
+    Value: "\uD50C\uB808\uC774\uC5B4\uB97C \uAC00\uB9AC\uD0A4\uC138\uC694"
+  - Key: item.prompt.opponent_card
+    Value: "\uB2E4\uB978 \uD50C\uB808\uC774\uC5B4\uC758 \uCE74\uB4DC\uB97C \uAC00\uB9AC\uD0A4\uC138\uC694"
+  - Key: item.prompt.own_card
+    Value: "\uB0B4 \uCE74\uB4DC \uD55C \uC7A5\uC744 \uAC00\uB9AC\uD0A4\uC138\uC694"
+  - Key: item.prompt.board_card
+    Value: "\uB4B7\uBA74\uC778 \uBCF4\uB4DC \uCE74\uB4DC\uB97C \uAC00\uB9AC\uD0A4\uC138\uC694"
+  - Key: item.reason.not_dealt
+    Value: "\uC774 \uD14C\uC774\uBE14\uC5D0\uC11C\uB294 \uB098\uC624\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4."
+  - Key: item.reason.not_held
+    Value: "\uC190\uC5D0 \uC5C6\uC2B5\uB2C8\uB2E4."
+  - Key: item.reason.out_of_match
+    Value: "\uC774\uBC88 \uB9E4\uCE58\uC5D0\uC11C \uD0C8\uB77D\uD588\uC2B5\uB2C8\uB2E4."
+  - Key: item.reason.street_only
+    Value: "\uBCA0\uD305 \uB77C\uC6B4\uB4DC\uC5D0\uC11C\uB9CC \uAC00\uB2A5."
+  - Key: item.reason.turn_only
+    Value: "\uB0B4 \uD134\uC5D0\uC11C\uB9CC \uAC00\uB2A5."
+  - Key: item.reason.locked_out
+    Value: "\uC774\uBC88 \uB77C\uC6B4\uB4DC\uB294 \uC544\uC774\uD15C \uBD09\uC778
+      \uC911."
+  - Key: item.reason.used_one
+    Value: "\uC774\uBC88 \uB77C\uC6B4\uB4DC\uC5D0 \uC774\uBBF8 \uC544\uC774\uD15C\uC744
+      \uC37C\uC2B5\uB2C8\uB2E4."
+  - Key: item.reason.used_many
+    Value: "\uC774\uBC88 \uB77C\uC6B4\uB4DC\uC5D0 \uC774\uBBF8 \uC544\uC774\uD15C\uC744
+      {0}\uAC1C \uC37C\uC2B5\uB2C8\uB2E4."
+  - Key: item.reason.waiting_other
+    Value: "\uB2E4\uB978 \uC544\uC774\uD15C \uB300\uAE30 \uC911."
+  - Key: item.reason.no_time
+    Value: "\uC0C1\uB300\uAC00 \uC751\uB2F5\uD560 \uC2DC\uAC04\uC774 \uBD80\uC871\uD569\uB2C8\uB2E4."
+  - Key: item.reason.not_in_hand
+    Value: "\uC774\uBC88 \uD578\uB4DC\uC5D0 \uCC38\uC5EC\uD558\uACE0 \uC788\uC9C0
+      \uC54A\uC2B5\uB2C8\uB2E4."
+  - Key: item.reason.hand_full
+    Value: "\uD328\uAC00 \uAF49 \uCC3C\uC2B5\uB2C8\uB2E4."
+  - Key: item.reason.deck_empty
+    Value: "\uB371\uC774 \uBE44\uC5C8\uC2B5\uB2C8\uB2E4."
+  - Key: item.reason.no_street_left
+    Value: "\uC774\uBC88 \uD578\uB4DC\uC5D0 \uB0A8\uC740 \uBCA0\uD305 \uB77C\uC6B4\uB4DC\uAC00
+      \uC5C6\uC2B5\uB2C8\uB2E4."
+  - Key: item.reason.no_board
+    Value: "\uC774 \uD14C\uC774\uBE14\uC5D0\uB294 \uBCF4\uB4DC\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4."
+  - Key: item.reason.last_board_seen
+    Value: "\uB9C8\uC9C0\uB9C9 \uBCF4\uB4DC \uCE74\uB4DC\uB294 \uC774\uBBF8 \uBCF4\uC785\uB2C8\uB2E4."
+  - Key: item.reason.board_seen
+    Value: "\uBCF4\uB4DC \uCE74\uB4DC\uAC00 \uC774\uBBF8 \uBAA8\uB450 \uBCF4\uC785\uB2C8\uB2E4."
+  - Key: item.reason.board_face_up
+    Value: "\uBCF4\uB4DC \uCE74\uB4DC\uAC00 \uC774\uBBF8 \uBAA8\uB450 \uC55E\uBA74\uC785\uB2C8\uB2E4."
+  - Key: item.reason.board_full
+    Value: "\uBCF4\uB4DC\uAC00 \uAF49 \uCC3C\uC2B5\uB2C8\uB2E4."
+  - Key: item.reason.no_card_to_lay
+    Value: "\uB0B4\uB824\uB193\uC744 \uCE74\uB4DC\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4."
+  - Key: item.reason.no_card_to_give
+    Value: "\uC904 \uCE74\uB4DC\uAC00 \uB0A8\uC544 \uC788\uC9C0 \uC54A\uC2B5\uB2C8\uB2E4."
+  - Key: item.reason.cards_face_up
+    Value: "\uB0B4 \uCE74\uB4DC\uB294 \uC774\uBBF8 \uC55E\uBA74\uC785\uB2C8\uB2E4."
+  - Key: item.reason.all_face_up
+    Value: "\uBAA8\uB4E0 \uCE74\uB4DC\uAC00 \uC774\uBBF8 \uC55E\uBA74\uC785\uB2C8\uB2E4."
+  - Key: item.reason.cant_change
+    Value: "\uBC14\uAFC0 \uC218 \uC788\uB294 \uCE74\uB4DC\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4."
+  - Key: item.reason.already_under
+    Value: "\uC774\uBBF8 \uBED7\uC5C8\uC2B5\uB2C8\uB2E4."
+  - Key: item.reason.no_count_place
+    Value: "\uCE74\uC6B4\uD2B8\uB97C \uB458 \uACF3\uC774 \uC5C6\uC2B5\uB2C8\uB2E4."
+  - Key: item.reason.already_counted
+    Value: "\uC774\uBC88 \uD578\uB4DC\uC5D0\uC11C \uC774\uBBF8 \uC14C\uC2B5\uB2C8\uB2E4."
+  - Key: item.reason.nobody_to_halve
+    Value: "\uBC18\uAC10\uD560 \uB300\uC0C1\uC774 \uC5C6\uC2B5\uB2C8\uB2E4."
+  - Key: item.reason.nobody_to_spike
+    Value: "\uC57D\uC744 \uD0C8 \uB300\uC0C1\uC774 \uC5C6\uC2B5\uB2C8\uB2E4."
+  - Key: item.reason.nobody_to_show
+    Value: "\uCE74\uB4DC\uB97C \uBCF4\uC5EC\uC904 \uC0C1\uB300\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4."
+  - Key: item.reason.nobody_in_hand
+    Value: "\uC774\uBC88 \uD578\uB4DC\uC5D0 \uB2E4\uB978 \uD50C\uB808\uC774\uC5B4\uAC00
+      \uC5C6\uC2B5\uB2C8\uB2E4."
+  - Key: item.reason.nobody_unseen
+    Value: "\uC544\uC9C1 \uBABB \uBCF8 \uCE74\uB4DC\uB97C \uAC00\uC9C4 \uC0C1\uB300\uAC00
+      \uC5C6\uC2B5\uB2C8\uB2E4."
+  - Key: item.reason.nobody_to_shake
+    Value: "\uC0AC\uB9DD\uB960\uC744 \uD754\uB4E4 \uB300\uC0C1\uC774 \uC5C6\uC2B5\uB2C8\uB2E4."
+  - Key: item.reason.nobody_to_roll
+    Value: "\uD568\uAED8 \uAD74\uB9B4 \uC0C1\uB300\uAC00 \uC5C6\uC2B5\uB2C8\uB2E4."
+  - Key: item.reason.nobody_to_swap
+    Value: "\uAD50\uD658\uD560 \uCE74\uB4DC\uB97C \uAC00\uC9C4 \uC0C1\uB300\uAC00
+      \uC5C6\uC2B5\uB2C8\uB2E4."
+  - Key: item.copy_card.name
+    Value: "\uBCF5\uC0AC"
+  - Key: item.copy_card.description
+    Value: "35% \uD655\uB960\uB85C \uB0B4 \uCE74\uB4DC \uD55C \uC7A5\uC774 \uC190\uC5D0
+      \uC788\uB294 \uB2E4\uB978 \uCE74\uB4DC\uC758 \uBCF5\uC0AC\uBCF8\uC774 \uB429\uB2C8\uB2E4."
+  - Key: item.copy_card.notice
+    Value: "\uB2D8\uC774 \uBCF5\uC0AC \uC2DC\uB3C4"
+  - Key: item.copy_card.copied
+    Value: "\uB2D8\uC774 \uBCF5\uC0AC \uC131\uACF5"
+  - Key: item.copy_card.failed
+    Value: "\uB2D8\uC774 \uBCF5\uC0AC \uC2E4\uD328"
+  - Key: item.deck_count.name
+    Value: "\uBB34\uB2AC \uCE74\uC6B4\uD2B8"
+  - Key: item.deck_count.description
+    Value: "\uC544\uC9C1 \uB098\uB220\uC8FC\uC9C0 \uC54A\uC740 \uB371\uC5D0 \uBB34\uB2AC\uBCC4\uB85C
+      \uBA87 \uC7A5, \uC870\uCEE4\uAC00 \uC788\uB294 \uB371\uC774\uB77C\uBA74 \uC870\uCEE4\uAC00
+      \uBA87 \uC7A5 \uB0A8\uC558\uB294\uC9C0 \uBD05\uB2C8\uB2E4. \uACB0\uACFC\uB294
+      \uB098\uB9CC \uBCF4\uBA70 \uD578\uB4DC\uAC00 \uB05D\uB0A0 \uB54C\uAE4C\uC9C0
+      \uC720\uC9C0\uB429\uB2C8\uB2E4."
+  - Key: item.deck_count.notice
+    Value: "\uB2D8\uC774 \uB371 \uCE74\uC6B4\uD2B8"
+  - Key: item.extra_draw.name
+    Value: "\uAD6C\uD1A0"
+  - Key: item.extra_draw.description
+    Value: "\uB371\uC5D0\uC11C \uCE74\uB4DC\uB97C \uD55C \uC7A5 \uB354 \uBF51\uC2B5\uB2C8\uB2E4.
+      \uC774\uBC88 \uD578\uB4DC\uAC00 \uB05D\uB0A0 \uB54C\uAE4C\uC9C0 \uD3F4\uB4DC\uD560
+      \uC218 \uC5C6\uC2B5\uB2C8\uB2E4."
+  - Key: item.extra_draw.notice
+    Value: "\uB2D8\uC774 \uCD94\uAC00 \uB4DC\uB85C\uC6B0"
+  - Key: item.half_dose.name
+    Value: "\uC8FC\uC0AC\uAE30"
+  - Key: item.half_dose.description
+    Value: "\uD50C\uB808\uC774\uC5B4 \uD55C \uBA85 \uC120\uD0DD: \uC0AC\uB9DD\uB960\uC774
+      \uBC18\uC73C\uB85C \uC904\uACE0, \uB0A8\uC740 \uD655\uB960\uB85C \uAD74\uB9BD\uB2C8\uB2E4."
+  - Key: item.half_dose.notice
+    Value: "\uB2D8\uC774 \uC0AC\uB9DD\uB960 \uBC18\uAC10 \u2192"
+  - Key: item.half_dose.prompt
+    Value: "\uC0AC\uB9DD\uB960\uC744 \uBC18\uAC10\uD560 \uC0C1\uB300\uB97C \uAC00\uB9AC\uD0A4\uC138\uC694"
+  - Key: item.joker_card.name
+    Value: "\uAE5C\uC9DD \uC0C1\uC790"
+  - Key: item.joker_card.description
+    Value: "\uACE0\uB978 \uCE74\uB4DC \uD55C \uC7A5\uC774 50% \uD655\uB960\uB85C
+      \uC870\uCEE4\uAC00 \uB429\uB2C8\uB2E4. \uC131\uACF5 \uC5EC\uBD80\uB294 \uB098\uB9CC
+      \uC555\uB2C8\uB2E4."
+  - Key: item.joker_card.joker
+    Value: "\uB2D8\uC774 \uC870\uCEE4 \uD68D\uB4DD"
+  - Key: item.joker_card.failed
+    Value: "\uB2D8\uC774 \uC870\uCEE4 \uC2E4\uD328"
+  - Key: item.lock_fold.name
+    Value: "\uC7A0\uAE08"
+  - Key: item.lock_fold.description
+    Value: "\uB2E4\uC74C \uB77C\uC6B4\uB4DC\uC5D0\uB294 \uB098\uB97C \uD3EC\uD568\uD574
+      \uB204\uAD6C\uB3C4 \uD3F4\uB4DC\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4."
+  - Key: item.lock_fold.notice
+    Value: "\uB2D8\uC774 \uD3F4\uB4DC \uBD09\uC1C4"
+  - Key: item.mushroom_dose.name
+    Value: "\uC57D \uD0C0\uAE30"
+  - Key: item.mushroom_dose.description
+    Value: "\uACE0\uB978 \uD50C\uB808\uC774\uC5B4\uC758 \uB2E4\uC74C \uBC84\uC12F
+      2\uAC1C\uAC00 \uD6A8\uACFC \uC5C6\uC74C \uB610\uB294 \uD6A8\uACFC 2\uBC30\uAC00
+      \uB429\uB2C8\uB2E4 (50/50)."
+  - Key: item.mushroom_dose.notice
+    Value: "\uB2D8\uC774 \uBC84\uC12F\uC5D0 \uC57D \uD0D0 \u2192"
+  - Key: item.mushroom_dose.nullified
+    Value: "\uB2D8\uC774 \uBC84\uC12F {0}\uAC1C \uBB34\uD6A8\uD654 \u2192"
+  - Key: item.mushroom_dose.doubled
+    Value: "\uB2D8\uC774 \uBC84\uC12F {0}\uAC1C \uD6A8\uACFC 2\uBC30 \u2192"
+  - Key: item.mushroom_dose.prompt
+    Value: "\uBC84\uC12F\uC5D0 \uC57D\uC744 \uD0C8 \uC0C1\uB300\uB97C \uAC00\uB9AC\uD0A4\uC138\uC694"
+  - Key: item.mutual_reveal.name
+    Value: "\uD568\uAED8 \uACF5\uAC1C"
+  - Key: item.mutual_reveal.description
+    Value: "\uB098\uC640 \uACE0\uB978 \uD50C\uB808\uC774\uC5B4\uAC00 \uAC01\uC790
+      \uCE74\uB4DC \uD55C \uC7A5\uC744 \uD578\uB4DC\uAC00 \uB05D\uB0A0 \uB54C\uAE4C\uC9C0
+      \uBAA8\uB450\uC5D0\uAC8C \uACF5\uAC1C\uD569\uB2C8\uB2E4. \uC0C1\uB300\uB294
+      \uC790\uAE30 \uCE74\uB4DC \uC911 \uBB34\uC5C7\uC744 \uACF5\uAC1C\uD560\uC9C0
+      \uACE0\uB985\uB2C8\uB2E4."
+  - Key: item.mutual_reveal.notice
+    Value: "\uB2D8\uC774 \uD568\uAED8 \uACF5\uAC1C \u2192"
+  - Key: item.mutual_reveal.prompt_own
+    Value: "\uACF5\uAC1C\uD560 \uCE74\uB4DC\uB97C \uAC00\uB9AC\uD0A4\uC138\uC694"
+  - Key: item.mutual_reveal.prompt_player
+    Value: "\uD568\uAED8 \uACF5\uAC1C\uD560 \uC0C1\uB300\uB97C \uAC00\uB9AC\uD0A4\uC138\uC694"
+  - Key: item.mutual_reveal.response
+    Value: "\uB2D8\uC774 \uCE74\uB4DC \uACF5\uAC1C\uB97C \uC694\uCCAD: \uD55C \uC7A5\uC744
+      \uAC00\uB9AC\uD0A4\uC138\uC694"
+  - Key: item.pair_lock_fold.name
+    Value: "\uC218\uAC11"
+  - Key: item.pair_lock_fold.description
+    Value: "\uB2E4\uC74C \uB77C\uC6B4\uB4DC\uC5D0 \uB098\uC640 \uACE0\uB978 \uD50C\uB808\uC774\uC5B4\uB294
+      \uD3F4\uB4DC\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4."
+  - Key: item.pair_lock_fold.notice
+    Value: "\uB2D8\uC774 \uC218\uAC11 \uCC44\uC6C0 \u2192"
+  - Key: item.pair_lock_items.name
+    Value: "\uC544\uC774\uD15C \uAE08\uC9C0"
+  - Key: item.pair_lock_items.description
+    Value: "\uB2E4\uC74C \uB77C\uC6B4\uB4DC\uC5D0 \uB098\uC640 \uACE0\uB978 \uD50C\uB808\uC774\uC5B4\uB294
+      \uC544\uC774\uD15C\uC744 \uC4F8 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4."
+  - Key: item.pair_lock_items.notice
+    Value: "\uB2D8\uC774 \uC544\uC774\uD15C \uBD09\uC778 \u2192"
+  - Key: item.pair_lock.prompt
+    Value: "\uD568\uAED8 \uBB36\uC77C \uC0C1\uB300\uB97C \uAC00\uB9AC\uD0A4\uC138\uC694"
+  - Key: item.peek_board.name
+    Value: "\uB4A4\uC9D1\uAC1C"
+  - Key: item.peek_board.description
+    Value: "\uACF5\uAC1C\uB418\uAE30 \uC804\uC758 \uBCF4\uB4DC \uCE74\uB4DC \uD55C
+      \uC7A5\uC744 \uBD05\uB2C8\uB2E4. \uC774\uBC88 \uB77C\uC6B4\uB4DC\uC5D0\uB294
+      \uD3F4\uB4DC\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4."
+  - Key: item.peek_board.notice
+    Value: "\uB2D8\uC774 \uBCF4\uB4DC \uC5FF\uBD04"
+  - Key: item.peek_board_main.description
+    Value: "\uB9C8\uC9C0\uB9C9 \uBCF4\uB4DC \uCE74\uB4DC\uB97C \uACF5\uAC1C\uB418\uAE30
+      \uC804\uC5D0 \uBD05\uB2C8\uB2E4. \uC774\uBC88 \uB77C\uC6B4\uB4DC\uC5D0\uB294
+      \uD3F4\uB4DC\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4."
+  - Key: item.peek_hand.name
+    Value: "\uC5FF\uBCF4\uAE30"
+  - Key: item.peek_hand.description
+    Value: "\uD578\uB4DC\uC5D0 \uB0A8\uC740 \uD50C\uB808\uC774\uC5B4\uC758 \uCE74\uB4DC
+      \uD55C \uC7A5\uC744 \uBD05\uB2C8\uB2E4. \uC5B4\uB5A4 \uCE74\uB4DC\uB97C \uBD24\uB294\uC9C0
+      \uC0C1\uB300\uC5D0\uAC8C \uC54C\uB824\uC9D1\uB2C8\uB2E4."
+  - Key: item.peek_hand.notice
+    Value: "\uB2D8\uC774 \uC5FF\uBD04 \u2192"
+  - Key: item.peek_hand.private
+    Value: "\uB2D8\uC774 \uB0B4 {0} \uCE74\uB4DC\uB97C \uBD04"
+  - Key: item.place_on_board.name
+    Value: "\uB2F4\uBC30"
+  - Key: item.place_on_board.description
+    Value: "\uB0B4 \uCE74\uB4DC \uD55C \uC7A5\uC744 \uBCF4\uB4DC\uC5D0 \uC55E\uBA74\uC73C\uB85C
+      \uB193\uACE0, \uADF8 \uC790\uB9AC\uC5D0 \uB371\uC5D0\uC11C \uC0C8 \uCE74\uB4DC\uB97C
+      \uD55C \uC7A5 \uBF51\uC2B5\uB2C8\uB2E4."
+  - Key: item.place_on_board.notice
+    Value: "\uB2D8\uC774 \uCE74\uB4DC\uB97C \uBCF4\uB4DC\uC5D0 \uB193\uC74C"
+  - Key: item.place_on_board.prompt
+    Value: "\uBCF4\uB4DC\uC5D0 \uB193\uC744 \uCE74\uB4DC\uB97C \uAC00\uB9AC\uD0A4\uC138\uC694"
+  - Key: item.raise_stakes.name
+    Value: "\uB808\uC774\uC988"
+  - Key: item.raise_stakes.description
+    Value: "\uB2E4\uC74C \uB77C\uC6B4\uB4DC\uC5D0\uB294 \uB098\uB97C \uD3EC\uD568\uD55C
+      \uBAA8\uB4E0 \uBCA0\uD305\uC5D0 \uBC84\uC12F\uC774 \uD558\uB098\uC529 \uB354
+      \uAC78\uB9BD\uB2C8\uB2E4."
+  - Key: item.raise_stakes.notice
+    Value: "\uB2D8\uC774 \uD310\uB3C8 \uC62C\uB9BC"
+  - Key: item.random_suit.name
+    Value: "\uC8FC\uC0AC\uC704"
+  - Key: item.random_suit.description
+    Value: "\uB0B4 \uCE74\uB4DC \uD55C \uC7A5\uC774 \uC22B\uC790\uB294 \uADF8\uB300\uB85C,
+      \uBB34\uC791\uC704\uB85C \uB2E4\uB978 \uBB34\uB2AC\uB85C \uBC14\uB01D\uB2C8\uB2E4."
+  - Key: item.random_suit.notice
+    Value: "\uB2D8\uC774 \uBB34\uB2AC\uB97C \uBC14\uAFC8"
+  - Key: item.random_suit.prompt
+    Value: "\uBC14\uAFC0 \uCE74\uB4DC\uB97C \uAC00\uB9AC\uD0A4\uC138\uC694"
+  - Key: item.rate_shift.name
+    Value: "\uD32C\uD2F0"
+  - Key: item.rate_shift.description
+    Value: "\uD50C\uB808\uC774\uC5B4 \uD55C \uBA85 \uC120\uD0DD: \uC0AC\uB9DD\uB960\uC774
+      \uBB34\uC791\uC704\uB85C 20 \uC624\uB974\uAC70\uB098 \uB0B4\uB824\uAC11\uB2C8\uB2E4."
+  - Key: item.rate_shift.raised
+    Value: "\uB2D8\uC774 \uC0AC\uB9DD\uB960 +{0} \u2192"
+  - Key: item.rate_shift.lowered
+    Value: "\uB2D8\uC774 \uC0AC\uB9DD\uB960 -{0} \u2192"
+  - Key: item.rate_shift.prompt
+    Value: "\uC0AC\uB9DD\uB960\uC744 \uD754\uB4E4 \uC0C1\uB300\uB97C \uAC00\uB9AC\uD0A4\uC138\uC694"
+  - Key: item.shared_roll.name
+    Value: "\uB9E5\uC8FC"
+  - Key: item.shared_roll.description
+    Value: "\uB098\uC640 \uACE0\uB978 \uD50C\uB808\uC774\uC5B4\uAC00 \uAC01\uC790
+      \uC790\uC2E0\uC758 \uC0AC\uB9DD\uB960\uB85C \uB3D9\uC2DC\uC5D0 \uAD74\uB9BD\uB2C8\uB2E4."
+  - Key: item.shared_roll.notice
+    Value: "\uB2D8\uC774 \uD568\uAED8 \uAD74\uB9BC \u2192"
+  - Key: item.shared_roll.prompt
+    Value: "\uD568\uAED8 \uAD74\uB9B4 \uC0C1\uB300\uB97C \uAC00\uB9AC\uD0A4\uC138\uC694"
+  - Key: item.swap_board.name
+    Value: "\uB2F4\uBC30"
+  - Key: item.swap_board.description
+    Value: "\uB4B7\uBA74\uC778 \uBCF4\uB4DC \uCE74\uB4DC \uD55C \uC7A5\uC774 \uBAA8\uB450\uC5D0\uAC8C
+      \uACF5\uAC1C\uB41C \uB4A4 \uB0B4 \uCE74\uB4DC \uD55C \uC7A5\uACFC \uAD50\uD658\uB429\uB2C8\uB2E4.
+      \uB0B8 \uCE74\uB4DC\uB294 \uBCF4\uB4DC\uC5D0 \uC55E\uBA74\uC73C\uB85C \uB0A8\uC2B5\uB2C8\uB2E4."
+  - Key: item.swap_board.notice
+    Value: "\uB2D8\uC774 \uBCF4\uB4DC \uCE74\uB4DC \uAD50\uD658"
+  - Key: item.swap_board.prompt
+    Value: "\uBCF4\uB4DC\uC5D0 \uB0BC \uCE74\uB4DC\uB97C \uAC00\uB9AC\uD0A4\uC138\uC694"
+  - Key: item.swap_hand.name
+    Value: "\uCE7C"
+  - Key: item.swap_hand.description
+    Value: "\uD578\uB4DC\uC5D0 \uB0A8\uC740 \uD50C\uB808\uC774\uC5B4\uC640 \uCE74\uB4DC
+      \uD55C \uC7A5\uC744 \uAD50\uD658\uD569\uB2C8\uB2E4. \uC904 \uCE74\uB4DC\uB294
+      \uC0C1\uB300\uAC00 \uACE0\uB985\uB2C8\uB2E4."
+  - Key: item.swap_hand.notice
+    Value: "\uB2D8\uC774 \uCE74\uB4DC \uAD50\uD658 \u2192"
+  - Key: item.swap_hand.prompt_own
+    Value: "\uC904 \uCE74\uB4DC\uB97C \uAC00\uB9AC\uD0A4\uC138\uC694"
+  - Key: item.swap_hand.prompt_player
+    Value: "\uAD50\uD658\uD560 \uC0C1\uB300\uB97C \uAC00\uB9AC\uD0A4\uC138\uC694"
+  - Key: item.swap_hand.response
+    Value: "\uB2D8\uC774 \uCE74\uB4DC \uAD50\uD658\uC744 \uC694\uCCAD - \uAD50\uD658\uD560
+      \uCE74\uB4DC\uB97C \uACE0\uB974\uC138\uC694"
+  - Key: item.table_reveal.name
+    Value: "\uD655\uC131\uAE30"
+  - Key: item.table_reveal.description
+    Value: "\uC774\uBC88 \uB77C\uC6B4\uB4DC\uC5D0 \uD578\uB4DC\uC5D0 \uB0A8\uC740
+      \uBAA8\uB4E0 \uD50C\uB808\uC774\uC5B4\uAC00 \uBB34\uC791\uC704 \uCE74\uB4DC
+      \uD55C \uC7A5\uC744 \uD14C\uC774\uBE14 \uC804\uCCB4\uC5D0 \uACF5\uAC1C\uD569\uB2C8\uB2E4."
+  - Key: item.table_reveal.notice
+    Value: "\uB2D8\uC774 \uC804\uC6D0 \uCE74\uB4DC \uD3ED\uB85C"

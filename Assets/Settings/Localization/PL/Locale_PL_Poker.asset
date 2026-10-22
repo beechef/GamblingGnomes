@@ -1,0 +1,204 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 48cfa9c17f2bc884ba9c1aad02a042a1, type: 3}
+  m_Name: Locale_PL_Poker
+  m_EditorClassIdentifier: Localization::Localization.LocaleSection
+  _entries:
+  - Key: poker.action.bet
+    Value: OBSTAW
+  - Key: poker.action.call
+    Value: "SPRAWD\u0179"
+  - Key: poker.action.fold
+    Value: PASUJ
+  - Key: poker.button.all_in
+    Value: '[ALL-IN]'
+  - Key: poker.button.fold
+    Value: '[PAS]'
+  - Key: poker.button.choose
+    Value: WYBIERZ
+  - Key: poker.button.items
+    Value: PRZEDMIOTY ({0})
+  - Key: poker.button.view_board
+    Value: "[PODNIE\u015A PLANSZ\u0118]"
+  - Key: poker.button.lay_board
+    Value: "[PO\u0141\xD3\u017B PLANSZ\u0118]"
+  - Key: poker.button.helper
+    Value: POMOC
+  - Key: poker.button.start
+    Value: START
+  - Key: poker.button.invite
+    Value: "ZAPRO\u015A"
+  - Key: poker.button.add_bot
+    Value: DODAJ BOTA
+  - Key: poker.button.clear_bot
+    Value: "USU\u0143 BOTY"
+  - Key: poker.button.match_settings
+    Value: Ustawienia
+  - Key: poker.targeting.hint
+    Value: "Esc, by od\u0142o\u017Cy\u0107"
+  - Key: poker.helper.title
+    Value: "RANKING UK\u0141AD\xD3W"
+  - Key: poker.helper.your_hand
+    Value: "TWOJA R\u0118KA"
+  - Key: poker.helper.empty
+    Value: Nie masz jeszcze kart.
+  - Key: poker.items.left_in_deck
+    Value: "ZOSTA\u0141O W TALII"
+  - Key: poker.ranking.title
+    Value: WYNIKI
+  - Key: poker.ranking.place.st
+    Value: '{0}.'
+  - Key: poker.ranking.place.nd
+    Value: '{0}.'
+  - Key: poker.ranking.place.rd
+    Value: '{0}.'
+  - Key: poker.ranking.place.th
+    Value: '{0}.'
+  - Key: poker.colorful.prompt
+    Value: "Kto zje <Highlight>truj\u0105cy grzyb</Highlight> i dostanie <Highlight>{0}\xD7
+      przedmiot</Highlight>?"
+  - Key: poker.turn.yours
+    Value: TWOJA TURA
+  - Key: poker.turn.other
+    Value: 'TURA: {0}'
+  - Key: poker.player.fallback
+    Value: Gracz
+  - Key: poker.phase.waiting
+    Value: OCZEKIWANIE
+  - Key: poker.phase.dealing
+    Value: ROZDAWANIE
+  - Key: poker.phase.first_street
+    Value: PIERWSZA RUNDA
+  - Key: poker.phase.second_street
+    Value: DRUGA RUNDA
+  - Key: poker.phase.looking
+    Value: "OGL\u0104DANIE KART"
+  - Key: poker.phase.eating
+    Value: JEDZENIE
+  - Key: poker.phase.showdown
+    Value: ODKRYCIE KART
+  - Key: poker.phase.finished
+    Value: KONIEC
+  - Key: poker.phase.match_over
+    Value: KONIEC MECZU
+  - Key: poker.phase.all_in
+    Value: ALL-IN
+  - Key: poker.phase.ante
+    Value: ANTE
+  - Key: poker.start.ready
+    Value: 'Gotowych graczy: {0}'
+  - Key: poker.start.for_table
+    Value: "Start dla ca\u0142ego sto\u0142u"
+  - Key: poker.start.waiting
+    Value: Czekanie na graczy ({0}/{1})
+  - Key: poker.pot
+    Value: 'Pula: {0}'
+  - Key: poker.match_over.survivor
+    Value: OSTATNI GNOM NA NOGACH
+  - Key: poker.match_over.nobody
+    Value: "NIKT NIE PRZE\u017BY\u0141"
+  - Key: poker.notice.item_bonus
+    Value: PRZEDMIOTY +{0}
+  - Key: poker.notice.item_reward
+    Value: "PRZE\u017BYWA, PRZEDMIOTY +{0}"
+  - Key: poker.notice.items_lost
+    Value: 'TRACI PRZEDMIOTY: {0}'
+  - Key: poker.notice.match_started
+    Value: START MECZU
+  - Key: poker.notice.match_players
+    Value: '{0} GRACZY'
+  - Key: poker.notice.item_used
+    Value: "U\u017BYWA: {0}"
+  - Key: poker.notice.bet
+    Value: STAWIA
+  - Key: poker.notice.fold
+    Value: PASUJE
+  - Key: poker.notice.all_in
+    Value: IDZIE ALL-IN
+  - Key: config.title
+    Value: USTAWIENIA MECZU
+  - Key: config.section.match
+    Value: Mecz
+  - Key: config.section.items
+    Value: Przedmioty
+  - Key: config.starting_health
+    Value: "Zdrowie pocz\u0105tkowe"
+  - Key: config.items_per_hand
+    Value: Przedmioty na rozdanie
+  - Key: config.loser_bonus
+    Value: Bonus przegranego
+  - Key: config.item_capacity
+    Value: "Limit przedmiot\xF3w"
+  - Key: bet_item.green
+    Value: Zielony
+  - Key: bet_item.red
+    Value: Czerwony
+  - Key: bet_item.purple
+    Value: Fioletowy
+  - Key: bet_item.yellow
+    Value: "\u017B\xF3\u0142ty"
+  - Key: bet_item.colorful
+    Value: "T\u0119czowy"
+  - Key: poker.round.title
+    Value: Runda
+  - Key: poker.helper.tab.helper
+    Value: Pomoc
+  - Key: poker.helper.tab.ruleset
+    Value: Zasady
+  - Key: poker.helper.tab.define
+    Value: "S\u0142owniczek"
+  - Key: poker.helper.joker_title
+    Value: Joker
+  - Key: poker.helper.joker_caption
+    Value: Dzika karta
+  - Key: poker.ruleset.deal_cards
+    Value: "Na pocz\u0105tku meczu ka\u017Cdy gracz dostaje 2 zakryte karty (karty
+      w\u0142asne)."
+  - Key: poker.ruleset.deal_cards_items
+    Value: "Na pocz\u0105tku meczu ka\u017Cdy gracz dostaje 2 zakryte karty (karty
+      w\u0142asne) i 2 przedmioty."
+  - Key: poker.ruleset.turn_actions
+    Value: "W swojej turze gracz mo\u017Ce sprawdzi\u0107, zagra\u0107 all-in albo
+      spasowa\u0107."
+  - Key: poker.ruleset.turn_actions_items
+    Value: "W swojej turze gracz mo\u017Ce u\u017Cy\u0107 do 2 przedmiot\xF3w, a
+      potem sprawdzi\u0107 albo spasowa\u0107."
+  - Key: poker.ruleset.community_cards
+    Value: "Pod koniec ka\u017Cdej rundy odkrywa si\u0119 kolejno 3 - 1 - 1 karty
+      wsp\xF3lne."
+  - Key: poker.ruleset.all_in
+    Value: "Gdy kto\u015B zagra all-in, ka\u017Cdy mo\u017Ce ju\u017C tylko wej\u015B\u0107
+      za nim all-in albo spasowa\u0107. Potem odkrywa si\u0119 wszystkie pozosta\u0142e
+      karty."
+  - Key: poker.ruleset.showdown
+    Value: "Gdy wszystkie karty s\u0105 odkryte, wygrywa gracz z najwy\u017Cszym
+      uk\u0142adem."
+  - Key: poker.ruleset.winner_feeds
+    Value: "Zwyci\u0119zca wybiera gracza, kt\xF3ry zje truj\u0105cy grzyb."
+  - Key: poker.ruleset.winner_feeds_item
+    Value: "Zwyci\u0119zca wybiera gracza, kt\xF3ry zje truj\u0105cy grzyb, i dostaje
+      jeszcze jeden przedmiot."
+  - Key: poker.ruleset.losers_eat
+    Value: "Przegrani musz\u0105 zje\u015B\u0107 wszystkie postawione grzyby."
+  - Key: poker.define.title
+    Value: "Halucynacje i truj\u0105cy grzyb"
+  - Key: poker.define.meter_title
+    Value: Pasek halucynacji
+  - Key: poker.define.meter_description
+    Value: "Ka\u017Cdy zjedzony grzyb dodaje 10% halucynacji. Im wy\u017Cszy poziom,
+      tym wi\u0119cej efekt\xF3w. Przy 100% przedawkowujesz i przegrywasz."
+  - Key: poker.define.poison_title
+    Value: "Truj\u0105cy grzyb"
+  - Key: poker.define.poison_description
+    Value: "Nie dodaje halucynacji; zamiast tego wywo\u0142uje Rzut \u015Amierci
+      - losow\u0105 szans\u0119 na przedawkowanie zale\u017Cn\u0105 od obecnego poziomu
+      halucynacji."

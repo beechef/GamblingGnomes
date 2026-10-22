@@ -1,0 +1,203 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 48cfa9c17f2bc884ba9c1aad02a042a1, type: 3}
+  m_Name: Locale_FR_Poker
+  m_EditorClassIdentifier: Localization::Localization.LocaleSection
+  _entries:
+  - Key: poker.action.bet
+    Value: MISER
+  - Key: poker.action.call
+    Value: SUIVRE
+  - Key: poker.action.fold
+    Value: SE COUCHER
+  - Key: poker.button.all_in
+    Value: '[TAPIS]'
+  - Key: poker.button.fold
+    Value: '[SE COUCHER]'
+  - Key: poker.button.choose
+    Value: CHOISIR
+  - Key: poker.button.items
+    Value: OBJETS ({0})
+  - Key: poker.button.view_board
+    Value: '[VOIR LE BOARD]'
+  - Key: poker.button.lay_board
+    Value: '[RABATTRE LE BOARD]'
+  - Key: poker.button.helper
+    Value: AIDE
+  - Key: poker.button.start
+    Value: LANCER
+  - Key: poker.button.invite
+    Value: INVITER
+  - Key: poker.button.add_bot
+    Value: AJOUTER UN BOT
+  - Key: poker.button.clear_bot
+    Value: RETIRER LES BOTS
+  - Key: poker.button.match_settings
+    Value: "Param\xE8tres"
+  - Key: poker.targeting.hint
+    Value: "\xC9chap pour le ranger"
+  - Key: poker.helper.title
+    Value: CLASSEMENT DES MAINS
+  - Key: poker.helper.your_hand
+    Value: TA MAIN
+  - Key: poker.helper.empty
+    Value: Tu n'as encore aucune carte.
+  - Key: poker.items.left_in_deck
+    Value: RESTANT DANS LE PAQUET
+  - Key: poker.ranking.title
+    Value: "R\xC9SULTAT"
+  - Key: poker.ranking.place.st
+    Value: '{0}er'
+  - Key: poker.ranking.place.nd
+    Value: '{0}e'
+  - Key: poker.ranking.place.rd
+    Value: '{0}e'
+  - Key: poker.ranking.place.th
+    Value: '{0}e'
+  - Key: poker.colorful.prompt
+    Value: "Qui va manger le <Highlight>champi mortel</Highlight> & recevoir <Highlight>{0}
+      objet(s)</Highlight>\_?"
+  - Key: poker.turn.yours
+    Value: "\xC0 TOI DE JOUER"
+  - Key: poker.turn.other
+    Value: AU TOUR DE {0}
+  - Key: poker.player.fallback
+    Value: Joueur
+  - Key: poker.phase.waiting
+    Value: EN ATTENTE
+  - Key: poker.phase.dealing
+    Value: DISTRIBUTION
+  - Key: poker.phase.first_street
+    Value: PREMIER TOUR
+  - Key: poker.phase.second_street
+    Value: "DEUXI\xC8ME TOUR"
+  - Key: poker.phase.looking
+    Value: ON REGARDE
+  - Key: poker.phase.eating
+    Value: "D\xC9GUSTATION"
+  - Key: poker.phase.showdown
+    Value: ABATTAGE
+  - Key: poker.phase.finished
+    Value: "TERMIN\xC9"
+  - Key: poker.phase.match_over
+    Value: FIN DU MATCH
+  - Key: poker.phase.all_in
+    Value: TAPIS
+  - Key: poker.phase.ante
+    Value: ANTE
+  - Key: poker.start.ready
+    Value: "{0} joueurs pr\xEAts"
+  - Key: poker.start.for_table
+    Value: Lancer pour la table
+  - Key: poker.start.waiting
+    Value: En attente de joueurs ({0}/{1})
+  - Key: poker.pot
+    Value: "Pot\_: {0}"
+  - Key: poker.match_over.survivor
+    Value: DERNIER GNOME DEBOUT
+  - Key: poker.match_over.nobody
+    Value: AUCUN SURVIVANT
+  - Key: poker.notice.item_bonus
+    Value: +{0} OBJET(S)
+  - Key: poker.notice.item_reward
+    Value: SURVIT +{0} OBJET(S)
+  - Key: poker.notice.items_lost
+    Value: PERD {0} OBJET(S)
+  - Key: poker.notice.match_started
+    Value: "D\xC9BUT DU MATCH"
+  - Key: poker.notice.match_players
+    Value: '{0} JOUEURS'
+  - Key: poker.notice.item_used
+    Value: UTILISE {0}
+  - Key: poker.notice.bet
+    Value: MISE
+  - Key: poker.notice.fold
+    Value: SE COUCHE
+  - Key: poker.notice.all_in
+    Value: FAIT TAPIS
+  - Key: config.title
+    Value: "PARAM\xC8TRES DU MATCH"
+  - Key: config.section.match
+    Value: Match
+  - Key: config.section.items
+    Value: Objets
+  - Key: config.starting_health
+    Value: "Sant\xE9 de d\xE9part"
+  - Key: config.items_per_hand
+    Value: Objets par main
+  - Key: config.loser_bonus
+    Value: Bonus du perdant
+  - Key: config.item_capacity
+    Value: "Capacit\xE9 d'objets"
+  - Key: bet_item.green
+    Value: Vert
+  - Key: bet_item.red
+    Value: Rouge
+  - Key: bet_item.purple
+    Value: Violet
+  - Key: bet_item.yellow
+    Value: Jaune
+  - Key: bet_item.colorful
+    Value: Multicolore
+  - Key: poker.round.title
+    Value: Manche
+  - Key: poker.helper.tab.helper
+    Value: Aide
+  - Key: poker.helper.tab.ruleset
+    Value: "R\xE8gles"
+  - Key: poker.helper.tab.define
+    Value: Glossaire
+  - Key: poker.helper.joker_title
+    Value: Joker
+  - Key: poker.helper.joker_caption
+    Value: Carte passe-partout
+  - Key: poker.ruleset.deal_cards
+    Value: "En d\xE9but de match, chaque joueur re\xE7oit 2 cartes priv\xE9es (cartes
+      ferm\xE9es)."
+  - Key: poker.ruleset.deal_cards_items
+    Value: "En d\xE9but de match, chaque joueur re\xE7oit 2 cartes priv\xE9es (cartes
+      ferm\xE9es) et 2 objets."
+  - Key: poker.ruleset.turn_actions
+    Value: "\xC0 son tour, un joueur peut suivre, faire tapis ou se coucher."
+  - Key: poker.ruleset.turn_actions_items
+    Value: "\xC0 son tour, un joueur peut utiliser jusqu'\xE0 2 objets, puis suivre
+      ou se coucher."
+  - Key: poker.ruleset.community_cards
+    Value: "\xC0 la fin de chaque tour, on retourne 3 - 1 - 1 cartes partag\xE9es
+      (cartes communes)."
+  - Key: poker.ruleset.all_in
+    Value: "D\xE8s qu'un joueur fait tapis, les autres ne peuvent que suivre ce tapis
+      ou se coucher. Puis toutes les cartes restantes sont retourn\xE9es."
+  - Key: poker.ruleset.showdown
+    Value: "Une fois toutes les cartes retourn\xE9es, le joueur avec la meilleure
+      main l'emporte."
+  - Key: poker.ruleset.winner_feeds
+    Value: "Le gagnant choisit un joueur qui devra manger le champignon empoisonn\xE9."
+  - Key: poker.ruleset.winner_feeds_item
+    Value: "Le gagnant choisit un joueur qui devra manger le champignon empoisonn\xE9,
+      et re\xE7oit un objet de plus."
+  - Key: poker.ruleset.losers_eat
+    Value: "Les perdants doivent manger tous les champignons qu'ils ont mis\xE9s."
+  - Key: poker.define.title
+    Value: "Hallucination & champignon empoisonn\xE9"
+  - Key: poker.define.meter_title
+    Value: Jauge d'hallucination
+  - Key: poker.define.meter_description
+    Value: "Chaque champignon mang\xE9 ajoute 10\_% d'hallucination. Plus le taux
+      monte, plus les effets s'encha\xEEnent. \xC0 100\_%, c'est l'overdose et tu
+      perds."
+  - Key: poker.define.poison_title
+    Value: "Champignon empoisonn\xE9"
+  - Key: poker.define.poison_description
+    Value: "N'ajoute pas d'hallucination\_; d\xE9clenche \xE0 la place un Jet de
+      la mort - une chance d'overdose al\xE9atoire selon ton taux d'hallucination
+      actuel."

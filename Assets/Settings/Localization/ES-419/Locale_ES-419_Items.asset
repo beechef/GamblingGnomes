@@ -1,0 +1,273 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 48cfa9c17f2bc884ba9c1aad02a042a1, type: 3}
+  m_Name: Locale_ES-419_Items
+  m_EditorClassIdentifier: Localization::Localization.LocaleSection
+  _entries:
+  - Key: item.prompt.player
+    Value: "SE\xD1ALA A UN JUGADOR"
+  - Key: item.prompt.opponent_card
+    Value: "SE\xD1ALA UNA CARTA DE OTRO JUGADOR"
+  - Key: item.prompt.own_card
+    Value: "SE\xD1ALA UNA DE TUS CARTAS"
+  - Key: item.prompt.board_card
+    Value: "SE\xD1ALA UNA CARTA BOCA ABAJO DE LA MESA"
+  - Key: item.reason.not_dealt
+    Value: Esta mesa no lo reparte.
+  - Key: item.reason.not_held
+    Value: No lo tienes en la mano.
+  - Key: item.reason.out_of_match
+    Value: "Est\xE1s fuera de esta partida."
+  - Key: item.reason.street_only
+    Value: Solo en una ronda de apuestas.
+  - Key: item.reason.turn_only
+    Value: Solo en tu turno.
+  - Key: item.reason.locked_out
+    Value: Objetos bloqueados esta ronda.
+  - Key: item.reason.used_one
+    Value: Ya jugaste un objeto en esta ronda.
+  - Key: item.reason.used_many
+    Value: Ya jugaste {0} objetos en esta ronda.
+  - Key: item.reason.waiting_other
+    Value: Esperando otro objeto.
+  - Key: item.reason.no_time
+    Value: No queda tiempo para que respondan.
+  - Key: item.reason.not_in_hand
+    Value: "No est\xE1s en esta mano."
+  - Key: item.reason.hand_full
+    Value: Tienes la mano llena.
+  - Key: item.reason.deck_empty
+    Value: "El mazo est\xE1 vac\xEDo."
+  - Key: item.reason.no_street_left
+    Value: No quedan rondas en esta mano.
+  - Key: item.reason.no_board
+    Value: Esta mesa no reparte cartas comunitarias.
+  - Key: item.reason.last_board_seen
+    Value: "Ya ves la \xFAltima carta de la mesa."
+  - Key: item.reason.board_seen
+    Value: Ya ves todas las cartas de la mesa.
+  - Key: item.reason.board_face_up
+    Value: "Todas las cartas de la mesa ya est\xE1n boca arriba."
+  - Key: item.reason.board_full
+    Value: "La mesa est\xE1 llena."
+  - Key: item.reason.no_card_to_lay
+    Value: No tienes ninguna carta que poner.
+  - Key: item.reason.no_card_to_give
+    Value: No te quedan cartas que dar.
+  - Key: item.reason.cards_face_up
+    Value: "Tus cartas ya est\xE1n boca arriba."
+  - Key: item.reason.all_face_up
+    Value: "Todas las cartas ya est\xE1n boca arriba."
+  - Key: item.reason.cant_change
+    Value: No puedes cambiar ninguna de tus cartas.
+  - Key: item.reason.already_under
+    Value: "Ya ca\xEDste redondo."
+  - Key: item.reason.no_count_place
+    Value: "No hay d\xF3nde anotar la cuenta."
+  - Key: item.reason.already_counted
+    Value: Ya contaste en esta mano.
+  - Key: item.reason.nobody_to_halve
+    Value: Nadie tiene nada que partir a la mitad.
+  - Key: item.reason.nobody_to_spike
+    Value: No queda nadie a quien dopar.
+  - Key: item.reason.nobody_to_show
+    Value: "Nadie m\xE1s tiene cartas que mostrar."
+  - Key: item.reason.nobody_in_hand
+    Value: "No queda nadie m\xE1s en la mano."
+  - Key: item.reason.nobody_unseen
+    Value: Nadie tiene cartas que no hayas visto.
+  - Key: item.reason.nobody_to_shake
+    Value: Ya no hay dosis que alterar.
+  - Key: item.reason.nobody_to_roll
+    Value: "No queda nadie m\xE1s con quien tirar."
+  - Key: item.reason.nobody_to_swap
+    Value: "Nadie m\xE1s tiene cartas que cambiar."
+  - Key: item.copy_card.name
+    Value: Copia
+  - Key: item.copy_card.description
+    Value: 35% de probabilidad de que una de tus cartas se convierta en copia de
+      otra de tu mano.
+  - Key: item.copy_card.notice
+    Value: INTENTA COPIAR
+  - Key: item.copy_card.copied
+    Value: LOGRA COPIAR
+  - Key: item.copy_card.failed
+    Value: FALLA LA COPIA
+  - Key: item.deck_count.name
+    Value: Contar palos
+  - Key: item.deck_count.description
+    Value: "Mira cu\xE1ntas cartas de cada palo, y cu\xE1ntos comodines si el mazo
+      los tiene, quedan sin repartir. Solo t\xFA ves la cuenta y la conservas hasta
+      que termine la mano."
+  - Key: item.deck_count.notice
+    Value: CUENTA EL MAZO
+  - Key: item.extra_draw.name
+    Value: "V\xF3mito"
+  - Key: item.extra_draw.description
+    Value: "Roba una carta m\xE1s del mazo. No puedes retirarte en lo que queda de
+      la mano."
+  - Key: item.extra_draw.notice
+    Value: ROBA OTRA CARTA
+  - Key: item.half_dose.name
+    Value: Jeringa
+  - Key: item.half_dose.description
+    Value: 'Elige a un jugador: su riesgo de muerte se reduce a la mitad y luego
+      tira contra lo que queda.'
+  - Key: item.half_dose.notice
+    Value: DA MEDIA DOSIS A
+  - Key: item.half_dose.prompt
+    Value: "SE\xD1ALA A QUIEN LE DAS MEDIA DOSIS"
+  - Key: item.joker_card.name
+    Value: Caja sorpresa
+  - Key: item.joker_card.description
+    Value: "50% de probabilidad de que una carta elegida de tu mano se convierta
+      en comod\xEDn. Solo t\xFA sabes si funcion\xF3."
+  - Key: item.joker_card.joker
+    Value: "SACA UN COMOD\xCDN"
+  - Key: item.joker_card.failed
+    Value: "NO SACA COMOD\xCDN"
+  - Key: item.lock_fold.name
+    Value: Candado
+  - Key: item.lock_fold.description
+    Value: "Nadie puede retirarse en la siguiente ronda, ni siquiera t\xFA."
+  - Key: item.lock_fold.notice
+    Value: "PROH\xCDBE RETIRARSE"
+  - Key: item.mushroom_dose.name
+    Value: Dopaje
+  - Key: item.mushroom_dose.description
+    Value: "Los 2 pr\xF3ximos hongos del jugador elegido no hacen nada o pegan el
+      doble de fuerte, 50/50."
+  - Key: item.mushroom_dose.notice
+    Value: DOPA LOS HONGOS DE
+  - Key: item.mushroom_dose.nullified
+    Value: ANULA {0} HONGOS DE
+  - Key: item.mushroom_dose.doubled
+    Value: DUPLICA {0} HONGOS DE
+  - Key: item.mushroom_dose.prompt
+    Value: "SE\xD1ALA A QUIEN LE DOPAS LOS HONGOS"
+  - Key: item.mutual_reveal.name
+    Value: Mostrar juntos
+  - Key: item.mutual_reveal.description
+    Value: "T\xFA y el jugador que elijas ponen una carta boca arriba para toda la
+      mesa hasta que termine la mano. El otro elige cu\xE1l de las suyas."
+  - Key: item.mutual_reveal.notice
+    Value: MUESTRA CARTA CON
+  - Key: item.mutual_reveal.prompt_own
+    Value: "SE\xD1ALA LA CARTA QUE VAS A MOSTRAR"
+  - Key: item.mutual_reveal.prompt_player
+    Value: "SE\xD1ALA A QUIEN MOSTRAR\xC1 UNA CONTIGO"
+  - Key: item.mutual_reveal.response
+    Value: "QUIERE QUE MUESTRES UNA CARTA: SE\xD1ALA UNA"
+  - Key: item.pair_lock_fold.name
+    Value: Esposas
+  - Key: item.pair_lock_fold.description
+    Value: "T\xFA y el jugador elegido no pueden retirarse en la siguiente ronda."
+  - Key: item.pair_lock_fold.notice
+    Value: SE ESPOSA CON
+  - Key: item.pair_lock_items.name
+    Value: Sin objetos
+  - Key: item.pair_lock_items.description
+    Value: "T\xFA y el jugador elegido no pueden usar objetos en la siguiente ronda."
+  - Key: item.pair_lock_items.notice
+    Value: BLOQUEA LOS OBJETOS DE
+  - Key: item.pair_lock.prompt
+    Value: "SE\xD1ALA A QUIEN QUEDA BLOQUEADO CONTIGO"
+  - Key: item.peek_board.name
+    Value: "Esp\xE1tula"
+  - Key: item.peek_board.description
+    Value: Mira una carta de la mesa antes de que se voltee. No puedes retirarte
+      en esta ronda.
+  - Key: item.peek_board.notice
+    Value: "ESP\xCDA LA MESA"
+  - Key: item.peek_board_main.description
+    Value: "Mira la \xFAltima carta de la mesa antes de que se voltee. No puedes
+      retirarte en esta ronda."
+  - Key: item.peek_hand.name
+    Value: Vistazo
+  - Key: item.peek_hand.description
+    Value: "Mira una carta de un jugador que siga en la mano. Sabr\xE1 qu\xE9 carta
+      viste."
+  - Key: item.peek_hand.notice
+    Value: "ESP\xCDA A"
+  - Key: item.peek_hand.private
+    Value: VIO TU {0}
+  - Key: item.place_on_board.name
+    Value: Cigarrillo
+  - Key: item.place_on_board.description
+    Value: Pon una de tus cartas boca arriba en la mesa para todos y roba una nueva
+      del mazo en su lugar.
+  - Key: item.place_on_board.notice
+    Value: BAJA UNA CARTA
+  - Key: item.place_on_board.prompt
+    Value: "SE\xD1ALA LA CARTA QUE DEJAS EN LA MESA"
+  - Key: item.raise_stakes.name
+    Value: Subida
+  - Key: item.raise_stakes.description
+    Value: "Cada apuesta de la siguiente ronda pone un hongo m\xE1s, la tuya incluida."
+  - Key: item.raise_stakes.notice
+    Value: SUBE LA APUESTA
+  - Key: item.random_suit.name
+    Value: Dado
+  - Key: item.random_suit.description
+    Value: Una de tus cartas conserva su valor y cambia a otro palo al azar.
+  - Key: item.random_suit.notice
+    Value: CAMBIA DE PALO
+  - Key: item.random_suit.prompt
+    Value: "SE\xD1ALA LA CARTA QUE QUIERES CAMBIAR"
+  - Key: item.rate_shift.name
+    Value: Calzones
+  - Key: item.rate_shift.description
+    Value: 'Elige a un jugador: su riesgo de muerte sube o baja 20, al azar.'
+  - Key: item.rate_shift.raised
+    Value: SUBE {0} LA DOSIS DE
+  - Key: item.rate_shift.lowered
+    Value: BAJA {0} LA DOSIS DE
+  - Key: item.rate_shift.prompt
+    Value: "SE\xD1ALA A QUIEN LE ALTERAS LA DOSIS"
+  - Key: item.shared_roll.name
+    Value: Cerveza
+  - Key: item.shared_roll.description
+    Value: "T\xFA y el jugador que elijas tiran al mismo tiempo, cada uno contra
+      su propio riesgo de muerte."
+  - Key: item.shared_roll.notice
+    Value: TIRA CON
+  - Key: item.shared_roll.prompt
+    Value: "SE\xD1ALA A QUIEN TIRA CONTIGO"
+  - Key: item.swap_board.name
+    Value: Cigarrillo
+  - Key: item.swap_board.description
+    Value: Una carta boca abajo de la mesa se voltea para todos y se cambia por una
+      de las tuyas, que queda boca arriba en la mesa.
+  - Key: item.swap_board.notice
+    Value: CAMBIA CON LA MESA
+  - Key: item.swap_board.prompt
+    Value: "SE\xD1ALA LA CARTA QUE PONES EN LA MESA"
+  - Key: item.swap_hand.name
+    Value: Cuchillo
+  - Key: item.swap_hand.description
+    Value: "Cambia una de tus cartas con un jugador que siga en la mano. El otro
+      elige cu\xE1l de las suyas te da."
+  - Key: item.swap_hand.notice
+    Value: CAMBIA CARTA CON
+  - Key: item.swap_hand.prompt_own
+    Value: "SE\xD1ALA LA CARTA QUE DAS"
+  - Key: item.swap_hand.prompt_player
+    Value: "SE\xD1ALA CON QUI\xC9N CAMBIAS"
+  - Key: item.swap_hand.response
+    Value: "cambia una carta contigo - elige cu\xE1l cambiar"
+  - Key: item.table_reveal.name
+    Value: "Meg\xE1fono"
+  - Key: item.table_reveal.description
+    Value: Cada jugador que siga en la mano muestra una carta al azar a toda la mesa
+      en esta ronda.
+  - Key: item.table_reveal.notice
+    Value: DESTAPA A TODOS
