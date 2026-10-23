@@ -16,8 +16,11 @@ namespace Game.Runtime.UI.Poker
 		[Header("Panel")]
 		[SerializeField] private GameObject _panel;
 
-		[Tooltip("Reads poker.colorful.prompt, {0} filled with the items the survivor is handed (PokerItemModule.ColorfulSurvivorItems).")]
+		[Tooltip("Reads poker.colorful.prompt, {0} filled with the items the survivor is handed (PokerItemModule.ColorfulSurvivorItems); poker.colorful.prompt_no_items where the table hands none.")]
 		[SerializeField] private TMP_Text _prompt;
+
+		[Tooltip("The item bag beside the prompt, hidden where the table hands the survivor no items.")]
+		[SerializeField] private GameObject _itemIcon;
 
 		[Header("Turn Timer")]
 		[Tooltip("Hidden outright when the stage runs no clock, rather than drawn sitting at zero.")]
@@ -67,7 +70,16 @@ namespace Game.Runtime.UI.Poker
 
 			if (_panel) _panel.SetActive(show);
 			if (show && _timerBar) _timerBar.gameObject.SetActive(Data.HasTurnClock);
-			if (show && _prompt) _prompt.text = Localizer.Format(LocalizationKeys.Poker.Colorful.Prompt, SurvivorItems());
+			if (!show) return;
+
+			var items = SurvivorItems();
+			if (_itemIcon) _itemIcon.SetActive(items > 0);
+			if (_prompt)
+			{
+				_prompt.text = items > 0
+					? Localizer.Format(LocalizationKeys.Poker.Colorful.Prompt, items)
+					: Localizer.Get(LocalizationKeys.Poker.Colorful.PromptNoItems);
+			}
 		}
 
 		private int SurvivorItems()
