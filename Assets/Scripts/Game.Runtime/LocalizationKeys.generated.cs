@@ -444,6 +444,7 @@ namespace Game.Runtime
 			public static class Colorful
 			{
 				public const string Prompt = "poker.colorful.prompt";
+				public const string PromptNoItems = "poker.colorful.prompt_no_items";
 			}
 
 			public static class Define

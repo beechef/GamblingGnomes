@@ -25,7 +25,11 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		[MinValue(0f)]
 		[SerializeField] private float _duration = 10f;
 
-		[Tooltip("Seconds the table looks at the answers and the board turned over before the hands are shown.")]
+		[Tooltip("Seconds the table watches the answers land (caps going up, cards going down) before the rest of the board is turned over.")]
+		[MinValue(0f)]
+		[SerializeField] private float _boardRevealDelay = 1.5f;
+
+		[Tooltip("Seconds the table looks at the board turned over before the hands are shown.")]
 		[MinValue(0f)]
 		[SerializeField] private float _resultHold = 1.5f;
 
@@ -41,6 +45,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		private readonly List<PokerPlayer> _asked = new();
 
 		private bool _asking;
+		private bool _awaitingBoard;
 		private bool _holding;
 		private float _focusElapsed;
 		private int _focusIndex;
@@ -55,6 +60,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			_answers.Clear();
 			_asked.Clear();
 			_asking = false;
+			_awaitingBoard = false;
 			_holding = false;
 
 			if (!PokerTableUtility.AnyoneWentAllIn(Data))
@@ -97,6 +103,12 @@ namespace Game.Runtime.GameMode.Poker.Stages
 
 		protected override void OnTickStage(float deltaTime)
 		{
+			if (_awaitingBoard)
+			{
+				if (GameMode.IsStageTimerExpired()) RevealBoard();
+				return;
+			}
+
 			if (_holding)
 			{
 				if (GameMode.IsStageTimerExpired()) Finish();
@@ -223,6 +235,19 @@ namespace Game.Runtime.GameMode.Poker.Stages
 				}
 			}
 
+			if (_boardRevealDelay > 0f)
+			{
+				_awaitingBoard = true;
+				GameMode.BeginStageTimer(_boardRevealDelay);
+				return;
+			}
+
+			RevealBoard();
+		}
+
+		private void RevealBoard()
+		{
+			_awaitingBoard = false;
 			GameMode.ServerRevealAllCommunityCards();
 
 			_holding = true;
