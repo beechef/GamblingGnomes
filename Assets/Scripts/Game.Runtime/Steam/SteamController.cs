@@ -6,6 +6,7 @@ namespace Game.Runtime.Steam
 {
 	public class SteamController : MonoBehaviour
 	{
+		[Tooltip("The app id used when Steam did not launch the game: the editor and a build started by hand. A build Steam launches uses the id Steam names.")]
 		[SerializeField] private uint _steamAppId = 480;
 
 		public static SteamController Instance { get; private set; }
@@ -52,7 +53,7 @@ namespace Game.Runtime.Steam
 
 			try
 			{
-				SteamClient.Init(_steamAppId, false);
+				SteamClient.Init(ResolveAppId(), false);
 				IsInitialized = true;
 
 				// Achievements and stats read as empty until the user's current stats have arrived.
@@ -70,6 +71,16 @@ namespace Game.Runtime.Steam
 			}
 		}
 
+
+		// Steam names the app it launched in the environment, and SteamClient.Init overwrites that with whatever it
+		// is handed, so it is read first. Never in the editor: a previous Init in the same process left its own id there.
+		private uint ResolveAppId()
+		{
+			if (!Application.isEditor && uint.TryParse(Environment.GetEnvironmentVariable("SteamAppId"), out var launched) && launched != 0)
+				return launched;
+
+			return _steamAppId;
+		}
 
 		private void Update()
 		{

@@ -9,7 +9,8 @@ namespace Game.Runtime.UI.Poker
 	// Lets a player who has gone under switch their hallucination off and watch the rest of the match sober,
 	// and back on. Shown only while the local player is out; reviving drops the choice in the controller.
 	// Each press blinks (the controller's own transition) and then rests for a cooldown drawn as a dark bar
-	// running out across the button.
+	// running out across the button. The button stays lit through it, like every other HUD button; a press
+	// while it runs is ignored rather than drawn as disabled.
 	public class UIPokerHallucinationToggleButton : UIPokerView
 	{
 		[SerializeField] private GameObject _content;
@@ -79,7 +80,6 @@ namespace Game.Runtime.UI.Poker
 			StopCooldown();
 			if (_cooldown <= 0f) return;
 
-			if (_button) _button.IsInteractable = false;
 			if (_cooldownOverlay) _cooldownOverlay.fillAmount = 1f;
 
 			_cooldownTween = DOTween.To(() => _cooldownOverlay ? _cooldownOverlay.fillAmount : 0f,
@@ -96,7 +96,6 @@ namespace Game.Runtime.UI.Poker
 			_cooldownTween = null;
 
 			if (_cooldownOverlay) _cooldownOverlay.fillAmount = 0f;
-			if (_button) _button.IsInteractable = true;
 		}
 
 		private void Refresh()

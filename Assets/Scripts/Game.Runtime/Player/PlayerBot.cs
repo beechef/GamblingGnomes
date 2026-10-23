@@ -6,6 +6,8 @@ namespace Game.Runtime.Player
 	{
 		public const ulong FirstClientId = 1UL << 40;
 
+		public static readonly string[] Names = { "Kevin", "Kelly", "Chef" };
+
 		public static bool IsBot(ulong clientId) => clientId >= FirstClientId && clientId != ulong.MaxValue;
 	}
 }

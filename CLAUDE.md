@@ -89,6 +89,7 @@ Hold code to an industry-standard bar; check whether this codebase or the indust
 - Don't write a `NetworkVariable` every frame; throttle by a meaningful delta.
 - **Subscribe to another object's singleton from `Start`, never `OnEnable`** (wake order is undefined; a null `Instance` leaves it deaf). Pair with `OnDestroy`. `UIMainMenu`, `UIPauseMenu`, `UINetworkLoadingBinder`
 - **A third-party SDK's callbacks are a singleton too.** Hooking Steam before `SteamClient.Init` loses them silently. `SteamLobbyService.Initialize` (called from `GameNetworkManager.Start`) binds at once **and** on `SteamController.OnInitialized`, behind a flag. Hosting and joining await the call results (`CreateLobbyAsync`/`JoinLobbyAsync`) instead of the `OnLobbyCreated`/`OnLobbyEntered` callbacks, and `StartHost` reports `OnConnectFailed` when the chosen lobby is unavailable.
+- **A build Steam launches runs as the app id Steam names, never the serialized one**: `SteamClient.Init` overwrites the `SteamAppId` environment variable with what it is handed, so `SteamController.ResolveAppId` reads the variable first (builds only); `_steamAppId` (480) is for the editor and hand-started builds.
 - **Hide a loading screen on `OnLoadComplete` for the local client, not `OnLoadEventCompleted`** (never fires for a syncing joiner); `OnSynchronizeComplete` is the backstop. `UINetworkLoadingBinder`
 - **Handle late join by reading the current value in `OnNetworkSpawn` and snapping to it**, not only `OnValueChanged`.
 - Teardown belongs in `OnNetworkDespawn`, not `OnDestroy`.
