@@ -131,9 +131,31 @@ namespace Game.Runtime.Controller
 			var player = SpawnPlayer(clientId, botPrefab, isPlayerObject: false);
 
 			var data = player.GetComponent<PlayerData>();
-			if (data) data.ServerSetIdentity(clientId, $"Bot {clientId - PlayerBot.FirstClientId + 1}");
+			if (data) data.ServerSetIdentity(clientId, PickBotName());
 
 			return true;
+		}
+
+		// The first pool name no bot at the table wears, so a kicked bot's name is handed out again; past the
+		// pool, names come round again numbered.
+		private string PickBotName()
+		{
+			var taken = new HashSet<string>();
+			foreach (var botClientId in _botClientIds)
+			{
+				if (_players.TryGetValue(botClientId, out var entry) && entry.Object
+					&& entry.Object.TryGetComponent(out PlayerData data))
+				{
+					taken.Add(data.DisplayName.Value.ToString());
+				}
+			}
+
+			for (var i = 0; ; i++)
+			{
+				var name = PlayerBot.Names[i % PlayerBot.Names.Length];
+				if (i >= PlayerBot.Names.Length) name = $"{name} {i / PlayerBot.Names.Length + 1}";
+				if (!taken.Contains(name)) return name;
+			}
 		}
 
 		public bool ServerRemoveBot()
