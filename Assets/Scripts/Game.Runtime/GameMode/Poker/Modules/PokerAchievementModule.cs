@@ -118,7 +118,7 @@ namespace Game.Runtime.GameMode.Poker.Modules
 				var id = survivor.ClientId;
 
 				Grant(id, AchievementId.LAST_GNOME_STANDING);
-				if (survivor.Data.HallucinationRate.Value > HighRate) Grant(id, AchievementId.DEAD_MAN_WINNING);
+				if (survivor.Data.HallucinationRate.Value > HighRate) Grant(id, AchievementId.TRIP_MAN_WINNING);
 				if (KilledEveryoneWithItems(id)) Grant(id, AchievementId.NO_CARD_NEEDED);
 			}
 
@@ -152,7 +152,7 @@ namespace Game.Runtime.GameMode.Poker.Modules
 
 			if (_item is PokerItemRateShift && outcome == PokerItemRateShift.Raised && target != PokerGameData.NoTurn) _failedSniff.Add(target);
 
-			Grant(user, AchievementId.ITEM_ADDICT);
+			Grant(user, AchievementId.JUST_TESTING);
 
 			if (IsPerson(user)) RecordItemUsedRPC(type, RpcTarget.Single(user, RpcTargetUse.Temp));
 		}
@@ -206,7 +206,7 @@ namespace Game.Runtime.GameMode.Poker.Modules
 			}
 
 			Grant(id, AchievementId.TRIPPED_ON_A_TRIP);
-			if (_item is PokerItemHalfDose && id == _itemTarget) Grant(id, AchievementId.CAN_NOT_BE_SAVED);
+			if (_item is PokerItemHalfDose && id == _itemTarget) Grant(id, AchievementId.CANNOT_BE_SAVED);
 		}
 
 		private void GrantSurvivors()
