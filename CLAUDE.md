@@ -92,6 +92,8 @@ Hold code to an industry-standard bar; check whether this codebase or the indust
 - **Hide a loading screen on `OnLoadComplete` for the local client, not `OnLoadEventCompleted`** (never fires for a syncing joiner); `OnSynchronizeComplete` is the backstop. `UINetworkLoadingBinder`
 - **Handle late join by reading the current value in `OnNetworkSpawn` and snapping to it**, not only `OnValueChanged`.
 - Teardown belongs in `OnNetworkDespawn`, not `OnDestroy`.
+- **`NetworkManager.Shutdown` finishes on a later frame and raises the local disconnect then**, after our own teardown is done; a guard released at the end of `LeaveGame` lets it through as a "timed out" popup over the real reason. `GameNetworkManager._stoppingNetwork` holds from our `Shutdown` call until `OnClientStopped`/`OnServerStopped`.
+- **A view that outlives the table caches what it unsubscribes from** (`UIPokerKickButton._data`): on shutdown the mode is destroyed first, so `Data` is null in `OnUnbind`.
 
 ## Area rules (`.claude/rules/`, loaded when working with matching paths)
 

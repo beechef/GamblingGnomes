@@ -79,6 +79,10 @@ namespace Game.Runtime.Controller
 		private bool _joiningLobby;
 		private bool _leavingGame;
 
+		// Netcode finishes a shutdown on a later frame, after LeaveGame is done, and raises a disconnect for
+		// it then; up from our own Shutdown call until Netcode reports it stopped.
+		private bool _stoppingNetwork;
+
 		// Whether the local client reached the table this session: a drop before it is a timeout, after it a lost connection.
 		private bool _connected;
 
@@ -111,6 +115,7 @@ namespace Game.Runtime.Controller
 			_networkManager.OnClientDisconnectCallback += OnClientDisconnected;
 			_networkManager.OnTransportFailure += OnTransportFailure;
 			_networkManager.OnServerStopped += OnServerStopped;
+			_networkManager.OnClientStopped += OnClientStopped;
 			_networkManager.ConnectionApprovalCallback = ApproveConnection;
 		}
 
@@ -120,6 +125,7 @@ namespace Game.Runtime.Controller
 			_networkManager.OnClientDisconnectCallback -= OnClientDisconnected;
 			_networkManager.OnTransportFailure -= OnTransportFailure;
 			_networkManager.OnServerStopped -= OnServerStopped;
+			_networkManager.OnClientStopped -= OnClientStopped;
 			_networkManager.ConnectionApprovalCallback = null;
 		}
 
@@ -459,10 +465,14 @@ namespace Game.Runtime.Controller
 
 			// Shutting down is how leaving works, so the callbacks it raises are our own footsteps —
 			// reporting them as a failed connection would put an error on screen for a clean exit.
-			if (_leavingGame) return;
+			if (_leavingGame || _stoppingNetwork) return;
+
+			// A host is only "disconnected" by its own server stopping, which OnServerStopped handles.
+			if (_networkManager.IsServer) return;
 
 			var reason = _networkManager.DisconnectReason;
 			var failure = reason == LobbyConstant.RoomFullReason ? ConnectFailure.RoomFull
+				: reason == LobbyConstant.KickedReason ? ConnectFailure.Kicked
 				: _connected ? ConnectFailure.Disconnected
 				: ConnectFailure.Timeout;
 
@@ -470,17 +480,20 @@ namespace Game.Runtime.Controller
 			Fail(failure, $"Disconnected from server: {(string.IsNullOrEmpty(reason) ? "no reason provided" : reason)}");
 		}
 
-		private void OnServerStopped(bool isStopped)
+		private void OnServerStopped(bool wasHost)
 		{
-			if (_leavingGame) return;
+			_stoppingNetwork = false;
+			if (_leavingGame || !IsInGame) return;
 
 			Debug.Log("[GameNetworkManager] Server stopped.");
 			Shutdown();
 		}
 
+		private void OnClientStopped(bool wasHost) => _stoppingNetwork = false;
+
 		private void OnTransportFailure()
 		{
-			if (_leavingGame) return;
+			if (_leavingGame || _stoppingNetwork) return;
 
 			Shutdown();
 
@@ -531,7 +544,11 @@ namespace Game.Runtime.Controller
 
 				LeaveLobby(Application.isEditor);
 
-				if (_networkManager.IsListening) _networkManager.Shutdown();
+				if (_networkManager.IsListening)
+				{
+					_stoppingNetwork = true;
+					_networkManager.Shutdown();
+				}
 
 				// Cancelling stops the waiting, never the teardown: everything this method changed is
 				// still put back below, because half a teardown is what stops the next host from starting.

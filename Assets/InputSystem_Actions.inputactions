@@ -1196,6 +1196,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "ToggleHallucination",
+                    "type": "Button",
+                    "id": "80ea4496-9b92-4c53-a6ba-bbc28491c665",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -1438,6 +1447,17 @@
                     "processors": "",
                     "groups": "Gamepad",
                     "action": "ClearBot",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "bd9c4d74-3d3e-472e-bf86-5cdb300f1d32",
+                    "path": "<Keyboard>/d",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "Keyboard&Mouse",
+                    "action": "ToggleHallucination",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

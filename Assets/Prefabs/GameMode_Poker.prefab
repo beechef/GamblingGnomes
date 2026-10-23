@@ -80,6 +80,7 @@ GameObject:
   - component: {fileID: -9007372877243146254}
   - component: {fileID: 1010059874106853844}
   - component: {fileID: 8603986454461082823}
+  - component: {fileID: 5297649374054999235}
   m_Layer: 0
   m_Name: GameMode_Poker
   m_TagString: Untagged
@@ -210,6 +211,26 @@ MonoBehaviour:
       MinSecondsBetweenUpdates: 0
       MaxSecondsBetweenUpdates: 0
     m_InternalValue: 0
+  TurnPausedAt:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
+  TurnPausedFor:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
+  StreetNumber:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
+  HandOpenerClientId:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 18446744073709551615
   LastWinnerClientId:
     UpdateTraits:
       MinSecondsBetweenUpdates: 0
@@ -221,6 +242,11 @@ MonoBehaviour:
       MaxSecondsBetweenUpdates: 0
     m_InternalValue: 18446744073709551615
   MatchResetting:
+    UpdateTraits:
+      MinSecondsBetweenUpdates: 0
+      MaxSecondsBetweenUpdates: 0
+    m_InternalValue: 0
+  VictoryShot:
     UpdateTraits:
       MinSecondsBetweenUpdates: 0
       MaxSecondsBetweenUpdates: 0
@@ -265,7 +291,9 @@ MonoBehaviour:
   _sequence: {fileID: 11400000, guid: fef264d3b67498b4191fb3f76f2e9f4e, type: 2}
   _modules:
   - {fileID: 8300465974966724970}
+  - {fileID: 5297649374054999235}
   _hudPrefab: {fileID: 3807829601385342317, guid: ef9948bd034b1b74abea24c6ec82bd46, type: 3}
+  _rulesetPrefab: {fileID: 0}
   _data: {fileID: 370272023844681654}
   _configData: {fileID: -9007372877243146254}
   _notices: {fileID: 1010059874106853844}
@@ -311,3 +339,17 @@ MonoBehaviour:
   ShowTopMostFoldoutHeaderGroup: 1
   _allowBots: 1
   _botPrefab: {fileID: 592036192478993108, guid: 4a9d57fd57c39d149aaf7ecfaf3b8a60, type: 3}
+--- !u!114 &5297649374054999235
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7894337194493779765}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7052c059d1324e42aa78fbf68dcdaae1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Modules.PokerAchievementModule
+  ShowTopMostFoldoutHeaderGroup: 1
+  _moduleId: 

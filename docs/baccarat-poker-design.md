@@ -55,7 +55,7 @@ Words follow `CONTEXT.md` and `docs/items-design.md` (Match, Hand, Street, Bet, 
   | Card | `RandomSuit` | Repaint | A chosen card keeps its rank and takes a random other suit. |
   | Card | `JokerCard` | Wild Card | 50% (`_chance`) that a chosen card becomes a Joker. Only you hear whether it took; the card flickers between itself and a Joker for 3 s either way. |
   | Death rate | `HalfDose` | Half Dose | A chosen player (you included) halves their Death Rate, then Death Rolls. |
-  | Death rate | `RateShift` | Rate Shift | A chosen player's Death Rate goes up or down by 20 (`_amount`), drawn 50/50; the table is told which. A raise stops one short of the ceiling. |
+  | Death rate | `RateShift` | Rate Shift | A chosen player's Death Rate goes up or down by 20 (`_amount`), drawn 50/50; the table is told which. A raise to the ceiling puts them under (folded out once the death plays). |
   | Death rate | `SharedRoll` | Shared Roll | You and a chosen player Death Roll together. |
   | Disturb | `PairLockFold` | Chained | You and a chosen player cannot Fold on the next Street. |
   | Disturb | `TableReveal` | Exposure | Every player still in the Hand shows one random hidden card over their head this Street (`_shownStreets`). |

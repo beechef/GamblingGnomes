@@ -230,19 +230,23 @@ namespace Game.Runtime.GameMode.Poker.Player
 			return (int)(database ? database.DrawBetItemType() : PokerBetItemDatabase.PlainChip);
 		}
 
-		// A pick that names a player (the Colorful one); the stage refuses whoever it won't take.
+		// A pick that names a player (the Colorful one); the stage refuses whoever it won't take. Above half
+		// its blood the bot feeds someone else, naming itself only when nobody else can be named.
 		private bool TryTargetAnyone(PokerGameMode gameMode)
 		{
 			var players = gameMode.SeatedPlayers;
 			var start = UnityEngine.Random.Range(0, Mathf.Max(1, players.Count));
+			var data = _player.Data;
+			var spareSelf = data.Health.Value * 2 > data.MaxHealth;
 
 			for (var i = 0; i < players.Count; i++)
 			{
 				var player = players[(start + i) % players.Count];
-				if (player && gameMode.ServerSubmitAction(_player.ClientId, PokerActionType.Target, player.Data.SeatIndex.Value)) return true;
+				if (!player || (spareSelf && player == _player)) continue;
+				if (gameMode.ServerSubmitAction(_player.ClientId, PokerActionType.Target, player.Data.SeatIndex.Value)) return true;
 			}
 
-			return false;
+			return spareSelf && gameMode.ServerSubmitAction(_player.ClientId, PokerActionType.Target, data.SeatIndex.Value);
 		}
 	}
 }

@@ -10,10 +10,12 @@ namespace Game.Runtime.UI.Poker
 	public abstract class UIPokerView : MonoBehaviour
 	{
 		protected PokerGameMode GameMode { get; private set; }
-		protected PokerGameData Data => GameMode ? GameMode.Data : null;
+		// Held from bind to unbind: in a shutdown the table or the player can be destroyed before this view
+		// lets go of them, and every OnUnbind unsubscribes through Data and LocalData.
+		protected PokerGameData Data { get; private set; }
 
 		protected PokerPlayer LocalPlayer { get; private set; }
-		protected PokerPlayerData LocalData => LocalPlayer ? LocalPlayer.Data : null;
+		protected PokerPlayerData LocalData { get; private set; }
 
 		protected bool IsBound { get; private set; }
 
@@ -53,7 +55,9 @@ namespace Game.Runtime.UI.Poker
 			Unbind();
 
 			GameMode = PokerGameMode.Instance;
+			Data = GameMode ? GameMode.Data : null;
 			LocalPlayer = PokerPlayer.Local;
+			LocalData = LocalPlayer ? LocalPlayer.Data : null;
 
 			// The table and its player arrive in either order, so binding waits for both.
 			if (!GameMode || !Data || !LocalPlayer) return;
@@ -68,7 +72,9 @@ namespace Game.Runtime.UI.Poker
 
 			IsBound = false;
 			GameMode = null;
+			Data = null;
 			LocalPlayer = null;
+			LocalData = null;
 		}
 
 		protected virtual void OnBind() { }

@@ -24,5 +24,8 @@ namespace Game.Runtime.Controller
 
 		// The disconnect reason a host refusing a full room sends.
 		public const string RoomFullReason = "RoomFull";
+
+		// The disconnect reason a host removing a player from the room sends.
+		public const string KickedReason = "Kicked";
 	}
 }

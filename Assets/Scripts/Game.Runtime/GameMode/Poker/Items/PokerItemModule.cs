@@ -116,6 +116,8 @@ namespace Game.Runtime.GameMode.Poker.Items
 		public PokerItemDatabase Database => _database;
 		public int Capacity => Mathf.Max(1, _capacity);
 		public int ColorfulSurvivorItems => _colorfulSurvivorItems;
+		public int ItemsPerMatch => Mathf.Max(0, _itemsPerMatch);
+		public int ItemsPerHand => Mathf.Max(0, _itemsPerHand);
 
 		public float ResponseDuration => Mathf.Max(0f, _responseDuration);
 		public bool IsResponseTimed => _responseDuration > 0f;
@@ -517,6 +519,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 
 			request = request.WithOutcome(item.DrawOutcome(context));
 			_resolving = true;
+			GameMode.PauseTurnClock();
 
 			try
 			{
@@ -553,6 +556,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 			finally
 			{
 				_resolving = false;
+				if (IsSpawned && GameMode) GameMode.ResumeTurnClock();
 			}
 		}
 

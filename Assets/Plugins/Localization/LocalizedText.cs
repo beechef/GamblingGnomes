@@ -16,6 +16,7 @@ namespace Localization
 		[SerializeField] private string _key;
 
 		private TMP_Text _label;
+		private object[] _args;
 
 		public string Key
 		{
@@ -25,6 +26,15 @@ namespace Localization
 				_key = value;
 				Apply();
 			}
+		}
+
+		/// <summary>
+		/// Fills the string's {0}, {1}, … with these values, now and after every language change.
+		/// </summary>
+		public void SetArgs(params object[] args)
+		{
+			_args = args;
+			Apply();
 		}
 
 		private void OnEnable()
@@ -43,7 +53,7 @@ namespace Localization
 			// Before the language is loaded there is nothing to show; Initialize raises OnLocaleChanged and this runs again.
 			if (!_label || string.IsNullOrEmpty(_key) || !Localizer.IsInitialized) return;
 
-			_label.text = ProcessText(Localizer.Get(_key));
+			_label.text = ProcessText(Localizer.Format(_key, _args));
 		}
 
 		/// <summary>
