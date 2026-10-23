@@ -53,10 +53,6 @@ PrefabInstance:
       value: 419665708
       objectReference: {fileID: 0}
     - target: {fileID: 7373537335293292376, guid: b4206dcd3058eeb4a9b5a708b9a5790f, type: 3}
-      propertyPath: _rulesetPrefab
-      value: 
-      objectReference: {fileID: 1000000000000000001, guid: da40ef05d65b433e9a99685acc25931c, type: 3}
-    - target: {fileID: 7373537335293292376, guid: b4206dcd3058eeb4a9b5a708b9a5790f, type: 3}
       propertyPath: _rules
       value: 
       objectReference: {fileID: 11400000, guid: eb3beef83cd821d47aa7d863a000fb39, type: 2}
@@ -69,13 +65,21 @@ PrefabInstance:
       value: 
       objectReference: {fileID: 11400000, guid: 4d4753786ef1f5e469f1d8d3bd2aae3f, type: 2}
     - target: {fileID: 7373537335293292376, guid: b4206dcd3058eeb4a9b5a708b9a5790f, type: 3}
+      propertyPath: _rulesetPrefab
+      value: 
+      objectReference: {fileID: 1000000000000000001, guid: da40ef05d65b433e9a99685acc25931c, type: 3}
+    - target: {fileID: 7373537335293292376, guid: b4206dcd3058eeb4a9b5a708b9a5790f, type: 3}
       propertyPath: _betItemDatabase
       value: 
       objectReference: {fileID: 11400000, guid: 8dc8f4fb35cbb7a48a39ff6dd5dd6854, type: 2}
     - target: {fileID: 7373537335293292376, guid: b4206dcd3058eeb4a9b5a708b9a5790f, type: 3}
       propertyPath: _modules.Array.size
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 7373537335293292376, guid: b4206dcd3058eeb4a9b5a708b9a5790f, type: 3}
+      propertyPath: '_modules.Array.data[0]'
+      value: 
+      objectReference: {fileID: 1327176831810361495}
     - target: {fileID: 7894337194493779765, guid: b4206dcd3058eeb4a9b5a708b9a5790f, type: 3}
       propertyPath: m_Name
       value: GameMode_PokerHoldem
@@ -109,3 +113,14 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: b4206dcd3058eeb4a9b5a708b9a5790f, type: 3}
+--- !u!114 &1327176831810361495 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 5297649374054999235, guid: b4206dcd3058eeb4a9b5a708b9a5790f, type: 3}
+  m_PrefabInstance: {fileID: 6624263173366168660}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7052c059d1324e42aa78fbf68dcdaae1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Modules.PokerAchievementModule

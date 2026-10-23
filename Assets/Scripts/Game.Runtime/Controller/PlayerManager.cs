@@ -140,8 +140,24 @@ namespace Game.Runtime.Controller
 		{
 			if (!IsHost || _botClientIds.Count == 0) return false;
 
-			var clientId = _botClientIds[^1];
-			_botClientIds.RemoveAt(_botClientIds.Count - 1);
+			return RemoveBot(_botClientIds[^1]);
+		}
+
+		// The host never kicks itself: that is leaving, and it closes the room for everyone.
+		public bool ServerKick(ulong clientId)
+		{
+			if (!IsHost || clientId == NetworkManager.ServerClientId) return false;
+			if (_botClientIds.Contains(clientId)) return RemoveBot(clientId);
+			if (!NetworkManager.ConnectedClients.ContainsKey(clientId)) return false;
+
+			// The disconnect callback takes the body down, as it does for anyone leaving.
+			NetworkManager.DisconnectClient(clientId, LobbyConstant.KickedReason);
+			return true;
+		}
+
+		private bool RemoveBot(ulong clientId)
+		{
+			_botClientIds.Remove(clientId);
 			ReportBotCount();
 
 			// Leaves the way a disconnecting player does, so the table cleans up after it the same way.

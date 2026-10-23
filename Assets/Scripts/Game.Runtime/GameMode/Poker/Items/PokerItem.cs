@@ -26,6 +26,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 		[FormerlySerializedAs("_displayName")]
 		[SerializeField] private string _nameKey;
 
+		[Tooltip("{0} and on are the item's own balance values (DescriptionArgs), so tuning a number never means rewording a string.")]
 		[LocalizationKey]
 		[FormerlySerializedAs("_description")]
 		[SerializeField] private string _descriptionKey;
@@ -56,7 +57,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 		public PokerItemType Type => _type;
 		public float LeadIn => Mathf.Max(0f, _leadIn);
 		public string DisplayName => string.IsNullOrEmpty(_nameKey) ? name : Localizer.Get(_nameKey);
-		public string Description => Localizer.Get(_descriptionKey);
+		public string Description => Localizer.Format(_descriptionKey, DescriptionArgs);
 		public Sprite Icon => _icon;
 		public int HallucinationCost => Mathf.Max(0, _hallucinationCost);
 		public string NoticeVerb => string.IsNullOrEmpty(_noticeKey)
@@ -64,6 +65,8 @@ namespace Game.Runtime.GameMode.Poker.Items
 			: Localizer.Get(_noticeKey);
 
 		public string PrivateNoticeVerb => string.IsNullOrEmpty(_privateNoticeKey) ? null : Localizer.Get(_privateNoticeKey);
+
+		protected virtual object[] DescriptionArgs => null;
 
 		// Whether playing it makes another player answer, which the turn clock has to leave room for.
 		public virtual bool NeedsResponse => false;

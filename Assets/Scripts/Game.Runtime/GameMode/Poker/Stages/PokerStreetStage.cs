@@ -109,6 +109,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		public bool PicksKind => _kindSelection == PokerBetKindSelection.Chosen;
 
 		// What a bet here puts up right now: the street's own size, as the table's modules have changed it.
+		public int CommunityCardsToReveal => Mathf.Max(0, _communityCardsToReveal);
 		public int StakeSize => GameMode ? GameMode.ModifyStakeSize(this, Mathf.Max(1, _stakeSize)) : Mathf.Max(1, _stakeSize);
 
 		// The street's own rule alone, before any module narrows it: whether folding is part of this street at all.
@@ -214,6 +215,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 			// appears and the timeout comes back with it.
 			if (_turnDuration <= 0f) return;
 			if (Data.CurrentTurnClientId.Value == PokerGameData.NoTurn) return;
+			if (Data.IsTurnClockPaused) return;
 
 			_turnElapsed += deltaTime;
 			if (_turnElapsed < _turnDuration) return;

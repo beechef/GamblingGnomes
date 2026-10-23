@@ -126,11 +126,15 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 		public static void NotifyHandVisibilityRulesChanged() => OnHandVisibilityRulesChanged?.Invoke();
 
+		// Server only: any player's rate has just reached the ceiling, whatever put it there.
+		public static event Action<PokerPlayerData> OnServerWentUnder;
+
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
 		private static void ResetStatics()
 		{
 			HandVisibilityProviders.Clear();
 			OnHandVisibilityRulesChanged = null;
+			OnServerWentUnder = null;
 		}
 
 		public event Action OnStateChanged;
@@ -545,7 +549,10 @@ namespace Game.Runtime.GameMode.Poker.Player
 		{
 			if (!IsServer) return;
 
+			var wasAlive = IsAlive;
 			HallucinationRate.Value = Mathf.Clamp(HallucinationRate.Value + delta, 0, MaxHallucination);
+
+			if (wasAlive && !IsAlive) OnServerWentUnder?.Invoke(this);
 		}
 
 		// Negative hurts, positive heals; the clamp lives here so no source of harm can overshoot it.

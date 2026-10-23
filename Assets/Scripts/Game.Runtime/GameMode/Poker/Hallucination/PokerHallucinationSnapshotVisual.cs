@@ -22,21 +22,28 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 		[SerializeField] private int _strongThreshold = 41;
 
 		private PokerPlayerData _data;
+		private PokerHallucinationController _controller;
 		private AudioHandle _mild;
 		private AudioHandle _strong;
 
-		private void Awake() => _data = GetComponentInParent<PokerPlayerData>();
+		private void Awake()
+		{
+			_data = GetComponentInParent<PokerPlayerData>();
+			_controller = GetComponent<PokerHallucinationController>();
+		}
 
 		public override void OnNetworkSpawn()
 		{
 			if (!IsOwner || !_data) return;
 
 			_data.HallucinationRate.OnValueChanged += HandleRateChanged;
+			if (_controller) _controller.OnEffectsHiddenChanged += HandleEffectsHiddenChanged;
 			Apply(_data.HallucinationRate.Value);
 		}
 
 		public override void OnNetworkDespawn()
 		{
+			if (_controller) _controller.OnEffectsHiddenChanged -= HandleEffectsHiddenChanged;
 			if (_data) _data.HallucinationRate.OnValueChanged -= HandleRateChanged;
 
 			Hold(ref _mild, _mildSnapshot, false);
@@ -45,9 +52,11 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 
 		private void HandleRateChanged(int previous, int current) => Apply(current);
 
+		private void HandleEffectsHiddenChanged() => Apply(_data.HallucinationRate.Value);
+
 		private void Apply(int rate)
 		{
-			if (!PokerHallucinationController.EffectsAllowed) rate = 0;
+			if (!PokerHallucinationController.EffectsAllowed || (_controller && _controller.EffectsHidden)) rate = 0;
 
 			Hold(ref _mild, _mildSnapshot, rate >= _mildThreshold);
 			Hold(ref _strong, _strongSnapshot, rate >= _strongThreshold);

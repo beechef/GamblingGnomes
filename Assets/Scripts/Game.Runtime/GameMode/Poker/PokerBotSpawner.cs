@@ -21,7 +21,7 @@ namespace Game.Runtime.GameMode.Poker
 
 		public bool AllowsBots => _allowBots && _botPrefab;
 
-		public bool IsInWaitingRoom => _gameMode && _gameMode.Data && _gameMode.Data.Phase.Value == PokerPhase.Waiting && !_gameMode.CanDealAnotherHand;
+		public bool IsInWaitingRoom => _gameMode && _gameMode.IsInWaitingRoom;
 
 		// A body with no chair would stand around the table for the whole match, and a bot past the room's size
 		// would turn away a player the room list still offered a place to.

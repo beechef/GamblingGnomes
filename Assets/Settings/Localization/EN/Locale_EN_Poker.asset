@@ -161,18 +161,18 @@ MonoBehaviour:
   - Key: poker.helper.joker_caption
     Value: Wild card
   - Key: poker.ruleset.deal_cards
-    Value: At the start of the match, each player is dealt 2 private cards (Hold
+    Value: At the start of the match, each player is dealt {0} private cards (Hold
       Card).
   - Key: poker.ruleset.deal_cards_items
-    Value: At the start of the match, each player is dealt 2 private cards (Hold
-      Card) and 2 items.
+    Value: At the start of the match, each player is dealt {0} private cards (Hold
+      Card) and {1} items.
   - Key: poker.ruleset.turn_actions
     Value: On their turn, a player can Call, go All in or Fold.
   - Key: poker.ruleset.turn_actions_items
-    Value: On their turn, a player can use up to 2 items, then Call or Fold.
+    Value: On their turn, a player can use up to {0} items, then Call or Fold.
   - Key: poker.ruleset.community_cards
-    Value: At the end of each round, 3 - 1 - 1 shared cards (Community Card) are
-      turned in turn.
+    Value: At the end of each round, {0} shared cards (Community Card) are turned
+      in turn.
   - Key: poker.ruleset.all_in
     Value: Once someone goes All in, every player can only match that All in or Fold.
       Then every remaining card is turned.
@@ -199,3 +199,5 @@ MonoBehaviour:
       chance based on the current hallucination rate.
   - Key: poker.colorful.prompt_no_items
     Value: Who will eat the <Highlight>deadly shroom</Highlight>?
+  - Key: poker.button.hallucination_effect
+    Value: EFFECT ON/OFF

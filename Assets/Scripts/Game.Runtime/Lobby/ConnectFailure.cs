@@ -8,6 +8,7 @@ namespace Game.Runtime.Lobby
 		Timeout,
 		RoomGone,
 		Unavailable,
-		Disconnected
+		Disconnected,
+		Kicked
 	}
 }

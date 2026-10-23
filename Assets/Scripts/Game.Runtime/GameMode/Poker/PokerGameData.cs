@@ -47,6 +47,14 @@ namespace Game.Runtime.GameMode.Poker
 		[HideInInspector] public NetworkVariable<float> TurnDuration = new(0f,
 			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
 
+		// The turn clock stands still while an item resolves. TurnEndTime is left alone, since a bot reads
+		// every write to it as a new turn: the pause is kept beside it instead.
+		[HideInInspector] public NetworkVariable<double> TurnPausedAt = new(0d,
+			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
+
+		[HideInInspector] public NetworkVariable<float> TurnPausedFor = new(0f,
+			readPerm: NetworkVariableReadPermission.Everyone, writePerm: NetworkVariableWritePermission.Server);
+
 		// Which betting round of the hand is running, counted from 1 as each street opens. Zero from the deal
 		// until the first street, and outside a hand.
 		[HideInInspector] public NetworkVariable<int> StreetNumber = new(0,
@@ -157,10 +165,13 @@ namespace Game.Runtime.GameMode.Poker
 			{
 				if (!HasTurn || TurnDuration.Value <= 0f || !NetworkManager.Singleton) return 0f;
 
-				var remaining = TurnEndTime.Value - NetworkManager.Singleton.ServerTime.Time;
+				var now = IsTurnClockPaused ? TurnPausedAt.Value : NetworkManager.Singleton.ServerTime.Time;
+				var remaining = TurnEndTime.Value + TurnPausedFor.Value - now;
 				return Mathf.Clamp((float)remaining, 0f, TurnDuration.Value);
 			}
 		}
+
+		public bool IsTurnClockPaused => TurnPausedAt.Value > 0d;
 
 		// Whether this turn is on a clock at all. A stage with no duration is one the table waits on, so
 		// the bar is hidden rather than drawn sitting at zero — which reads as a hung timer.

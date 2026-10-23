@@ -114,6 +114,9 @@ namespace Game.Runtime.GameMode.Poker
 		// arrived after it began would deal hands nobody in them is playing.
 		public bool CanDealAnotherHand => _rules && MatchPlayerCount >= _rules.MinimumPlayersToStart;
 
+		// Between matches, before start is pressed: the only time the room may change who is in it.
+		public bool IsInWaitingRoom => _data && _data.Phase.Value == PokerPhase.Waiting && !CanDealAnotherHand;
+
 		// Whether the host may press start. The host holds the button rather than a hand, so their own seat
 		// counts as company even when they have gone under — a table whose host is unconscious would otherwise
 		// have no way back at all, since nothing revives a player between matches unless the idle stage is
@@ -142,6 +145,7 @@ namespace Game.Runtime.GameMode.Poker
 		public event Action OnActionRulesChanged;
 
 		private readonly List<PokerPlayer> _seatedPlayers = new();
+		private readonly List<CardData> _evaluationBuffer = new();
 
 		private PokerStageMachine _stageMachine;
 		private GameObject _hudInstance;
@@ -330,6 +334,22 @@ namespace Game.Runtime.GameMode.Poker
 		}
 
 		public void NotifyActionRulesChanged() => OnActionRulesChanged?.Invoke();
+
+		// A hand scored the way the showdown scores it: the holder's cards plus the board only where the whole
+		// table has turned it — a card one screen alone was shown is not one anybody's hand was made with.
+		public PokerHandResult EvaluateHand(PokerPlayerData player)
+		{
+			_evaluationBuffer.Clear();
+
+			foreach (var card in player.HoleCards) _evaluationBuffer.Add(card);
+
+			for (var i = 0; i < _data.CommunityCards.Count; i++)
+			{
+				if (_data.IsCommunityCardRevealed(i)) _evaluationBuffer.Add(_data.CommunityCards[i]);
+			}
+
+			return HandEvaluator.Evaluate(_handDatabase, _evaluationBuffer);
+		}
 
 		public void NotifyHandSettled(IReadOnlyList<PokerPlayer> winners)
 		{
@@ -1105,6 +1125,8 @@ namespace Game.Runtime.GameMode.Poker
 			_data.CurrentTurnClientId.Value = clientId;
 			_data.TurnDuration.Value = duration;
 			_data.TurnEndTime.Value = NetworkManager.ServerTime.Time + duration;
+			_data.TurnPausedAt.Value = 0d;
+			_data.TurnPausedFor.Value = 0f;
 
 			// A turn is also the commonest reason the table is looking at somebody, so every street gets the
 			// focus for nothing. A beat that gives no turn and is still about one player says so itself.
@@ -1125,8 +1147,25 @@ namespace Game.Runtime.GameMode.Poker
 			_data.CurrentTurnClientId.Value = PokerGameData.NoTurn;
 			_data.TurnDuration.Value = 0f;
 			_data.TurnEndTime.Value = 0d;
+			_data.TurnPausedAt.Value = 0d;
+			_data.TurnPausedFor.Value = 0f;
 
 			ServerSetFocus(PokerGameData.NoTurn);
+		}
+
+		public void PauseTurnClock()
+		{
+			if (!IsServer || !_data.HasTurnClock || _data.IsTurnClockPaused) return;
+
+			_data.TurnPausedAt.Value = NetworkManager.ServerTime.Time;
+		}
+
+		public void ResumeTurnClock()
+		{
+			if (!IsServer || !_data.IsTurnClockPaused) return;
+
+			_data.TurnPausedFor.Value += (float)(NetworkManager.ServerTime.Time - _data.TurnPausedAt.Value);
+			_data.TurnPausedAt.Value = 0d;
 		}
 
 		// Who every head in the room should be pointed at. Set alongside the turn wherever there is one, and
@@ -1143,7 +1182,7 @@ namespace Game.Runtime.GameMode.Poker
 		{
 			if (!_data.HasTurn || _data.TurnDuration.Value <= 0f) return false;
 
-			return NetworkManager.ServerTime.Time >= _data.TurnEndTime.Value;
+			return _data.TurnRemaining <= 0f;
 		}
 
 		// The stage's own clock, running alongside the turn rather than instead of it — a stage that

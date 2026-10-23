@@ -47,6 +47,7 @@ namespace Game.Runtime
 			public static class Connect
 			{
 				public const string Disconnected = "error.connect.disconnected";
+				public const string Kicked = "error.connect.kicked";
 				public const string RoomFull = "error.connect.room_full";
 				public const string RoomGone = "error.connect.room_gone";
 				public const string Timeout = "error.connect.timeout";
@@ -432,6 +433,7 @@ namespace Game.Runtime
 				public const string Choose = "poker.button.choose";
 				public const string ClearBot = "poker.button.clear_bot";
 				public const string Fold = "poker.button.fold";
+				public const string HallucinationEffect = "poker.button.hallucination_effect";
 				public const string Helper = "poker.button.helper";
 				public const string Invite = "poker.button.invite";
 				public const string Items = "poker.button.items";

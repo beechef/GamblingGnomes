@@ -32,6 +32,7 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 		[SerializeField] private PokerDeathPoseController _deathPose;
 
 		private bool _queued;
+		private int _queuedAgainst;
 		private int _queuedRoll;
 		private bool _queuedFatal;
 		private int _queuedRateBefore;
@@ -50,8 +51,16 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 		// Any player's roll starting, for the table rather than one player's meter.
 		public static event Action OnAnyRollStarted;
 
+		// Server only: any player's roll paid, once its hold is over — what it was rolled against, and whether
+		// it put them under. Not raised for somebody already under by then.
+		public static event Action<PokerHallucinationRollController, int, bool> OnServerRollPaid;
+
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
-		private static void ResetStatics() => OnAnyRollStarted = null;
+		private static void ResetStatics()
+		{
+			OnAnyRollStarted = null;
+			OnServerRollPaid = null;
+		}
 
 		public bool ServerHasQueuedRoll => _queued;
 
@@ -59,6 +68,10 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 		public float ServerRollRemaining => Mathf.Max(0f, _rollEndsAt - Time.time);
 
 		public bool ServerRollFatal { get; private set; }
+
+		// True only while a fatal roll writes the ceiling, so whatever hears the player go under can tell a roll
+		// from an overdose.
+		public bool ServerIsPayingFatalRoll { get; private set; }
 
 		// How long the table still owes this roll and what it set off: the sweep and the hold, then the whole
 		// death when it was fatal, so whatever follows never lands on top of the fall. Fixed when the roll starts:
@@ -84,6 +97,7 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 			var roll = UnityEngine.Random.Range(0, PokerPlayerData.MaxHallucination);
 
 			_queued = true;
+			_queuedAgainst = against;
 			_queuedRoll = roll;
 			_queuedFatal = roll < against;
 			_queuedRateBefore = rateBefore;
@@ -125,7 +139,7 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 
 			RollRPC(leadIn, sweep, hold, _queuedRoll, _queuedFatal);
 
-			if (_queuedFatal) _ = ApplyFatalAfter(total);
+			_ = PayAfter(total, _queuedAgainst, _queuedFatal);
 		}
 
 		// A roll nobody started still has to be paid — a beat ending under it must not quietly spare somebody.
@@ -135,7 +149,7 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 
 			_queued = false;
 
-			if (_queuedFatal) ApplyFatal();
+			Pay(_queuedAgainst, _queuedFatal);
 		}
 
 		[Rpc(SendTo.Everyone)]
@@ -154,17 +168,32 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 			OnRollSettled?.Invoke(roll, fatal);
 		}
 
-		private async Awaitable ApplyFatalAfter(float delay)
+		private async Awaitable PayAfter(float delay, int against, bool fatal)
 		{
 			if (!await WaitAsync(delay)) return;
 
-			ApplyFatal();
+			Pay(against, fatal);
 		}
 
 		// Going under is still written as the ceiling, so IsAlive stays the one question anything asks.
-		private void ApplyFatal()
+		private void Pay(int against, bool fatal)
 		{
-			if (_data && _data.IsAlive) _data.ServerChangeHallucination(PokerPlayerData.MaxHallucination);
+			if (!_data || !_data.IsAlive) return;
+
+			if (fatal)
+			{
+				ServerIsPayingFatalRoll = true;
+				try
+				{
+					_data.ServerChangeHallucination(PokerPlayerData.MaxHallucination);
+				}
+				finally
+				{
+					ServerIsPayingFatalRoll = false;
+				}
+			}
+
+			OnServerRollPaid?.Invoke(this, against, fatal);
 		}
 
 		private async Awaitable<bool> WaitAsync(float delay)

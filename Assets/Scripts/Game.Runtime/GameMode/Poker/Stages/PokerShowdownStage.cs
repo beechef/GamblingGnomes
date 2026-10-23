@@ -45,7 +45,6 @@ namespace Game.Runtime.GameMode.Poker.Stages
 		[Tooltip("Where the table goes when the match is over, to announce who is left and put everything back. Empty ends the match here and goes straight to the idle stage.")]
 		[SerializeField] private PokerStage _matchOverStage;
 
-		private readonly List<CardData> _evaluationBuffer = new();
 		private readonly List<Contender> _ranking = new();
 		private readonly List<(PokerPlayer Player, int RankGroup)> _contenders = new();
 		private readonly List<PokerPlayer> _winners = new();
@@ -164,7 +163,7 @@ namespace Game.Runtime.GameMode.Poker.Stages
 				}
 
 				player.Data.ServerRevealHand();
-				_ranking.Add(new Contender(player, Evaluate(player)));
+				_ranking.Add(new Contender(player, GameMode.EvaluateHand(player.Data)));
 			}
 
 			// Strongest first, so position in this list is the finishing order. Ties share a rank group,
@@ -206,22 +205,6 @@ namespace Game.Runtime.GameMode.Poker.Stages
 					HandKey = handKey
 				});
 			}
-		}
-
-		private PokerHandResult Evaluate(PokerPlayer player)
-		{
-			_evaluationBuffer.Clear();
-
-			foreach (var card in player.Data.HoleCards) _evaluationBuffer.Add(card);
-
-			// The board counts only where the whole table has turned it: a card nobody has seen is not one
-			// anybody's hand was made with, and one the host alone was shown is not either.
-			for (var i = 0; i < Data.CommunityCards.Count; i++)
-			{
-				if (Data.IsCommunityCardRevealed(i)) _evaluationBuffer.Add(Data.CommunityCards[i]);
-			}
-
-			return GameMode.HandEvaluator.Evaluate(GameMode.HandDatabase, _evaluationBuffer);
 		}
 
 		private PokerPlayer NearestToOpener(List<PokerPlayer> candidates)

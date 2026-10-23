@@ -32,6 +32,9 @@ namespace Game.Runtime.UI.Poker
 
 			_shownPrefab = prefab;
 			_instance = prefab ? Instantiate(prefab, _container ? _container : (RectTransform)transform) : null;
+			if (!_instance) return;
+
+			foreach (var ruleArgs in _instance.GetComponentsInChildren<UIPokerRuleArgs>(true)) ruleArgs.Initialize(mode);
 		}
 	}
 }

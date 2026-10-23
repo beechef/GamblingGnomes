@@ -55,6 +55,9 @@ namespace Game.Runtime.Steam
 				SteamClient.Init(_steamAppId, false);
 				IsInitialized = true;
 
+				// Achievements and stats read as empty until the user's current stats have arrived.
+				SteamUserStats.RequestCurrentStats();
+
 				Debug.Log($"[SteamController] Initialized. Local SteamId: {SteamClient.SteamId}");
 				OnInitialized?.Invoke();
 			}

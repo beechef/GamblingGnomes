@@ -18,8 +18,12 @@ PrefabInstance:
       objectReference: {fileID: 11400000, guid: f9a243b47d5db86489e4793ebf753dc2, type: 2}
     - target: {fileID: 1761138002695942601, guid: 76c27f4fda7f9d04ea4ec0bfa56653c3, type: 3}
       propertyPath: _modules.Array.size
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 1761138002695942601, guid: 76c27f4fda7f9d04ea4ec0bfa56653c3, type: 3}
+      propertyPath: '_modules.Array.data[0]'
+      value: 
+      objectReference: {fileID: 5680018137647589483}
     - target: {fileID: 6932767257851964030, guid: 76c27f4fda7f9d04ea4ec0bfa56653c3, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -74,3 +78,14 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 76c27f4fda7f9d04ea4ec0bfa56653c3, type: 3}
+--- !u!114 &5680018137647589483 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4008705616590879314, guid: 76c27f4fda7f9d04ea4ec0bfa56653c3, type: 3}
+  m_PrefabInstance: {fileID: 8751253710107152953}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7052c059d1324e42aa78fbf68dcdaae1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Modules.PokerAchievementModule

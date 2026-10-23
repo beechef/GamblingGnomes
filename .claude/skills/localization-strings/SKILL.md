@@ -48,6 +48,7 @@ To reword an existing key, find its entry and set `Value` the same way.
 Text conventions:
 - Keywords to stand out: `<Highlight>…</Highlight>` (expanded by `UITextHighlighter`), never a hand `<color>`.
 - Runtime values: `{0}`, `{1}`, filled by `Localizer.Format(key, args)`. A label filled this way is set from code, so remove its `LocalizedText`.
+- **A balance number (a chance, an amount, a count) is never written into a string**: it is `{0}` filled from the field that sets it, so retuning never rewords 16 languages. Item descriptions get theirs from `PokerItem.DescriptionArgs` (`PokerItemJokerCard` `_chance`, `PokerItemRateShift` `_amount`); a fixed label gets them from a component calling `LocalizedText.SetArgs` (the rules page's `UIPokerRuleArgs`, a `PokerRuleFact` per placeholder read off the running mode).
 - Write every language yourself, in context (where the string shows, how it is assembled: a notice is `<actor> <lowered verb> [<target>]`), and tell the user these are your translations. A language switched off (`_isEnabled`) is still translated.
 - **A value Google Sheets would read as a formula (starts with `=`, `+`, `-` or `@`, e.g. `+{0} ITEM`) is written in the sheet with a leading `'`.** Otherwise the sheet turns it into a formula error and Import refuses everything (`The source holds formula errors; nothing was imported`). Tell the user which cells need it when they upload.
 

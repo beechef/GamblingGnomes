@@ -14,7 +14,7 @@ namespace Game.Runtime.GameMode.Poker.Items
 		[Header("Joker")]
 		[Tooltip("Chance, in percent, that the card becomes a Joker.")]
 		[PropertyRange(0, 100)]
-		[SerializeField] private int _chance = 50;
+		[SerializeField] private int _chance = 40;
 
 		[Tooltip("What the user reads when the card becomes a Joker.")]
 		[LocalizationKey]
@@ -25,6 +25,8 @@ namespace Game.Runtime.GameMode.Poker.Items
 		[LocalizationKey]
 		[FormerlySerializedAs("_failedVerb")]
 		[SerializeField] private string _failedKey = LocalizationKeys.Item.JokerCard.Failed;
+
+		protected override object[] DescriptionArgs => new object[] { _chance };
 
 		protected override PokerCardFlickerFaces FlickerFaces => PokerCardFlickerFaces.Joker;
 

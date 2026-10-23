@@ -31,6 +31,7 @@ namespace Game.Runtime.UI.Popup
 			ConnectFailure.RoomGone => LocalizationKeys.Error.Connect.RoomGone,
 			ConnectFailure.Unavailable => LocalizationKeys.Error.Connect.Unavailable,
 			ConnectFailure.Disconnected => LocalizationKeys.Error.Connect.Disconnected,
+			ConnectFailure.Kicked => LocalizationKeys.Error.Connect.Kicked,
 			_ => LocalizationKeys.Error.Connect.Unknown
 		};
 	}

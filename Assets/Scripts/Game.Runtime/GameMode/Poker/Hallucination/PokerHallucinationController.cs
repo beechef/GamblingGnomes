@@ -47,6 +47,14 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 
 		public int ActiveCount => _running.Count;
 
+		public bool IsTransitioning => _transitioning;
+
+		// A player who has gone under may stop seeing the rungs and watch the rest of the match sober. Local to
+		// this screen, and dropped the moment they are alive again, so a revived player is back on the ladder.
+		public bool EffectsHidden { get; private set; }
+
+		public event Action OnEffectsHiddenChanged;
+
 #if UNITY_EDITOR
 		// What this player is under, in rung order. The effects are objects in the hierarchy now, but their
 		// names carry the rung and the asset, and reading them off one line beats picking through children
@@ -233,7 +241,31 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 #endif
 		}
 
-		private void HandleChanged(int previous, int current) => Refresh(CrossesDeath(previous, current));
+		// Refused while alive and while a blink is already covering a swap: the toggle rides a blink of its own.
+		public bool CanHideEffects => IsOwner && _data && !_data.IsAlive && EffectsAllowed && !_transitioning;
+
+		public void SetEffectsHidden(bool hidden)
+		{
+			if (hidden == EffectsHidden || !CanHideEffects) return;
+
+			EffectsHidden = hidden;
+			OnEffectsHiddenChanged?.Invoke();
+
+			Refresh(blinkAnyway: true);
+		}
+
+		private void HandleChanged(int previous, int current)
+		{
+			if (EffectsHidden && _data.IsAlive)
+			{
+				EffectsHidden = false;
+				OnEffectsHiddenChanged?.Invoke();
+			}
+
+			Refresh(CrossesDeath(previous, current));
+		}
+
+		private bool IsRungClimbed(int rate, PokerHallucinationTiers.Rung rung) => !EffectsHidden && rate >= rung.Threshold;
 
 		private void HandleModeChanged(PokerGameMode mode) => Refresh();
 
@@ -307,7 +339,7 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 			{
 				if (rungs[i] == null) continue;
 
-				if (rate >= rungs[i].Threshold != _active.ContainsKey(i)) return true;
+				if (IsRungClimbed(rate, rungs[i]) != _active.ContainsKey(i)) return true;
 			}
 
 			return false;
@@ -325,7 +357,7 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 				var rung = rungs[i];
 				if (rung == null) continue;
 
-				var climbed = rate >= rung.Threshold;
+				var climbed = IsRungClimbed(rate, rung);
 				var running = _active.ContainsKey(i);
 
 				if (climbed == running) continue;

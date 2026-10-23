@@ -374,7 +374,11 @@ namespace Game.Runtime.UI.Poker
 				return;
 			}
 
-			targeting.OnTargetingChanged -= HandleTargetingChanged;
+			// An item still being aimed is put back while nobody listens: heard, its end would take the new
+			// aim's Escape and listener with it, leaving the prompt up and Escape falling through to pause.
+			EndTargeting();
+			targeting.Cancel();
+
 			targeting.OnTargetingChanged += HandleTargetingChanged;
 			targeting.BeginUse(item);
 

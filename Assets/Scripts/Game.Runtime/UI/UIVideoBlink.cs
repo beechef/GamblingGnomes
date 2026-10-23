@@ -10,7 +10,7 @@ namespace Game.Runtime.UI
 	// opening plays it on from the reopen frame and hides it at the end. When those happen is the caller's,
 	// so a blink timed by a tween and one timed by a replicated flag draw the same lids.
 	//
-	// It never takes the pointer.
+	// While up it takes the pointer (unless a CanvasGroup above refuses), so nothing under the lids is pressed mid-blink.
 	public class UIVideoBlink : MonoBehaviour
 	{
 		[Tooltip("Full-screen image wearing a UI_LumaMask material. Off between blinks.")]
@@ -30,7 +30,7 @@ namespace Game.Runtime.UI
 		{
 			if (_eyelids)
 			{
-				_eyelids.raycastTarget = false;
+				_eyelids.raycastTarget = true;
 				_eyelids.enabled = false;
 			}
 

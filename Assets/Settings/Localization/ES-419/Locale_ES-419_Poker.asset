@@ -161,17 +161,18 @@ MonoBehaviour:
   - Key: poker.helper.joker_caption
     Value: "Carta comod\xEDn"
   - Key: poker.ruleset.deal_cards
-    Value: "Al empezar la partida, cada jugador recibe 2 cartas propias que solo
+    Value: "Al empezar la partida, cada jugador recibe {0} cartas propias que solo
       ve \xE9l."
   - Key: poker.ruleset.deal_cards_items
-    Value: "Al empezar la partida, cada jugador recibe 2 cartas propias que solo
-      ve \xE9l y 2 objetos."
+    Value: "Al empezar la partida, cada jugador recibe {0} cartas propias que solo
+      ve \xE9l y {1} objetos."
   - Key: poker.ruleset.turn_actions
     Value: En su turno, un jugador puede igualar, ir all in o retirarse.
   - Key: poker.ruleset.turn_actions_items
-    Value: En su turno, un jugador puede usar hasta 2 objetos y luego igualar o retirarse.
+    Value: En su turno, un jugador puede usar hasta {0} objetos y luego igualar o
+      retirarse.
   - Key: poker.ruleset.community_cards
-    Value: Al final de cada ronda se voltean por turnos 3 - 1 - 1 cartas comunitarias.
+    Value: Al final de cada ronda se voltean por turnos {0} cartas comunitarias.
   - Key: poker.ruleset.all_in
     Value: "Cuando alguien va all in, el resto solo puede igualar ese all in o retirarse.
       Despu\xE9s se voltean todas las cartas que quedan."
@@ -199,3 +200,5 @@ MonoBehaviour:
       de sobredosis al azar seg\xFAn tu alucinaci\xF3n actual."
   - Key: poker.colorful.prompt_no_items
     Value: "\xBFQui\xE9n se comer\xE1 el <Highlight>hongo mortal</Highlight>?"
+  - Key: poker.button.hallucination_effect
+    Value: "EFECTOS S\xCD/NO"
