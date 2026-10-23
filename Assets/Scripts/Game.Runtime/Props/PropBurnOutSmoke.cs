@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using DG.Tweening;
+using Game.Runtime.Audio;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.VFX;
@@ -25,6 +26,9 @@ namespace Game.Runtime.Props
 		[Tooltip("Seconds a puff spawns smoke before it is stopped, picked at random between min and max.")]
 		[MinMaxSlider(0f, 10f, true)]
 		[SerializeField] private Vector2 _duration = new(1f, 2.5f);
+
+		[Tooltip("Played at the holder as each puff starts.")]
+		[SerializeField] private AudioEvent _puffSound;
 
 		private int _litCount;
 		private Tween _tween;
@@ -77,6 +81,8 @@ namespace Game.Runtime.Props
 			{
 				if (effect) effect.Play();
 			}
+
+			if (_puffSound) AudioManager.Instance.PlayOneShot(_puffSound, _holder.position);
 
 			_tween = DOVirtual.DelayedCall(Random.Range(_duration.x, _duration.y), EndPuff, false).SetLink(gameObject);
 		}
