@@ -39,8 +39,6 @@ MonoBehaviour:
     Value: "D\xE9j\xE0 {0} objets jou\xE9s ce tour."
   - Key: item.reason.waiting_other
     Value: En attente d'un autre objet.
-  - Key: item.reason.no_time
-    Value: "Plus assez de temps pour qu'il r\xE9ponde."
   - Key: item.reason.not_in_hand
     Value: Tu n'es pas dans cette main.
   - Key: item.reason.hand_full
@@ -55,36 +53,22 @@ MonoBehaviour:
     Value: "Tu vois d\xE9j\xE0 la derni\xE8re carte commune."
   - Key: item.reason.board_seen
     Value: "Tu vois d\xE9j\xE0 toutes les cartes communes."
-  - Key: item.reason.board_face_up
-    Value: "Toutes les cartes communes sont d\xE9j\xE0 visibles."
   - Key: item.reason.board_full
     Value: Le board est plein.
   - Key: item.reason.no_card_to_lay
     Value: "Tu n'as aucune carte \xE0 poser."
   - Key: item.reason.no_card_to_give
     Value: "Tu n'as plus de carte \xE0 donner."
-  - Key: item.reason.cards_face_up
-    Value: "Tes cartes sont d\xE9j\xE0 visibles."
   - Key: item.reason.all_face_up
     Value: "Toutes les cartes sont d\xE9j\xE0 visibles."
   - Key: item.reason.cant_change
     Value: Aucune de tes cartes ne peut changer.
   - Key: item.reason.already_under
     Value: "Tu es d\xE9j\xE0 dans les vapes."
-  - Key: item.reason.no_count_place
-    Value: "Nulle part o\xF9 garder le compte."
-  - Key: item.reason.already_counted
-    Value: "Tu as d\xE9j\xE0 compt\xE9 dans cette main."
   - Key: item.reason.nobody_to_halve
     Value: "Personne n'a rien \xE0 diviser par deux."
-  - Key: item.reason.nobody_to_spike
-    Value: "Plus personne \xE0 droguer."
-  - Key: item.reason.nobody_to_show
-    Value: "Personne d'autre n'a de carte \xE0 montrer."
   - Key: item.reason.nobody_in_hand
     Value: Plus personne d'autre dans la main.
-  - Key: item.reason.nobody_unseen
-    Value: Personne n'a de carte que tu n'as pas vue.
   - Key: item.reason.nobody_to_shake
     Value: "Plus personne \xE0 secouer."
   - Key: item.reason.nobody_to_roll
@@ -148,10 +132,6 @@ MonoBehaviour:
       deux fois plus fort, 50/50.
   - Key: item.mushroom_dose.notice
     Value: DROGUE
-  - Key: item.mushroom_dose.nullified
-    Value: VIDE {0} CHAMPIS CHEZ
-  - Key: item.mushroom_dose.doubled
-    Value: DOUBLE {0} CHAMPIS CHEZ
   - Key: item.mushroom_dose.prompt
     Value: VISE CELUI DONT TU DROGUES LES CHAMPIS
   - Key: item.mutual_reveal.name
@@ -198,8 +178,6 @@ MonoBehaviour:
       tu as vue.
   - Key: item.peek_hand.notice
     Value: ESPIONNE
-  - Key: item.peek_hand.private
-    Value: A VU TON {0}
   - Key: item.place_on_board.name
     Value: Cigarette
   - Key: item.place_on_board.description
@@ -271,3 +249,5 @@ MonoBehaviour:
       la table pendant ce tour."
   - Key: item.table_reveal.notice
     Value: EXPOSE TOUTE LA TABLE
+  - Key: item.reason.no_time
+    Value: "Plus assez de temps pour qu'il r\xE9ponde."

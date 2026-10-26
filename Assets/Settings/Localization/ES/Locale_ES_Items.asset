@@ -39,8 +39,6 @@ MonoBehaviour:
     Value: Ya has jugado {0} objetos esta ronda.
   - Key: item.reason.waiting_other
     Value: Esperando otro objeto.
-  - Key: item.reason.no_time
-    Value: No queda tiempo para que respondan.
   - Key: item.reason.not_in_hand
     Value: "No est\xE1s en esta mano."
   - Key: item.reason.hand_full
@@ -55,36 +53,22 @@ MonoBehaviour:
     Value: "Ya ves la \xFAltima carta de la mesa."
   - Key: item.reason.board_seen
     Value: Ya ves todas las cartas de la mesa.
-  - Key: item.reason.board_face_up
-    Value: "Todas las cartas de la mesa ya est\xE1n boca arriba."
   - Key: item.reason.board_full
     Value: "La mesa est\xE1 llena."
   - Key: item.reason.no_card_to_lay
     Value: No tienes ninguna carta que poner.
   - Key: item.reason.no_card_to_give
     Value: No te quedan cartas que dar.
-  - Key: item.reason.cards_face_up
-    Value: "Tus cartas ya est\xE1n boca arriba."
   - Key: item.reason.all_face_up
     Value: "Todas las cartas ya est\xE1n boca arriba."
   - Key: item.reason.cant_change
     Value: No puedes cambiar ninguna de tus cartas.
   - Key: item.reason.already_under
     Value: "Ya has ca\xEDdo redondo."
-  - Key: item.reason.no_count_place
-    Value: "No hay d\xF3nde apuntar la cuenta."
-  - Key: item.reason.already_counted
-    Value: Ya has contado en esta mano.
   - Key: item.reason.nobody_to_halve
     Value: Nadie tiene nada que partir a la mitad.
-  - Key: item.reason.nobody_to_spike
-    Value: No queda nadie a quien dopar.
-  - Key: item.reason.nobody_to_show
-    Value: "Nadie m\xE1s tiene cartas que mostrar."
   - Key: item.reason.nobody_in_hand
     Value: "No queda nadie m\xE1s en la mano."
-  - Key: item.reason.nobody_unseen
-    Value: Nadie tiene cartas que no hayas visto.
   - Key: item.reason.nobody_to_shake
     Value: Ya no hay dosis que alterar.
   - Key: item.reason.nobody_to_roll
@@ -148,10 +132,6 @@ MonoBehaviour:
       doble de fuerte, 50/50."
   - Key: item.mushroom_dose.notice
     Value: DOPA LAS SETAS DE
-  - Key: item.mushroom_dose.nullified
-    Value: ANULA {0} SETAS DE
-  - Key: item.mushroom_dose.doubled
-    Value: DUPLICA {0} SETAS DE
   - Key: item.mushroom_dose.prompt
     Value: "SE\xD1ALA A QUIEN LE DOPAS LAS SETAS"
   - Key: item.mutual_reveal.name
@@ -199,8 +179,6 @@ MonoBehaviour:
       has visto."
   - Key: item.peek_hand.notice
     Value: "ESP\xCDA A"
-  - Key: item.peek_hand.private
-    Value: HA VISTO TU {0}
   - Key: item.place_on_board.name
     Value: Cigarro
   - Key: item.place_on_board.description
@@ -272,3 +250,5 @@ MonoBehaviour:
       mesa en esta ronda."
   - Key: item.table_reveal.notice
     Value: DESTAPA A TODOS
+  - Key: item.reason.no_time
+    Value: No queda tiempo para que respondan.

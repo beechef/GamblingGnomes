@@ -39,8 +39,6 @@ MonoBehaviour:
     Value: "Voc\xEA j\xE1 usou {0} itens nesta rodada."
   - Key: item.reason.waiting_other
     Value: Aguardando outro item.
-  - Key: item.reason.no_time
-    Value: "N\xE3o sobra tempo para responderem."
   - Key: item.reason.not_in_hand
     Value: "Voc\xEA n\xE3o est\xE1 nesta m\xE3o."
   - Key: item.reason.hand_full
@@ -55,36 +53,22 @@ MonoBehaviour:
     Value: "A \xFAltima carta comunit\xE1ria j\xE1 est\xE1 aberta para voc\xEA."
   - Key: item.reason.board_seen
     Value: "Todas as cartas comunit\xE1rias j\xE1 est\xE3o abertas para voc\xEA."
-  - Key: item.reason.board_face_up
-    Value: "Todas as cartas comunit\xE1rias j\xE1 est\xE3o abertas."
   - Key: item.reason.board_full
     Value: "As cartas comunit\xE1rias est\xE3o completas."
   - Key: item.reason.no_card_to_lay
     Value: "Voc\xEA n\xE3o tem carta para baixar."
   - Key: item.reason.no_card_to_give
     Value: "Voc\xEA n\xE3o tem mais cartas para dar."
-  - Key: item.reason.cards_face_up
-    Value: "Suas cartas j\xE1 est\xE3o abertas."
   - Key: item.reason.all_face_up
     Value: "Todas as cartas j\xE1 est\xE3o abertas."
   - Key: item.reason.cant_change
     Value: Nenhuma das suas cartas pode mudar.
   - Key: item.reason.already_under
     Value: "Voc\xEA j\xE1 apagou."
-  - Key: item.reason.no_count_place
-    Value: "N\xE3o h\xE1 onde guardar a contagem."
-  - Key: item.reason.already_counted
-    Value: "Voc\xEA j\xE1 contou nesta m\xE3o."
   - Key: item.reason.nobody_to_halve
     Value: "Ningu\xE9m tem nada para cortar ao meio."
-  - Key: item.reason.nobody_to_spike
-    Value: "N\xE3o sobrou ningu\xE9m para batizar."
-  - Key: item.reason.nobody_to_show
-    Value: "Ningu\xE9m mais tem carta para mostrar."
   - Key: item.reason.nobody_in_hand
     Value: "N\xE3o sobrou mais ningu\xE9m na m\xE3o."
-  - Key: item.reason.nobody_unseen
-    Value: "Ningu\xE9m tem uma carta que voc\xEA n\xE3o viu."
   - Key: item.reason.nobody_to_shake
     Value: "N\xE3o sobrou ningu\xE9m para mexer na dose."
   - Key: item.reason.nobody_to_roll
@@ -148,10 +132,6 @@ MonoBehaviour:
       batem em dobro, 50/50."
   - Key: item.mushroom_dose.notice
     Value: BATIZOU OS COGUMELOS DE
-  - Key: item.mushroom_dose.nullified
-    Value: ANULOU {0} COGUMELOS DE
-  - Key: item.mushroom_dose.doubled
-    Value: DOBROU {0} COGUMELOS DE
   - Key: item.mushroom_dose.prompt
     Value: "APONTE PARA QUEM TER\xC1 OS COGUMELOS BATIZADOS"
   - Key: item.mutual_reveal.name
@@ -199,8 +179,6 @@ MonoBehaviour:
       voc\xEA viu."
   - Key: item.peek_hand.notice
     Value: "ESPIOU A M\xC3O DE"
-  - Key: item.peek_hand.private
-    Value: VIU SEU {0}
   - Key: item.place_on_board.name
     Value: Cigarro
   - Key: item.place_on_board.description
@@ -273,3 +251,5 @@ MonoBehaviour:
       toda nesta rodada."
   - Key: item.table_reveal.notice
     Value: "EXP\xD4S TODO MUNDO"
+  - Key: item.reason.no_time
+    Value: "N\xE3o sobra tempo para responderem."

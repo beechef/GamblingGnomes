@@ -39,8 +39,6 @@ MonoBehaviour:
     Value: Diese Runde schon {0} Items gespielt.
   - Key: item.reason.waiting_other
     Value: Warte auf ein anderes Item.
-  - Key: item.reason.no_time
-    Value: "Zu wenig Zeit f\xFCr eine Antwort."
   - Key: item.reason.not_in_hand
     Value: Du bist nicht in dieser Hand.
   - Key: item.reason.hand_full
@@ -55,36 +53,22 @@ MonoBehaviour:
     Value: "Die letzte Boardkarte liegt f\xFCr dich schon offen."
   - Key: item.reason.board_seen
     Value: "Alle Boardkarten liegen f\xFCr dich schon offen."
-  - Key: item.reason.board_face_up
-    Value: Alle Boardkarten liegen schon offen.
   - Key: item.reason.board_full
     Value: Das Board ist voll.
   - Key: item.reason.no_card_to_lay
     Value: Du hast keine Karte zum Auslegen.
   - Key: item.reason.no_card_to_give
     Value: Du hast keine Karte mehr zum Abgeben.
-  - Key: item.reason.cards_face_up
-    Value: Deine Karten liegen schon offen.
   - Key: item.reason.all_face_up
     Value: Alle Karten liegen schon offen.
   - Key: item.reason.cant_change
     Value: "Keine deiner Karten l\xE4sst sich \xE4ndern."
   - Key: item.reason.already_under
     Value: Du bist schon weggetreten.
-  - Key: item.reason.no_count_place
-    Value: "Kein Platz, um mitzuz\xE4hlen."
-  - Key: item.reason.already_counted
-    Value: "Du hast in dieser Hand schon gez\xE4hlt."
   - Key: item.reason.nobody_to_halve
     Value: Niemand hat etwas zum Halbieren.
-  - Key: item.reason.nobody_to_spike
-    Value: "Keiner mehr zum Panschen \xFCbrig."
-  - Key: item.reason.nobody_to_show
-    Value: Niemand sonst hat noch eine Karte zum Zeigen.
   - Key: item.reason.nobody_in_hand
     Value: Niemand sonst ist noch in der Hand.
-  - Key: item.reason.nobody_unseen
-    Value: Niemand hat eine Karte, die du nicht kennst.
   - Key: item.reason.nobody_to_shake
     Value: "Keiner mehr zum Durchsch\xFCtteln \xFCbrig."
   - Key: item.reason.nobody_to_roll
@@ -148,10 +132,6 @@ MonoBehaviour:
       oder doppelt so stark, 50/50."
   - Key: item.mushroom_dose.notice
     Value: PANSCHT BEI
-  - Key: item.mushroom_dose.nullified
-    Value: "ENTSCH\xC4RFT {0}X BEI"
-  - Key: item.mushroom_dose.doubled
-    Value: VERDOPPELT {0}X BEI
   - Key: item.mushroom_dose.prompt
     Value: ZEIG AUF DEN, DESSEN PILZE DU PANSCHST
   - Key: item.mutual_reveal.name
@@ -200,8 +180,6 @@ MonoBehaviour:
       welche Karte du gesehen hast."
   - Key: item.peek_hand.notice
     Value: "SP\xC4HT BEI"
-  - Key: item.peek_hand.private
-    Value: HAT DEINE {0} GESEHEN
   - Key: item.place_on_board.name
     Value: Zigarette
   - Key: item.place_on_board.description
@@ -276,3 +254,5 @@ MonoBehaviour:
       Runde eine zuf\xE4llige Karte."
   - Key: item.table_reveal.notice
     Value: DECKT ALLE AUF
+  - Key: item.reason.no_time
+    Value: "Zu wenig Zeit f\xFCr eine Antwort."

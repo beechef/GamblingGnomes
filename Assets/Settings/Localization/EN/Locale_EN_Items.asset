@@ -39,8 +39,6 @@ MonoBehaviour:
     Value: Already played {0} items this street.
   - Key: item.reason.waiting_other
     Value: Waiting on another item.
-  - Key: item.reason.no_time
-    Value: Not enough time left for them to answer.
   - Key: item.reason.not_in_hand
     Value: You are not in this hand.
   - Key: item.reason.hand_full
@@ -55,36 +53,22 @@ MonoBehaviour:
     Value: The last board card is already face up to you.
   - Key: item.reason.board_seen
     Value: Every board card is already face up to you.
-  - Key: item.reason.board_face_up
-    Value: Every board card is already face up.
   - Key: item.reason.board_full
     Value: The board is full.
   - Key: item.reason.no_card_to_lay
     Value: You have no card to lay down.
   - Key: item.reason.no_card_to_give
     Value: You have no card left to give.
-  - Key: item.reason.cards_face_up
-    Value: Your cards are already face up.
   - Key: item.reason.all_face_up
     Value: Every card is already face up.
   - Key: item.reason.cant_change
     Value: None of your cards can be changed.
   - Key: item.reason.already_under
     Value: You are already under.
-  - Key: item.reason.no_count_place
-    Value: Nowhere to keep the count.
-  - Key: item.reason.already_counted
-    Value: You already counted this hand.
   - Key: item.reason.nobody_to_halve
     Value: Nobody has anything to halve.
-  - Key: item.reason.nobody_to_spike
-    Value: Nobody is left to spike.
-  - Key: item.reason.nobody_to_show
-    Value: Nobody else has a card left to show.
   - Key: item.reason.nobody_in_hand
     Value: Nobody else is left in the hand.
-  - Key: item.reason.nobody_unseen
-    Value: Nobody has a card you have not seen.
   - Key: item.reason.nobody_to_shake
     Value: Nobody is left to shake.
   - Key: item.reason.nobody_to_roll
@@ -148,10 +132,6 @@ MonoBehaviour:
       50/50.
   - Key: item.mushroom_dose.notice
     Value: SPIKED
-  - Key: item.mushroom_dose.nullified
-    Value: EMPTIED {0} CAPS OF
-  - Key: item.mushroom_dose.doubled
-    Value: DOUBLED {0} CAPS OF
   - Key: item.mushroom_dose.prompt
     Value: POINT AT WHOSE MUSHROOMS YOU SPIKE
   - Key: item.mutual_reveal.name
@@ -196,8 +176,6 @@ MonoBehaviour:
       saw.
   - Key: item.peek_hand.notice
     Value: PEEKED AT
-  - Key: item.peek_hand.private
-    Value: SAW YOUR {0}
   - Key: item.place_on_board.name
     Value: Cigarette
   - Key: item.place_on_board.description
@@ -269,3 +247,5 @@ MonoBehaviour:
       this street.
   - Key: item.table_reveal.notice
     Value: EXPOSED ALL
+  - Key: item.reason.no_time
+    Value: Not enough time left for them to answer.

@@ -39,8 +39,6 @@ MonoBehaviour:
     Value: "\u672C\u8F6E\u5DF2\u7528\u8FC7 {0} \u4E2A\u9053\u5177\u3002"
   - Key: item.reason.waiting_other
     Value: "\u6B63\u5728\u7B49\u5F85\u53E6\u4E00\u4E2A\u9053\u5177\u3002"
-  - Key: item.reason.no_time
-    Value: "\u5269\u4F59\u65F6\u95F4\u4E0D\u591F\u5BF9\u65B9\u56DE\u5E94\u3002"
   - Key: item.reason.not_in_hand
     Value: "\u4F60\u4E0D\u5728\u8FD9\u5C40\u4E2D\u3002"
   - Key: item.reason.hand_full
@@ -55,36 +53,22 @@ MonoBehaviour:
     Value: "\u6700\u540E\u4E00\u5F20\u516C\u5171\u724C\u4F60\u5DF2\u7ECF\u770B\u8FC7\u4E86\u3002"
   - Key: item.reason.board_seen
     Value: "\u6240\u6709\u516C\u5171\u724C\u4F60\u90FD\u770B\u8FC7\u4E86\u3002"
-  - Key: item.reason.board_face_up
-    Value: "\u6240\u6709\u516C\u5171\u724C\u90FD\u5DF2\u7FFB\u5F00\u3002"
   - Key: item.reason.board_full
     Value: "\u516C\u5171\u724C\u5DF2\u6EE1\u3002"
   - Key: item.reason.no_card_to_lay
     Value: "\u4F60\u6CA1\u6709\u724C\u53EF\u4EE5\u653E\u4E0B\u3002"
   - Key: item.reason.no_card_to_give
     Value: "\u4F60\u6CA1\u6709\u724C\u53EF\u4EE5\u7ED9\u4E86\u3002"
-  - Key: item.reason.cards_face_up
-    Value: "\u4F60\u7684\u724C\u90FD\u5DF2\u7FFB\u5F00\u3002"
   - Key: item.reason.all_face_up
     Value: "\u6240\u6709\u724C\u90FD\u5DF2\u7FFB\u5F00\u3002"
   - Key: item.reason.cant_change
     Value: "\u4F60\u7684\u724C\u90FD\u65E0\u6CD5\u66F4\u6539\u3002"
   - Key: item.reason.already_under
     Value: "\u4F60\u5DF2\u7ECF\u5012\u4E0B\u4E86\u3002"
-  - Key: item.reason.no_count_place
-    Value: "\u6CA1\u6709\u5730\u65B9\u8BB0\u5F55\u8BA1\u6570\u3002"
-  - Key: item.reason.already_counted
-    Value: "\u8FD9\u5C40\u4F60\u5DF2\u7ECF\u6570\u8FC7\u4E86\u3002"
   - Key: item.reason.nobody_to_halve
     Value: "\u6CA1\u4EBA\u6709\u53EF\u4EE5\u51CF\u534A\u7684\u4E1C\u897F\u3002"
-  - Key: item.reason.nobody_to_spike
-    Value: "\u6CA1\u4EBA\u53EF\u4EE5\u4E0B\u836F\u4E86\u3002"
-  - Key: item.reason.nobody_to_show
-    Value: "\u5176\u4ED6\u4EBA\u90FD\u6CA1\u6709\u724C\u53EF\u4EAE\u4E86\u3002"
   - Key: item.reason.nobody_in_hand
     Value: "\u8FD9\u5C40\u5DF2\u7ECF\u6CA1\u6709\u5176\u4ED6\u4EBA\u4E86\u3002"
-  - Key: item.reason.nobody_unseen
-    Value: "\u6CA1\u4EBA\u6709\u4F60\u6CA1\u770B\u8FC7\u7684\u724C\u3002"
   - Key: item.reason.nobody_to_shake
     Value: "\u6CA1\u4EBA\u53EF\u4EE5\u6539\u5242\u91CF\u4E86\u3002"
   - Key: item.reason.nobody_to_roll
@@ -142,10 +126,6 @@ MonoBehaviour:
       50%\u3002"
   - Key: item.mushroom_dose.notice
     Value: "\u4E0B\u836F \u2192"
-  - Key: item.mushroom_dose.nullified
-    Value: "\u8BA9 {0} \u6735\u8611\u83C7\u5931\u6548 \u2192"
-  - Key: item.mushroom_dose.doubled
-    Value: "\u8BA9 {0} \u6735\u8611\u83C7\u836F\u6548\u7FFB\u500D \u2192"
   - Key: item.mushroom_dose.prompt
     Value: "\u6307\u5411\u8981\u88AB\u4E0B\u836F\u7684\u4EBA"
   - Key: item.mutual_reveal.name
@@ -188,8 +168,6 @@ MonoBehaviour:
     Value: "\u67E5\u770B\u4ECD\u5728\u5C40\u4E2D\u7684\u4E00\u540D\u73A9\u5BB6\u7684\u4E00\u5F20\u724C\u3002\u5BF9\u65B9\u4F1A\u77E5\u9053\u4F60\u770B\u4E86\u54EA\u5F20\u3002"
   - Key: item.peek_hand.notice
     Value: "\u5077\u770B\u4E86"
-  - Key: item.peek_hand.private
-    Value: "\u770B\u5230\u4E86\u4F60\u7684 {0}"
   - Key: item.place_on_board.name
     Value: "\u9999\u70DF"
   - Key: item.place_on_board.description
@@ -257,3 +235,5 @@ MonoBehaviour:
     Value: "\u672C\u8F6E\u6240\u6709\u4ECD\u5728\u5C40\u4E2D\u7684\u73A9\u5BB6\u968F\u673A\u4EAE\u51FA\u4E00\u5F20\u724C\u7ED9\u5168\u684C\u770B\u3002"
   - Key: item.table_reveal.notice
     Value: "\u8BA9\u5168\u573A\u4EAE\u724C"
+  - Key: item.reason.no_time
+    Value: "\u5269\u4F59\u65F6\u95F4\u4E0D\u591F\u5BF9\u65B9\u56DE\u5E94\u3002"

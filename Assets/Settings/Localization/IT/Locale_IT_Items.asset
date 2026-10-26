@@ -39,8 +39,6 @@ MonoBehaviour:
     Value: "Hai gi\xE0 usato {0} oggetti in questo giro."
   - Key: item.reason.waiting_other
     Value: In attesa di un altro oggetto.
-  - Key: item.reason.no_time
-    Value: Non resta abbastanza tempo per rispondere.
   - Key: item.reason.not_in_hand
     Value: Non sei in questa mano.
   - Key: item.reason.hand_full
@@ -55,36 +53,22 @@ MonoBehaviour:
     Value: "L'ultima carta comune \xE8 gi\xE0 scoperta per te."
   - Key: item.reason.board_seen
     Value: "Tutte le carte comuni sono gi\xE0 scoperte per te."
-  - Key: item.reason.board_face_up
-    Value: "Tutte le carte comuni sono gi\xE0 scoperte."
   - Key: item.reason.board_full
     Value: Le carte comuni sono al completo.
   - Key: item.reason.no_card_to_lay
     Value: Non hai carte da posare.
   - Key: item.reason.no_card_to_give
     Value: "Non hai pi\xF9 carte da dare."
-  - Key: item.reason.cards_face_up
-    Value: "Le tue carte sono gi\xE0 scoperte."
   - Key: item.reason.all_face_up
     Value: "Tutte le carte sono gi\xE0 scoperte."
   - Key: item.reason.cant_change
     Value: "Nessuna delle tue carte pu\xF2 cambiare."
   - Key: item.reason.already_under
     Value: "Sei gi\xE0 al tappeto."
-  - Key: item.reason.no_count_place
-    Value: "Non c'\xE8 dove tenere il conto."
-  - Key: item.reason.already_counted
-    Value: "Hai gi\xE0 contato in questa mano."
   - Key: item.reason.nobody_to_halve
     Value: Nessuno ha qualcosa da dimezzare.
-  - Key: item.reason.nobody_to_spike
-    Value: Non resta nessuno da drogare.
-  - Key: item.reason.nobody_to_show
-    Value: Nessun altro ha carte da mostrare.
   - Key: item.reason.nobody_in_hand
     Value: Non resta nessun altro nella mano.
-  - Key: item.reason.nobody_unseen
-    Value: Nessuno ha una carta che non hai visto.
   - Key: item.reason.nobody_to_shake
     Value: Non resta nessuno a cui cambiare la dose.
   - Key: item.reason.nobody_to_roll
@@ -147,10 +131,6 @@ MonoBehaviour:
       il doppio, 50/50.
   - Key: item.mushroom_dose.notice
     Value: HA CORRETTO I FUNGHI DI
-  - Key: item.mushroom_dose.nullified
-    Value: HA DISINNESCATO {0} FUNGHI DI
-  - Key: item.mushroom_dose.doubled
-    Value: HA RADDOPPIATO {0} FUNGHI DI
   - Key: item.mushroom_dose.prompt
     Value: INDICA A CHI CORREGGERE I FUNGHI
   - Key: item.mutual_reveal.name
@@ -197,8 +177,6 @@ MonoBehaviour:
       hai visto."
   - Key: item.peek_hand.notice
     Value: HA SBIRCIATO LA MANO DI
-  - Key: item.peek_hand.private
-    Value: HA VISTO IL TUO {0}
   - Key: item.place_on_board.name
     Value: Sigaretta
   - Key: item.place_on_board.description
@@ -271,3 +249,5 @@ MonoBehaviour:
       in questo giro.
   - Key: item.table_reveal.notice
     Value: HA SMASCHERATO TUTTI
+  - Key: item.reason.no_time
+    Value: Non resta abbastanza tempo per rispondere.

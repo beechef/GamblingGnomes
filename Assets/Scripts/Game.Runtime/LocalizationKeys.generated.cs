@@ -176,10 +176,8 @@ namespace Game.Runtime
 			public static class MushroomDose
 			{
 				public const string Description = "item.mushroom_dose.description";
-				public const string Doubled = "item.mushroom_dose.doubled";
 				public const string Name = "item.mushroom_dose.name";
 				public const string Notice = "item.mushroom_dose.notice";
-				public const string Nullified = "item.mushroom_dose.nullified";
 				public const string Prompt = "item.mushroom_dose.prompt";
 			}
 
@@ -229,7 +227,6 @@ namespace Game.Runtime
 				public const string Description = "item.peek_hand.description";
 				public const string Name = "item.peek_hand.name";
 				public const string Notice = "item.peek_hand.notice";
-				public const string Private = "item.peek_hand.private";
 			}
 
 			public static class PlaceOnBoard
@@ -275,13 +272,10 @@ namespace Game.Runtime
 			public static class Reason
 			{
 				public const string AllFaceUp = "item.reason.all_face_up";
-				public const string AlreadyCounted = "item.reason.already_counted";
 				public const string AlreadyUnder = "item.reason.already_under";
-				public const string BoardFaceUp = "item.reason.board_face_up";
 				public const string BoardFull = "item.reason.board_full";
 				public const string BoardSeen = "item.reason.board_seen";
 				public const string CantChange = "item.reason.cant_change";
-				public const string CardsFaceUp = "item.reason.cards_face_up";
 				public const string DeckEmpty = "item.reason.deck_empty";
 				public const string HandFull = "item.reason.hand_full";
 				public const string LastBoardSeen = "item.reason.last_board_seen";
@@ -289,17 +283,13 @@ namespace Game.Runtime
 				public const string NoBoard = "item.reason.no_board";
 				public const string NoCardToGive = "item.reason.no_card_to_give";
 				public const string NoCardToLay = "item.reason.no_card_to_lay";
-				public const string NoCountPlace = "item.reason.no_count_place";
 				public const string NoStreetLeft = "item.reason.no_street_left";
 				public const string NoTime = "item.reason.no_time";
 				public const string NobodyInHand = "item.reason.nobody_in_hand";
 				public const string NobodyToHalve = "item.reason.nobody_to_halve";
 				public const string NobodyToRoll = "item.reason.nobody_to_roll";
 				public const string NobodyToShake = "item.reason.nobody_to_shake";
-				public const string NobodyToShow = "item.reason.nobody_to_show";
-				public const string NobodyToSpike = "item.reason.nobody_to_spike";
 				public const string NobodyToSwap = "item.reason.nobody_to_swap";
-				public const string NobodyUnseen = "item.reason.nobody_unseen";
 				public const string NotDealt = "item.reason.not_dealt";
 				public const string NotHeld = "item.reason.not_held";
 				public const string NotInHand = "item.reason.not_in_hand";
