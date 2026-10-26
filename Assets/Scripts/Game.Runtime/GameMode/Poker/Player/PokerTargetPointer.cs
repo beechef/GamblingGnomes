@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Game.Runtime.Controller;
 using Game.Runtime.GameMode.Poker.Visual;
 using Game.Runtime.UI.CursorVisuals;
+using Game.Runtime.UI.Selection;
 using Unity.Netcode;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -15,11 +16,24 @@ namespace Game.Runtime.GameMode.Poker.Player
 	//
 	// The same act for every caller — the Colorful pick, an item's target, an answer an item asks for — so
 	// what may be pointed at is the caller's filter and how it looks is the same everywhere.
+	//
+	// A pad has no cursor here: left and right step through everything the caller would take, in screen
+	// order (bodies, cards, and this player themselves where they may be chosen, which lights the name the
+	// self pick shows), and Submit commits. Whatever is lit stops pulsing, pointed at or stepped onto.
 	public class PokerTargetPointer : NetworkBehaviour
 	{
 		[Header("Input")]
 		[Tooltip("Pressed to commit whatever is lit. UI/Click - pointing at a player is the same act as pointing at a card or a button.")]
 		[SerializeField] private InputActionReference _pickAction;
+
+		[Tooltip("UI/Navigate: steps through the choices on a pad. Read, never enabled or disabled here.")]
+		[SerializeField] private InputActionReference _navigateAction;
+
+		[Tooltip("UI/Submit: commits the stepped-onto choice on a pad. Read, never enabled or disabled here.")]
+		[SerializeField] private InputActionReference _submitAction;
+
+		[Tooltip("Empty, with a confining UIFocusRoot: switched on while a pad steps through the choices, so no button navigates.")]
+		[SerializeField] private UIFocusRoot _padFocus;
 
 		[Header("Raycast")]
 		[Tooltip("Layers a player can be found on, through the AimTarget trigger every body carries.")]
@@ -55,8 +69,30 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 		public bool IsActive => _query != null;
 
-		// A pad gets a cursor only while something must be pointed at; the rest of the table it navigates by focus.
+		// This player is the stepped-onto choice on a pad: the self pick lights its name for it.
+		public bool IsSelfFocused { get; private set; }
+		public event Action OnSelfFocusChanged;
+
+		// A mouse gets the cursor while something must be pointed at; a pad steps instead.
 		private bool _pointerHeld;
+
+		private UINavigationPicker _navigation;
+		private bool _padMode;
+		private int _padIndex;
+		private readonly List<PadChoice> _padChoices = new();
+
+		private struct PadChoice
+		{
+			public PokerTarget Target;
+			public PokerPlayer Body;
+			public PokerCardVisual Card;
+			public float ScreenX;
+		}
+
+		private void Awake()
+		{
+			_navigation = new UINavigationPicker(_padFocus, _navigateAction, _submitAction);
+		}
 
 		public override void OnNetworkSpawn()
 		{
@@ -67,13 +103,20 @@ namespace Game.Runtime.GameMode.Poker.Player
 				_pickAction.action.performed += HandlePick;
 				_pickAction.action.Enable();
 			}
+
+			_navigation.OnStep += HandlePadStep;
+			_navigation.OnSubmit += HandlePadSubmit;
 		}
 
 		public override void OnNetworkDespawn()
 		{
-			if (_pickAction && _pickAction.action != null) _pickAction.action.performed -= HandlePick;
+			if (!IsOwner) return;
 
 			End();
+
+			_navigation.OnSubmit -= HandlePadSubmit;
+			_navigation.OnStep -= HandlePadStep;
+			if (_pickAction && _pickAction.action != null) _pickAction.action.performed -= HandlePick;
 		}
 
 		public void Begin(PokerTargetQuery query, Action<PokerTarget> onPicked)
@@ -84,9 +127,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 			_query = query;
 			_onPicked = onPicked;
-			SetPointerHeld(query != null);
 			SetCursor(query != null ? query.Cursor : (CursorVisualState?)null);
 			PromptTargets();
+			SyncPadMode();
 		}
 
 		public void End()
@@ -98,6 +141,92 @@ namespace Game.Runtime.GameMode.Poker.Player
 			SetCursor(null);
 			ClearPrompts();
 			SetPointerHeld(false);
+
+			_padMode = false;
+			_padChoices.Clear();
+			_navigation.End();
+		}
+
+		// Picking the pad up or putting it down mid-choice swaps how the choice is made.
+		private void SyncPadMode()
+		{
+			var pad = _query != null && InputSchemeController.IsGamepad;
+			SetPointerHeld(_query != null && !pad);
+
+			if (pad == _padMode) return;
+
+			_padMode = pad;
+			Hover(default, false, null, null);
+
+			if (pad)
+			{
+				_navigation.Begin();
+				_padIndex = 0;
+				StepPad(0);
+			}
+			else
+			{
+				_navigation.End();
+			}
+		}
+
+		private void HandlePadStep(int direction) => StepPad(direction);
+
+		private void HandlePadSubmit()
+		{
+			if (_query == null || !_hasHovered) return;
+
+			_onPicked?.Invoke(_hovered);
+		}
+
+		// Re-collected on every step, so a card dealt or a body gone since the last step is accounted for.
+		// Wraps at either end.
+		private void StepPad(int direction)
+		{
+			CollectPadChoices();
+
+			if (_padChoices.Count == 0)
+			{
+				Hover(default, false, null, null);
+				return;
+			}
+
+			_padIndex = ((_padIndex + direction) % _padChoices.Count + _padChoices.Count) % _padChoices.Count;
+			var choice = _padChoices[_padIndex];
+			Hover(choice.Target, true, choice.Body, choice.Card);
+		}
+
+		private void CollectPadChoices()
+		{
+			_padChoices.Clear();
+
+			var view = GameCamera.Main;
+			if (!view || _query == null) return;
+
+			foreach (var player in _promptedPlayers)
+			{
+				if (player) AddChoice(view, new PokerTarget(player, -1, false), player, null, player.transform.position);
+			}
+
+			foreach (var card in _promptedCards)
+			{
+				if (card && TryResolveCard(card, out var target)) AddChoice(view, target, null, card, card.transform.position);
+			}
+
+			// ponytail: the self pick's name sits at the bottom centre, so this player is placed mid-screen;
+			// read the button's rect instead if the name ever moves off centre.
+			var self = PokerPlayer.Find(OwnerClientId);
+			if (self && _query.AcceptPlayer != null && _query.AcceptPlayer(self))
+			{
+				_padChoices.Add(new PadChoice { Target = new PokerTarget(self, -1, false), ScreenX = Screen.width * 0.5f });
+			}
+
+			_padChoices.Sort((a, b) => a.ScreenX.CompareTo(b.ScreenX));
+		}
+
+		private void AddChoice(UnityEngine.Camera view, PokerTarget target, PokerPlayer body, PokerCardVisual card, Vector3 position)
+		{
+			_padChoices.Add(new PadChoice { Target = target, Body = body, Card = card, ScreenX = view.WorldToScreenPoint(position).x });
 		}
 
 		private void SetPointerHeld(bool held)
@@ -170,6 +299,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 		private void Update()
 		{
 			if (!IsOwner || _query == null) return;
+
+			SyncPadMode();
+			if (_padMode) return;
 
 			if (CursorController.IsLocked)
 			{
@@ -290,14 +422,27 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 			_hovered = target;
 			_hasHovered = found;
+
+			var selfFocused = found && _padMode && !player && !card && target.Player && target.Player.ClientId == OwnerClientId;
+			if (IsSelfFocused != selfFocused)
+			{
+				IsSelfFocused = selfFocused;
+				OnSelfFocusChanged?.Invoke();
+			}
 		}
 
-		// The body and the name over it light together, so what is being chosen reads as one thing.
-		private static void SetPlayerLit(PokerPlayer player, bool lit)
+		// The body and the name over it light together, so what is being chosen reads as one thing; the pulse
+		// that says "pickable" stops on it, since it is no longer one option among others.
+		private void SetPlayerLit(PokerPlayer player, bool lit)
 		{
 			if (!player) return;
 
-			if (player.Visual) player.Visual.SetLocalOutlined(lit);
+			if (player.Visual)
+			{
+				player.Visual.SetLocalOutlined(lit);
+				if (_promptedPlayers.Contains(player)) player.Visual.SetLocalPrompted(!lit);
+			}
+
 			if (player.NameTag) player.NameTag.SetLocalHighlighted(lit);
 		}
 
@@ -307,6 +452,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 			card.SetHighlighted(lit);
 			card.SetLift(lit ? _cardHoverLift : 0f);
+			if (_promptedCards.Contains(card)) card.SetPrompted(!lit);
 		}
 
 		private void SetCursor(CursorVisualState? state)

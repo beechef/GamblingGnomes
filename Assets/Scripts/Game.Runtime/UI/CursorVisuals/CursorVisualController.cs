@@ -158,7 +158,8 @@ namespace Game.Runtime.UI.CursorVisuals
 
 		private void Refresh()
 		{
-			var pointerOnScreen = !CursorController.IsLocked && (!InputSchemeController.IsGamepad || CursorController.IsPointerWanted);
+			// A pad has no cursor: it moves by focus and steps through choices (UINavigationPicker).
+			var pointerOnScreen = !CursorController.IsLocked && !InputSchemeController.IsGamepad;
 			var target = pointerOnScreen ? Find(State) : null;
 
 			if (_shown != target)

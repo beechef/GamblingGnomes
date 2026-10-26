@@ -29,6 +29,9 @@ namespace Game.Runtime.UI.Poker
 
 		private PokerItemTargetingController _targeting;
 
+		// Held for the unsubscribe, like _targeting.
+		private PokerTargetPointer _pointer;
+
 		private void Awake()
 		{
 			if (_button) _button.gameObject.SetActive(false);
@@ -41,6 +44,8 @@ namespace Game.Runtime.UI.Poker
 
 			_targeting = LocalPlayer.ItemTargeting;
 			if (_targeting) _targeting.OnTargetingChanged += Refresh;
+			_pointer = _targeting ? _targeting.Pointer : null;
+			if (_pointer) _pointer.OnSelfFocusChanged += HandleSelfFocusChanged;
 
 			if (_button) _button.OnClick += HandlePick;
 			if (_button) _button.OnStateChanged += HandleButtonStateChanged;
@@ -55,6 +60,9 @@ namespace Game.Runtime.UI.Poker
 			if (_button) _button.OnStateChanged -= HandleButtonStateChanged;
 			if (_button) _button.OnClick -= HandlePick;
 
+			if (_pointer) _pointer.OnSelfFocusChanged -= HandleSelfFocusChanged;
+			_pointer = null;
+
 			if (_targeting) _targeting.OnTargetingChanged -= Refresh;
 			_targeting = null;
 
@@ -62,6 +70,12 @@ namespace Game.Runtime.UI.Poker
 			Data.CurrentTurnClientId.OnValueChanged -= HandleTurnChanged;
 
 			if (_button) _button.gameObject.SetActive(false);
+		}
+
+		// A pad stepping onto this player lights the name as a hover would, and the body with it.
+		private void HandleSelfFocusChanged()
+		{
+			if (_button) _button.IsSelected = _pointer && _pointer.IsSelfFocused;
 		}
 
 		private void HandleTurnChanged(ulong previous, ulong current) => Refresh();

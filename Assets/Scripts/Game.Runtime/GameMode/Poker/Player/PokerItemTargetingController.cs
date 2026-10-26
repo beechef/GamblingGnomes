@@ -33,6 +33,8 @@ namespace Game.Runtime.GameMode.Poker.Player
 		// The pointer never lights your own body, so a step that may name you is answered off the HUD.
 		public bool CanPickSelf { get; private set; }
 
+		public PokerTargetPointer Pointer => _pointer;
+
 		// Raised when targeting starts, moves to its next step, or ends.
 		public event Action OnTargetingChanged;
 

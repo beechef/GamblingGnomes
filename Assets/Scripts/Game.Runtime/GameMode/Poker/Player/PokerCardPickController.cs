@@ -4,6 +4,7 @@ using Game.Runtime.GameMode.Poker.Stages;
 using Game.Runtime.GameMode.Poker.Visual;
 using Game.Runtime.Player;
 using Game.Runtime.UI.CursorVisuals;
+using Game.Runtime.UI.Selection;
 using Unity.Collections;
 using Unity.Netcode;
 using UnityEngine;
@@ -26,6 +27,15 @@ namespace Game.Runtime.GameMode.Poker.Player
 		[Header("Input")]
 		[Tooltip("Pressed to pick up whatever is under the cursor.")]
 		[SerializeField] private InputActionReference _pickAction;
+
+		[Tooltip("UI/Navigate: steps between the hand's cards on a pad. Read, never enabled or disabled here.")]
+		[SerializeField] private InputActionReference _navigateAction;
+
+		[Tooltip("UI/Submit: picks or puts back the stepped-onto card on a pad. Read, never enabled or disabled here.")]
+		[SerializeField] private InputActionReference _submitAction;
+
+		[Tooltip("Empty, with a confining UIFocusRoot: switched on while a pad picks cards, so no button navigates until the pick is over.")]
+		[SerializeField] private UIFocusRoot _padFocus;
 
 		[Header("Raycast")]
 		[Tooltip("Layers a card can be found on. Everything else is ignored, so a chair between the eye and the table cannot swallow the pick.")]
@@ -51,6 +61,16 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 		private bool _picking;
 		private int _lastPickFrame = -1;
+
+		// A pad steps between the cards instead of pointing; the rest of the HUD waits until the pick is over.
+		private UINavigationPicker _navigation;
+		private bool _padMode;
+		private readonly List<PokerCardVisual> _ordered = new();
+
+		private void Awake()
+		{
+			_navigation = new UINavigationPicker(_padFocus, _navigateAction, _submitAction);
+		}
 		private FixedString32Bytes _lastStageId;
 
 		public override void OnNetworkSpawn()
@@ -66,11 +86,20 @@ namespace Game.Runtime.GameMode.Poker.Player
 				_pickAction.action.Enable();
 			}
 
+			_navigation.OnStep += HandlePadStep;
+			_navigation.OnSubmit += HandlePadSubmit;
+
 			RefreshStage();
 		}
 
 		public override void OnNetworkDespawn()
 		{
+			if (!IsOwner) return;
+
+			SetPadMode(false);
+			_navigation.OnSubmit -= HandlePadSubmit;
+			_navigation.OnStep -= HandlePadStep;
+
 			if (_pickAction && _pickAction.action != null) _pickAction.action.performed -= HandlePick;
 
 			SetHovered(null);
@@ -94,8 +123,63 @@ namespace Game.Runtime.GameMode.Poker.Player
 				RefreshStage();
 			}
 
-			var card = CanPick() ? Raycast() : null;
-			SetHovered(card);
+			var canPick = CanPick();
+			SetPadMode(canPick && InputSchemeController.IsGamepad);
+			if (_padMode) return;
+
+			SetHovered(canPick ? Raycast() : null);
+		}
+
+		private void SetPadMode(bool pad)
+		{
+			if (_padMode == pad) return;
+
+			_padMode = pad;
+			SetHovered(null);
+
+			if (!pad)
+			{
+				_navigation.End();
+				return;
+			}
+
+			_navigation.Begin();
+			StepPad(0);
+		}
+
+		private void HandlePadStep(int direction) => StepPad(direction);
+
+		private void HandlePadSubmit()
+		{
+			if (_padMode && _hovered && CanPick()) Pick(_hovered);
+		}
+
+		// Left to right as the cards lie on screen, wrapping at either end; re-read each step, so a card taken
+		// up in the meantime drops out.
+		private void StepPad(int direction)
+		{
+			_ordered.Clear();
+
+			var view = GameCamera.Main;
+			if (_handVisual && view)
+			{
+				foreach (var card in _handVisual.Cards)
+				{
+					if (card && card.Pickupable) _ordered.Add(card);
+				}
+
+				_ordered.Sort((a, b) => view.WorldToScreenPoint(a.transform.position).x.CompareTo(view.WorldToScreenPoint(b.transform.position).x));
+			}
+
+			if (_ordered.Count == 0)
+			{
+				SetHovered(null);
+				return;
+			}
+
+			var index = _hovered ? _ordered.IndexOf(_hovered) : -1;
+			index = index < 0 ? 0 : ((index + direction) % _ordered.Count + _ordered.Count) % _ordered.Count;
+			SetHovered(_ordered[index]);
 		}
 
 		// UI/Click is PassThrough — that is what the UI module wants of it — and a PassThrough action raises

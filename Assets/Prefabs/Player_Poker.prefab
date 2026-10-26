@@ -330,7 +330,8 @@ Transform:
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
-  m_Children: []
+  m_Children:
+  - {fileID: 8693922679276863624}
   m_Father: {fileID: 7915523810459036602}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &4513404695735546853
@@ -376,6 +377,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.GameMode.Poker.Player.PokerTargetPointer
   ShowTopMostFoldoutHeaderGroup: 1
   _pickAction: {fileID: 3001919216989983466, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+  _navigateAction: {fileID: 3710738434707379630, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+  _submitAction: {fileID: 2064916234097673511, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+  _padFocus: {fileID: 3426502363999395356}
   _playerMask:
     serializedVersion: 2
     m_Bits: 4294967295
@@ -907,6 +911,7 @@ Transform:
   m_Children:
   - {fileID: 4059978071802698453}
   - {fileID: 746778433922593419}
+  - {fileID: 2450517205293240516}
   m_Father: {fileID: 7915523810459036602}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &6328082092965802174
@@ -949,6 +954,9 @@ MonoBehaviour:
   _data: {fileID: 6935137486891752095}
   _handVisual: {fileID: 6328082092965802174}
   _pickAction: {fileID: 3001919216989983466, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+  _navigateAction: {fileID: 3710738434707379630, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+  _submitAction: {fileID: 2064916234097673511, guid: 052faaac586de48259a63d0c4782560b, type: 3}
+  _padFocus: {fileID: 1056475212658179356}
   _cardMask:
     serializedVersion: 2
     m_Bits: 319
@@ -3931,6 +3939,57 @@ MonoBehaviour:
   _requiresPlaceInMatch: 0
   _requiresFocus: 0
   _data: {fileID: 6935137486891752095}
+--- !u!1 &7616056827437841431
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8693922679276863624}
+  - component: {fileID: 3426502363999395356}
+  m_Layer: 0
+  m_Name: PadPickFocus
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!224 &8693922679276863624
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7616056827437841431}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 2401540123256720930}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &3426502363999395356
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7616056827437841431}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2e762ec9307acdc4caabcceb42096095, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Selection.UIFocusRoot
+  _firstSelected: {fileID: 0}
+  _rememberLastSelected: 0
+  _confineNavigation: 1
 --- !u!1 &7813534592550633221
 GameObject:
   m_ObjectHideFlags: 0
@@ -4143,6 +4202,57 @@ MonoBehaviour:
   _eatSwallowCue: EatSwallow
   _cueTimeout: 3
   _lateCueWindow: 0.5
+--- !u!1 &8888019164443374569
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 2450517205293240516}
+  - component: {fileID: 1056475212658179356}
+  m_Layer: 0
+  m_Name: PadPickFocus
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 0
+--- !u!224 &2450517205293240516
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8888019164443374569}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 7173932181060956970}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1056475212658179356
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8888019164443374569}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2e762ec9307acdc4caabcceb42096095, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Selection.UIFocusRoot
+  _firstSelected: {fileID: 0}
+  _rememberLastSelected: 0
+  _confineNavigation: 1
 --- !u!1001 &1343530604260104137
 PrefabInstance:
   m_ObjectHideFlags: 0

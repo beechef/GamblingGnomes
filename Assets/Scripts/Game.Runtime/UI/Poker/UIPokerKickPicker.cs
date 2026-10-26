@@ -6,7 +6,6 @@ using Game.Runtime.UI.Selection;
 using Localization;
 using Sirenix.OdinInspector;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.InputSystem;
 
 namespace Game.Runtime.UI.Poker
@@ -47,19 +46,20 @@ namespace Game.Runtime.UI.Poker
 
 		private UIPokerKickButton _picked;
 		private int _pickedIndex;
-		private bool _stepHeld;
-		private int _beganFrame;
+		private UINavigationPicker _navigation;
 
-		public bool IsPicking => _picking && _picking.gameObject.activeSelf;
+		public bool IsPicking => _navigation != null && _navigation.IsActive;
 
 		private void Awake()
 		{
-			if (_picking) _picking.gameObject.SetActive(false);
+			_navigation = new UINavigationPicker(_picking, _navigateAction, _submitAction, _stepThreshold);
 		}
 
 		protected override void OnBind()
 		{
 			_kickButton.OnClick += Begin;
+			_navigation.OnStep += HandleStep;
+			_navigation.OnSubmit += HandleSubmit;
 			UIPokerKickButton.OnOfferedChanged += Refresh;
 			Data.Phase.OnValueChanged += HandlePhaseChanged;
 
@@ -72,6 +72,8 @@ namespace Game.Runtime.UI.Poker
 
 			Data.Phase.OnValueChanged -= HandlePhaseChanged;
 			UIPokerKickButton.OnOfferedChanged -= Refresh;
+			_navigation.OnSubmit -= HandleSubmit;
+			_navigation.OnStep -= HandleStep;
 			_kickButton.OnClick -= Begin;
 		}
 
@@ -103,18 +105,7 @@ namespace Game.Runtime.UI.Poker
 		{
 			if (IsPicking || UIPokerKickButton.Offered.Count == 0) return;
 
-			// Switched on before focus is cleared, so the root remembers the Kick button to hand focus back to.
-			_picking.gameObject.SetActive(true);
-
-			var events = EventSystem.current;
-			if (events) events.SetSelectedGameObject(null);
-
-			_beganFrame = Time.frameCount;
-			_stepHeld = true;
-
-			_navigateAction.action.performed += HandleNavigate;
-			_navigateAction.action.canceled += HandleNavigate;
-			_submitAction.action.performed += HandleSubmit;
+			_navigation.Begin();
 			UIEscapeStack.Push(End);
 
 			SetLabels(true);
@@ -126,43 +117,20 @@ namespace Game.Runtime.UI.Poker
 			if (!IsPicking) return;
 
 			UIEscapeStack.Remove(End);
-			_submitAction.action.performed -= HandleSubmit;
-			_navigateAction.action.canceled -= HandleNavigate;
-			_navigateAction.action.performed -= HandleNavigate;
 
 			Pick(null);
 			_pickedIndex = 0;
 			SetLabels(false);
 
 			// Last, so the root hands focus back to the Kick button.
-			_picking.gameObject.SetActive(false);
+			_navigation.End();
 		}
 
-		// Only while picking is the newest thing on screen: the pause menu over it gets the pad instead.
-		private bool HasInput => IsPicking && UIFocusRoot.Top == _picking;
+		private void HandleStep(int direction) => PickAt(_pickedIndex + direction);
 
-		private void HandleNavigate(InputAction.CallbackContext context)
+		private void HandleSubmit()
 		{
-			var x = context.ReadValue<Vector2>().x;
-
-			if (Mathf.Abs(x) < _stepThreshold)
-			{
-				_stepHeld = false;
-				return;
-			}
-
-			if (_stepHeld || !HasInput) return;
-
-			_stepHeld = true;
-			PickAt(_pickedIndex + (x > 0f ? 1 : -1));
-		}
-
-		// The press that opened picking is the same Submit; it must not also kick.
-		private void HandleSubmit(InputAction.CallbackContext context)
-		{
-			if (!HasInput || Time.frameCount == _beganFrame || !_picked) return;
-
-			_picked.Kick();
+			if (_picked) _picked.Kick();
 		}
 
 		// Wraps at either end, ordered left to right as the players stand on screen.
