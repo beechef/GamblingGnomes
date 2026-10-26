@@ -55,6 +55,9 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 		public bool IsActive => _query != null;
 
+		// A pad gets a cursor only while something must be pointed at; the rest of the table it navigates by focus.
+		private bool _pointerHeld;
+
 		public override void OnNetworkSpawn()
 		{
 			if (!IsOwner) return;
@@ -81,6 +84,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 
 			_query = query;
 			_onPicked = onPicked;
+			SetPointerHeld(query != null);
 			SetCursor(query != null ? query.Cursor : (CursorVisualState?)null);
 			PromptTargets();
 		}
@@ -93,6 +97,16 @@ namespace Game.Runtime.GameMode.Poker.Player
 			Hover(default, false, null, null);
 			SetCursor(null);
 			ClearPrompts();
+			SetPointerHeld(false);
+		}
+
+		private void SetPointerHeld(bool held)
+		{
+			if (_pointerHeld == held) return;
+
+			_pointerHeld = held;
+			if (held) CursorController.RequestPointer();
+			else CursorController.ReleasePointer();
 		}
 
 		// ponytail: snapshot at Begin; a card dealt mid-choice does not pulse until the next Begin.

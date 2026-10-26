@@ -1,8 +1,10 @@
 using System;
+using Game.Runtime.Controller;
 using Game.Runtime.Utility;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 
 namespace Game.Runtime.UI.Button
 {
@@ -10,7 +12,7 @@ namespace Game.Runtime.UI.Button
 	// holds no Image, no colour and no tween — a UIButtonVisual listens and draws the answer, so how a
 	// button looks can be changed, restyled or animated without touching what it does.
 	[RequireComponent(typeof(UnityEngine.UI.Button))]
-	public class UIButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler, IPointerUpHandler
+	public class UIButton : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler, IPointerUpHandler, ISelectHandler, IDeselectHandler
 	{
 		public event Action OnClick;
 		public event Action OnHover;
@@ -42,6 +44,10 @@ namespace Game.Runtime.UI.Button
 		private bool _initialized;
 		private bool _hovering;
 		private bool _pressed;
+
+		// The pad's focus (uGUI selection) on this button, drawn as Selected so it reads like a hover. A mouse
+		// click selects too, and that must not leave the button looking lit, so only a pad sets it.
+		private bool _focused;
 
 		public UIButtonState State { get; private set; } = UIButtonState.Normal;
 
@@ -115,13 +121,39 @@ namespace Game.Runtime.UI.Button
 
 		private void OnEnable()
 		{
+			InputSchemeController.OnSchemeChanged += HandleSchemeChanged;
+
 			// Re-shown under the pointer or not, the button starts from a state it can prove.
 			ResetState();
 		}
 
 		private void OnDisable()
 		{
+			InputSchemeController.OnSchemeChanged -= HandleSchemeChanged;
+
+			_focused = false;
 			ClearPointer();
+			RefreshState();
+		}
+
+		public void OnSelect(BaseEventData eventData) => SetFocused(InputSchemeController.IsGamepad);
+
+		public void OnDeselect(BaseEventData eventData) => SetFocused(false);
+
+		// Picking the pad up over a focused button lights it; putting it down for the mouse puts it out. The
+		// hover is redrawn either way, since it only counts while the mouse is in hand.
+		private void HandleSchemeChanged(InputScheme scheme)
+		{
+			var events = EventSystem.current;
+			SetFocused(scheme == InputScheme.Gamepad && events && events.currentSelectedGameObject == gameObject);
+			RefreshState();
+		}
+
+		private void SetFocused(bool focused)
+		{
+			if (_focused == focused) return;
+
+			_focused = focused;
 			RefreshState();
 		}
 
@@ -218,7 +250,7 @@ namespace Game.Runtime.UI.Button
 			// A click is the moment a screen tends to change underneath the pointer, and uGUI delivers the
 			// release to whoever took the press — so a button whose handler opened something never hears it
 			// and is left holding the press. A key still down is left alone: holding the key must keep
-			// holding the button, which is the bracket UIButtonHotkey exists to draw.
+			// holding the button.
 			// Checked for survival first, because the handler above is allowed to destroy this button.
 			// if (this && !_keyPressed) ResetState();
 		}
@@ -295,14 +327,51 @@ namespace Game.Runtime.UI.Button
 
 			State = current;
 			OnStateChanged?.Invoke(previous, current);
+
+			if (current == UIButtonState.Disabled && previous != UIButtonState.Disabled) PassFocusOn();
+		}
+
+		// uGUI drops the selection when a focused button greys out (Add Bot with the table full), leaving a pad
+		// with nothing to navigate from. Focus moves to a neighbour instead, a frame later: this runs inside
+		// uGUI's own deselect, where selecting anything else is refused.
+		private async void PassFocusOn()
+		{
+			var events = EventSystem.current;
+			if (!events || events.currentSelectedGameObject != gameObject || !InputSchemeController.IsGamepad) return;
+
+			try
+			{
+				await Awaitable.NextFrameAsync(destroyCancellationToken);
+			}
+			catch (OperationCanceledException)
+			{
+				return;
+			}
+
+			events = EventSystem.current;
+			if (!events || (events.currentSelectedGameObject && events.currentSelectedGameObject != gameObject)) return;
+
+			var next = NeighbourOf(_button);
+			if (next) events.SetSelectedGameObject(next.gameObject);
+		}
+
+		private static Selectable NeighbourOf(Selectable selectable)
+		{
+			var next = selectable.FindSelectableOnDown();
+			if (!next) next = selectable.FindSelectableOnUp();
+			if (!next) next = selectable.FindSelectableOnLeft();
+			if (!next) next = selectable.FindSelectableOnRight();
+			return next;
 		}
 
 		private UIButtonState Resolve()
 		{
 			if (!_initialized || !_button.interactable) return UIButtonState.Disabled;
 			if (_pressed || _keyPressed) return UIButtonState.Pressed;
-			if (_selected) return UIButtonState.Selected;
-			if (_hovering) return UIButtonState.Hovered;
+			if (_selected || _focused) return UIButtonState.Selected;
+			// The mouse left resting where a panel opens under it still hovers what it sits on; on a pad that
+			// hover would light a button the pad's focus is not on (a menu entry's light word on bare paper).
+			if (_hovering && !InputSchemeController.IsGamepad) return UIButtonState.Hovered;
 
 			return UIButtonState.Normal;
 		}

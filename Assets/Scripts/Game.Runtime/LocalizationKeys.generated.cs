@@ -379,6 +379,7 @@ namespace Game.Runtime
 			public const string Play = "menu.play";
 			public const string QuickMatch = "menu.quick_match";
 			public const string Quit = "menu.quit";
+			public const string Select = "menu.select";
 		}
 
 		public static class Mode
@@ -467,6 +468,12 @@ namespace Game.Runtime
 			public static class Items
 			{
 				public const string LeftInDeck = "poker.items.left_in_deck";
+			}
+
+			public static class Kick
+			{
+				public const string Button = "poker.kick.button";
+				public const string Choosing = "poker.kick.choosing";
 			}
 
 			public static class MatchOver

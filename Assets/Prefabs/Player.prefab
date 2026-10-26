@@ -639,6 +639,7 @@ GameObject:
   - component: {fileID: 4487985094724243229}
   - component: {fileID: 5732750062683245202}
   - component: {fileID: 3877142548683224880}
+  - component: {fileID: 9135226234248062606}
   m_Layer: 0
   m_Name: FirstPersonCamera
   m_TagString: Untagged
@@ -754,6 +755,23 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.Camera.PlayerCameraFovController
   _camera: {fileID: 4220622338563496707}
+--- !u!114 &9135226234248062606
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5089675411609327401}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 01d07bdb162a6e34aa26a9c8d4e80796, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.Player.Camera.CameraImpulseRumble
+  _positionGain: 8
+  _rotationGain: 0.15
+  _maxSpeed: 0.8
+  _channelMask: -1
+  _sendThreshold: 0.02
 --- !u!1 &5304580961992640847
 GameObject:
   m_ObjectHideFlags: 0
@@ -1243,7 +1261,7 @@ MonoBehaviour:
   _yawLimits: {x: -80, y: 80}
   _focusYawLimits: {x: -150, y: 150}
   _lookTurnSpeed: 110
-  _manualLookReleaseDelay: 0.25
+  _manualLookReleaseDelay: 0.5
   _inputDeadzone: 0.001
   _minNetworkSendDeltaDegrees: 0.02
   _interpolationDelay: 0.1
@@ -1292,7 +1310,11 @@ MonoBehaviour:
   _outlineMaterial: {fileID: 2100000, guid: cf63c0574f02c9fa5131caf0ad468e93, type: 2}
   _outlineColor: {r: 1, g: 1, b: 1, a: 1}
   _idleOutlineColor: {r: 0, g: 0, b: 0, a: 1}
+  _warnOutlineColor: {r: 0.85, g: 0.1, b: 0.1, a: 1}
   _outlineWidth: 0.005
+  _promptOutlineColor: {r: 1, g: 1, b: 1, a: 1}
+  _promptPulseDuration: 0.5
+  _promptPulseEase: 4
   Outlined:
     UpdateTraits:
       MinSecondsBetweenUpdates: 0
@@ -1341,6 +1363,7 @@ MonoBehaviour:
   _selfFocusPoint: {fileID: 1342288486050778252}
   _watchPoint: {fileID: 1234643507100975876}
   _spectatorCamera: {fileID: 1476309822550917364}
+  _ownerMounts: []
 --- !u!114 &8951550889444866437
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2055,6 +2078,8 @@ MonoBehaviour:
   - {fileID: 469678322729097954}
   - {fileID: 1780258250985252200}
   _trigger: IdleVariation
+  _variantParameter: IdleVariant
+  _variantCount: 3
   _restingStates:
   - Sit
   - Sit_Peek
@@ -5160,6 +5185,7 @@ MonoBehaviour:
   _minOpen: 0.5
   _syllableRate: 4
   _speed: 30
+  _closeDuration: 0.3
 --- !u!4 &7790043551670116336 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -4902732183977445245, guid: ccae2c9bbf67cf945ae72b5a5898942a, type: 3}
@@ -7041,6 +7067,7 @@ MonoBehaviour:
   _minOpen: 0.5
   _syllableRate: 4
   _speed: 30
+  _closeDuration: 0.3
 --- !u!4 &7611957704961399758 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: 3489715716728331743, guid: 39bc1341774026a42bfa10073058dab3, type: 3}

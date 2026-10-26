@@ -8,13 +8,11 @@ namespace Game.Runtime.Controller
 	// At a table there is something to point at, so a mouse is free by default and the view is turned by
 	// holding a button — the opposite of walking around, where the mouse only ever turns the view.
 	//
-	// A pad gets no hold at all. It points with the virtual cursor, which is a device of its own, and its
-	// two sticks do the pointing and the looking at once — asking a player to hold a shoulder button for
-	// the whole hand is asking too much of a control scheme that does not need to choose.
+	// A pad gets no hold at all and no cursor here: it moves through the HUD by focus, and only an item being
+	// aimed asks for the virtual cursor (PokerTargetPointer).
 	//
-	// It holds a cursor unlock and a pointer request rather than setting either outright: a pause menu
-	// opening on top must not be undone when this lets go, and the counters in CursorController are what
-	// let the two overlap.
+	// It holds a cursor unlock rather than setting it outright: a pause menu opening on top must not be
+	// undone when this lets go, and the counter in CursorController is what lets the two overlap.
 	//
 	// Owner only. This lives on the player, so every copy of every player at the table runs it — and a
 	// remote one would hold a release on this machine's cursor and answer this machine's hold button on
@@ -65,8 +63,6 @@ namespace Game.Runtime.Controller
 				_holdLookAction.action.Enable();
 			}
 
-			CursorController.RequestPointer();
-
 			AcquireUnlock();
 		}
 
@@ -86,8 +82,6 @@ namespace Game.Runtime.Controller
 			// strand an unlock nobody can release, and the cursor would never lock again.
 			SetLookHeld(false);
 			ReleaseUnlock();
-
-			CursorController.ReleasePointer();
 		}
 
 		private void HandleHoldStarted(InputAction.CallbackContext context)

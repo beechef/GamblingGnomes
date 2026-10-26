@@ -50,8 +50,8 @@ namespace Game.Runtime.Player
 		[Tooltip("Degrees per second the look turns while something is aiming it at a point. A tween is the wrong tool here: the point is a player who is breathing and animating, so the target never stops moving and a tween would be killed and rebuilt every frame.")]
 		[SerializeField] private float _lookTurnSpeed = 220f;
 
-		[Tooltip("Seconds after the player last turned the view themselves before an aim takes it back. Without it, letting go of the stick as it centres reads as the camera snatching the view mid-gesture.")]
-		[SerializeField] private float _manualLookReleaseDelay = 0.35f;
+		[Tooltip("Seconds after the player last turned the view themselves before an aim takes it back, or, seated on a pad with nothing aimed, before the view turns back to rest. Without it, letting go of the stick as it centres reads as the camera snatching the view mid-gesture.")]
+		[SerializeField] private float _manualLookReleaseDelay = 0.5f;
 
 		[Header("Noise filtering")]
 		[Tooltip("Raw input delta below this is treated as sensor noise and ignored entirely — doesn't rotate, doesn't get sent.")]
@@ -141,6 +141,9 @@ namespace Game.Runtime.Player
 		private bool _lookInputDisabled;
 		private Transform _lookTarget;
 		private float _lastManualLookTime = float.NegativeInfinity;
+
+		// Where a seated view rests: square with the body at the pitch it sat down with (ResetLook).
+		private float _restPitch;
 		private int _manualLookHolds;
 		private int _lookLocks;
 		private bool _headLookSuspended;
@@ -291,6 +294,8 @@ namespace Game.Runtime.Player
 			_currentLookYaw = 0f;
 			_lookYaw.Value = 0f;
 			_lastSentLookYaw = 0f;
+
+			_restPitch = _currentPitch;
 		}
 
 		// Put down where it is told, on every screen at once. Writing the transform alone only moves it
@@ -434,21 +439,21 @@ namespace Game.Runtime.Player
 			if (!_inputBound) return;
 
 			// A mouse has one pointer, so at a table it has to choose: free to point at the cards, or held
-			// down to turn the view. A pad has two sticks and needs no choice — the left turns the view
-			// while the right goes on moving the cursor — so the lock is not its question, and must not
+			// down to turn the view. A pad has two sticks and needs no choice — the right turns the view
+			// while the left navigates the HUD or moves the cursor — so the lock is not its question, and must not
 			// be: InputSystemUIInputModule drops every mouse-class pointer while the cursor is locked, and
 			// the pad's cursor is mouse-class, so locking in order to let the stick look would take the
 			// pointer away in the act of doing it.
 			if (!CursorController.IsLocked && !InputSchemeController.IsGamepad) return;
 
-			// Anchored in a chair the pad's sticks swap roles, so the seated action is read instead — the
-			// same mouse delta either way, a different stick on a pad.
+			// Anchored in a chair the seated action is read instead: the mouse turns the view only while its
+			// hold button is down (TableCursorController), the pad's right stick turns it as when standing.
 			var action = _bodyAnchored && _seatedLookAction && _seatedLookAction.action != null
 				? _seatedLookAction.action
 				: _lookAction.action;
 
 			// The pad's cursor is a real Mouse device, so its delta matches the very <Mouse>/delta the
-			// seated look binds — moving the right stick would turn the view as well as move the pointer.
+			// seated look binds — moving the left stick would turn the view as well as move the pointer.
 			// Only the kind of device the scheme says is in hand is allowed to drive the view.
 			var control = action.activeControl;
 			if (control != null && control.device is Gamepad != InputSchemeController.IsGamepad) return;
@@ -573,12 +578,16 @@ namespace Game.Runtime.Player
 		// really turns — the aim is not a second thing pointing somewhere, it is the look being pointed.
 		private void SteerLookTowardTarget()
 		{
-			if (!_lookTarget) return;
-
 			// The player turning the view themselves wins while they are doing it, and for a moment after,
 			// so a stick being let go to centre is not read as them stopping.
 			if (_manualLookHolds > 0) return;
 			if (Time.time - _lastManualLookTime < _manualLookReleaseDelay) return;
+
+			if (!_lookTarget)
+			{
+				ReturnLookToRest();
+				return;
+			}
 
 			// The eye is the camera. It stands still and only turns, so where it is is simply where it is —
 			// turning the head no longer swings it round the bone, and one solve is exact.
@@ -602,6 +611,23 @@ namespace Game.Runtime.Player
 			else transform.Rotate(Vector3.up, yawStep);
 
 			_currentPitch = Mathf.Clamp(_currentPitch + Mathf.Clamp(targetPitch - _currentPitch, -step, step),
+				_pitchLimits.x, _pitchLimits.y);
+
+			SendLookAngles();
+		}
+
+		// A pad has no hold-to-look button to say the player is done looking around, so a seated view the stick
+		// let go of drifts back to rest, as an aim with manual look allowed drifts back to its target. A mouse
+		// keeps where it was left: its hold button is the player saying where to look.
+		private void ReturnLookToRest()
+		{
+			if (!_bodyAnchored || !InputSchemeController.IsGamepad) return;
+			if (Mathf.Approximately(_currentLookYaw, 0f) && Mathf.Approximately(_currentPitch, _restPitch)) return;
+
+			var step = _lookTurnSpeed * Time.deltaTime;
+
+			_currentLookYaw = ConstrainLookYaw(Mathf.Clamp(-_currentLookYaw, -step, step));
+			_currentPitch = Mathf.Clamp(_currentPitch + Mathf.Clamp(_restPitch - _currentPitch, -step, step),
 				_pitchLimits.x, _pitchLimits.y);
 
 			SendLookAngles();

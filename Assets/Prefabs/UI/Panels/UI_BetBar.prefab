@@ -130,6 +130,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1303427122224309731}
   - component: {fileID: 320661868597792947}
+  - component: {fileID: 6699037678522858020}
   m_Layer: 5
   m_Name: ItemPicker
   m_TagString: Untagged
@@ -172,6 +173,21 @@ MonoBehaviour:
   _entryPrefab: {fileID: 8547617699812339523, guid: c530993a68029eb408f2b8ca46a26fd1, type: 3}
   _entryRow: {fileID: 7616230757378120082}
   _selection: {fileID: 6822918011393448284}
+--- !u!114 &6699037678522858020
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 642836722900958573}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2e762ec9307acdc4caabcceb42096095, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Selection.UIFocusRoot
+  _firstSelected: {fileID: 0}
+  _rememberLastSelected: 0
+  _confineNavigation: 1
 --- !u!1 &1997115002187193515
 GameObject:
   m_ObjectHideFlags: 0
@@ -588,6 +604,7 @@ GameObject:
   - component: {fileID: 3494164143920718727}
   - component: {fileID: 5097593302076654937}
   - component: {fileID: 2962715082216404819}
+  - component: {fileID: 1694105882714906534}
   m_Layer: 5
   m_Name: ActionMenu
   m_TagString: Untagged
@@ -678,6 +695,21 @@ MonoBehaviour:
   _popOut: 0
   _popOutDuration: 0.2
   _popOutEase: 26
+--- !u!114 &1694105882714906534
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4193577552130534493}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2e762ec9307acdc4caabcceb42096095, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Selection.UIFocusRoot
+  _firstSelected: {fileID: 6461196413486502947}
+  _rememberLastSelected: 0
+  _confineNavigation: 0
 --- !u!1 &4199466791361982296
 GameObject:
   m_ObjectHideFlags: 0
@@ -1655,6 +1687,7 @@ GameObject:
   m_Component:
   - component: {fileID: 299454761274452338}
   - component: {fileID: 6883715457306754736}
+  - component: {fileID: 1093600562536051590}
   m_Layer: 5
   m_Name: BetPicker
   m_TagString: Untagged
@@ -1700,6 +1733,21 @@ MonoBehaviour:
   _chooseButton: {fileID: 5718140062309746318}
   _costGroup: {fileID: 7937411392360479785}
   _costLabel: {fileID: 2029073557981425907}
+--- !u!114 &1093600562536051590
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8735328682533887302}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2e762ec9307acdc4caabcceb42096095, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Selection.UIFocusRoot
+  _firstSelected: {fileID: 0}
+  _rememberLastSelected: 0
+  _confineNavigation: 1
 --- !u!1 &8936045942447354245
 GameObject:
   m_ObjectHideFlags: 0
@@ -1745,10 +1793,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 3882556866049389722}
     m_Modifications:
-    - target: {fileID: 2801246708585047222, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
-      propertyPath: _action
-      value: 
-      objectReference: {fileID: 7381489483533498102, guid: 052faaac586de48259a63d0c4782560b, type: 3}
     - target: {fileID: 5525976618167798955, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -1965,10 +2009,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 5455008676219211673}
     m_Modifications:
-    - target: {fileID: 2801246708585047222, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
-      propertyPath: _action
-      value: 
-      objectReference: {fileID: 8322336446036211250, guid: 052faaac586de48259a63d0c4782560b, type: 3}
     - target: {fileID: 5525976618167798955, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -2143,10 +2183,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 5455008676219211673}
     m_Modifications:
-    - target: {fileID: 2801246708585047222, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
-      propertyPath: _action
-      value: 
-      objectReference: {fileID: 3191582534098384909, guid: 052faaac586de48259a63d0c4782560b, type: 3}
     - target: {fileID: 5525976618167798955, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -2432,26 +2468,14 @@ PrefabInstance:
       propertyPath: m_fontSize
       value: 38.15
       objectReference: {fileID: 0}
-    - target: {fileID: 8390718721396653218, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
-      propertyPath: m_text
-      value: Enter
-      objectReference: {fileID: 0}
-    - target: {fileID: 8390718721396653218, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
-      propertyPath: m_fontSize
-      value: 9.45
-      objectReference: {fileID: 0}
     - target: {fileID: 8775369202157300117, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
       propertyPath: m_Name
       value: Button_Choose
       objectReference: {fileID: 0}
-    m_RemovedComponents:
-    - {fileID: 2801246708585047222, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
+    m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
     m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 8775369202157300117, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 3525826719626946969}
     - targetCorrespondingSourceObject: {fileID: 4871544217483404129, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1890683734341356979}
@@ -2479,42 +2503,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Localization::Localization.LocalizedText
   _key: poker.button.choose
---- !u!1 &3626417944613466247 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 8775369202157300117, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
-  m_PrefabInstance: {fileID: 5448159433218890002}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &3525826719626946969
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3626417944613466247}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 47c2da9d7d634494b84394a4804b1946, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Input.UIActionKeyLabel
-  _action: {fileID: 392368643174621059, guid: 052faaac586de48259a63d0c4782560b, type: 3}
-  _label: {fileID: 4605513476375684528}
---- !u!114 &4605513476375684528 stripped
-MonoBehaviour:
-  m_CorrespondingSourceObject: {fileID: 8390718721396653218, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
-  m_PrefabInstance: {fileID: 5448159433218890002}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 0}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f4688fdb7df04437aeb418b961361dc5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Unity.TextMeshPro::TMPro.TextMeshProUGUI
 --- !u!114 &5718140062309746318 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 342601452257255324, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
   m_PrefabInstance: {fileID: 5448159433218890002}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3626417944613466247}
+  m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 84f47ffb0cc60f8409595baa4eeeef58, type: 3}
@@ -2528,10 +2522,6 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 5455008676219211673}
     m_Modifications:
-    - target: {fileID: 2801246708585047222, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
-      propertyPath: _action
-      value: 
-      objectReference: {fileID: -733754734781031068, guid: 052faaac586de48259a63d0c4782560b, type: 3}
     - target: {fileID: 5525976618167798955, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5
@@ -2677,6 +2667,17 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 5525976618167798955, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
   m_PrefabInstance: {fileID: 7246797889830270242}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &6461196413486502947 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4412133104702333185, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}
+  m_PrefabInstance: {fileID: 7246797889830270242}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2114883689755122871}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
 --- !u!114 &6940300453463829182 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 342601452257255324, guid: fe8e7a1ed3eb0f44db4461e7005e00c8, type: 3}

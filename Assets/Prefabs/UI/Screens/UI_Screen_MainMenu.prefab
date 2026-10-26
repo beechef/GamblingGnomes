@@ -285,6 +285,7 @@ GameObject:
   - component: {fileID: 7182666885837073216}
   - component: {fileID: 4471301524223401289}
   - component: {fileID: 260539582115076390}
+  - component: {fileID: 368917379109782806}
   m_Layer: 5
   m_Name: UI_Screen_MainMenu
   m_TagString: Untagged
@@ -375,6 +376,21 @@ MonoBehaviour:
   _parallaxStrength: 1
   _duration: 0.6
   _ease: 6
+--- !u!114 &368917379109782806
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1336599243242743226}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2e762ec9307acdc4caabcceb42096095, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Selection.UIFocusRoot
+  _firstSelected: {fileID: 0}
+  _rememberLastSelected: 1
+  _confineNavigation: 0
 --- !u!1 &1784261787878600734
 GameObject:
   m_ObjectHideFlags: 0

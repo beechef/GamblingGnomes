@@ -2,7 +2,7 @@
 
 ## Stack and layout
 
-Unity URP, Netcode for GameObjects (server-authoritative), New Input System, DOTween, Odin (selectively), Facepunch.Steamworks; C# 9.0. Scripts only under `Assets/Scripts/`, flat `Game.Runtime` + `Game.Editor` asmdefs, no per-feature asmdefs. `Resources/` holds only what must be `Resources.Load`ed (e.g. DOTweenSettings).
+Unity URP, Netcode for GameObjects (server-authoritative), New Input System, DOTween, Odin (selectively), Facepunch.Steamworks; C# 9.0. Scripts only under `Assets/Scripts/`, flat `Game.Runtime` + `Game.Editor` asmdefs, plus `Game.Tests` (play mode tests), no per-feature asmdefs. `Resources/` holds only what must be `Resources.Load`ed (e.g. DOTweenSettings).
 
 ## C# code conventions
 
@@ -148,6 +148,8 @@ When a task touches an area through Unity MCP without reading a matching file, r
 - **Create folders with `AssetDatabase.CreateFolder` in their own command**; check `IsValidFolder`; reload after `CreateAsset`.
 - **Delete with `AssetDatabase.DeleteAssets(paths, failed)`, never the shell or `DeleteAsset`** (a command containing `DeleteAsset` is rejected). Check `GetDependencies(buildScenes, true)` first. A shell-deleted script can freeze compilation (CS2001); diagnose with `AssetPathToGUID(..., OnlyExistingAssets)` and `CompilationPipeline.GetAssemblies()` `sourceFiles`. MPPM clones: delete `Library/VP/mppm*/Library/Bee` and `.csproj`, then `RequestScriptCompilation(CleanBuildCache)`.
 - **Confirm the connection is on the main editor** (`Application.dataPath` under `/Library/VP/` = read-only clone). `McpVirtualPlayerGuard`
+- **Never assign `InputSystem.settings` a copy that is not an asset in the editor**: the Input System serializes the reference across a domain reload, gets null back and fails to initialize, losing keyboard and mouse until the editor restarts. Change fields on the live settings and restore them (`Game.Tests/ControllerTests`).
+- **Controller flows are driven by `VirtualGamepad`** (a real `Gamepad`/`DualShockGamepad` fed state events): `Game.Tests/ControllerTests` in play mode, `Tools/Input/Virtual Gamepad` (`VirtualGamepadWindow.Tap`, also callable from an MCP command) in Play mode. An unfocused Game view drops pad input unless `backgroundBehavior` ignores focus.
 - **UI text is TextMeshPro**, never `UnityEngine.UI.Text`. **Input is serialized `InputActionReference`**, never `actions["Look"]`.
 - **Every player setting lives in `SettingData`, loaded and saved only by `SettingController`** (one JSON document, `persistentDataPath/settings.json`, synced by Steam Auto-Cloud; written via temp file + `File.Replace`; the old PlayerPrefs key `settings` is read once as a fallback and deleted on the next save); never a `PlayerPrefs` call or another save file elsewhere. Typed facades (`GameSettings`, `VoiceSettings`) write `SettingController.Data` then `Save()`; a plugin's own storage is hooked in (`Localizer.LoadLocale`/`SaveLocale`). Field names are saved keys.
 - **Every UI text auto-sizes**: the authored size is `fontSizeMax`, with a smaller `fontSizeMin`, so a longer string shrinks instead of overflowing (`UI_ColorfulPickBar/Content/Label` 48 → 24). Text beside a control carries a TMP margin on that side, or it shrinks only until it touches the control (`UI_SettingRow/Label` right 20, `UI_OptionStepper/Value` 10 each side). A notice reads as a sentence: verbs lower, names as written, first letter capital (`UIPokerActionNotice.Capitalize`). An item asking someone to answer shows them the response panel on the same plank, never also the item's notice; everyone else reads only the notice (`UIPokerItemResponsePanel`, `UIPokerActionNoticeFeed.AnnounceItemUsed`).
@@ -158,7 +160,7 @@ When a task touches an area through Unity MCP without reading a matching file, r
 
 ## Rules
 
-1. Keep the two-assembly split (`Game.Runtime`, `Game.Editor`).
+1. Keep the two-assembly split (`Game.Runtime`, `Game.Editor`); tests go in `Game.Tests`.
 2. Server-authoritative by default — consistent gameplay state lives in a `NetworkBehaviour`/`NetworkVariable`.
 3. No XML doc comments or comment blocks; naming carries meaning.
 4. SOLID, KISS, DRY; industry-standard patterns; loose coupling.

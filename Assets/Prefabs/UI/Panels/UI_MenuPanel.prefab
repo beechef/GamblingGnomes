@@ -88,6 +88,7 @@ GameObject:
   - component: {fileID: 4235047824064417852}
   - component: {fileID: 1519229824609600148}
   - component: {fileID: 2145841536544845269}
+  - component: {fileID: 4574193867220683402}
   m_Layer: 5
   m_Name: UI_MenuPanel
   m_TagString: Untagged
@@ -191,6 +192,21 @@ MonoBehaviour:
   _popOut: 0
   _popOutDuration: 0.2
   _popOutEase: 26
+--- !u!114 &4574193867220683402
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1319224330755960034}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2e762ec9307acdc4caabcceb42096095, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Selection.UIFocusRoot
+  _firstSelected: {fileID: 0}
+  _rememberLastSelected: 1
+  _confineNavigation: 1
 --- !u!1 &3460899074996189710
 GameObject:
   m_ObjectHideFlags: 0
@@ -280,7 +296,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Button
   m_Navigation:
-    m_Mode: 3
+    m_Mode: 0
     m_WrapAround: 0
     m_SelectOnUp: {fileID: 0}
     m_SelectOnDown: {fileID: 0}
@@ -564,6 +580,14 @@ PrefabInstance:
     - target: {fileID: 7958803426900196274, guid: 85cae1943d77f8641be4d5c832f84f78, type: 3}
       propertyPath: _followHoverOnMouse
       value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7958803426900196274, guid: 85cae1943d77f8641be4d5c832f84f78, type: 3}
+      propertyPath: _selectFirstOnEnable
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7958803426900196274, guid: 85cae1943d77f8641be4d5c832f84f78, type: 3}
+      propertyPath: _restoreSelectionOnEnable
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 8795015743653232492, guid: 85cae1943d77f8641be4d5c832f84f78, type: 3}
       propertyPath: m_Name

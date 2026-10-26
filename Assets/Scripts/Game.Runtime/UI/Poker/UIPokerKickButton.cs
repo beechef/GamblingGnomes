@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using Game.Runtime.Controller;
 using Game.Runtime.GameMode.Poker;
 using Game.Runtime.GameMode.Poker.Player;
@@ -27,7 +29,24 @@ namespace Game.Runtime.UI.Poker
 		[Required]
 		[SerializeField] private UIButton _button;
 
+		private static readonly List<UIPokerKickButton> OfferedList = new();
+
+		// Every cross currently offered, for the HUD's pad picker (UIPokerKickPicker).
+		public static IReadOnlyList<UIPokerKickButton> Offered => OfferedList;
+
+		public static event Action OnOfferedChanged;
+
+		public PokerPlayer Player => _player;
+
 		private PlayerManager _players;
+		private bool _picked;
+
+		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+		private static void ResetStatics()
+		{
+			OfferedList.Clear();
+			OnOfferedChanged = null;
+		}
 
 		// Held for the unsubscribe: the table can be destroyed before this body during a shutdown.
 		private PokerGameData _data;
@@ -59,7 +78,7 @@ namespace Game.Runtime.UI.Poker
 			_players = null;
 			_data = null;
 
-			if (_content) _content.SetActive(false);
+			SetOffered(false);
 		}
 
 		private void HandlePlayersChanged(NetworkListEvent<NetworkObjectReference> change) => Refresh();
@@ -68,8 +87,38 @@ namespace Game.Runtime.UI.Poker
 		private void Refresh()
 		{
 			var shown = _players && GameMode && GameMode.IsHost && GameMode.IsInWaitingRoom && _player && _player.IsSpawned && _player != LocalPlayer;
-			if (_content) _content.SetActive(shown);
+			SetOffered(shown);
 		}
+
+		private void SetOffered(bool offered)
+		{
+			if (!offered) SetPicked(false);
+			if (_content) _content.SetActive(offered);
+
+			if (offered == OfferedList.Contains(this)) return;
+
+			if (offered) OfferedList.Add(this);
+			else OfferedList.Remove(this);
+
+			OnOfferedChanged?.Invoke();
+		}
+
+		// Marked by the pad picker: the cross pops as if hovered, the body wears the red warning outline and the
+		// name lights like an aimed item's target.
+		public void SetPicked(bool picked)
+		{
+			if (_picked == picked) return;
+
+			_picked = picked;
+			_button.IsSelected = picked;
+
+			if (!_player) return;
+
+			if (_player.Visual) _player.Visual.SetLocalWarned(picked);
+			if (_player.NameTag) _player.NameTag.SetLocalHighlighted(picked);
+		}
+
+		public void Kick() => HandleKick();
 
 		private void HandleKick()
 		{

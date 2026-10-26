@@ -54,6 +54,9 @@ namespace Game.Runtime.UI.Selection
 		private Tween _move;
 		private UISelectionItem _lastSelected;
 
+		// Focus moved on to something outside this list; the list must not take it back until shown again.
+		private bool _released;
+
 		// The first entry to arrive after the menu appears is placed, not travelled to: a pointer sliding
 		// in from wherever it was left reads as a glitch rather than as a choice being made.
 		private bool _snapNextSelection;
@@ -88,6 +91,7 @@ namespace Game.Runtime.UI.Selection
 			InputSchemeController.OnSchemeChanged += HandleSchemeChanged;
 
 			_snapNextSelection = true;
+			_released = false;
 
 			// Nothing is decided here on purpose. Activating a parent runs its OnEnable before its children
 			// are switched on, so asking now which entries are available answers "none" on every re-show.
@@ -103,7 +107,7 @@ namespace Game.Runtime.UI.Selection
 			// Remembered, then genuinely let go. A group still holding its old choice would read the very
 			// same entry arriving again as "nothing changed" and return without marking the button or
 			// moving the pointer.
-			_lastSelected = Selected;
+			if (Selected) _lastSelected = Selected;
 
 			if (Selected) Selected.IsSelected = false;
 			Selected = null;
@@ -153,6 +157,7 @@ namespace Game.Runtime.UI.Selection
 
 				item.OnPointed += Select;
 				item.OnUnpointed += HandleUnpointed;
+				item.OnDeselected += HandleDeselected;
 				item.OnSubmitted += HandleSubmitted;
 			}
 		}
@@ -164,6 +169,7 @@ namespace Game.Runtime.UI.Selection
 				if (!item) continue;
 
 				item.OnSubmitted -= HandleSubmitted;
+				item.OnDeselected -= HandleDeselected;
 				item.OnUnpointed -= HandleUnpointed;
 				item.OnPointed -= Select;
 			}
@@ -181,6 +187,17 @@ namespace Game.Runtime.UI.Selection
 			if (events && events.currentSelectedGameObject == item.gameObject) events.SetSelectedGameObject(null);
 		}
 
+		// On a pad the focus is the one marker on screen: when it moves to another list (a panel's Back under its
+		// entries), this list lets go of its pointer, remembering the entry for when focus comes back.
+		private void HandleDeselected(UISelectionItem item)
+		{
+			if (!InputSchemeController.IsGamepad || Selected != item) return;
+
+			_lastSelected = item;
+			_released = true;
+			Select(null);
+		}
+
 		// Picking up a pad over a list with nothing marked gives the stick somewhere to start from.
 		private void HandleSchemeChanged(InputScheme scheme) => RequestPointerUpdate();
 
@@ -195,7 +212,11 @@ namespace Game.Runtime.UI.Selection
 			Selected = item;
 			_snapNextSelection = instant;
 
-			if (Selected) Selected.IsSelected = true;
+			if (Selected)
+			{
+				Selected.IsSelected = true;
+				_released = false;
+			}
 
 			RequestPointerUpdate();
 			OnSelectionChanged?.Invoke(Selected);
@@ -209,7 +230,7 @@ namespace Game.Runtime.UI.Selection
 		{
 			if (executing != CanvasUpdate.PostLayout) return;
 
-			if (!Selected) ApplyInitialSelection();
+			if (!Selected && !_released) ApplyInitialSelection();
 
 			PlacePointer();
 		}

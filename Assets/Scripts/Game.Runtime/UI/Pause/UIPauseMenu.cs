@@ -20,6 +20,9 @@ namespace Game.Runtime.UI.Pause
 		[Header("Input")]
 		[SerializeField] private InputActionReference _pauseAction;
 
+		[Tooltip("UI/Cancel. A pad's Back steps out of the newest thing open, then out of this menu; it never opens it. Not enabled or disabled here: the UI input module shares it.")]
+		[SerializeField] private InputActionReference _cancelAction;
+
 		[Header("Buttons")]
 		[SerializeField] private UIButton _resumeButton;
 		[SerializeField] private UIButton _closeButton;
@@ -47,6 +50,8 @@ namespace Game.Runtime.UI.Pause
 				_pauseAction.action.performed += HandlePausePressed;
 			}
 
+			if (_cancelAction) _cancelAction.action.performed += HandleCancelPressed;
+
 			if (_resumeButton) _resumeButton.OnClick += Close;
 			if (_closeButton) _closeButton.OnClick += Close;
 			if (_settingsButton) _settingsButton.OnClick += HandleSettingsClicked;
@@ -73,6 +78,8 @@ namespace Game.Runtime.UI.Pause
 				_pauseAction.action.Disable();
 			}
 
+			if (_cancelAction) _cancelAction.action.performed -= HandleCancelPressed;
+
 			if (_resumeButton) _resumeButton.OnClick -= Close;
 			if (_closeButton) _closeButton.OnClick -= Close;
 			if (_settingsButton) _settingsButton.OnClick -= HandleSettingsClicked;
@@ -83,12 +90,31 @@ namespace Game.Runtime.UI.Pause
 
 		private void HandlePausePressed(InputAction.CallbackContext ctx)
 		{
+			// The pad has Back for stepping out, so its Start only pauses: whatever is open underneath (a kick
+			// being picked) waits under the menu and carries on when it closes.
+			if (ctx.control != null && ctx.control.device is Gamepad)
+			{
+				if (IsOpen) Close();
+				else Open();
+				return;
+			}
+
 			// Escape closes the newest thing that is open before it opens or closes anything of its own — this
 			// menu is what the key falls through to, not what it always means.
 			if (UIEscapeStack.DismissTop()) return;
 
 			if (IsOpen) Close();
 			else Open();
+		}
+
+		// The keyboard's Escape is both Pause and Cancel and is already handled above, so only a pad answers here.
+		private void HandleCancelPressed(InputAction.CallbackContext ctx)
+		{
+			if (ctx.control == null || ctx.control.device is not Gamepad) return;
+
+			if (UIEscapeStack.DismissTop()) return;
+
+			if (IsOpen) Close();
 		}
 
 		public void Open()
@@ -100,6 +126,9 @@ namespace Game.Runtime.UI.Pause
 
 			IsOpen = true;
 			if (_panel) _panel.SetActive(true);
+
+			// On the stack while open, so Back and Escape close it before anything opened underneath it.
+			UIEscapeStack.Push(Close);
 
 			// One release among however many are out — the poker HUD may be holding its own, and
 			// resuming must not take the cursor back from it.
@@ -129,6 +158,8 @@ namespace Game.Runtime.UI.Pause
 			// Every way out runs through here, so the release is handed back exactly once however the
 			// panel closed — resumed, left the table, or switched off.
 			if (IsOpen) CursorController.ReleaseUnlock();
+
+			UIEscapeStack.Remove(Close);
 
 			IsOpen = false;
 			if (_panel) _panel.SetActive(false);

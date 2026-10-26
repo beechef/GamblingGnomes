@@ -4,7 +4,7 @@ using UnityEngine;
 namespace Game.Runtime.UI.Button
 {
 	// Escape presses this button while it is shown — a panel's close cross. Goes through UIEscapeStack rather
-	// than binding a key (UIButtonHotkey), because Escape is shared: the newest button shown gets the press, and
+	// than binding a key on the button, because Escape is shared: the newest button shown gets the press, and
 	// the pause menu only opens when no button is waiting for it.
 	[RequireComponent(typeof(UIButton))]
 	public class UIButtonEscape : MonoBehaviour

@@ -119,6 +119,26 @@ namespace Game.Runtime.Steam
 			}
 		}
 
+		// Steam's own on-screen keyboard, for a player with only a pad (Steam Deck, or Big Picture on another
+		// handheld). False where Steam has none to show (desktop mode, not initialised): the caller falls back to
+		// a physical keyboard. The dismissal handler is a one-shot taken off whichever way it closes.
+		public static bool ShowTextInput(string description, string text, int maxCharacters, Action<string> onSubmitted)
+		{
+			if (!IsInitialized) return false;
+
+			if (!SteamUtils.ShowGamepadTextInput(GamepadTextInputMode.Normal, GamepadTextInputLineMode.SingleLine, description ?? string.Empty, maxCharacters, text ?? string.Empty))
+				return false;
+
+			void HandleDismissed(bool submitted)
+			{
+				SteamUtils.OnGamepadTextInputDismissed -= HandleDismissed;
+				if (submitted) onSubmitted?.Invoke(SteamUtils.GetEnteredGamepadText());
+			}
+
+			SteamUtils.OnGamepadTextInputDismissed += HandleDismissed;
+			return true;
+		}
+
 		private void OnApplicationQuit()
 		{
 			ShutdownSteam();

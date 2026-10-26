@@ -46,6 +46,9 @@ namespace Game.Runtime.Player
 		[Tooltip("What it is painted the rest of the time — the stroke every body wears. Black: the pass is always there and its colour is the whole difference between a drawn line and a highlight.")]
 		[SerializeField] private Color _idleOutlineColor = new(0f, 0f, 0f, 1f);
 
+		[Tooltip("What the pass is painted while this player is marked for something done to them (the host choosing whom to kick). Wins over every other colour.")]
+		[SerializeField] private Color _warnOutlineColor = new(0.85f, 0.1f, 0.1f, 1f);
+
 		[SerializeField] private float _outlineWidth = 0.02f;
 
 		[Tooltip("What the pass pulses to while this player can be picked: an action is waiting on somebody being chosen. It swings between the idle colour and this, so a white one reads as the stroke's light fading in and out.")]
@@ -105,7 +108,9 @@ namespace Game.Runtime.Player
 		// cursor passing over it cannot switch each other off.
 		private bool _localOutlined;
 
-		private bool IsOutlined => Outlined.Value || _localOutlined;
+		private bool _localWarned;
+
+		private bool IsOutlined => Outlined.Value || _localOutlined || _localWarned;
 
 		// Pickable on this screen alone, for as long as the local player is choosing someone.
 		private bool _localPrompted;
@@ -173,6 +178,14 @@ namespace Game.Runtime.Player
 			if (_localOutlined == outlined) return;
 
 			_localOutlined = outlined;
+			ApplyOutline(IsOutlined);
+		}
+
+		public void SetLocalWarned(bool warned)
+		{
+			if (_localWarned == warned) return;
+
+			_localWarned = warned;
 			ApplyOutline(IsOutlined);
 		}
 
@@ -365,7 +378,7 @@ namespace Game.Runtime.Player
 			if (!outline) return;
 
 			var idle = _localPrompted ? Color.Lerp(_idleOutlineColor, _promptOutlineColor, _promptWeight) : _idleOutlineColor;
-			outline.SetColor(OutlineColorId, IsOutlined ? _outlineColor : idle);
+			outline.SetColor(OutlineColorId, _localWarned ? _warnOutlineColor : IsOutlined ? _outlineColor : idle);
 		}
 
 		private static void WearOutline(Renderer renderer, Material outline)

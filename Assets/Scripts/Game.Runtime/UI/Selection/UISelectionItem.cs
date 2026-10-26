@@ -1,4 +1,5 @@
 using System;
+using Game.Runtime.Controller;
 using Game.Runtime.UI.Button;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -9,7 +10,7 @@ namespace Game.Runtime.UI.Selection
 	// selects it and pushes hover into that same focus, so the mouse and the arrow keys can never hold
 	// two different opinions about which entry is the current one.
 	[RequireComponent(typeof(UIButton))]
-	public class UISelectionItem : MonoBehaviour, ISelectHandler
+	public class UISelectionItem : MonoBehaviour, ISelectHandler, IDeselectHandler
 	{
 		[Header("References")]
 		[Tooltip("Where the group's pointer should aim. Left empty, the item's own rect is used.")]
@@ -18,6 +19,7 @@ namespace Game.Runtime.UI.Selection
 		public event Action<UISelectionItem> OnPointed;
 		public event Action<UISelectionItem> OnUnpointed;
 		public event Action<UISelectionItem> OnSubmitted;
+		public event Action<UISelectionItem> OnDeselected;
 
 		private UIButton _button;
 
@@ -59,11 +61,17 @@ namespace Game.Runtime.UI.Selection
 		// where the group hears about it, so navigation needs no handling of its own.
 		public void OnSelect(BaseEventData eventData) => OnPointed?.Invoke(this);
 
+		public void OnDeselect(BaseEventData eventData) => OnDeselected?.Invoke(this);
+
 		// Hover hands focus to the EventSystem rather than marking the item behind its back — navigation
 		// then carries on from whatever the mouse last touched instead of jumping back to where the
 		// keyboard left off.
 		private void HandleHover()
 		{
+			// A panel opening under a resting mouse hovers an entry without anybody moving it; on a pad that
+			// must not take the focus away from where the pad put it.
+			if (InputSchemeController.IsGamepad) return;
+
 			var events = EventSystem.current;
 
 			if (!events)

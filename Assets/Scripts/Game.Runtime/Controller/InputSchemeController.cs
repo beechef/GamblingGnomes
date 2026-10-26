@@ -11,6 +11,12 @@ namespace Game.Runtime.Controller
 		Gamepad,
 	}
 
+	public enum GamepadKind
+	{
+		Xbox,
+		PlayStation,
+	}
+
 	// Which kind of device the player is actually holding, so a key badge can name a button they have and
 	// a stick can be read as the rate it is rather than the delta a mouse is. Switching is the whole point:
 	// nobody picks a scheme in a menu, they pick up a pad, and the game is expected to have noticed.
@@ -30,7 +36,12 @@ namespace Game.Runtime.Controller
 
 		public static event Action<InputScheme> OnSchemeChanged;
 
+		// Raised on a scheme change and on a pad of another kind taking over, for anything drawn per device.
+		public static event Action OnDeviceChanged;
+
 		public static InputScheme Current { get; private set; }
+
+		public static GamepadKind CurrentGamepadKind { get; private set; }
 
 		public static bool IsGamepad => Current == InputScheme.Gamepad;
 
@@ -48,7 +59,9 @@ namespace Game.Runtime.Controller
 		private static void ResetStatics()
 		{
 			OnSchemeChanged = null;
+			OnDeviceChanged = null;
 			Current = InputScheme.KeyboardMouse;
+			CurrentGamepadKind = GamepadKind.Xbox;
 
 			if (_installed)
 			{
@@ -85,14 +98,17 @@ namespace Game.Runtime.Controller
 			if (!eventPtr.IsA<StateEvent>() && !eventPtr.IsA<DeltaStateEvent>()) return;
 
 			var scheme = SchemeFor(device);
+			if (!scheme.HasValue) return;
+
+			var kind = scheme.Value == InputScheme.Gamepad ? KindFor(device) : CurrentGamepadKind;
 
 			// The early-out before enumerating is what keeps this free on the frames that matter: almost
 			// every event comes from the device already in hand.
-			if (!scheme.HasValue || scheme.Value == Current) return;
+			if (scheme.Value == Current && kind == CurrentGamepadKind) return;
 
 			foreach (var _ in eventPtr.EnumerateChangedControls(device, ActuationThreshold))
 			{
-				SetScheme(scheme.Value);
+				SetDevice(scheme.Value, kind);
 				return;
 			}
 		}
@@ -100,10 +116,11 @@ namespace Game.Runtime.Controller
 		// A device the game invented is not hardware in anybody's hands. VirtualMouseInput creates a real
 		// Mouse for the pad's cursor, so without this the right stick reports a mouse and flips the scheme
 		// straight back to keyboard — which then switches off the very cursor that was reporting, every
-		// time the player moves it.
+		// time the player moves it. Only an invented pointer is refused: a pad or keyboard added in code is a test
+		// or the editor's virtual gamepad standing in for one, and must switch the scheme like the real thing.
 		private static InputScheme? SchemeFor(InputDevice device)
 		{
-			if (device == null || !device.native) return null;
+			if (device == null || (!device.native && device is Pointer)) return null;
 
 			return device switch
 			{
@@ -113,12 +130,19 @@ namespace Game.Runtime.Controller
 			};
 		}
 
-		private static void SetScheme(InputScheme scheme)
+		// Anything that is not a PlayStation pad is drawn as Xbox, the layout every other pad copies.
+		private static GamepadKind KindFor(InputDevice device) =>
+			device is UnityEngine.InputSystem.DualShock.DualShockGamepad ? GamepadKind.PlayStation : GamepadKind.Xbox;
+
+		private static void SetDevice(InputScheme scheme, GamepadKind kind)
 		{
-			if (Current == scheme) return;
+			var schemeChanged = Current != scheme;
 
 			Current = scheme;
-			OnSchemeChanged?.Invoke(scheme);
+			CurrentGamepadKind = kind;
+
+			if (schemeChanged) OnSchemeChanged?.Invoke(scheme);
+			OnDeviceChanged?.Invoke();
 		}
 	}
 }
