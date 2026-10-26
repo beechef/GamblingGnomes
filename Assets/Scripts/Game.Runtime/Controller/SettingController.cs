@@ -90,6 +90,7 @@ namespace Game.Runtime.Controller
 				SystemLanguage.Turkish => "tr",
 				SystemLanguage.Ukrainian => "uk",
 				SystemLanguage.Vietnamese => "vi",
+				SystemLanguage.Indonesian => "id",
 				_ => string.Empty
 			}
 		};

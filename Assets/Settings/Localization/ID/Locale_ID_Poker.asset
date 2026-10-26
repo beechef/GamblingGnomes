@@ -1,0 +1,202 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 48cfa9c17f2bc884ba9c1aad02a042a1, type: 3}
+  m_Name: Locale_ID_Poker
+  m_EditorClassIdentifier: Localization::Localization.LocaleSection
+  _entries:
+  - Key: poker.action.bet
+    Value: BET
+  - Key: poker.action.call
+    Value: CALL
+  - Key: poker.action.fold
+    Value: FOLD
+  - Key: poker.button.all_in
+    Value: '[ALL IN]'
+  - Key: poker.button.fold
+    Value: '[FOLD]'
+  - Key: poker.button.choose
+    Value: PILIH
+  - Key: poker.button.items
+    Value: ITEM ({0})
+  - Key: poker.button.view_board
+    Value: '[LIHAT MEJA]'
+  - Key: poker.button.lay_board
+    Value: '[TURUNKAN MEJA]'
+  - Key: poker.button.helper
+    Value: BANTUAN
+  - Key: poker.button.start
+    Value: MULAI
+  - Key: poker.button.invite
+    Value: UNDANG
+  - Key: poker.button.add_bot
+    Value: TAMBAH BOT
+  - Key: poker.button.clear_bot
+    Value: HAPUS BOT
+  - Key: poker.button.match_settings
+    Value: Pengaturan
+  - Key: poker.targeting.hint
+    Value: Esc untuk mengembalikan
+  - Key: poker.helper.title
+    Value: URUTAN KARTU POKER
+  - Key: poker.helper.your_hand
+    Value: KARTUMU
+  - Key: poker.helper.empty
+    Value: Belum ada kartu di tanganmu.
+  - Key: poker.items.left_in_deck
+    Value: SISA DI DEK
+  - Key: poker.ranking.title
+    Value: HASIL
+  - Key: poker.ranking.place.st
+    Value: '#{0}'
+  - Key: poker.ranking.place.nd
+    Value: '#{0}'
+  - Key: poker.ranking.place.rd
+    Value: '#{0}'
+  - Key: poker.ranking.place.th
+    Value: '#{0}'
+  - Key: poker.colorful.prompt
+    Value: Siapa yang makan <Highlight>jamur maut</Highlight> & dapat <Highlight>{0}
+      item</Highlight>?
+  - Key: poker.turn.yours
+    Value: GILIRANMU
+  - Key: poker.turn.other
+    Value: GILIRAN {0}
+  - Key: poker.player.fallback
+    Value: Pemain
+  - Key: poker.phase.waiting
+    Value: MENUNGGU
+  - Key: poker.phase.dealing
+    Value: MEMBAGI KARTU
+  - Key: poker.phase.first_street
+    Value: RONDE PERTAMA
+  - Key: poker.phase.second_street
+    Value: RONDE KEDUA
+  - Key: poker.phase.looking
+    Value: LIHAT KARTU
+  - Key: poker.phase.eating
+    Value: MAKAN JAMUR
+  - Key: poker.phase.showdown
+    Value: SHOWDOWN
+  - Key: poker.phase.finished
+    Value: SELESAI
+  - Key: poker.phase.match_over
+    Value: MATCH SELESAI
+  - Key: poker.phase.all_in
+    Value: ALL IN
+  - Key: poker.phase.ante
+    Value: ANTE
+  - Key: poker.start.ready
+    Value: '{0} pemain siap'
+  - Key: poker.start.for_table
+    Value: Mulai untuk semua
+  - Key: poker.start.waiting
+    Value: Menunggu pemain ({0}/{1})
+  - Key: poker.pot
+    Value: 'Pot: {0}'
+  - Key: poker.match_over.survivor
+    Value: GNOME TERAKHIR BERTAHAN
+  - Key: poker.match_over.nobody
+    Value: TIDAK ADA YANG SELAMAT
+  - Key: poker.notice.item_bonus
+    Value: +{0} ITEM
+  - Key: poker.notice.item_reward
+    Value: SELAMAT +{0} ITEM
+  - Key: poker.notice.items_lost
+    Value: '{0} ITEM HILANG'
+  - Key: poker.notice.match_started
+    Value: MATCH DIMULAI
+  - Key: poker.notice.match_players
+    Value: '{0} PEMAIN'
+  - Key: poker.notice.item_used
+    Value: PAKAI {0}
+  - Key: poker.notice.bet
+    Value: BET
+  - Key: poker.notice.fold
+    Value: FOLD
+  - Key: poker.notice.all_in
+    Value: ALL IN
+  - Key: config.title
+    Value: PENGATURAN MATCH
+  - Key: config.section.match
+    Value: Match
+  - Key: config.section.items
+    Value: Item
+  - Key: config.starting_health
+    Value: Nyawa Awal
+  - Key: config.items_per_hand
+    Value: Item per Babak
+  - Key: config.loser_bonus
+    Value: Bonus Kalah
+  - Key: config.item_capacity
+    Value: Kapasitas Item
+  - Key: bet_item.green
+    Value: Hijau
+  - Key: bet_item.red
+    Value: Merah
+  - Key: bet_item.purple
+    Value: Ungu
+  - Key: bet_item.yellow
+    Value: Kuning
+  - Key: bet_item.colorful
+    Value: Warna-warni
+  - Key: poker.round.title
+    Value: Ronde
+  - Key: poker.helper.tab.helper
+    Value: Bantuan
+  - Key: poker.helper.tab.ruleset
+    Value: Aturan
+  - Key: poker.helper.tab.define
+    Value: Istilah
+  - Key: poker.helper.joker_title
+    Value: Joker
+  - Key: poker.helper.joker_caption
+    Value: Kartu bebas
+  - Key: poker.ruleset.deal_cards
+    Value: Di awal match, tiap pemain dibagi {0} kartu pribadi (Hold Card).
+  - Key: poker.ruleset.deal_cards_items
+    Value: Di awal match, tiap pemain dibagi {0} kartu pribadi (Hold Card) dan {1}
+      item.
+  - Key: poker.ruleset.turn_actions
+    Value: Saat gilirannya, pemain bisa Call, All in, atau Fold.
+  - Key: poker.ruleset.turn_actions_items
+    Value: Saat gilirannya, pemain bisa memakai hingga {0} item, lalu Call atau Fold.
+  - Key: poker.ruleset.community_cards
+    Value: Di akhir tiap ronde, {0} kartu bersama (Community Card) dibuka satu per
+      satu.
+  - Key: poker.ruleset.all_in
+    Value: Begitu ada yang All in, semua pemain hanya bisa menyamai All in itu atau
+      Fold. Lalu semua kartu sisa dibuka.
+  - Key: poker.ruleset.showdown
+    Value: Setelah semua kartu terbuka, pemain dengan Poker Hand tertinggi menang.
+  - Key: poker.ruleset.winner_feeds
+    Value: Pemenang memilih satu pemain untuk memakan Jamur Beracun.
+  - Key: poker.ruleset.winner_feeds_item
+    Value: Pemenang memilih satu pemain untuk memakan Jamur Beracun dan dapat satu
+      item lagi.
+  - Key: poker.ruleset.losers_eat
+    Value: Yang kalah wajib memakan semua jamur yang mereka taruhkan.
+  - Key: poker.define.title
+    Value: Halusinasi & Jamur Beracun
+  - Key: poker.define.meter_title
+    Value: Bar halusinasi
+  - Key: poker.define.meter_description
+    Value: Tiap jamur yang dimakan menambah 10% halusinasi. Makin tinggi, makin banyak
+      efek yang kamu alami. Di 100% kamu overdosis dan kalah.
+  - Key: poker.define.poison_title
+    Value: Jamur beracun
+  - Key: poker.define.poison_description
+    Value: Tidak menambah halusinasi; sebagai gantinya memicu Death Roll - peluang
+      overdosis acak sesuai tingkat halusinasi saat ini.
+  - Key: poker.colorful.prompt_no_items
+    Value: Siapa yang makan <Highlight>jamur maut</Highlight>?
+  - Key: poker.button.hallucination_effect
+    Value: EFEK ON/OFF

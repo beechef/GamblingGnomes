@@ -1,0 +1,250 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 48cfa9c17f2bc884ba9c1aad02a042a1, type: 3}
+  m_Name: Locale_ID_Items
+  m_EditorClassIdentifier: Localization::Localization.LocaleSection
+  _entries:
+  - Key: item.prompt.player
+    Value: TUNJUK SEORANG PEMAIN
+  - Key: item.prompt.opponent_card
+    Value: TUNJUK KARTU PEMAIN LAIN
+  - Key: item.prompt.own_card
+    Value: TUNJUK SALAH SATU KARTUMU
+  - Key: item.prompt.board_card
+    Value: TUNJUK KARTU MEJA YANG TERTUTUP
+  - Key: item.reason.not_dealt
+    Value: Meja ini tidak membagikannya.
+  - Key: item.reason.not_held
+    Value: Tidak ada di tanganmu.
+  - Key: item.reason.out_of_match
+    Value: Kamu sudah keluar dari match ini.
+  - Key: item.reason.street_only
+    Value: Hanya saat ronde taruhan.
+  - Key: item.reason.turn_only
+    Value: Hanya saat giliranmu.
+  - Key: item.reason.locked_out
+    Value: Item dikunci di ronde ini.
+  - Key: item.reason.used_one
+    Value: Sudah memakai item di ronde ini.
+  - Key: item.reason.used_many
+    Value: Sudah memakai {0} item di ronde ini.
+  - Key: item.reason.waiting_other
+    Value: Menunggu item lain.
+  - Key: item.reason.not_in_hand
+    Value: Kamu tidak ikut babak ini.
+  - Key: item.reason.hand_full
+    Value: Tanganmu sudah penuh.
+  - Key: item.reason.deck_empty
+    Value: Deknya kosong.
+  - Key: item.reason.no_street_left
+    Value: Tidak ada ronde tersisa di babak ini.
+  - Key: item.reason.no_board
+    Value: Meja ini tidak membagikan kartu meja.
+  - Key: item.reason.last_board_seen
+    Value: Kartu meja terakhir sudah terbuka untukmu.
+  - Key: item.reason.board_seen
+    Value: Semua kartu meja sudah terbuka untukmu.
+  - Key: item.reason.board_full
+    Value: Mejanya sudah penuh.
+  - Key: item.reason.no_card_to_lay
+    Value: Kamu tidak punya kartu untuk ditaruh.
+  - Key: item.reason.no_card_to_give
+    Value: Kamu tidak punya kartu tersisa untuk diberikan.
+  - Key: item.reason.all_face_up
+    Value: Semua kartu sudah terbuka.
+  - Key: item.reason.cant_change
+    Value: Tidak ada kartumu yang bisa diubah.
+  - Key: item.reason.already_under
+    Value: Kamu sudah teler.
+  - Key: item.reason.nobody_to_halve
+    Value: Tidak ada yang bisa dibagi dua.
+  - Key: item.reason.nobody_in_hand
+    Value: Tidak ada pemain lain yang tersisa di babak ini.
+  - Key: item.reason.nobody_to_shake
+    Value: Tidak ada dosis yang bisa diubah.
+  - Key: item.reason.nobody_to_roll
+    Value: Tidak ada pemain lain untuk roll.
+  - Key: item.reason.nobody_to_swap
+    Value: Tidak ada pemain lain yang punya kartu untuk ditukar.
+  - Key: item.copy_card.name
+    Value: Salin
+  - Key: item.copy_card.description
+    Value: Peluang 35% salah satu kartumu menjadi salinan kartu lain di tanganmu.
+  - Key: item.copy_card.notice
+    Value: MENCOBA SALIN
+  - Key: item.copy_card.copied
+    Value: TERSALIN
+  - Key: item.copy_card.failed
+    Value: GAGAL SALIN
+  - Key: item.deck_count.name
+    Value: Hitung Jenis
+  - Key: item.deck_count.description
+    Value: Lihat berapa kartu tiap jenis, dan berapa Joker jika dek memilikinya,
+      yang masih tersisa di dek. Hanya kamu yang melihat hitungannya, dan itu tetap
+      ada sampai babak berakhir.
+  - Key: item.deck_count.notice
+    Value: MENGHITUNG DEK
+  - Key: item.extra_draw.name
+    Value: Muntah
+  - Key: item.extra_draw.description
+    Value: Ambil satu kartu lagi dari dek. Kamu tidak bisa fold sampai babak ini
+      selesai.
+  - Key: item.extra_draw.notice
+    Value: AMBIL EKSTRA
+  - Key: item.half_dose.name
+    Value: Suntikan
+  - Key: item.half_dose.description
+    Value: 'Pilih pemain: death rate-nya dibagi dua, lalu dia roll dengan sisanya.'
+  - Key: item.half_dose.notice
+    Value: MEMBAGI DUA DOSIS
+  - Key: item.half_dose.prompt
+    Value: TUNJUK DOSIS SIAPA YANG DIBAGI DUA
+  - Key: item.joker_card.name
+    Value: Kotak Kejutan
+  - Key: item.joker_card.description
+    Value: Peluang {0}% kartu pilihan di tanganmu menjadi Joker. Hanya kamu yang
+      tahu berhasil atau tidak.
+  - Key: item.joker_card.joker
+    Value: DAPAT JOKER
+  - Key: item.joker_card.failed
+    Value: TIDAK DAPAT JOKER
+  - Key: item.lock_fold.name
+    Value: Kunci
+  - Key: item.lock_fold.description
+    Value: Tidak ada yang bisa fold di ronde berikutnya, termasuk kamu.
+  - Key: item.lock_fold.notice
+    Value: MENGUNCI FOLD
+  - Key: item.mushroom_dose.name
+    Value: Oplos
+  - Key: item.mushroom_dose.description
+    Value: 2 jamur berikutnya milik pemain pilihan tidak berefek atau berefek dua
+      kali lipat, 50/50.
+  - Key: item.mushroom_dose.notice
+    Value: MENGOPLOS JAMUR
+  - Key: item.mushroom_dose.prompt
+    Value: TUNJUK JAMUR SIAPA YANG DIOPLOS
+  - Key: item.mutual_reveal.name
+    Value: Buka Bareng
+  - Key: item.mutual_reveal.description
+    Value: Kamu dan pemain pilihanmu masing-masing membuka satu kartu untuk seluruh
+      meja sampai babak berakhir. Dia memilih kartunya sendiri.
+  - Key: item.mutual_reveal.notice
+    Value: BUKA KARTU BARENG
+  - Key: item.mutual_reveal.prompt_own
+    Value: TUNJUK KARTU YANG AKAN KAMU BUKA
+  - Key: item.mutual_reveal.prompt_player
+    Value: TUNJUK SIAPA YANG BUKA BARENGMU
+  - Key: item.mutual_reveal.response
+    Value: 'INGIN KAMU MEMBUKA KARTU: TUNJUK SATU'
+  - Key: item.pair_lock_fold.name
+    Value: Borgol
+  - Key: item.pair_lock_fold.description
+    Value: Kamu dan pemain pilihan tidak bisa fold di ronde berikutnya.
+  - Key: item.pair_lock_fold.notice
+    Value: MEMBORGOL
+  - Key: item.pair_lock_items.name
+    Value: Tanpa Item
+  - Key: item.pair_lock_items.description
+    Value: Kamu dan pemain pilihan tidak bisa memakai item di ronde berikutnya.
+  - Key: item.pair_lock_items.notice
+    Value: MEMBLOKIR ITEM
+  - Key: item.pair_lock.prompt
+    Value: TUNJUK SIAPA YANG DIKUNCI BERSAMAMU
+  - Key: item.peek_board.name
+    Value: Spatula
+  - Key: item.peek_board.description
+    Value: Lihat satu kartu meja sebelum dibuka. Kamu tidak bisa fold di ronde ini.
+  - Key: item.peek_board.notice
+    Value: MENGINTIP MEJA
+  - Key: item.peek_board_main.description
+    Value: Lihat kartu meja terakhir sebelum dibuka. Kamu tidak bisa fold di ronde
+      ini.
+  - Key: item.peek_hand.name
+    Value: Intip
+  - Key: item.peek_hand.description
+    Value: Lihat satu kartu pemain yang masih ikut. Dia diberi tahu kartu mana yang
+      kamu lihat.
+  - Key: item.peek_hand.notice
+    Value: MENGINTIP
+  - Key: item.place_on_board.name
+    Value: Rokok
+  - Key: item.place_on_board.description
+    Value: Taruh salah satu kartumu terbuka di meja untuk semua, lalu ambil kartu
+      baru dari dek sebagai gantinya.
+  - Key: item.place_on_board.notice
+    Value: MENARUH KARTU
+  - Key: item.place_on_board.prompt
+    Value: TUNJUK KARTU YANG KAMU TARUH DI MEJA
+  - Key: item.raise_stakes.name
+    Value: Naikkan
+  - Key: item.raise_stakes.description
+    Value: Setiap bet di ronde berikutnya menaruh satu jamur lagi, termasuk punyamu.
+  - Key: item.raise_stakes.notice
+    Value: MENAIKKAN TARUHAN
+  - Key: item.random_suit.name
+    Value: Dadu
+  - Key: item.random_suit.description
+    Value: Salah satu kartumu tetap nilainya dan berganti ke jenis lain secara acak.
+  - Key: item.random_suit.notice
+    Value: MENGGANTI JENIS
+  - Key: item.random_suit.prompt
+    Value: TUNJUK KARTU YANG AKAN DIUBAH
+  - Key: item.rate_shift.name
+    Value: Celana Dalam
+  - Key: item.rate_shift.description
+    Value: 'Pilih pemain: death rate-nya naik atau turun {0}, secara acak.'
+  - Key: item.rate_shift.raised
+    Value: +{0} DOSIS UNTUK
+  - Key: item.rate_shift.lowered
+    Value: -{0} DOSIS UNTUK
+  - Key: item.rate_shift.prompt
+    Value: TUNJUK DOSIS SIAPA YANG DIUBAH
+  - Key: item.shared_roll.name
+    Value: Bir
+  - Key: item.shared_roll.description
+    Value: Kamu dan pemain pilihanmu masing-masing roll melawan death rate sendiri,
+      bersamaan.
+  - Key: item.shared_roll.notice
+    Value: ROLL BARENG
+  - Key: item.shared_roll.prompt
+    Value: TUNJUK SIAPA YANG ROLL BARENGMU
+  - Key: item.swap_board.name
+    Value: Rokok
+  - Key: item.swap_board.description
+    Value: Satu kartu meja yang tertutup dibuka untuk semua, lalu ditukar dengan
+      salah satu kartumu, yang tetap terbuka di meja.
+  - Key: item.swap_board.notice
+    Value: MENUKAR DENGAN MEJA
+  - Key: item.swap_board.prompt
+    Value: TUNJUK KARTU YANG KAMU TARUH DI MEJA
+  - Key: item.swap_hand.name
+    Value: Pisau
+  - Key: item.swap_hand.description
+    Value: Tukar salah satu kartumu dengan pemain yang masih ikut. Dia memilih kartunya
+      sendiri untuk diberikan.
+  - Key: item.swap_hand.notice
+    Value: TUKAR KARTU DENGAN
+  - Key: item.swap_hand.prompt_own
+    Value: TUNJUK KARTU YANG KAMU BERIKAN
+  - Key: item.swap_hand.prompt_player
+    Value: TUNJUK SIAPA YANG DIAJAK TUKAR
+  - Key: item.swap_hand.response
+    Value: menukar kartu denganmu - pilih satu untuk ditukar
+  - Key: item.table_reveal.name
+    Value: Megafon
+  - Key: item.table_reveal.description
+    Value: Setiap pemain yang masih ikut membuka satu kartu acak ke seluruh meja
+      di ronde ini.
+  - Key: item.table_reveal.notice
+    Value: MEMBONGKAR SEMUA
+  - Key: item.reason.no_time
+    Value: Waktu tidak cukup untuk mereka menjawab.
