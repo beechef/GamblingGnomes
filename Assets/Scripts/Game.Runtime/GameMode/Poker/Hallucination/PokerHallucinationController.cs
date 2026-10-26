@@ -16,6 +16,7 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 	// A rung's effect is picked when the rung is *climbed*, not when it is read: sobering back down takes
 	// it off, and climbing again draws a fresh one. That is what makes an item that lowers the rate
 	// visible — the world clears, and coming back is a different room rather than the same one returning.
+	// Hiding the rungs is not sobering: the rate is still on them, so showing them again replays the same draw.
 	public class PokerHallucinationController : NetworkBehaviour
 	{
 		[Header("References")]
@@ -37,6 +38,10 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 
 		// Pool indices, shuffled as far as a draw needs. Reused rather than allocated per climb.
 		private readonly List<int> _drawOrder = new();
+
+		// The seed each climbed rung drew with, kept while the rate stays on it, so hiding and showing the rungs
+		// brings back the same draw (groups included) instead of a new one. Dropped when the rate leaves the rung.
+		private readonly Dictionary<int, int> _rungSeeds = new();
 
 		// The same set in rung order, for anything that wants to say what a player is under. Kept beside the
 		// dictionary rather than sorted on demand: it is rebuilt when a rung is climbed or lost, which is the
@@ -357,6 +362,8 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 				var rung = rungs[i];
 				if (rung == null) continue;
 
+				if (rate < rung.Threshold) _rungSeeds.Remove(i);
+
 				var climbed = IsRungClimbed(rate, rung);
 				var running = _active.ContainsKey(i);
 
@@ -392,6 +399,29 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 			var pool = rung.Pool;
 			if (pool == null || pool.Count == 0) return;
 
+			if (!_rungSeeds.TryGetValue(index, out var seed))
+			{
+				seed = UnityEngine.Random.Range(int.MinValue, int.MaxValue);
+				_rungSeeds[index] = seed;
+			}
+
+			// Seeded around the draw and the Run calls, which pick group members synchronously in Begin; the
+			// outer stream is put back so nothing else's randomness is pinned.
+			var outer = UnityEngine.Random.state;
+			UnityEngine.Random.InitState(seed);
+
+			try
+			{
+				DrawRung(index, rung, pool);
+			}
+			finally
+			{
+				UnityEngine.Random.state = outer;
+			}
+		}
+
+		private void DrawRung(int index, PokerHallucinationTiers.Rung rung, IReadOnlyList<PokerHallucinationEffect> pool)
+		{
 			// Drawn here rather than held on the rung, so two players on the same rung are not looking at
 			// the same thing and one player climbing it twice is not either. Shuffled rather than picked one
 			// at a time, because a rung asking for two must not be able to hand out the same effect twice —
@@ -459,6 +489,7 @@ namespace Game.Runtime.GameMode.Poker.Hallucination
 			}
 
 			_active.Clear();
+			_rungSeeds.Clear();
 			RebuildRunning();
 		}
 	}
