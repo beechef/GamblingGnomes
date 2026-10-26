@@ -19,7 +19,7 @@ namespace Game.Runtime.GameMode.Poker.Player
 	//
 	// A pad has no cursor here: left and right step through everything the caller would take, in screen
 	// order (bodies, cards, and this player themselves where they may be chosen, which lights the name the
-	// self pick shows), and Submit commits. Whatever is lit stops pulsing, pointed at or stepped onto.
+	// self pick shows), and Submit commits. Bodies flash once as the choice opens; then only the lit one is outlined.
 	public class PokerTargetPointer : NetworkBehaviour
 	{
 		[Header("Input")]
@@ -431,18 +431,14 @@ namespace Game.Runtime.GameMode.Poker.Player
 			}
 		}
 
-		// The body and the name over it light together, so what is being chosen reads as one thing; the pulse
-		// that says "pickable" stops on it, since it is no longer one option among others.
+		// The body and the name over it light together, so what is being chosen reads as one thing. Bodies
+		// flash once when the choice opens (PlayerVisual._promptFlashes) and rest after; only the lit one stays
+		// outlined, and leaving it does not flash it again.
 		private void SetPlayerLit(PokerPlayer player, bool lit)
 		{
 			if (!player) return;
 
-			if (player.Visual)
-			{
-				player.Visual.SetLocalOutlined(lit);
-				if (_promptedPlayers.Contains(player)) player.Visual.SetLocalPrompted(!lit);
-			}
-
+			if (player.Visual) player.Visual.SetLocalOutlined(lit);
 			if (player.NameTag) player.NameTag.SetLocalHighlighted(lit);
 		}
 

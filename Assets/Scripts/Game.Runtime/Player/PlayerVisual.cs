@@ -60,6 +60,10 @@ namespace Game.Runtime.Player
 
 		[SerializeField] private Ease _promptPulseEase = Ease.InOutSine;
 
+		[Tooltip("Times the prompt flashes up and back when a choice opens, then the stroke rests; only what is pointed at stays lit.")]
+		[Min(1)]
+		[SerializeField] private int _promptFlashes = 1;
+
 		private static readonly int OutlineColorId = Shader.PropertyToID("_OutlineColor");
 		private static readonly int OutlineWidthId = Shader.PropertyToID("_OutlineWidth");
 
@@ -206,7 +210,7 @@ namespace Game.Runtime.Player
 						WriteOutlineColor();
 					}, 1f, _promptPulseDuration)
 					.SetEase(_promptPulseEase)
-					.SetLoops(-1, LoopType.Yoyo)
+					.SetLoops(_promptFlashes * 2, LoopType.Yoyo)
 					.SetLink(gameObject);
 			}
 
