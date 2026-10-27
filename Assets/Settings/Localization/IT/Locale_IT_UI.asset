@@ -14,23 +14,23 @@ MonoBehaviour:
   m_EditorClassIdentifier: Localization::Localization.LocaleSection
   _entries:
   - Key: common.on
-    Value: "S\xEC"
+    Value: Attivo
   - Key: common.off
-    Value: No
+    Value: Disattivato
   - Key: common.close
     Value: Chiudi
   - Key: common.cancel
     Value: Annulla
   - Key: menu.play
-    Value: Gioca
+    Value: Avvia
   - Key: menu.option
     Value: Impostazioni
   - Key: menu.quit
     Value: Esci
   - Key: menu.host
-    Value: Crea stanza
+    Value: Ospita
   - Key: menu.find
-    Value: Entra
+    Value: Unisciti
   - Key: menu.back
     Value: Indietro
   - Key: pause.title
@@ -40,9 +40,9 @@ MonoBehaviour:
   - Key: pause.settings
     Value: Impostazioni
   - Key: pause.leave
-    Value: Lascia il tavolo
+    Value: Lascia la partita
   - Key: pause.quit
-    Value: Esci al desktop
+    Value: Esci sul desktop
   - Key: room.title
     Value: CREA STANZA
   - Key: room.max_players
@@ -50,21 +50,21 @@ MonoBehaviour:
   - Key: room.private
     Value: 'Privata:'
   - Key: room.game_mode
-    Value: "Modalit\xE0"
+    Value: "Modalit\xE0 di gioco"
   - Key: room.create
     Value: Crea
   - Key: lobby.title
-    Value: ENTRA IN STANZA
+    Value: UNISCITI A UNA STANZA
   - Key: lobby.refresh
     Value: Aggiorna
   - Key: lobby.join
-    Value: Entra
+    Value: Unisciti
   - Key: loading.connecting
     Value: CONNESSIONE
   - Key: loading.scene
     Value: CARICAMENTO
   - Key: loading.leaving
-    Value: USCITA
+    Value: USCITA IN CORSO
   - Key: settings.title
     Value: IMPOSTAZIONI
   - Key: settings.graphics
@@ -94,11 +94,11 @@ MonoBehaviour:
   - Key: matchmaking.title
     Value: PARTITA RAPIDA
   - Key: matchmaking.searching
-    Value: Cerco una stanza...
+    Value: Ricerca di una stanza...
   - Key: matchmaking.waiting
-    Value: In attesa di giocatori {0}/{1}
+    Value: In attesa di giocatori ({0}/{1})
   - Key: matchmaking.failed
-    Value: MATCHMAKING FALLITO
+    Value: RICERCA DELLA PARTITA FALLITA
   - Key: matchmaking.error.unavailable
     Value: "Il gioco online non \xE8 disponibile al momento."
   - Key: matchmaking.error.create
@@ -106,7 +106,7 @@ MonoBehaviour:
   - Key: matchmaking.error.lost
     Value: Connessione alla stanza persa.
   - Key: matchmaking.error.connect
-    Value: Impossibile connettersi alla partita.
+    Value: Impossibile connettersi alla stanza.
   - Key: menu.credit
     Value: Crediti
   - Key: room.name
@@ -114,15 +114,15 @@ MonoBehaviour:
   - Key: settings.audio_section
     Value: AUDIO
   - Key: settings.audio.master
-    Value: Generale
+    Value: Principale
   - Key: settings.audio.background
     Value: Musica
   - Key: settings.audio.sfx
-    Value: Effetti
+    Value: Effetti sonori
   - Key: settings.audio.mute
     Value: Muto
   - Key: lobby.searching
-    Value: Cerco stanze...
+    Value: Ricerca di stanze...
   - Key: lobby.empty
     Value: Nessuna stanza aperta al momento.
   - Key: settings.voice_section
@@ -130,7 +130,7 @@ MonoBehaviour:
   - Key: settings.voice.talk_mode
     Value: "Modalit\xE0 voce"
   - Key: settings.voice.talk_mode.open_mic
-    Value: Microfono aperto
+    Value: Microfono sempre attivo
   - Key: settings.voice.talk_mode.push_to_talk
     Value: Premi per parlare
   - Key: settings.voice.microphone
@@ -138,21 +138,21 @@ MonoBehaviour:
   - Key: settings.voice.microphone.default
     Value: Predefinito di sistema
   - Key: settings.voice.noise_suppression
-    Value: Soppressione rumore
+    Value: Riduzione del rumore
   - Key: settings.voice.input_volume
     Value: Volume microfono
   - Key: settings.voice.output_volume
-    Value: Volume voci
+    Value: Volume voce
   - Key: settings.voice.player_volumes
     Value: Volume giocatori
   - Key: mode.default.name
-    Value: Standard
+    Value: Predefinita
   - Key: mode.default.description
     Value: Oggetti, allucinazioni e caos totale.
   - Key: mode.poker.name
     Value: Poker
   - Key: mode.poker.description
-    Value: Poker puro. Niente oggetti, niente allucinazioni.
+    Value: Poker classico. Niente oggetti, niente allucinazioni.
   - Key: room.next
     Value: Avanti
   - Key: room.timer
@@ -160,28 +160,27 @@ MonoBehaviour:
   - Key: room.create_room
     Value: Crea stanza
   - Key: room.play_mode
-    Value: "MODALIT\xC0"
+    Value: "MODALIT\xC0 DI GIOCO"
   - Key: config.turn_duration
-    Value: Timer turno
+    Value: Timer del turno
   - Key: matchmaking.play
     Value: Gioca
   - Key: matchmaking.looking_for_players
-    Value: Cerco giocatori...
+    Value: Ricerca di giocatori...
   - Key: error.title
-    Value: ATTENZIONE!!!
+    Value: ERRORE
   - Key: error.connect.room_full
-    Value: "La stanza \xE8 piena. Provane un'altra"
+    Value: "La stanza \xE8 piena. Provane un'altra."
   - Key: error.connect.timeout
-    Value: "Connessione scaduta. Riprova pi\xF9 tardi"
+    Value: "Connessione scaduta. Riprova pi\xF9 tardi."
   - Key: error.connect.room_gone
-    Value: "Questa stanza non esiste pi\xF9"
+    Value: "Questa stanza non esiste pi\xF9."
   - Key: error.connect.unavailable
-    Value: Impossibile raggiungere la lobby. Controlla che Steam sia aperto
+    Value: Impossibile raggiungere l'elenco delle stanze. Controlla che Steam sia
+      in esecuzione.
   - Key: error.connect.disconnected
-    Value: Connessione con l'host persa
+    Value: Connessione all'host persa.
   - Key: error.connect.unknown
-    Value: "Qualcosa \xE8 andato storto. Riprova pi\xF9 tardi"
+    Value: "Qualcosa \xE8 andato storto. Riprova pi\xF9 tardi."
   - Key: error.connect.kicked
-    Value: L'host ti ha rimosso dalla stanza
-  - Key: menu.select
-    Value: seleziona
+    Value: L'host ti ha rimosso dalla stanza.

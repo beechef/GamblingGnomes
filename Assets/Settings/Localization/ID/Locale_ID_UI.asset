@@ -16,7 +16,7 @@ MonoBehaviour:
   - Key: common.on
     Value: Aktif
   - Key: common.off
-    Value: Mati
+    Value: Nonaktif
   - Key: common.close
     Value: Tutup
   - Key: common.cancel
@@ -36,11 +36,11 @@ MonoBehaviour:
   - Key: pause.title
     Value: Jeda
   - Key: pause.resume
-    Value: Lanjut
+    Value: Lanjutkan
   - Key: pause.settings
     Value: Pengaturan
   - Key: pause.leave
-    Value: Tinggalkan Game
+    Value: Tinggalkan Match
   - Key: pause.quit
     Value: Keluar ke Desktop
   - Key: room.title
@@ -56,19 +56,19 @@ MonoBehaviour:
   - Key: lobby.title
     Value: GABUNG ROOM
   - Key: lobby.refresh
-    Value: Muat Ulang
+    Value: Segarkan
   - Key: lobby.join
     Value: Gabung
   - Key: loading.connecting
-    Value: MENYAMBUNGKAN
+    Value: MENGHUBUNGKAN
   - Key: loading.scene
     Value: MEMUAT
   - Key: loading.leaving
-    Value: KELUAR
+    Value: MENINGGALKAN
   - Key: settings.title
     Value: PENGATURAN
   - Key: settings.graphics
-    Value: GRAFIS
+    Value: GRAFIK
   - Key: settings.window_mode
     Value: Mode Jendela
   - Key: settings.window_mode.fullscreen
@@ -76,13 +76,13 @@ MonoBehaviour:
   - Key: settings.window_mode.borderless
     Value: Tanpa Bingkai
   - Key: settings.window_mode.windowed
-    Value: Berjendela
+    Value: Jendela
   - Key: settings.resolution
     Value: Resolusi
   - Key: settings.fps
     Value: Batas FPS
   - Key: settings.fps.unlimited
-    Value: Tanpa Batas
+    Value: Tak terbatas
   - Key: settings.vsync
     Value: VSync
   - Key: settings.language_section
@@ -90,23 +90,23 @@ MonoBehaviour:
   - Key: settings.language
     Value: Bahasa
   - Key: menu.quick_match
-    Value: Main Cepat
+    Value: Match Cepat
   - Key: matchmaking.title
-    Value: MAIN CEPAT
+    Value: MATCH CEPAT
   - Key: matchmaking.searching
     Value: Mencari room...
   - Key: matchmaking.waiting
-    Value: Menunggu pemain {0}/{1}
+    Value: Menunggu pemain ({0}/{1})
   - Key: matchmaking.failed
     Value: MATCHMAKING GAGAL
   - Key: matchmaking.error.unavailable
-    Value: Main online sedang tidak tersedia.
+    Value: Bermain online sedang tidak tersedia.
   - Key: matchmaking.error.create
-    Value: Gagal membuka room.
+    Value: Tidak dapat membuka room.
   - Key: matchmaking.error.lost
     Value: Koneksi ke room terputus.
   - Key: matchmaking.error.connect
-    Value: Gagal terhubung ke match.
+    Value: Tidak dapat terhubung ke room.
   - Key: menu.credit
     Value: Kredit
   - Key: room.name
@@ -114,23 +114,23 @@ MonoBehaviour:
   - Key: settings.audio_section
     Value: AUDIO
   - Key: settings.audio.master
-    Value: Master
+    Value: Utama
   - Key: settings.audio.background
     Value: Musik
   - Key: settings.audio.sfx
-    Value: SFX
+    Value: Efek Suara
   - Key: settings.audio.mute
-    Value: Bisu
+    Value: Senyap
   - Key: lobby.searching
     Value: Mencari room...
   - Key: lobby.empty
-    Value: Belum ada room yang buka.
+    Value: Belum ada room yang terbuka.
   - Key: settings.voice_section
     Value: SUARA
   - Key: settings.voice.talk_mode
     Value: Mode Bicara
   - Key: settings.voice.talk_mode.open_mic
-    Value: Mic Terbuka
+    Value: Mikrofon Terbuka
   - Key: settings.voice.talk_mode.push_to_talk
     Value: Tekan untuk Bicara
   - Key: settings.voice.microphone
@@ -138,15 +138,15 @@ MonoBehaviour:
   - Key: settings.voice.microphone.default
     Value: Default Sistem
   - Key: settings.voice.noise_suppression
-    Value: Peredam Bising
+    Value: Peredam Kebisingan
   - Key: settings.voice.input_volume
-    Value: Volume Mic
+    Value: Volume Mikrofon
   - Key: settings.voice.output_volume
     Value: Volume Suara
   - Key: settings.voice.player_volumes
     Value: Volume Pemain
   - Key: mode.default.name
-    Value: Default
+    Value: Standar
   - Key: mode.default.description
     Value: Item, halusinasi, dan kekacauan total.
   - Key: mode.poker.name
@@ -154,13 +154,13 @@ MonoBehaviour:
   - Key: mode.poker.description
     Value: Poker biasa. Tanpa item, tanpa halusinasi.
   - Key: room.next
-    Value: Lanjut
+    Value: Berikutnya
   - Key: room.timer
     Value: 'Timer:'
   - Key: room.create_room
     Value: Buat Room
   - Key: room.play_mode
-    Value: MODE MAIN
+    Value: MODE GAME
   - Key: config.turn_duration
     Value: Timer Giliran
   - Key: matchmaking.play
@@ -168,20 +168,18 @@ MonoBehaviour:
   - Key: matchmaking.looking_for_players
     Value: Mencari pemain...
   - Key: error.title
-    Value: AWAS!!!
+    Value: KESALAHAN
   - Key: error.connect.room_full
-    Value: Room-nya penuh. Coba room lain
+    Value: Room penuh. Coba room lain.
   - Key: error.connect.timeout
-    Value: Koneksi habis waktu. Coba lagi nanti
+    Value: Koneksi habis waktu. Coba lagi nanti.
   - Key: error.connect.room_gone
-    Value: Room ini sudah tidak ada
+    Value: Room ini sudah tidak ada.
   - Key: error.connect.unavailable
-    Value: Lobi tidak bisa dijangkau. Pastikan Steam berjalan
+    Value: Tidak dapat mengakses daftar room. Pastikan Steam sedang berjalan.
   - Key: error.connect.disconnected
-    Value: Koneksi ke host terputus
+    Value: Koneksi ke host terputus.
   - Key: error.connect.unknown
-    Value: Ada yang salah. Coba lagi nanti
+    Value: Terjadi kesalahan. Coba lagi nanti.
   - Key: error.connect.kicked
-    Value: Host mengeluarkanmu dari room
-  - Key: menu.select
-    Value: pilih
+    Value: Host mengeluarkanmu dari room.

@@ -28,9 +28,9 @@ MonoBehaviour:
   - Key: menu.quit
     Value: "\u7D42\u4E86"
   - Key: menu.host
-    Value: "\u30EB\u30FC\u30E0\u4F5C\u6210"
+    Value: "\u30DB\u30B9\u30C8"
   - Key: menu.find
-    Value: "\u30EB\u30FC\u30E0\u53C2\u52A0"
+    Value: "\u53C2\u52A0"
   - Key: menu.back
     Value: "\u623B\u308B"
   - Key: pause.title
@@ -40,21 +40,21 @@ MonoBehaviour:
   - Key: pause.settings
     Value: "\u8A2D\u5B9A"
   - Key: pause.leave
-    Value: "\u30B2\u30FC\u30E0\u3092\u629C\u3051\u308B"
+    Value: "\u30DE\u30C3\u30C1\u304B\u3089\u9000\u51FA"
   - Key: pause.quit
     Value: "\u30C7\u30B9\u30AF\u30C8\u30C3\u30D7\u306B\u623B\u308B"
   - Key: room.title
     Value: "\u30EB\u30FC\u30E0\u4F5C\u6210"
   - Key: room.max_players
-    Value: "\u6700\u5927\u4EBA\u6570"
+    Value: "\u6700\u5927\u30D7\u30EC\u30A4\u30E4\u30FC\u6570"
   - Key: room.private
-    Value: "\u975E\u516C\u958B:"
+    Value: "\u30D7\u30E9\u30A4\u30D9\u30FC\u30C8\uFF1A"
   - Key: room.game_mode
     Value: "\u30B2\u30FC\u30E0\u30E2\u30FC\u30C9"
   - Key: room.create
     Value: "\u4F5C\u6210"
   - Key: lobby.title
-    Value: "\u30EB\u30FC\u30E0\u53C2\u52A0"
+    Value: "\u30EB\u30FC\u30E0\u306B\u53C2\u52A0"
   - Key: lobby.refresh
     Value: "\u66F4\u65B0"
   - Key: lobby.join
@@ -62,9 +62,9 @@ MonoBehaviour:
   - Key: loading.connecting
     Value: "\u63A5\u7D9A\u4E2D"
   - Key: loading.scene
-    Value: "\u30ED\u30FC\u30C9\u4E2D"
+    Value: "\u8AAD\u307F\u8FBC\u307F\u4E2D"
   - Key: loading.leaving
-    Value: "\u9000\u5E2D\u4E2D"
+    Value: "\u9000\u51FA\u4E2D"
   - Key: settings.title
     Value: "\u8A2D\u5B9A"
   - Key: settings.graphics
@@ -80,7 +80,7 @@ MonoBehaviour:
   - Key: settings.resolution
     Value: "\u89E3\u50CF\u5EA6"
   - Key: settings.fps
-    Value: "FPS\u4E0A\u9650"
+    Value: "FPS\u5236\u9650"
   - Key: settings.fps.unlimited
     Value: "\u7121\u5236\u9650"
   - Key: settings.vsync
@@ -94,23 +94,24 @@ MonoBehaviour:
   - Key: matchmaking.title
     Value: "\u30AF\u30A4\u30C3\u30AF\u30DE\u30C3\u30C1"
   - Key: matchmaking.searching
-    Value: "\u30EB\u30FC\u30E0\u3092\u691C\u7D22\u4E2D..."
+    Value: "\u30EB\u30FC\u30E0\u3092\u63A2\u3057\u3066\u3044\u307E\u3059..."
   - Key: matchmaking.waiting
-    Value: "\u30D7\u30EC\u30A4\u30E4\u30FC\u5F85\u6A5F\u4E2D {0}/{1}"
+    Value: "\u30D7\u30EC\u30A4\u30E4\u30FC\u3092\u5F85\u3063\u3066\u3044\u307E\u3059
+      ({0}/{1})"
   - Key: matchmaking.failed
     Value: "\u30DE\u30C3\u30C1\u30F3\u30B0\u5931\u6557"
   - Key: matchmaking.error.unavailable
-    Value: "\u73FE\u5728\u30AA\u30F3\u30E9\u30A4\u30F3\u30D7\u30EC\u30A4\u306F\u5229\u7528\u3067\u304D\u307E\u305B\u3093\u3002"
+    Value: "\u73FE\u5728\u30AA\u30F3\u30E9\u30A4\u30F3\u30D7\u30EC\u30A4\u306F\u3054\u5229\u7528\u3044\u305F\u3060\u3051\u307E\u305B\u3093\u3002"
   - Key: matchmaking.error.create
     Value: "\u30EB\u30FC\u30E0\u3092\u958B\u3051\u307E\u305B\u3093\u3067\u3057\u305F\u3002"
   - Key: matchmaking.error.lost
     Value: "\u30EB\u30FC\u30E0\u3068\u306E\u63A5\u7D9A\u304C\u5207\u308C\u307E\u3057\u305F\u3002"
   - Key: matchmaking.error.connect
-    Value: "\u8A66\u5408\u306B\u63A5\u7D9A\u3067\u304D\u307E\u305B\u3093\u3067\u3057\u305F\u3002"
+    Value: "\u30EB\u30FC\u30E0\u306B\u63A5\u7D9A\u3067\u304D\u307E\u305B\u3093\u3067\u3057\u305F\u3002"
   - Key: menu.credit
     Value: "\u30AF\u30EC\u30B8\u30C3\u30C8"
   - Key: room.name
-    Value: "\u540D\u524D:"
+    Value: "\u540D\u524D\uFF1A"
   - Key: settings.audio_section
     Value: "\u30AA\u30FC\u30C7\u30A3\u30AA"
   - Key: settings.audio.master
@@ -122,17 +123,17 @@ MonoBehaviour:
   - Key: settings.audio.mute
     Value: "\u30DF\u30E5\u30FC\u30C8"
   - Key: lobby.searching
-    Value: "\u30EB\u30FC\u30E0\u3092\u691C\u7D22\u4E2D..."
+    Value: "\u30EB\u30FC\u30E0\u3092\u63A2\u3057\u3066\u3044\u307E\u3059..."
   - Key: lobby.empty
-    Value: "\u73FE\u5728\u958B\u3044\u3066\u3044\u308B\u30EB\u30FC\u30E0\u306F\u3042\u308A\u307E\u305B\u3093\u3002"
+    Value: "\u73FE\u5728\u3001\u958B\u3044\u3066\u3044\u308B\u30EB\u30FC\u30E0\u306F\u3042\u308A\u307E\u305B\u3093\u3002"
   - Key: settings.voice_section
     Value: "\u30DC\u30A4\u30B9"
   - Key: settings.voice.talk_mode
-    Value: "\u767A\u8A00\u30E2\u30FC\u30C9"
+    Value: "\u901A\u8A71\u30E2\u30FC\u30C9"
   - Key: settings.voice.talk_mode.open_mic
-    Value: "\u5E38\u6642\u30AA\u30F3"
+    Value: "\u30AA\u30FC\u30D7\u30F3\u30DE\u30A4\u30AF"
   - Key: settings.voice.talk_mode.push_to_talk
-    Value: "\u30D7\u30C3\u30B7\u30E5\u30C8\u30A5\u30C8\u30FC\u30AF"
+    Value: "\u62BC\u3057\u3066\u8A71\u3059"
   - Key: settings.voice.microphone
     Value: "\u30DE\u30A4\u30AF"
   - Key: settings.voice.microphone.default
@@ -152,36 +153,34 @@ MonoBehaviour:
   - Key: mode.poker.name
     Value: "\u30DD\u30FC\u30AB\u30FC"
   - Key: mode.poker.description
-    Value: "\u7D14\u7C8B\u306A\u30DD\u30FC\u30AB\u30FC\u3002\u30A2\u30A4\u30C6\u30E0\u3082\u5E7B\u899A\u3082\u306A\u3057\u3002"
+    Value: "\u901A\u5E38\u306E\u30DD\u30FC\u30AB\u30FC\u3002\u30A2\u30A4\u30C6\u30E0\u3082\u5E7B\u899A\u3082\u306A\u3057\u3002"
   - Key: room.next
     Value: "\u6B21\u3078"
   - Key: room.timer
-    Value: "\u30BF\u30A4\u30DE\u30FC:"
+    Value: "\u30BF\u30A4\u30DE\u30FC\uFF1A"
   - Key: room.create_room
-    Value: "\u30EB\u30FC\u30E0\u4F5C\u6210"
+    Value: "\u30EB\u30FC\u30E0\u3092\u4F5C\u6210"
   - Key: room.play_mode
-    Value: "\u30D7\u30EC\u30A4\u30E2\u30FC\u30C9"
+    Value: "\u30B2\u30FC\u30E0\u30E2\u30FC\u30C9"
   - Key: config.turn_duration
-    Value: "\u30BF\u30FC\u30F3\u5236\u9650\u6642\u9593"
+    Value: "\u30BF\u30FC\u30F3\u30BF\u30A4\u30DE\u30FC"
   - Key: matchmaking.play
     Value: "\u30D7\u30EC\u30A4"
   - Key: matchmaking.looking_for_players
-    Value: "\u30D7\u30EC\u30A4\u30E4\u30FC\u3092\u691C\u7D22\u4E2D..."
+    Value: "\u30D7\u30EC\u30A4\u30E4\u30FC\u3092\u63A2\u3057\u3066\u3044\u307E\u3059..."
   - Key: error.title
-    Value: "\u7DCA\u6025\u4E8B\u614B!!!"
+    Value: "\u30A8\u30E9\u30FC"
   - Key: error.connect.room_full
-    Value: "\u30EB\u30FC\u30E0\u304C\u6E80\u54E1\u3067\u3059\u3002\u5225\u306E\u30EB\u30FC\u30E0\u3092\u8A66\u3057\u3066\u304F\u3060\u3055\u3044"
+    Value: "\u30EB\u30FC\u30E0\u304C\u6E80\u54E1\u3067\u3059\u3002\u5225\u306E\u30EB\u30FC\u30E0\u3092\u304A\u8A66\u3057\u304F\u3060\u3055\u3044\u3002"
   - Key: error.connect.timeout
-    Value: "\u63A5\u7D9A\u304C\u30BF\u30A4\u30E0\u30A2\u30A6\u30C8\u3057\u307E\u3057\u305F\u3002\u5F8C\u3067\u3082\u3046\u4E00\u5EA6\u304A\u8A66\u3057\u304F\u3060\u3055\u3044"
+    Value: "\u63A5\u7D9A\u304C\u30BF\u30A4\u30E0\u30A2\u30A6\u30C8\u3057\u307E\u3057\u305F\u3002\u5F8C\u3067\u3082\u3046\u4E00\u5EA6\u304A\u8A66\u3057\u304F\u3060\u3055\u3044\u3002"
   - Key: error.connect.room_gone
-    Value: "\u3053\u306E\u30EB\u30FC\u30E0\u306F\u3082\u3046\u5B58\u5728\u3057\u307E\u305B\u3093"
+    Value: "\u3053\u306E\u30EB\u30FC\u30E0\u306F\u3082\u3046\u5B58\u5728\u3057\u307E\u305B\u3093\u3002"
   - Key: error.connect.unavailable
-    Value: "\u30ED\u30D3\u30FC\u306B\u63A5\u7D9A\u3067\u304D\u307E\u305B\u3093\u3002Steam\u304C\u8D77\u52D5\u3057\u3066\u3044\u308B\u304B\u78BA\u8A8D\u3057\u3066\u304F\u3060\u3055\u3044"
+    Value: "\u30EB\u30FC\u30E0\u4E00\u89A7\u306B\u63A5\u7D9A\u3067\u304D\u307E\u305B\u3093\u3067\u3057\u305F\u3002Steam\u304C\u8D77\u52D5\u3057\u3066\u3044\u308B\u304B\u78BA\u8A8D\u3057\u3066\u304F\u3060\u3055\u3044\u3002"
   - Key: error.connect.disconnected
-    Value: "\u30DB\u30B9\u30C8\u3068\u306E\u63A5\u7D9A\u304C\u5207\u308C\u307E\u3057\u305F"
+    Value: "\u30DB\u30B9\u30C8\u3068\u306E\u63A5\u7D9A\u304C\u5207\u308C\u307E\u3057\u305F\u3002"
   - Key: error.connect.unknown
-    Value: "\u554F\u984C\u304C\u767A\u751F\u3057\u307E\u3057\u305F\u3002\u5F8C\u3067\u3082\u3046\u4E00\u5EA6\u304A\u8A66\u3057\u304F\u3060\u3055\u3044"
+    Value: "\u554F\u984C\u304C\u767A\u751F\u3057\u307E\u3057\u305F\u3002\u5F8C\u3067\u3082\u3046\u4E00\u5EA6\u304A\u8A66\u3057\u304F\u3060\u3055\u3044\u3002"
   - Key: error.connect.kicked
-    Value: "\u30DB\u30B9\u30C8\u306B\u3088\u3063\u3066\u30EB\u30FC\u30E0\u304B\u3089\u9000\u51FA\u3055\u305B\u3089\u308C\u307E\u3057\u305F"
-  - Key: menu.select
-    Value: "\u6C7A\u5B9A"
+    Value: "\u30DB\u30B9\u30C8\u306B\u3088\u3063\u3066\u30EB\u30FC\u30E0\u304B\u3089\u9000\u51FA\u3055\u305B\u3089\u308C\u307E\u3057\u305F\u3002"

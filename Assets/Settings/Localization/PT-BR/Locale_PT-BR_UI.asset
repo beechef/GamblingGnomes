@@ -14,21 +14,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: Localization::Localization.LocaleSection
   _entries:
   - Key: common.on
-    Value: Sim
+    Value: Ligado
   - Key: common.off
-    Value: "N\xE3o"
+    Value: Desligado
   - Key: common.close
     Value: Fechar
   - Key: common.cancel
     Value: Cancelar
   - Key: menu.play
-    Value: Jogar
+    Value: Iniciar
   - Key: menu.option
     Value: "Configura\xE7\xF5es"
   - Key: menu.quit
     Value: Sair
   - Key: menu.host
-    Value: Criar sala
+    Value: Hospedar
   - Key: menu.find
     Value: Entrar
   - Key: menu.back
@@ -40,9 +40,9 @@ MonoBehaviour:
   - Key: pause.settings
     Value: "Configura\xE7\xF5es"
   - Key: pause.leave
-    Value: Sair da mesa
+    Value: Sair da partida
   - Key: pause.quit
-    Value: Sair para o desktop
+    Value: "Sair para a \xE1rea de trabalho"
   - Key: room.title
     Value: CRIAR SALA
   - Key: room.max_players
@@ -54,7 +54,7 @@ MonoBehaviour:
   - Key: room.create
     Value: Criar
   - Key: lobby.title
-    Value: ENTRAR NA SALA
+    Value: ENTRAR EM UMA SALA
   - Key: lobby.refresh
     Value: Atualizar
   - Key: lobby.join
@@ -90,23 +90,23 @@ MonoBehaviour:
   - Key: settings.language
     Value: Idioma
   - Key: menu.quick_match
-    Value: "Partida r\xE1pida"
+    Value: "Partida R\xE1pida"
   - Key: matchmaking.title
     Value: "PARTIDA R\xC1PIDA"
   - Key: matchmaking.searching
     Value: Procurando uma sala...
   - Key: matchmaking.waiting
-    Value: Aguardando jogadores {0}/{1}
+    Value: Aguardando jogadores ({0}/{1})
   - Key: matchmaking.failed
-    Value: FALHA NO MATCHMAKING
+    Value: FALHA NA BUSCA DE PARTIDA
   - Key: matchmaking.error.unavailable
-    Value: "O jogo online n\xE3o est\xE1 dispon\xEDvel agora."
+    Value: "O jogo online n\xE3o est\xE1 dispon\xEDvel no momento."
   - Key: matchmaking.error.create
     Value: "N\xE3o foi poss\xEDvel abrir uma sala."
   - Key: matchmaking.error.lost
-    Value: "A conex\xE3o com a sala caiu."
+    Value: "A conex\xE3o com a sala foi perdida."
   - Key: matchmaking.error.connect
-    Value: "N\xE3o foi poss\xEDvel conectar \xE0 partida."
+    Value: "N\xE3o foi poss\xEDvel conectar \xE0 sala."
   - Key: menu.credit
     Value: "Cr\xE9ditos"
   - Key: room.name
@@ -118,13 +118,13 @@ MonoBehaviour:
   - Key: settings.audio.background
     Value: "M\xFAsica"
   - Key: settings.audio.sfx
-    Value: Efeitos
+    Value: Efeitos sonoros
   - Key: settings.audio.mute
     Value: Mudo
   - Key: lobby.searching
     Value: Procurando salas...
   - Key: lobby.empty
-    Value: Nenhuma sala aberta agora.
+    Value: Nenhuma sala aberta no momento.
   - Key: settings.voice_section
     Value: VOZ
   - Key: settings.voice.talk_mode
@@ -140,9 +140,9 @@ MonoBehaviour:
   - Key: settings.voice.noise_suppression
     Value: "Supress\xE3o de ru\xEDdo"
   - Key: settings.voice.input_volume
-    Value: Volume do mic
+    Value: Volume do microfone
   - Key: settings.voice.output_volume
-    Value: Volume das vozes
+    Value: Volume da voz
   - Key: settings.voice.player_volumes
     Value: Volume dos jogadores
   - Key: mode.default.name
@@ -150,13 +150,13 @@ MonoBehaviour:
   - Key: mode.default.description
     Value: "Itens, alucina\xE7\xF5es e caos total."
   - Key: mode.poker.name
-    Value: "P\xF4quer"
+    Value: Poker
   - Key: mode.poker.description
-    Value: "P\xF4quer puro. Sem itens, sem alucina\xE7\xF5es."
+    Value: "Poker cl\xE1ssico. Sem itens, sem alucina\xE7\xF5es."
   - Key: room.next
     Value: "Pr\xF3ximo"
   - Key: room.timer
-    Value: 'Tempo:'
+    Value: 'Temporizador:'
   - Key: room.create_room
     Value: Criar sala
   - Key: room.play_mode
@@ -168,20 +168,19 @@ MonoBehaviour:
   - Key: matchmaking.looking_for_players
     Value: Procurando jogadores...
   - Key: error.title
-    Value: ALERTA!!!
+    Value: ERRO
   - Key: error.connect.room_full
-    Value: "A sala est\xE1 cheia. Tente outra"
+    Value: "A sala est\xE1 cheia. Tente outra."
   - Key: error.connect.timeout
-    Value: "A conex\xE3o expirou. Tente mais tarde"
+    Value: "A conex\xE3o expirou. Tente novamente mais tarde."
   - Key: error.connect.room_gone
-    Value: "Esta sala n\xE3o existe mais"
+    Value: "Esta sala n\xE3o existe mais."
   - Key: error.connect.unavailable
-    Value: "N\xE3o foi poss\xEDvel acessar o lobby. Veja se a Steam est\xE1 aberta"
+    Value: "N\xE3o foi poss\xEDvel acessar a lista de salas. Verifique se o Steam
+      est\xE1 em execu\xE7\xE3o."
   - Key: error.connect.disconnected
-    Value: "A conex\xE3o com o host caiu"
+    Value: "A conex\xE3o com o anfitri\xE3o foi perdida."
   - Key: error.connect.unknown
-    Value: Algo deu errado. Tente mais tarde
+    Value: Algo deu errado. Tente novamente mais tarde.
   - Key: error.connect.kicked
-    Value: "O anfitri\xE3o removeu voc\xEA da sala"
-  - Key: menu.select
-    Value: selecionar
+    Value: "O anfitri\xE3o removeu voc\xEA da sala."

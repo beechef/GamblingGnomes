@@ -14,9 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Localization::Localization.LocaleSection
   _entries:
   - Key: common.on
-    Value: "W\u0142."
+    Value: "W\u0142\u0105czone"
   - Key: common.off
-    Value: "Wy\u0142."
+    Value: "Wy\u0142\u0105czone"
   - Key: common.close
     Value: Zamknij
   - Key: common.cancel
@@ -40,7 +40,7 @@ MonoBehaviour:
   - Key: pause.settings
     Value: Ustawienia
   - Key: pause.leave
-    Value: "Opu\u015B\u0107 gr\u0119"
+    Value: "Opu\u015B\u0107 mecz"
   - Key: pause.quit
     Value: "Wyjd\u017A do pulpitu"
   - Key: room.title
@@ -62,9 +62,9 @@ MonoBehaviour:
   - Key: loading.connecting
     Value: "\u0141\u0104CZENIE"
   - Key: loading.scene
-    Value: WCZYTYWANIE
+    Value: "\u0141ADOWANIE"
   - Key: loading.leaving
-    Value: "OPUSZCZANIE STO\u0141U"
+    Value: OPUSZCZANIE
   - Key: settings.title
     Value: USTAWIENIA
   - Key: settings.graphics
@@ -76,7 +76,7 @@ MonoBehaviour:
   - Key: settings.window_mode.borderless
     Value: Bez ramki
   - Key: settings.window_mode.windowed
-    Value: Okno
+    Value: W oknie
   - Key: settings.resolution
     Value: "Rozdzielczo\u015B\u0107"
   - Key: settings.fps
@@ -90,15 +90,15 @@ MonoBehaviour:
   - Key: settings.language
     Value: "J\u0119zyk"
   - Key: menu.quick_match
-    Value: Szybka gra
+    Value: Szybki mecz
   - Key: matchmaking.title
-    Value: SZYBKA GRA
+    Value: SZYBKI MECZ
   - Key: matchmaking.searching
     Value: Szukanie pokoju...
   - Key: matchmaking.waiting
-    Value: Czekanie na graczy {0}/{1}
+    Value: Oczekiwanie na graczy ({0}/{1})
   - Key: matchmaking.failed
-    Value: NIE ZNALEZIONO GRY
+    Value: "B\u0141\u0104D WYSZUKIWANIA MECZU"
   - Key: matchmaking.error.unavailable
     Value: "Gra online jest teraz niedost\u0119pna."
   - Key: matchmaking.error.create
@@ -106,7 +106,7 @@ MonoBehaviour:
   - Key: matchmaking.error.lost
     Value: "Utracono po\u0142\u0105czenie z pokojem."
   - Key: matchmaking.error.connect
-    Value: "Nie uda\u0142o si\u0119 po\u0142\u0105czy\u0107 z meczem."
+    Value: "Nie uda\u0142o si\u0119 po\u0142\u0105czy\u0107 z pokojem."
   - Key: menu.credit
     Value: "Tw\xF3rcy"
   - Key: room.name
@@ -118,7 +118,7 @@ MonoBehaviour:
   - Key: settings.audio.background
     Value: Muzyka
   - Key: settings.audio.sfx
-    Value: Efekty
+    Value: "Efekty d\u017Awi\u0119kowe"
   - Key: settings.audio.mute
     Value: Wycisz
   - Key: lobby.searching
@@ -132,7 +132,7 @@ MonoBehaviour:
   - Key: settings.voice.talk_mode.open_mic
     Value: Otwarty mikrofon
   - Key: settings.voice.talk_mode.push_to_talk
-    Value: "Naci\u015Bnij, by m\xF3wi\u0107"
+    Value: "Naci\u015Bnij, aby m\xF3wi\u0107"
   - Key: settings.voice.microphone
     Value: Mikrofon
   - Key: settings.voice.microphone.default
@@ -152,11 +152,11 @@ MonoBehaviour:
   - Key: mode.poker.name
     Value: Poker
   - Key: mode.poker.description
-    Value: "Zwyk\u0142y poker. Bez przedmiot\xF3w, bez halucynacji."
+    Value: "Zwyk\u0142y poker. Bez przedmiot\xF3w i halucynacji."
   - Key: room.next
     Value: Dalej
   - Key: room.timer
-    Value: 'Czas:'
+    Value: 'Czasomierz:'
   - Key: room.create_room
     Value: "Utw\xF3rz pok\xF3j"
   - Key: room.play_mode
@@ -168,20 +168,20 @@ MonoBehaviour:
   - Key: matchmaking.looking_for_players
     Value: Szukanie graczy...
   - Key: error.title
-    Value: UWAGA!!!
+    Value: "B\u0141\u0104D"
   - Key: error.connect.room_full
-    Value: "Pok\xF3j jest pe\u0142ny. Spr\xF3buj innego"
+    Value: "Pok\xF3j jest pe\u0142ny. Spr\xF3buj innego."
   - Key: error.connect.timeout
-    Value: "Przekroczono czas po\u0142\u0105czenia. Spr\xF3buj p\xF3\u017Aniej"
+    Value: "Up\u0142yn\u0105\u0142 limit czasu po\u0142\u0105czenia. Spr\xF3buj ponownie
+      p\xF3\u017Aniej."
   - Key: error.connect.room_gone
-    Value: "Ten pok\xF3j ju\u017C nie istnieje"
+    Value: "Ten pok\xF3j ju\u017C nie istnieje."
   - Key: error.connect.unavailable
-    Value: "Brak po\u0142\u0105czenia z lobby. Sprawd\u017A, czy Steam dzia\u0142a"
+    Value: "Nie uda\u0142o si\u0119 po\u0142\u0105czy\u0107 z list\u0105 pokoi. Sprawd\u017A,
+      czy Steam jest uruchomiony."
   - Key: error.connect.disconnected
-    Value: "Utracono po\u0142\u0105czenie z hostem"
+    Value: "Utracono po\u0142\u0105czenie z hostem."
   - Key: error.connect.unknown
-    Value: "Co\u015B posz\u0142o nie tak. Spr\xF3buj p\xF3\u017Aniej"
+    Value: "Co\u015B posz\u0142o nie tak. Spr\xF3buj ponownie p\xF3\u017Aniej."
   - Key: error.connect.kicked
-    Value: "Gospodarz usun\u0105\u0142 ci\u0119 z pokoju"
-  - Key: menu.select
-    Value: wybierz
+    Value: "Host usun\u0105\u0142 ci\u0119 z pokoju."

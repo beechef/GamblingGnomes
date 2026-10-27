@@ -22,7 +22,7 @@ MonoBehaviour:
   - Key: common.cancel
     Value: Abbrechen
   - Key: menu.play
-    Value: Spielen
+    Value: Starten
   - Key: menu.option
     Value: Einstellungen
   - Key: menu.quit
@@ -40,9 +40,9 @@ MonoBehaviour:
   - Key: pause.settings
     Value: Einstellungen
   - Key: pause.leave
-    Value: Spiel verlassen
+    Value: Partie verlassen
   - Key: pause.quit
-    Value: Zum Desktop
+    Value: Zum Desktop beenden
   - Key: room.title
     Value: RAUM ERSTELLEN
   - Key: room.max_players
@@ -60,7 +60,7 @@ MonoBehaviour:
   - Key: lobby.join
     Value: Beitreten
   - Key: loading.connecting
-    Value: VERBINDEN
+    Value: VERBINDE
   - Key: loading.scene
     Value: LADEN
   - Key: loading.leaving
@@ -90,23 +90,23 @@ MonoBehaviour:
   - Key: settings.language
     Value: Sprache
   - Key: menu.quick_match
-    Value: Schnelles Spiel
+    Value: Schnelle Partie
   - Key: matchmaking.title
-    Value: SCHNELLES SPIEL
+    Value: SCHNELLE PARTIE
   - Key: matchmaking.searching
     Value: Suche nach einem Raum...
   - Key: matchmaking.waiting
-    Value: Warte auf Spieler {0}/{1}
+    Value: Warte auf Spieler ({0}/{1})
   - Key: matchmaking.failed
     Value: MATCHMAKING FEHLGESCHLAGEN
   - Key: matchmaking.error.unavailable
-    Value: "Online-Spiel ist gerade nicht verf\xFCgbar."
+    Value: "Online-Spiele sind gerade nicht verf\xFCgbar."
   - Key: matchmaking.error.create
     Value: "Raum konnte nicht ge\xF6ffnet werden."
   - Key: matchmaking.error.lost
     Value: Verbindung zum Raum verloren.
   - Key: matchmaking.error.connect
-    Value: Verbindung zum Match fehlgeschlagen.
+    Value: Verbindung zum Raum fehlgeschlagen.
   - Key: menu.credit
     Value: Credits
   - Key: room.name
@@ -114,11 +114,11 @@ MonoBehaviour:
   - Key: settings.audio_section
     Value: AUDIO
   - Key: settings.audio.master
-    Value: Gesamt
+    Value: Master
   - Key: settings.audio.background
     Value: Musik
   - Key: settings.audio.sfx
-    Value: Effekte
+    Value: Soundeffekte
   - Key: settings.audio.mute
     Value: Stumm
   - Key: lobby.searching
@@ -130,7 +130,7 @@ MonoBehaviour:
   - Key: settings.voice.talk_mode
     Value: Sprechmodus
   - Key: settings.voice.talk_mode.open_mic
-    Value: Offenes Mikro
+    Value: Offenes Mikrofon
   - Key: settings.voice.talk_mode.push_to_talk
     Value: Push-to-Talk
   - Key: settings.voice.microphone
@@ -140,9 +140,9 @@ MonoBehaviour:
   - Key: settings.voice.noise_suppression
     Value: "Rauschunterdr\xFCckung"
   - Key: settings.voice.input_volume
-    Value: "Mikrolautst\xE4rke"
+    Value: "Mikrofonlautst\xE4rke"
   - Key: settings.voice.output_volume
-    Value: "Stimmlautst\xE4rke"
+    Value: "Sprachlautst\xE4rke"
   - Key: settings.voice.player_volumes
     Value: "Spielerlautst\xE4rke"
   - Key: mode.default.name
@@ -152,7 +152,7 @@ MonoBehaviour:
   - Key: mode.poker.name
     Value: Poker
   - Key: mode.poker.description
-    Value: Reines Poker. Keine Items, keine Halluzinationen.
+    Value: Klassisches Poker. Keine Items, keine Halluzinationen.
   - Key: room.next
     Value: Weiter
   - Key: room.timer
@@ -168,20 +168,18 @@ MonoBehaviour:
   - Key: matchmaking.looking_for_players
     Value: Suche nach Spielern...
   - Key: error.title
-    Value: ACHTUNG!!!
+    Value: FEHLER
   - Key: error.connect.room_full
-    Value: Der Raum ist voll. Versuch einen anderen
+    Value: Der Raum ist voll. Versuche einen anderen.
   - Key: error.connect.timeout
-    Value: "Zeit\xFCberschreitung. Versuch es sp\xE4ter nochmal"
+    Value: "Zeit\xFCberschreitung bei der Verbindung. Versuche es sp\xE4ter erneut."
   - Key: error.connect.room_gone
-    Value: Diesen Raum gibt es nicht mehr
+    Value: Dieser Raum existiert nicht mehr.
   - Key: error.connect.unavailable
-    Value: "Lobby nicht erreichbar. L\xE4uft Steam?"
+    Value: "Raumliste nicht erreichbar. Pr\xFCfe, ob Steam l\xE4uft."
   - Key: error.connect.disconnected
-    Value: Verbindung zum Host verloren
+    Value: Verbindung zum Host verloren.
   - Key: error.connect.unknown
-    Value: "Etwas ist schiefgelaufen. Versuch es sp\xE4ter nochmal"
+    Value: "Etwas ist schiefgelaufen. Versuche es sp\xE4ter erneut."
   - Key: error.connect.kicked
-    Value: Der Host hat dich aus dem Raum entfernt
-  - Key: menu.select
-    Value: "ausw\xE4hlen"
+    Value: Der Host hat dich aus dem Raum entfernt.

@@ -379,7 +379,6 @@ namespace Game.Runtime
 			public const string Play = "menu.play";
 			public const string QuickMatch = "menu.quick_match";
 			public const string Quit = "menu.quit";
-			public const string Select = "menu.select";
 		}
 
 		public static class Mode

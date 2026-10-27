@@ -14,21 +14,21 @@ MonoBehaviour:
   m_EditorClassIdentifier: Localization::Localization.LocaleSection
   _entries:
   - Key: common.on
-    Value: Oui
+    Value: "Activ\xE9"
   - Key: common.off
-    Value: Non
+    Value: "D\xE9sactiv\xE9"
   - Key: common.close
     Value: Fermer
   - Key: common.cancel
     Value: Annuler
   - Key: menu.play
-    Value: Jouer
+    Value: "D\xE9marrer"
   - Key: menu.option
     Value: "Param\xE8tres"
   - Key: menu.quit
     Value: Quitter
   - Key: menu.host
-    Value: "Cr\xE9er"
+    Value: "H\xE9berger"
   - Key: menu.find
     Value: Rejoindre
   - Key: menu.back
@@ -46,9 +46,9 @@ MonoBehaviour:
   - Key: room.title
     Value: "CR\xC9ER UN SALON"
   - Key: room.max_players
-    Value: Joueurs max
+    Value: Joueurs max.
   - Key: room.private
-    Value: "Priv\xE9\_:"
+    Value: "Priv\xE9 :"
   - Key: room.game_mode
     Value: Mode de jeu
   - Key: room.create
@@ -64,13 +64,13 @@ MonoBehaviour:
   - Key: loading.scene
     Value: CHARGEMENT
   - Key: loading.leaving
-    Value: "D\xC9PART"
+    Value: SORTIE
   - Key: settings.title
     Value: "PARAM\xC8TRES"
   - Key: settings.graphics
     Value: GRAPHISMES
   - Key: settings.window_mode
-    Value: Mode d'affichage
+    Value: "Mode fen\xEAtre"
   - Key: settings.window_mode.fullscreen
     Value: "Plein \xE9cran"
   - Key: settings.window_mode.borderless
@@ -80,7 +80,7 @@ MonoBehaviour:
   - Key: settings.resolution
     Value: "R\xE9solution"
   - Key: settings.fps
-    Value: Limite FPS
+    Value: Limite de FPS
   - Key: settings.fps.unlimited
     Value: "Illimit\xE9"
   - Key: settings.vsync
@@ -96,21 +96,21 @@ MonoBehaviour:
   - Key: matchmaking.searching
     Value: Recherche d'un salon...
   - Key: matchmaking.waiting
-    Value: En attente de joueurs {0}/{1}
+    Value: En attente de joueurs ({0}/{1})
   - Key: matchmaking.failed
-    Value: "\xC9CHEC DU MATCHMAKING"
+    Value: "\xC9CHEC DE LA RECHERCHE DE PARTIE"
   - Key: matchmaking.error.unavailable
-    Value: Le jeu en ligne est indisponible pour le moment.
+    Value: Le jeu en ligne n'est pas disponible pour le moment.
   - Key: matchmaking.error.create
     Value: Impossible d'ouvrir un salon.
   - Key: matchmaking.error.lost
     Value: Connexion au salon perdue.
   - Key: matchmaking.error.connect
-    Value: Impossible de rejoindre la partie.
+    Value: Impossible de se connecter au salon.
   - Key: menu.credit
     Value: "Cr\xE9dits"
   - Key: room.name
-    Value: "Nom\_:"
+    Value: 'Nom :'
   - Key: settings.audio_section
     Value: AUDIO
   - Key: settings.audio.master
@@ -118,27 +118,27 @@ MonoBehaviour:
   - Key: settings.audio.background
     Value: Musique
   - Key: settings.audio.sfx
-    Value: Effets
+    Value: Effets sonores
   - Key: settings.audio.mute
     Value: Muet
   - Key: lobby.searching
     Value: Recherche de salons...
   - Key: lobby.empty
-    Value: Aucun salon ouvert pour l'instant.
+    Value: Aucun salon ouvert pour le moment.
   - Key: settings.voice_section
     Value: VOIX
   - Key: settings.voice.talk_mode
-    Value: Mode micro
+    Value: Mode de conversation
   - Key: settings.voice.talk_mode.open_mic
     Value: Micro ouvert
   - Key: settings.voice.talk_mode.push_to_talk
     Value: Appuyer pour parler
   - Key: settings.voice.microphone
-    Value: Micro
+    Value: Microphone
   - Key: settings.voice.microphone.default
-    Value: "Par d\xE9faut (syst\xE8me)"
+    Value: "Par d\xE9faut du syst\xE8me"
   - Key: settings.voice.noise_suppression
-    Value: "R\xE9duction du bruit"
+    Value: Suppression du bruit
   - Key: settings.voice.input_volume
     Value: Volume du micro
   - Key: settings.voice.output_volume
@@ -146,42 +146,41 @@ MonoBehaviour:
   - Key: settings.voice.player_volumes
     Value: Volume des joueurs
   - Key: mode.default.name
-    Value: Standard
+    Value: "Par d\xE9faut"
   - Key: mode.default.description
     Value: Objets, hallucinations et chaos total.
   - Key: mode.poker.name
     Value: Poker
   - Key: mode.poker.description
-    Value: Poker pur. Pas d'objets, pas d'hallucinations.
+    Value: Poker classique. Sans objets, sans hallucinations.
   - Key: room.next
     Value: Suivant
   - Key: room.timer
-    Value: "Chrono\_:"
+    Value: 'Minuteur :'
   - Key: room.create_room
-    Value: "Cr\xE9er le salon"
+    Value: "Cr\xE9er un salon"
   - Key: room.play_mode
     Value: MODE DE JEU
   - Key: config.turn_duration
-    Value: "Dur\xE9e du tour"
+    Value: Temps de parole
   - Key: matchmaking.play
     Value: Jouer
   - Key: matchmaking.looking_for_players
     Value: Recherche de joueurs...
   - Key: error.title
-    Value: "ALERTE\_!!!"
+    Value: ERREUR
   - Key: error.connect.room_full
-    Value: Le salon est plein. Essaie un autre
+    Value: Le salon est complet. Essayez-en un autre.
   - Key: error.connect.timeout
-    Value: "La connexion a expir\xE9. R\xE9essaie plus tard"
+    Value: "La connexion a expir\xE9. R\xE9essayez plus tard."
   - Key: error.connect.room_gone
-    Value: Ce salon n'existe plus
+    Value: Ce salon n'existe plus.
   - Key: error.connect.unavailable
-    Value: "Lobby injoignable. V\xE9rifie que Steam est lanc\xE9"
+    Value: "Impossible d'acc\xE9der \xE0 la liste des salons. V\xE9rifiez que Steam
+      est lanc\xE9."
   - Key: error.connect.disconnected
-    Value: "Connexion \xE0 l'h\xF4te perdue"
+    Value: "Connexion \xE0 l'h\xF4te perdue."
   - Key: error.connect.unknown
-    Value: "Un probl\xE8me est survenu. R\xE9essaie plus tard"
+    Value: "Une erreur s'est produite. R\xE9essayez plus tard."
   - Key: error.connect.kicked
-    Value: "L'h\xF4te t'a retir\xE9 du salon"
-  - Key: menu.select
-    Value: "s\xE9lectionner"
+    Value: "L'h\xF4te vous a exclu du salon."

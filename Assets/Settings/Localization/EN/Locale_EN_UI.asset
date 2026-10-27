@@ -24,7 +24,7 @@ MonoBehaviour:
   - Key: menu.play
     Value: Start
   - Key: menu.option
-    Value: Setting
+    Value: Settings
   - Key: menu.quit
     Value: Quit
   - Key: menu.host
@@ -40,7 +40,7 @@ MonoBehaviour:
   - Key: pause.settings
     Value: Settings
   - Key: pause.leave
-    Value: Leave Game
+    Value: Leave Match
   - Key: pause.quit
     Value: Quit to Desktop
   - Key: room.title
@@ -66,9 +66,9 @@ MonoBehaviour:
   - Key: loading.leaving
     Value: LEAVING
   - Key: settings.title
-    Value: SETTING
+    Value: SETTINGS
   - Key: settings.graphics
-    Value: GRAPHIC
+    Value: GRAPHICS
   - Key: settings.window_mode
     Value: Window Mode
   - Key: settings.window_mode.fullscreen
@@ -96,7 +96,7 @@ MonoBehaviour:
   - Key: matchmaking.searching
     Value: Looking for a room...
   - Key: matchmaking.waiting
-    Value: Waiting for players {0}/{1}
+    Value: Waiting for players ({0}/{1})
   - Key: matchmaking.failed
     Value: MATCHMAKING FAILED
   - Key: matchmaking.error.unavailable
@@ -104,11 +104,11 @@ MonoBehaviour:
   - Key: matchmaking.error.create
     Value: Could not open a room.
   - Key: matchmaking.error.lost
-    Value: Lost the connection to the room.
+    Value: Lost connection to the room.
   - Key: matchmaking.error.connect
-    Value: Could not connect to the match.
+    Value: Could not connect to the room.
   - Key: menu.credit
-    Value: Credit
+    Value: Credits
   - Key: room.name
     Value: 'Name:'
   - Key: settings.audio_section
@@ -132,7 +132,7 @@ MonoBehaviour:
   - Key: settings.voice.talk_mode.open_mic
     Value: Open Mic
   - Key: settings.voice.talk_mode.push_to_talk
-    Value: Push To Talk
+    Value: Push to Talk
   - Key: settings.voice.microphone
     Value: Microphone
   - Key: settings.voice.microphone.default
@@ -144,7 +144,7 @@ MonoBehaviour:
   - Key: settings.voice.output_volume
     Value: Voice Volume
   - Key: settings.voice.player_volumes
-    Value: Player Volume
+    Value: Player Volumes
   - Key: mode.default.name
     Value: Default
   - Key: mode.default.description
@@ -160,7 +160,7 @@ MonoBehaviour:
   - Key: room.create_room
     Value: Create Room
   - Key: room.play_mode
-    Value: PLAY MODE
+    Value: GAME MODE
   - Key: config.turn_duration
     Value: Turn Timer
   - Key: matchmaking.play
@@ -168,20 +168,18 @@ MonoBehaviour:
   - Key: matchmaking.looking_for_players
     Value: Looking for players...
   - Key: error.title
-    Value: ALERT!!!
+    Value: ERROR
   - Key: error.connect.room_full
-    Value: The room is full. Try another one
+    Value: The room is full. Try another one.
   - Key: error.connect.timeout
-    Value: The connection timed out. Try again later
+    Value: The connection timed out. Try again later.
   - Key: error.connect.room_gone
-    Value: This room no longer exists
+    Value: This room no longer exists.
   - Key: error.connect.unavailable
-    Value: Cannot reach the lobby. Check that Steam is running
+    Value: Could not reach the room list. Check that Steam is running.
   - Key: error.connect.disconnected
-    Value: Lost connection to the host
+    Value: Lost connection to the host.
   - Key: error.connect.unknown
-    Value: Something went wrong. Try again later
+    Value: Something went wrong. Try again later.
   - Key: error.connect.kicked
-    Value: The host removed you from the room
-  - Key: menu.select
-    Value: select
+    Value: The host removed you from the room.

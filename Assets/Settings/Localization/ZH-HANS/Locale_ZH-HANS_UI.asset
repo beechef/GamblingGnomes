@@ -30,7 +30,7 @@ MonoBehaviour:
   - Key: menu.host
     Value: "\u521B\u5EFA\u623F\u95F4"
   - Key: menu.find
-    Value: "\u52A0\u5165\u623F\u95F4"
+    Value: "\u52A0\u5165"
   - Key: menu.back
     Value: "\u8FD4\u56DE"
   - Key: pause.title
@@ -40,15 +40,15 @@ MonoBehaviour:
   - Key: pause.settings
     Value: "\u8BBE\u7F6E"
   - Key: pause.leave
-    Value: "\u79BB\u5F00\u724C\u684C"
+    Value: "\u79BB\u5F00\u5BF9\u5C40"
   - Key: pause.quit
     Value: "\u9000\u51FA\u5230\u684C\u9762"
   - Key: room.title
     Value: "\u521B\u5EFA\u623F\u95F4"
   - Key: room.max_players
-    Value: "\u4EBA\u6570\u4E0A\u9650"
+    Value: "\u6700\u5927\u73A9\u5BB6\u6570"
   - Key: room.private
-    Value: "\u79C1\u4EBA\uFF1A"
+    Value: "\u79C1\u5BC6\uFF1A"
   - Key: room.game_mode
     Value: "\u6E38\u620F\u6A21\u5F0F"
   - Key: room.create
@@ -64,7 +64,7 @@ MonoBehaviour:
   - Key: loading.scene
     Value: "\u52A0\u8F7D\u4E2D"
   - Key: loading.leaving
-    Value: "\u6B63\u5728\u79BB\u684C"
+    Value: "\u79BB\u5F00\u4E2D"
   - Key: settings.title
     Value: "\u8BBE\u7F6E"
   - Key: settings.graphics
@@ -76,11 +76,11 @@ MonoBehaviour:
   - Key: settings.window_mode.borderless
     Value: "\u65E0\u8FB9\u6846"
   - Key: settings.window_mode.windowed
-    Value: "\u7A97\u53E3\u5316"
+    Value: "\u7A97\u53E3"
   - Key: settings.resolution
     Value: "\u5206\u8FA8\u7387"
   - Key: settings.fps
-    Value: "\u5E27\u7387\u4E0A\u9650"
+    Value: "FPS \u9650\u5236"
   - Key: settings.fps.unlimited
     Value: "\u65E0\u9650\u5236"
   - Key: settings.vsync
@@ -90,23 +90,23 @@ MonoBehaviour:
   - Key: settings.language
     Value: "\u8BED\u8A00"
   - Key: menu.quick_match
-    Value: "\u5FEB\u901F\u5339\u914D"
+    Value: "\u5FEB\u901F\u5BF9\u5C40"
   - Key: matchmaking.title
-    Value: "\u5FEB\u901F\u5339\u914D"
+    Value: "\u5FEB\u901F\u5BF9\u5C40"
   - Key: matchmaking.searching
-    Value: "\u6B63\u5728\u5BFB\u627E\u623F\u95F4\u2026"
+    Value: "\u6B63\u5728\u5BFB\u627E\u623F\u95F4..."
   - Key: matchmaking.waiting
-    Value: "\u7B49\u5F85\u73A9\u5BB6 {0}/{1}"
+    Value: "\u7B49\u5F85\u73A9\u5BB6 ({0}/{1})"
   - Key: matchmaking.failed
     Value: "\u5339\u914D\u5931\u8D25"
   - Key: matchmaking.error.unavailable
-    Value: "\u76EE\u524D\u65E0\u6CD5\u8FDB\u884C\u5728\u7EBF\u6E38\u620F\u3002"
+    Value: "\u5728\u7EBF\u6E38\u620F\u76EE\u524D\u4E0D\u53EF\u7528\u3002"
   - Key: matchmaking.error.create
     Value: "\u65E0\u6CD5\u5F00\u542F\u623F\u95F4\u3002"
   - Key: matchmaking.error.lost
     Value: "\u4E0E\u623F\u95F4\u7684\u8FDE\u63A5\u5DF2\u65AD\u5F00\u3002"
   - Key: matchmaking.error.connect
-    Value: "\u65E0\u6CD5\u8FDE\u63A5\u5230\u5BF9\u5C40\u3002"
+    Value: "\u65E0\u6CD5\u8FDE\u63A5\u5230\u623F\u95F4\u3002"
   - Key: menu.credit
     Value: "\u5236\u4F5C\u4EBA\u5458"
   - Key: room.name
@@ -122,7 +122,7 @@ MonoBehaviour:
   - Key: settings.audio.mute
     Value: "\u9759\u97F3"
   - Key: lobby.searching
-    Value: "\u6B63\u5728\u5BFB\u627E\u623F\u95F4\u2026"
+    Value: "\u6B63\u5728\u5BFB\u627E\u623F\u95F4..."
   - Key: lobby.empty
     Value: "\u76EE\u524D\u6CA1\u6709\u5F00\u653E\u7684\u623F\u95F4\u3002"
   - Key: settings.voice_section
@@ -130,7 +130,7 @@ MonoBehaviour:
   - Key: settings.voice.talk_mode
     Value: "\u901A\u8BDD\u6A21\u5F0F"
   - Key: settings.voice.talk_mode.open_mic
-    Value: "\u81EA\u7531\u9EA6"
+    Value: "\u9EA6\u514B\u98CE\u5E38\u5F00"
   - Key: settings.voice.talk_mode.push_to_talk
     Value: "\u6309\u952E\u8BF4\u8BDD"
   - Key: settings.voice.microphone
@@ -148,40 +148,39 @@ MonoBehaviour:
   - Key: mode.default.name
     Value: "\u9ED8\u8BA4"
   - Key: mode.default.description
-    Value: "\u9053\u5177\u3001\u5E7B\u89C9\uFF0C\u5916\u52A0\u4E00\u7247\u6DF7\u4E71\u3002"
+    Value: "\u9053\u5177\u3001\u5E7B\u89C9\u4E0E\u5F7B\u5E95\u6DF7\u4E71\u3002"
   - Key: mode.poker.name
     Value: "\u6251\u514B"
   - Key: mode.poker.description
-    Value: "\u7EAF\u6251\u514B\u3002\u6CA1\u6709\u9053\u5177\uFF0C\u6CA1\u6709\u5E7B\u89C9\u3002"
+    Value: "\u666E\u901A\u6251\u514B\u3002\u65E0\u9053\u5177\uFF0C\u65E0\u5E7B\u89C9\u3002"
   - Key: room.next
     Value: "\u4E0B\u4E00\u6B65"
   - Key: room.timer
-    Value: "\u8BA1\u65F6\uFF1A"
+    Value: "\u8BA1\u65F6\u5668\uFF1A"
   - Key: room.create_room
     Value: "\u521B\u5EFA\u623F\u95F4"
   - Key: room.play_mode
     Value: "\u6E38\u620F\u6A21\u5F0F"
   - Key: config.turn_duration
-    Value: "\u56DE\u5408\u65F6\u9650"
+    Value: "\u56DE\u5408\u8BA1\u65F6"
   - Key: matchmaking.play
-    Value: "\u5F00\u59CB"
+    Value: "\u5F00\u59CB\u6E38\u620F"
   - Key: matchmaking.looking_for_players
-    Value: "\u6B63\u5728\u5BFB\u627E\u73A9\u5BB6\u2026"
+    Value: "\u6B63\u5728\u5BFB\u627E\u73A9\u5BB6..."
   - Key: error.title
-    Value: "\u8B66\u62A5\uFF01\uFF01\uFF01"
+    Value: "\u9519\u8BEF"
   - Key: error.connect.room_full
-    Value: "\u623F\u95F4\u5DF2\u6EE1\uFF0C\u6362\u4E00\u4E2A\u8BD5\u8BD5\u5427"
+    Value: "\u623F\u95F4\u5DF2\u6EE1\uFF0C\u8BF7\u5C1D\u8BD5\u5176\u4ED6\u623F\u95F4\u3002"
   - Key: error.connect.timeout
-    Value: "\u8FDE\u63A5\u8D85\u65F6\uFF0C\u8BF7\u7A0D\u540E\u518D\u8BD5"
+    Value: "\u8FDE\u63A5\u8D85\u65F6\uFF0C\u8BF7\u7A0D\u540E\u91CD\u8BD5\u3002"
   - Key: error.connect.room_gone
-    Value: "\u8FD9\u4E2A\u623F\u95F4\u5DF2\u7ECF\u4E0D\u5B58\u5728\u4E86"
+    Value: "\u8BE5\u623F\u95F4\u5DF2\u4E0D\u5B58\u5728\u3002"
   - Key: error.connect.unavailable
-    Value: "\u65E0\u6CD5\u8FDE\u63A5\u5927\u5385\uFF0C\u8BF7\u786E\u8BA4 Steam \u6B63\u5728\u8FD0\u884C"
+    Value: "\u65E0\u6CD5\u83B7\u53D6\u623F\u95F4\u5217\u8868\uFF0C\u8BF7\u786E\u8BA4
+      Steam \u6B63\u5728\u8FD0\u884C\u3002"
   - Key: error.connect.disconnected
-    Value: "\u4E0E\u623F\u4E3B\u7684\u8FDE\u63A5\u5DF2\u65AD\u5F00"
+    Value: "\u4E0E\u623F\u4E3B\u7684\u8FDE\u63A5\u5DF2\u65AD\u5F00\u3002"
   - Key: error.connect.unknown
-    Value: "\u51FA\u4E86\u70B9\u95EE\u9898\uFF0C\u8BF7\u7A0D\u540E\u518D\u8BD5"
+    Value: "\u51FA\u4E86\u70B9\u95EE\u9898\uFF0C\u8BF7\u7A0D\u540E\u91CD\u8BD5\u3002"
   - Key: error.connect.kicked
-    Value: "\u4F60\u5DF2\u88AB\u623F\u4E3B\u79FB\u51FA\u623F\u95F4"
-  - Key: menu.select
-    Value: "\u9009\u62E9"
+    Value: "\u623F\u4E3B\u5DF2\u5C06\u4F60\u79FB\u51FA\u623F\u95F4\u3002"
