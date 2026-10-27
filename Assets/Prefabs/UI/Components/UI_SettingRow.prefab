@@ -77,8 +77,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.HorizontalLayoutGroup
   m_Padding:
-    m_Left: 0
-    m_Right: 0
+    m_Left: 16
+    m_Right: 16
     m_Top: 0
     m_Bottom: 0
   m_ChildAlignment: 3
@@ -102,7 +102,6 @@ GameObject:
   - component: {fileID: 7645733420557239086}
   - component: {fileID: 500215232311051807}
   - component: {fileID: 3736386115075643078}
-  - component: {fileID: 3430592296442566340}
   m_Layer: 5
   m_Name: Label
   m_TagString: Untagged
@@ -223,7 +222,7 @@ MonoBehaviour:
   m_VertexBufferAutoSizeReduction: 0
   m_useMaxVisibleDescender: 1
   m_pageToDisplay: 1
-  m_margin: {x: 24, y: 0, z: 20, w: 0}
+  m_margin: {x: 0, y: 0, z: 20, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
   m_hasFontAssetChanged: 0
@@ -392,10 +391,10 @@ RectTransform:
   m_Father: {fileID: 6665223806541571949}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0.5}
-  m_AnchorMax: {x: 0, y: 0.5}
+  m_AnchorMax: {x: 1, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 280, y: 58}
-  m_Pivot: {x: 0, y: 0.5}
+  m_SizeDelta: {x: 0, y: 64}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2556084160917802981
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -424,8 +423,8 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: db76f2c444fe6c94a90462ed77fabef0, type: 3}
-  m_Type: 0
+  m_Sprite: {fileID: 21300000, guid: f2e41b63f7b134541be37f8ce09f58c4, type: 3}
+  m_Type: 1
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -487,28 +486,3 @@ MonoBehaviour:
   _disabledAlpha: 0
   _duration: 0.08
   _ease: 6
---- !u!114 &3430592296442566340
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8139299275127319351}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e67e17b470e7afe48992b4d571118924, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Button.UIButtonLabelVisual
-  _button: {fileID: 1883193244268209927}
-  _flashHold: 0.15
-  _label: {fileID: 500215232311051807}
-  _normalColor: {r: 0, g: 0, b: 0, a: 1}
-  _hoveredColor: {r: 0.76862746, g: 0.6862745, b: 0.6156863, a: 1}
-  _selectedColor: {r: 0.76862746, g: 0.6862745, b: 0.6156863, a: 1}
-  _pressedColor: {r: 0.65333337, g: 0.5833334, b: 0.5233334, a: 1}
-  _disabledColor: {r: 0, g: 0, b: 0, a: 0.35}
-  _animateSize: 0
-  _normalSize: 40
-  _hoveredSize: 64
-  _sizeDuration: 0.12
-  _sizeEase: 27
