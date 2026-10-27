@@ -218,6 +218,10 @@ namespace Game.Runtime.UI.Selection
 				_released = false;
 			}
 
+			// Hidden at once: a deselect landing inside another group's PostLayout (a list taking focus from
+			// Back as the panel opens) asks for a rebuild uGUI drops, which left this brush over an unlit word.
+			else SetPointerShown(false);
+
 			RequestPointerUpdate();
 			OnSelectionChanged?.Invoke(Selected);
 		}
