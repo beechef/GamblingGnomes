@@ -1,0 +1,147 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1001 &1773522255385126908
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 4734643598028453860, guid: fe252a8c711d2cf4a81ecac7f18d46ae, type: 3}
+      propertyPath: m_Name
+      value: UI_SettingRow_Slider
+      objectReference: {fileID: 0}
+    - target: {fileID: 1943435328749653609, guid: fe252a8c711d2cf4a81ecac7f18d46ae, type: 3}
+      propertyPath: m_SizeDelta.x
+      value: 185
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects:
+    - targetCorrespondingSourceObject: {fileID: 6665223806541571949, guid: fe252a8c711d2cf4a81ecac7f18d46ae, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1283373911213783478}
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 4734643598028453860, guid: fe252a8c711d2cf4a81ecac7f18d46ae, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 2238020627453400038}
+  m_SourcePrefab: {fileID: 100100000, guid: fe252a8c711d2cf4a81ecac7f18d46ae, type: 3}
+--- !u!224 &4963935067058061457 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 6665223806541571949, guid: fe252a8c711d2cf4a81ecac7f18d46ae, type: 3}
+  m_PrefabInstance: {fileID: 1773522255385126908}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &6424389662297215000 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4734643598028453860, guid: fe252a8c711d2cf4a81ecac7f18d46ae, type: 3}
+  m_PrefabInstance: {fileID: 1773522255385126908}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1589977030241880892 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1048330147916410048, guid: fe252a8c711d2cf4a81ecac7f18d46ae, type: 3}
+  m_PrefabInstance: {fileID: 1773522255385126908}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4d8fb127a45044ed8df9b38cd983a4d1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Settings.UISettingRow
+--- !u!114 &197775063972266235 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 1883193244268209927, guid: fe252a8c711d2cf4a81ecac7f18d46ae, type: 3}
+  m_PrefabInstance: {fileID: 1773522255385126908}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 84f47ffb0cc60f8409595baa4eeeef58, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Button.UIButton
+--- !u!114 &2238020627453400038
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6424389662297215000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5391aa8384114276bfec845bf033e6d9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Settings.UISliderStepper
+  _row: {fileID: 1589977030241880892}
+  _slider: {fileID: 4058670744020611964}
+  _step: 0.1
+--- !u!1001 &797430217513571383
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 4963935067058061457}
+    m_Modifications:
+    - target: {fileID: 3127194318214088235, guid: c915444b9cd07714d80694d3a7b5bbef, type: 3}
+      propertyPath: m_Name
+      value: Slider
+      objectReference: {fileID: 0}
+    - target: {fileID: 3693586144421832523, guid: c915444b9cd07714d80694d3a7b5bbef, type: 3}
+      propertyPath: m_Navigation.m_Mode
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 3116723087113161282, guid: c915444b9cd07714d80694d3a7b5bbef, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1505847818299774814}
+  m_SourcePrefab: {fileID: 100100000, guid: c915444b9cd07714d80694d3a7b5bbef, type: 3}
+--- !u!224 &1283373911213783478 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 1936124850383465857, guid: c915444b9cd07714d80694d3a7b5bbef, type: 3}
+  m_PrefabInstance: {fileID: 797430217513571383}
+  m_PrefabAsset: {fileID: 0}
+--- !u!1 &2328881817881190005 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 3116723087113161282, guid: c915444b9cd07714d80694d3a7b5bbef, type: 3}
+  m_PrefabInstance: {fileID: 797430217513571383}
+  m_PrefabAsset: {fileID: 0}
+--- !u!224 &6911053884232090607 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 6123193908268881880, guid: c915444b9cd07714d80694d3a7b5bbef, type: 3}
+  m_PrefabInstance: {fileID: 797430217513571383}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &4058670744020611964 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 3693586144421832523, guid: c915444b9cd07714d80694d3a7b5bbef, type: 3}
+  m_PrefabInstance: {fileID: 797430217513571383}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 67db9e8f0e2ae9c40bc1e2b64352a6b4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Slider
+--- !u!114 &1505847818299774814
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2328881817881190005}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a8c25f3d68f076642ad0470626c43251, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Button.UIButtonScaleVisual
+  _button: {fileID: 197775063972266235}
+  _flashHold: 0.15
+  _target: {fileID: 6911053884232090607}
+  _normalScale: 1
+  _hoveredScale: 1.4
+  _pressedScale: 1.4
+  _disabledScale: 1
+  _duration: 0.12
+  _ease: 27

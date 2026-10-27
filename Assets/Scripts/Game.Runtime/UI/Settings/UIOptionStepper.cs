@@ -14,6 +14,9 @@ namespace Game.Runtime.UI.Settings
 		[SerializeField] private UIButton _nextButton;
 		[SerializeField] private TMP_Text _valueLabel;
 
+		[Tooltip("The row whose left/right presses these arrows; empty for a stepper standing alone.")]
+		[SerializeField] private UISettingRow _row;
+
 		private readonly List<string> _options = new();
 		private bool _isInteractable = true;
 
@@ -35,10 +38,12 @@ namespace Game.Runtime.UI.Settings
 		{
 			if (_previousButton) _previousButton.OnClick += HandlePrevious;
 			if (_nextButton) _nextButton.OnClick += HandleNext;
+			if (_row) _row.OnStepped += HandleRowStepped;
 		}
 
 		private void OnDestroy()
 		{
+			if (_row) _row.OnStepped -= HandleRowStepped;
 			if (_previousButton) _previousButton.OnClick -= HandlePrevious;
 			if (_nextButton) _nextButton.OnClick -= HandleNext;
 		}
@@ -54,6 +59,16 @@ namespace Game.Runtime.UI.Settings
 		private void HandlePrevious() => Step(-1);
 
 		private void HandleNext() => Step(1);
+
+		// Through the arrow itself, so a step from the row sounds and looks like a click on it.
+		private void HandleRowStepped(int direction)
+		{
+			var button = direction < 0 ? _previousButton : _nextButton;
+			if (!button) return;
+
+			button.Flash();
+			button.Submit();
+		}
 
 		private void Step(int direction)
 		{
