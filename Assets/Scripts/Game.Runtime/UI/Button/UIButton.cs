@@ -29,6 +29,9 @@ namespace Game.Runtime.UI.Button
 		// under the pointer counts as not over, so the pointer only promises what a click would do.
 		public static event Action<UIButton, bool> OnPointerOverChanged;
 
+		// Raised by any button uGUI selects, by pad, keys or code, for what follows focus across the screen (a scroll keeping it in view).
+		public static event Action<UIButton> OnSelected;
+
 		// Raised the moment a press is taken, before the click delay, for what answers the press itself (the click sound).
 		public event Action OnPress;
 
@@ -38,6 +41,7 @@ namespace Game.Runtime.UI.Button
 		private static void ResetStatics()
 		{
 			OnPointerOverChanged = null;
+			OnSelected = null;
 		}
 
 		private UnityEngine.UI.Button _button;
@@ -136,7 +140,11 @@ namespace Game.Runtime.UI.Button
 			RefreshState();
 		}
 
-		public void OnSelect(BaseEventData eventData) => SetFocused(InputSchemeController.IsGamepad);
+		public void OnSelect(BaseEventData eventData)
+		{
+			SetFocused(InputSchemeController.IsGamepad);
+			OnSelected?.Invoke(this);
+		}
 
 		public void OnDeselect(BaseEventData eventData) => SetFocused(false);
 

@@ -412,6 +412,7 @@ GameObject:
   - component: {fileID: 9055616576071032114}
   - component: {fileID: 8404433656538407247}
   - component: {fileID: 5901102997098924330}
+  - component: {fileID: 6614946147988827439}
   m_Layer: 5
   m_Name: Scroll
   m_TagString: Untagged
@@ -521,6 +522,21 @@ MonoBehaviour:
   m_OnValueChanged:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &6614946147988827439
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2918805592318689392}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 436a39d9f89045679bfd70d0cb4a57d8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Game.Runtime::Game.Runtime.UI.Selection.UIScrollToSelection
+  _margin: 8
+  _duration: 0.15
+  _ease: 9
 --- !u!1 &3719985951568759018
 GameObject:
   m_ObjectHideFlags: 0

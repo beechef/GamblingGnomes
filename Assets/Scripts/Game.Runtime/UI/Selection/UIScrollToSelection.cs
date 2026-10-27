@@ -1,5 +1,6 @@
 using DG.Tweening;
 using Game.Runtime.Controller;
+using Game.Runtime.UI.Button;
 using Sirenix.OdinInspector;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -7,16 +8,14 @@ using UnityEngine.UI;
 
 namespace Game.Runtime.UI.Selection
 {
-	// Keeps a scrolled list's marked entry in view, so arrow keys and a pad can walk past the edge. It moves
-	// only as far as it has to, and leaves the list alone while a mouse is over it: scrolling under a hovering
-	// pointer would hand the hover to the next entry and walk the list away on its own.
+	// Keeps the focused entry of a scrolled list in view, so arrow keys and a pad can walk past the edge. The
+	// entry is the content's child holding the focused button, so a row snaps whole even when focus sits on a
+	// control inside it. It moves only as far as it has to, and leaves the list alone while a mouse is over it:
+	// scrolling under a hovering pointer would hand the hover to the next entry and walk the list away on its own.
 	[RequireComponent(typeof(ScrollRect))]
 	public class UIScrollToSelection : MonoBehaviour, ICanvasElement, IPointerEnterHandler, IPointerExitHandler
 	{
-		[Required]
-		[SerializeField] private UISelectionGroup _selection;
-
-		[Tooltip("Room kept between the marked entry and the edge it was brought in from.")]
+		[Tooltip("Room kept between the focused entry and the edge it was brought in from.")]
 		[MinValue(0f)]
 		[SerializeField] private float _margin = 8f;
 
@@ -26,6 +25,7 @@ namespace Game.Runtime.UI.Selection
 		[SerializeField] private Ease _ease = Ease.OutCubic;
 
 		private ScrollRect _scroll;
+		private RectTransform _entry;
 		private Tween _move;
 		private bool _pointerInside;
 
@@ -34,15 +34,13 @@ namespace Game.Runtime.UI.Selection
 			_scroll = GetComponent<ScrollRect>();
 		}
 
-		private void OnEnable()
-		{
-			if (_selection) _selection.OnSelectionChanged += HandleSelectionChanged;
-		}
+		private void OnEnable() => UIButton.OnSelected += HandleSelected;
 
 		private void OnDisable()
 		{
-			if (_selection) _selection.OnSelectionChanged -= HandleSelectionChanged;
+			UIButton.OnSelected -= HandleSelected;
 
+			_entry = null;
 			_pointerInside = false;
 			CanvasUpdateRegistry.UnRegisterCanvasElementForRebuild(this);
 			KillMove();
@@ -57,9 +55,22 @@ namespace Game.Runtime.UI.Selection
 		public void OnPointerEnter(PointerEventData eventData) => _pointerInside = true;
 		public void OnPointerExit(PointerEventData eventData) => _pointerInside = false;
 
-		private void HandleSelectionChanged(UISelectionItem item)
+		private void HandleSelected(UIButton button)
 		{
-			if (item) CanvasUpdateRegistry.RegisterCanvasElementForLayoutRebuild(this);
+			var entry = EntryOf(button.transform);
+			if (!entry) return;
+
+			_entry = entry;
+			CanvasUpdateRegistry.RegisterCanvasElementForLayoutRebuild(this);
+		}
+
+		private RectTransform EntryOf(Transform target)
+		{
+			var content = _scroll.content;
+			if (!content) return null;
+
+			while (target && target.parent != content) target = target.parent;
+			return target as RectTransform;
 		}
 
 		public void Rebuild(CanvasUpdate executing)
@@ -84,14 +95,12 @@ namespace Game.Runtime.UI.Selection
 		// zero or below.
 		private void BringIntoView()
 		{
-			var item = _selection ? _selection.Selected : null;
 			var content = _scroll.content;
 			var viewport = _scroll.viewport ? _scroll.viewport : (RectTransform)_scroll.transform;
-			if (!item || !content) return;
+			if (!_entry || !content) return;
 
-			var rect = (RectTransform)item.transform;
-			var top = content.InverseTransformPoint(rect.TransformPoint(new Vector3(0f, rect.rect.yMax))).y + _margin;
-			var bottom = content.InverseTransformPoint(rect.TransformPoint(new Vector3(0f, rect.rect.yMin))).y - _margin;
+			var top = content.InverseTransformPoint(_entry.TransformPoint(new Vector3(0f, _entry.rect.yMax))).y + _margin;
+			var bottom = content.InverseTransformPoint(_entry.TransformPoint(new Vector3(0f, _entry.rect.yMin))).y - _margin;
 
 			var height = viewport.rect.height;
 			var current = content.anchoredPosition.y;
