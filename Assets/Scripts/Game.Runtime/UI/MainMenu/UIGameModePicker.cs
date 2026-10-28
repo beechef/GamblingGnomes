@@ -1,6 +1,7 @@
 using System;
 using Game.Runtime.GameMode;
 using Game.Runtime.UI.Button;
+using Game.Runtime.UI.Settings;
 using Localization;
 using TMPro;
 using UnityEngine;
@@ -25,6 +26,9 @@ namespace Game.Runtime.UI.MainMenu
 		[SerializeField] private UIButton _previousButton;
 		[SerializeField] private UIButton _nextButton;
 
+		[Tooltip("Optional. The row whose left/right presses these arrows; empty for a picker standing alone.")]
+		[SerializeField] private UISettingRow _row;
+
 		private int _index;
 
 		public event Action<GameModeType> OnModeChanged;
@@ -39,10 +43,12 @@ namespace Game.Runtime.UI.MainMenu
 		{
 			_previousButton.OnClick += HandlePrevious;
 			_nextButton.OnClick += HandleNext;
+			if (_row) _row.OnStepped += HandleRowStepped;
 		}
 
 		private void OnDestroy()
 		{
+			if (_row) _row.OnStepped -= HandleRowStepped;
 			_nextButton.OnClick -= HandleNext;
 			_previousButton.OnClick -= HandlePrevious;
 		}
@@ -58,6 +64,14 @@ namespace Game.Runtime.UI.MainMenu
 		private void HandlePrevious() => Step(-1);
 
 		private void HandleNext() => Step(1);
+
+		// Through the arrow itself, so a step from the row sounds and looks like a click on it.
+		private void HandleRowStepped(int direction)
+		{
+			var button = direction < 0 ? _previousButton : _nextButton;
+			button.Flash();
+			button.Submit();
+		}
 
 		private void Step(int direction)
 		{
