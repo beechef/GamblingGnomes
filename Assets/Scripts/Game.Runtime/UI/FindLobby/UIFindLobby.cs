@@ -38,7 +38,6 @@ namespace Game.Runtime.UI.FindLobby
 		private bool _refreshAgain;
 		private bool _joiningLobby;
 		private readonly List<UIFindLobbyItem> _items = new();
-		private Selectable[] _filterRow;
 
 		private void OnEnable()
 		{
@@ -145,43 +144,29 @@ namespace Game.Runtime.UI.FindLobby
 		}
 
 		// Automatic navigation sends a sideways move from the filter's arrows to whichever row is nearer than the
-		// next arrow, so the filter row moves left/right only and Down enters the list; the list moves up/down
-		// only. A full room is skipped: a pad cannot press it.
+		// next arrow, so the stops are linked by hand into one column: filter (left/right step its mode), Refresh,
+		// then the rows, up/down only. A full room is skipped: a pad cannot press it.
 		private void LinkNavigation()
 		{
-			_filterRow ??= BuildFilterRow();
-
-			var joinable = _items.FindAll(item => item.RowSelectable && item.RowSelectable.interactable);
+			var filter = _modeFilter.GetComponent<Selectable>();
+			var refresh = _refreshButton ? _refreshButton.GetComponent<Selectable>() : null;
 			var back = _backButton ? _backButton.GetComponent<Selectable>() : null;
+			var joinable = _items.FindAll(item => item.RowSelectable && item.RowSelectable.interactable);
 			var firstRow = joinable.Count > 0 ? joinable[0].RowSelectable : back;
+			var aboveRows = refresh ? refresh : filter;
 
-			for (var i = 0; i < _filterRow.Length; i++)
-			{
-				_filterRow[i].navigation = new Navigation
-				{
-					mode = Navigation.Mode.Explicit,
-					selectOnLeft = i > 0 ? _filterRow[i - 1] : null,
-					selectOnRight = i < _filterRow.Length - 1 ? _filterRow[i + 1] : null,
-					selectOnDown = firstRow,
-				};
-			}
+			filter.navigation = new Navigation { mode = Navigation.Mode.Explicit, selectOnDown = refresh ? refresh : firstRow };
+			if (refresh) refresh.navigation = new Navigation { mode = Navigation.Mode.Explicit, selectOnUp = filter, selectOnLeft = filter, selectOnDown = firstRow };
 
 			for (var i = 0; i < joinable.Count; i++)
 			{
 				joinable[i].RowSelectable.navigation = new Navigation
 				{
 					mode = Navigation.Mode.Explicit,
-					selectOnUp = i > 0 ? joinable[i - 1].RowSelectable : _filterRow[0],
+					selectOnUp = i > 0 ? joinable[i - 1].RowSelectable : aboveRows,
 					selectOnDown = i < joinable.Count - 1 ? joinable[i + 1].RowSelectable : back,
 				};
 			}
-		}
-
-		private Selectable[] BuildFilterRow()
-		{
-			var row = new List<Selectable>(_modeFilter.GetComponentsInChildren<Selectable>(true));
-			if (_refreshButton) row.Add(_refreshButton.GetComponent<Selectable>());
-			return row.ToArray();
 		}
 
 		private async void OnJoinLobbyRequested(ILobby lobby)
