@@ -147,7 +147,7 @@ namespace Game.Runtime.Steam
 			var found = new List<ILobby>();
 			if (!IsAvailable) return found;
 
-			var query = SteamMatchmaking.LobbyList;
+			var query = SteamMatchmaking.LobbyList.FilterDistanceWorldwide();
 			if (filters != null)
 			{
 				foreach (var filter in filters) query = query.WithKeyValue(filter.Key, filter.Value);
