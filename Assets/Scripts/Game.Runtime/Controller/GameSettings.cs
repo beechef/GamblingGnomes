@@ -1,10 +1,14 @@
+using System.Collections.Generic;
+using System.Linq;
+using Game.Runtime.Platform;
 using Localization;
 using UnityEngine;
 
 namespace Game.Runtime.Controller
 {
-	// The player's video and language settings, kept in SettingController. Frame rate and VSync are ours to
-	// save and apply; window mode and resolution are the engine's (Screen), which a player build saves itself.
+	// The player's video and language settings, kept in SettingController and applied before the first scene.
+	// Window mode and resolution override what the engine saved for itself. Steam Auto-Cloud carries the document
+	// between machines, so both are checked against this one as they are read.
 	public static class GameSettings
 	{
 		public const int UncappedFrameRate = -1;
@@ -44,11 +48,57 @@ namespace Game.Runtime.Controller
 
 		public static FullScreenMode WindowMode
 		{
-			get => Screen.fullScreenMode == FullScreenMode.MaximizedWindow ? FullScreenMode.Windowed : Screen.fullScreenMode;
-			set => Screen.fullScreenMode = value;
+			get
+			{
+				var saved = SettingController.Data.WindowMode;
+				return saved == FullScreenMode.ExclusiveFullScreen && !ExclusiveFullScreenSupported ? FullScreenMode.FullScreenWindow : saved;
+			}
+			set
+			{
+				SettingController.Data.WindowMode = value;
+				SettingController.Save();
+				ApplyDisplay();
+			}
 		}
 
-		public static void SetResolution(int width, int height) => Screen.SetResolution(width, height, Screen.fullScreenMode);
+		public static Vector2Int Resolution => FitToDisplay(
+			new Vector2Int(SettingController.Data.ResolutionWidth, SettingController.Data.ResolutionHeight), NativeResolution);
+
+		// Under Proton a refused exclusive mode change crashes the player inside d3d12core.
+		public static bool ExclusiveFullScreenSupported => !WineRuntime.IsRunning;
+
+		public static Vector2Int NativeResolution => LargestLandscape(Screen.resolutions.Append(Screen.currentResolution));
+
+		// Long edge first: Steam Deck's panel is portrait, and under Proton its modes are reported that way.
+		public static Vector2Int LargestLandscape(IEnumerable<Resolution> modes)
+		{
+			var largest = Vector2Int.zero;
+
+			foreach (var mode in modes)
+			{
+				largest.x = Mathf.Max(largest.x, Mathf.Max(mode.width, mode.height));
+				largest.y = Mathf.Max(largest.y, Mathf.Min(mode.width, mode.height));
+			}
+
+			return largest;
+		}
+
+		public static Vector2Int FitToDisplay(Vector2Int saved, Vector2Int native) =>
+			saved.x <= 0 || saved.y <= 0 || saved.x > native.x || saved.y > native.y ? native : saved;
+
+		public static void SetResolution(int width, int height)
+		{
+			SettingController.Data.ResolutionWidth = width;
+			SettingController.Data.ResolutionHeight = height;
+			SettingController.Save();
+			ApplyDisplay();
+		}
+
+		private static void ApplyDisplay()
+		{
+			var resolution = Resolution;
+			Screen.SetResolution(resolution.x, resolution.y, WindowMode);
+		}
 
 		public static bool SetLanguage(string localeCode) => Localizer.TrySetLocale(localeCode);
 
@@ -57,6 +107,22 @@ namespace Game.Runtime.Controller
 		{
 			QualitySettings.vSyncCount = VSync ? 1 : 0;
 			Application.targetFrameRate = TargetFrameRate;
+		}
+
+		// The engine restores its own saved mode first, so a player that once went exclusive under Wine would
+		// otherwise crash on every launch. The editor's Game view is not ours to resize.
+		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+		private static void ApplySavedDisplay()
+		{
+			if (Application.isEditor) return;
+
+			if (!ExclusiveFullScreenSupported)
+			{
+				var native = NativeResolution;
+				Debug.Log($"[GameSettings] Wine: mode {Screen.fullScreenMode}, window {Screen.width}x{Screen.height}, display {Screen.currentResolution.width}x{Screen.currentResolution.height}, native {native.x}x{native.y}, {Screen.resolutions.Length} modes");
+			}
+
+			ApplyDisplay();
 		}
 
 		// After the plugin resets its statics, before the bootstrap picks a language: the plugin's own

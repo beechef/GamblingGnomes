@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Game.Runtime.Voice;
+using UnityEngine;
 
 namespace Game.Runtime.Controller
 {
@@ -21,6 +22,12 @@ namespace Game.Runtime.Controller
 
 		public int TargetFrameRate = 60;
 		public bool VSync;
+
+		public FullScreenMode WindowMode = FullScreenMode.FullScreenWindow;
+
+		// 0 until one is chosen: the display's own size.
+		public int ResolutionWidth;
+		public int ResolutionHeight;
 
 		// A locale code; empty for the catalog's default.
 		public string Language = string.Empty;

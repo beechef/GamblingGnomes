@@ -20,7 +20,7 @@ namespace Game.Runtime.UI.Settings
 		private static readonly FullScreenMode[] WindowModes =
 			{ FullScreenMode.ExclusiveFullScreen, FullScreenMode.FullScreenWindow, FullScreenMode.Windowed };
 
-		// The common 16:9 sizes, offered up to what the display can show, rather than every mode it reports.
+		// The common 16:9 sizes up to what the display can show, plus its own, rather than every mode it reports.
 		private static readonly Vector2Int[] ResolutionPresets =
 			{ new(1280, 720), new(1600, 900), new(1920, 1080), new(2560, 1440), new(3840, 2160) };
 
@@ -81,6 +81,7 @@ namespace Game.Runtime.UI.Settings
 		[Required]
 		[SerializeField] private UISelectionItem _languageItemPrefab;
 
+		private readonly List<FullScreenMode> _windowModes = new();
 		private readonly List<Vector2Int> _resolutions = new();
 		private readonly List<UISelectionItem> _languageItems = new();
 
@@ -162,18 +163,14 @@ namespace Game.Runtime.UI.Settings
 
 		private void Refresh()
 		{
-			_windowMode.SetOptions(
-				new[]
-				{
-					Localizer.Get(LocalizationKeys.Settings.WindowMode.Fullscreen),
-					Localizer.Get(LocalizationKeys.Settings.WindowMode.Borderless),
-					Localizer.Get(LocalizationKeys.Settings.WindowMode.Windowed)
-				},
-				Math.Max(0, Array.IndexOf(WindowModes, GameSettings.WindowMode)));
+			_windowModes.Clear();
+			_windowModes.AddRange(WindowModes.Where(mode => mode != FullScreenMode.ExclusiveFullScreen || GameSettings.ExclusiveFullScreenSupported));
+			_windowMode.SetOptions(_windowModes.Select(WindowModeLabel), Math.Max(0, _windowModes.IndexOf(GameSettings.WindowMode)));
 
 			_resolutions.Clear();
-			var display = Screen.currentResolution;
-			_resolutions.AddRange(ResolutionPresets.Where(r => r.x <= display.width && r.y <= display.height));
+			var native = GameSettings.NativeResolution;
+			_resolutions.AddRange(ResolutionPresets.Where(r => r.x <= native.x && r.y <= native.y));
+			if (!_resolutions.Contains(native)) _resolutions.Add(native);
 
 			var current = new Vector2Int(Screen.width, Screen.height);
 			// A window dragged to another size still shows what it is.
@@ -215,6 +212,13 @@ namespace Game.Runtime.UI.Settings
 			_languageGroup.SetItems(_languageItems.Take(locales.Count));
 		}
 
+		private static string WindowModeLabel(FullScreenMode mode) => mode switch
+		{
+			FullScreenMode.ExclusiveFullScreen => Localizer.Get(LocalizationKeys.Settings.WindowMode.Fullscreen),
+			FullScreenMode.FullScreenWindow => Localizer.Get(LocalizationKeys.Settings.WindowMode.Borderless),
+			_ => Localizer.Get(LocalizationKeys.Settings.WindowMode.Windowed),
+		};
+
 		private static int NearestFrameRateIndex(int target)
 		{
 			if (target <= 0) return FrameRates.Length - 1;
@@ -228,7 +232,7 @@ namespace Game.Runtime.UI.Settings
 			return best;
 		}
 
-		private void ApplyWindowMode(int index) => GameSettings.WindowMode = WindowModes[index];
+		private void ApplyWindowMode(int index) => GameSettings.WindowMode = _windowModes[index];
 
 		private void ApplyResolution(int index) => GameSettings.SetResolution(_resolutions[index].x, _resolutions[index].y);
 
