@@ -26,11 +26,11 @@ MonoBehaviour:
   - Key: poker.button.choose
     Value: ELEGIR
   - Key: poker.button.items
-    Value: OBJETOS ({0})
+    Value: OBJETO ({0})
   - Key: poker.button.view_board
-    Value: VER MESA
+    Value: VER BOARD
   - Key: poker.button.lay_board
-    Value: BAJAR MESA
+    Value: BAJAR EL BOARD
   - Key: poker.button.helper
     Value: AYUDA
   - Key: poker.button.start
@@ -44,28 +44,28 @@ MonoBehaviour:
   - Key: poker.button.match_settings
     Value: Ajustes
   - Key: poker.targeting.hint
-    Value: Esc para devolverlo
+    Value: Esc para volver a dejarlo
   - Key: poker.helper.title
-    Value: RANKING DE MANOS
+    Value: "RANKING DE MANOS DE P\xD3KER"
   - Key: poker.helper.your_hand
-    Value: TU MANO
+    Value: TUS CARTAS
   - Key: poker.helper.empty
-    Value: "A\xFAn no tienes cartas en la mano."
+    Value: "A\xFAn no tienes cartas."
   - Key: poker.items.left_in_deck
     Value: QUEDAN EN LA BARAJA
   - Key: poker.ranking.title
     Value: RESULTADO
   - Key: poker.ranking.place.st
-    Value: "{0}\xBA"
+    Value: "{0}.\xBA"
   - Key: poker.ranking.place.nd
-    Value: "{0}\xBA"
+    Value: "{0}.\xBA"
   - Key: poker.ranking.place.rd
-    Value: "{0}\xBA"
+    Value: "{0}.\xBA"
   - Key: poker.ranking.place.th
-    Value: "{0}\xBA"
+    Value: "{0}.\xBA"
   - Key: poker.colorful.prompt
-    Value: "\xBFQui\xE9n se comer\xE1 la <Highlight>seta mortal</Highlight> y recibir\xE1
-      <Highlight>{0} objeto</Highlight>?"
+    Value: "\xBFQui\xE9n se comer\xE1 la <Highlight>seta venenosa</Highlight> y recibir\xE1
+      <Highlight>{0} objeto</Highlight> si sobrevive?"
   - Key: poker.turn.yours
     Value: TU TURNO
   - Key: poker.turn.other
@@ -83,13 +83,13 @@ MonoBehaviour:
   - Key: poker.phase.looking
     Value: MIRANDO CARTAS
   - Key: poker.phase.eating
-    Value: COMIENDO SETAS
+    Value: COMIENDO
   - Key: poker.phase.showdown
     Value: SHOWDOWN
   - Key: poker.phase.finished
-    Value: FIN DE MANO
+    Value: FINALIZADO
   - Key: poker.phase.match_over
-    Value: FIN DE PARTIDA
+    Value: FIN DE LA PARTIDA
   - Key: poker.phase.all_in
     Value: ALL IN
   - Key: poker.phase.ante
@@ -97,7 +97,7 @@ MonoBehaviour:
   - Key: poker.start.ready
     Value: '{0} jugadores listos'
   - Key: poker.start.for_table
-    Value: Empezar para todos
+    Value: Iniciar para la mesa
   - Key: poker.start.waiting
     Value: Esperando jugadores ({0}/{1})
   - Key: poker.pot
@@ -109,45 +109,45 @@ MonoBehaviour:
   - Key: poker.notice.item_bonus
     Value: +{0} OBJETO
   - Key: poker.notice.item_reward
-    Value: SOBREVIVE +{0} OBJETO
+    Value: "SOBREVIVI\xD3 +{0} OBJETO"
   - Key: poker.notice.items_lost
-    Value: PIERDE {0} OBJETO
+    Value: '{0} OBJETO PERDIDO'
   - Key: poker.notice.match_started
-    Value: EMPIEZA LA PARTIDA
+    Value: INICIO DE LA PARTIDA
   - Key: poker.notice.match_players
-    Value: CON {0} JUGADORES
+    Value: '{0} JUGADORES'
   - Key: poker.notice.item_used
-    Value: USA {0}
+    Value: "US\xD3 {0}"
   - Key: poker.notice.bet
-    Value: APUESTA
+    Value: APOSTAR
   - Key: poker.notice.fold
-    Value: SE RETIRA
+    Value: RETIRARSE
   - Key: poker.notice.all_in
-    Value: VA ALL IN
+    Value: ALL IN
   - Key: config.title
-    Value: AJUSTES DE PARTIDA
+    Value: AJUSTES DE LA PARTIDA
   - Key: config.section.match
     Value: Partida
   - Key: config.section.items
     Value: Objetos
   - Key: config.starting_health
-    Value: Vida inicial
+    Value: Salud inicial
   - Key: config.items_per_hand
     Value: Objetos por mano
   - Key: config.loser_bonus
-    Value: Premio al perdedor
+    Value: "Bonificaci\xF3n al perdedor"
   - Key: config.item_capacity
-    Value: "M\xE1x. de objetos"
+    Value: Ranuras de objetos
   - Key: bet_item.green
     Value: Verde
   - Key: bet_item.red
-    Value: Roja
+    Value: Rojo
   - Key: bet_item.purple
-    Value: Morada
+    Value: Morado
   - Key: bet_item.yellow
-    Value: Amarilla
+    Value: Amarillo
   - Key: bet_item.colorful
-    Value: Multicolor
+    Value: Seta venenosa
   - Key: poker.round.title
     Value: Ronda
   - Key: poker.helper.tab.helper
@@ -157,52 +157,54 @@ MonoBehaviour:
   - Key: poker.helper.tab.define
     Value: Glosario
   - Key: poker.helper.joker_title
-    Value: "Comod\xEDn"
+    Value: Joker
   - Key: poker.helper.joker_caption
-    Value: "Carta comod\xEDn"
+    Value: "Comod\xEDn"
   - Key: poker.ruleset.deal_cards
-    Value: "Al empezar la partida, cada jugador recibe {0} cartas propias que solo
-      ve \xE9l."
+    Value: Al comienzo de cada mano, cada jugador recibe {0} cartas privadas (hole
+      cards).
   - Key: poker.ruleset.deal_cards_items
-    Value: "Al empezar la partida, cada jugador recibe {0} cartas propias que solo
-      ve \xE9l y {1} objetos."
+    Value: Al comienzo de cada mano, cada jugador recibe {0} cartas privadas (hole
+      cards) y {1} objetos.
   - Key: poker.ruleset.turn_actions
-    Value: En su turno, un jugador puede igualar, ir all in o retirarse.
+    Value: En su turno, un jugador puede Igualar, ir All In o Retirarse.
   - Key: poker.ruleset.turn_actions_items
-    Value: En su turno, un jugador puede usar hasta {0} objetos y luego igualar o
-      retirarse.
+    Value: En su turno, un jugador puede usar hasta {0} objetos y luego Igualar o
+      Retirarse.
   - Key: poker.ruleset.community_cards
-    Value: Al final de cada ronda se destapan por turnos {0} cartas comunitarias.
+    Value: Al final de cada ronda, se revelan {0} cartas del board en orden.
   - Key: poker.ruleset.all_in
-    Value: "Cuando alguien va all in, el resto solo puede igualar ese all in o retirarse.
-      Despu\xE9s se destapan todas las cartas que quedan."
+    Value: "Cuando alguien va All In, los dem\xE1s jugadores solo pueden Igualar
+      o Retirarse. Despu\xE9s se revelan todas las cartas del board restantes."
   - Key: poker.ruleset.showdown
-    Value: "Cuando todas las cartas est\xE1n destapadas, gana el jugador con la mejor
-      mano."
+    Value: "Una vez reveladas todas las cartas del board, gana el jugador con la
+      mejor mano de p\xF3ker."
   - Key: poker.ruleset.winner_feeds
-    Value: "El ganador elige qui\xE9n se come la seta venenosa."
+    Value: "El ganador elige a un jugador que deber\xE1 comerse la seta venenosa."
   - Key: poker.ruleset.winner_feeds_item
-    Value: "El ganador elige qui\xE9n se come la seta venenosa y se lleva un objeto
-      m\xE1s."
+    Value: "El ganador elige a un jugador que deber\xE1 comerse la seta venenosa.
+      Si sobrevive, recibe un objeto m\xE1s."
   - Key: poker.ruleset.losers_eat
-    Value: Los perdedores tienen que comerse todas las setas que han apostado.
+    Value: Los perdedores deben comerse todas las setas que apostaron.
   - Key: poker.define.title
     Value: "Alucinaci\xF3n y seta venenosa"
   - Key: poker.define.meter_title
     Value: "Barra de alucinaci\xF3n"
   - Key: poker.define.meter_description
-    Value: "Cada seta que comes suma un 10% de alucinaci\xF3n. Cuanto m\xE1s alta,
-      m\xE1s efectos sufres. Al 100% tienes una sobredosis y pierdes."
+    Value: "Cada seta que comes suma un 10 % a tu nivel de alucinaci\xF3n. Cuanto
+      m\xE1s sube, m\xE1s fuertes son los efectos. Al llegar al 100 % sufres una
+      sobredosis y quedas fuera de la partida."
   - Key: poker.define.poison_title
     Value: Seta venenosa
   - Key: poker.define.poison_description
-    Value: "No suma alucinaci\xF3n; en su lugar provoca una Tirada mortal: una probabilidad
-      de sobredosis al azar seg\xFAn tu alucinaci\xF3n actual."
+    Value: "No a\xF1ade alucinaci\xF3n. En su lugar, provoca una Tirada mortal: una
+      probabilidad aleatoria de sufrir una sobredosis, seg\xFAn tu nivel de alucinaci\xF3n
+      actual."
   - Key: poker.colorful.prompt_no_items
-    Value: "\xBFQui\xE9n se comer\xE1 la <Highlight>seta mortal</Highlight>?"
+    Value: "\xBFQui\xE9n se comer\xE1 la <Highlight>seta venenosa</Highlight>?"
   - Key: poker.button.hallucination_effect
-    Value: "EFECTOS S\xCD/NO"
+    Value: "EFECTOS DE ALUCINACI\xD3N ON/OFF"
   - Key: poker.kick.button
     Value: expulsar
   - Key: poker.kick.choosing
-    Value: elige...
+    Value: elegir...

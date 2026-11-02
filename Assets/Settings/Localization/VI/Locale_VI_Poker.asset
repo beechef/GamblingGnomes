@@ -28,9 +28,9 @@ MonoBehaviour:
   - Key: poker.button.items
     Value: "V\u1EACT PH\u1EA8M ({0})"
   - Key: poker.button.view_board
-    Value: "XEM B\xC0N"
+    Value: XEM BOARD
   - Key: poker.button.lay_board
-    Value: "H\u1EA0 B\xC0N"
+    Value: "\u0110\u1EB6T BOARD XU\u1ED0NG"
   - Key: poker.button.helper
     Value: "TR\u1EE2 GI\xDAP"
   - Key: poker.button.start
@@ -42,11 +42,11 @@ MonoBehaviour:
   - Key: poker.button.clear_bot
     Value: "X\xD3A BOT"
   - Key: poker.button.match_settings
-    Value: "Thi\u1EBFt l\u1EADp"
+    Value: "C\xE0i \u0111\u1EB7t"
   - Key: poker.targeting.hint
-    Value: "Esc \u0111\u1EC3 c\u1EA5t l\u1EA1i"
+    Value: "Nh\u1EA5n Esc \u0111\u1EC3 \u0111\u1EB7t l\u1EA1i"
   - Key: poker.helper.title
-    Value: "TH\u1EE8 H\u1EA0NG B\u1ED8 B\xC0I"
+    Value: "TH\u1EE8 H\u1EA0NG TAY B\xC0I POKER"
   - Key: poker.helper.your_hand
     Value: "B\xC0I C\u1EE6A B\u1EA0N"
   - Key: poker.helper.empty
@@ -56,16 +56,17 @@ MonoBehaviour:
   - Key: poker.ranking.title
     Value: "K\u1EBET QU\u1EA2"
   - Key: poker.ranking.place.st
-    Value: '#{0}'
+    Value: "H\u1EA1ng {0}"
   - Key: poker.ranking.place.nd
-    Value: '#{0}'
+    Value: "H\u1EA1ng {0}"
   - Key: poker.ranking.place.rd
-    Value: '#{0}'
+    Value: "H\u1EA1ng {0}"
   - Key: poker.ranking.place.th
-    Value: '#{0}'
+    Value: "H\u1EA1ng {0}"
   - Key: poker.colorful.prompt
-    Value: "Ai s\u1EBD \u0103n <Highlight>n\u1EA5m \u0111\u1ED9c</Highlight> & nh\u1EADn
-      <Highlight>{0} item</Highlight>?"
+    Value: "Ai s\u1EBD \u0103n <Highlight>n\u1EA5m \u0111\u1ED9c</Highlight> v\xE0
+      nh\u1EADn <Highlight>{0} v\u1EADt ph\u1EA9m</Highlight> n\u1EBFu s\u1ED1ng
+      s\xF3t?"
   - Key: poker.turn.yours
     Value: "L\u01AF\u1EE2T C\u1EE6A B\u1EA0N"
   - Key: poker.turn.other
@@ -75,39 +76,39 @@ MonoBehaviour:
   - Key: poker.phase.waiting
     Value: "\u0110ANG CH\u1EDC"
   - Key: poker.phase.dealing
-    Value: "CHIA B\xC0I"
+    Value: "\u0110ANG CHIA B\xC0I"
   - Key: poker.phase.first_street
-    Value: "V\xD2NG C\u01AF\u1EE2C 1"
+    Value: "V\xD2NG 1"
   - Key: poker.phase.second_street
-    Value: "V\xD2NG C\u01AF\u1EE2C 2"
+    Value: "V\xD2NG 2"
   - Key: poker.phase.looking
     Value: "XEM B\xC0I"
   - Key: poker.phase.eating
-    Value: "\u0102N N\u1EA4M"
+    Value: "\u0110ANG \u0102N"
   - Key: poker.phase.showdown
-    Value: "L\u1EACT B\xC0I"
+    Value: "SO B\xC0I"
   - Key: poker.phase.finished
     Value: "K\u1EBET TH\xDAC"
   - Key: poker.phase.match_over
-    Value: "H\u1EBET TR\u1EACN"
+    Value: "K\u1EBET TH\xDAC TR\u1EACN"
   - Key: poker.phase.all_in
     Value: "T\u1EA4T TAY"
   - Key: poker.phase.ante
-    Value: "C\u01AF\u1EE2C M\u1EDE"
+    Value: ANTE
   - Key: poker.start.ready
-    Value: "{0} ng\u01B0\u1EDDi s\u1EB5n s\xE0ng"
+    Value: "{0} ng\u01B0\u1EDDi ch\u01A1i \u0111\xE3 s\u1EB5n s\xE0ng"
   - Key: poker.start.for_table
     Value: "B\u1EAFt \u0111\u1EA7u cho c\u1EA3 b\xE0n"
   - Key: poker.start.waiting
     Value: "\u0110ang ch\u1EDD ng\u01B0\u1EDDi ch\u01A1i ({0}/{1})"
   - Key: poker.pot
-    Value: "H\u0169: {0}"
+    Value: 'Pot: {0}'
   - Key: poker.match_over.survivor
-    Value: "GNOME CU\u1ED0I C\xD9NG"
+    Value: "GNOME CU\u1ED0I C\xD9NG C\xD2N \u0110\u1EE8NG V\u1EEENG"
   - Key: poker.match_over.nobody
     Value: "KH\xD4NG AI S\u1ED0NG S\xD3T"
   - Key: poker.notice.item_bonus
-    Value: "+{0} V\u1EACT PH\u1EA8M"
+    Value: +{0} ITEM
   - Key: poker.notice.item_reward
     Value: "S\u1ED0NG S\xD3T +{0} V\u1EACT PH\u1EA8M"
   - Key: poker.notice.items_lost
@@ -117,7 +118,7 @@ MonoBehaviour:
   - Key: poker.notice.match_players
     Value: "{0} NG\u01AF\u1EDCI CH\u01A0I"
   - Key: poker.notice.item_used
-    Value: "\u0110\xC3 D\xD9NG {0}"
+    Value: "D\xD9NG {0}"
   - Key: poker.notice.bet
     Value: "C\u01AF\u1EE2C"
   - Key: poker.notice.fold
@@ -125,7 +126,7 @@ MonoBehaviour:
   - Key: poker.notice.all_in
     Value: "T\u1EA4T TAY"
   - Key: config.title
-    Value: "THI\u1EBET L\u1EACP TR\u1EACN"
+    Value: "C\xC0I \u0110\u1EB6T TR\u1EACN"
   - Key: config.section.match
     Value: "Tr\u1EADn"
   - Key: config.section.items
@@ -135,9 +136,9 @@ MonoBehaviour:
   - Key: config.items_per_hand
     Value: "V\u1EADt ph\u1EA9m m\u1ED7i v\xE1n"
   - Key: config.loser_bonus
-    Value: "Th\u01B0\u1EDFng ng\u01B0\u1EDDi thua"
+    Value: "Th\u01B0\u1EDFng cho ng\u01B0\u1EDDi thua"
   - Key: config.item_capacity
-    Value: "S\u1EE9c ch\u1EE9a v\u1EADt ph\u1EA9m"
+    Value: "\xD4 v\u1EADt ph\u1EA9m"
   - Key: bet_item.green
     Value: "Xanh l\xE1"
   - Key: bet_item.red
@@ -147,75 +148,74 @@ MonoBehaviour:
   - Key: bet_item.yellow
     Value: "V\xE0ng"
   - Key: bet_item.colorful
-    Value: "S\u1EB7c s\u1EE1"
+    Value: "N\u1EA5m \u0111\u1ED9c"
   - Key: poker.round.title
     Value: "V\xF2ng"
   - Key: poker.helper.tab.helper
-    Value: Helper
+    Value: "Tr\u1EE3 gi\xFAp"
   - Key: poker.helper.tab.ruleset
-    Value: Rule Set
+    Value: "Lu\u1EADt ch\u01A1i"
   - Key: poker.helper.tab.define
-    Value: Define
+    Value: "Thu\u1EADt ng\u1EEF"
   - Key: poker.helper.joker_title
     Value: Joker
   - Key: poker.helper.joker_caption
-    Value: Wild card
+    Value: "L\xE1 \u0111a n\u0103ng"
   - Key: poker.ruleset.deal_cards
-    Value: "\u0110\u1EA7u tr\u1EADn \u0111\u1EA5u, m\u1ED7i ng\u01B0\u1EDDi ch\u01A1i
-      \u0111\u01B0\u1EE3c ph\xE1t {0} l\xE1 b\xE0i ri\xEAng (Hold Card)."
+    Value: "\u0110\u1EA7u m\u1ED7i v\xE1n, m\u1ED7i ng\u01B0\u1EDDi ch\u01A1i \u0111\u01B0\u1EE3c
+      chia {0} l\xE1 b\xE0i ri\xEAng (Hole Card)."
   - Key: poker.ruleset.deal_cards_items
-    Value: "\u0110\u1EA7u tr\u1EADn \u0111\u1EA5u, m\u1ED7i ng\u01B0\u1EDDi ch\u01A1i
-      \u0111\u01B0\u1EE3c ph\xE1t {0} l\xE1 b\xE0i ri\xEAng (Hold Card) v\xE0 {1}
-      item."
+    Value: "\u0110\u1EA7u m\u1ED7i v\xE1n, m\u1ED7i ng\u01B0\u1EDDi ch\u01A1i \u0111\u01B0\u1EE3c
+      chia {0} l\xE1 b\xE0i ri\xEAng (Hole Card) v\xE0 {1} v\u1EADt ph\u1EA9m."
   - Key: poker.ruleset.turn_actions
-    Value: "Khi \u0111\u1EBFn l\u01B0\u1EE3t c\u1EE7a m\xECnh, ng\u01B0\u1EDDi ch\u01A1i
-      c\xF3 th\u1EC3 ch\u1ECDn C\u01B0\u1EE3c ti\u1EBFp (Call), T\u1EA5t tay (All
-      in) ho\u1EB7c B\u1ECF b\xE0i (Fold)."
+    Value: "\u0110\u1EBFn l\u01B0\u1EE3t m\xECnh, ng\u01B0\u1EDDi ch\u01A1i c\xF3
+      th\u1EC3 Theo, T\u1EA5t tay ho\u1EB7c B\u1ECF b\xE0i."
   - Key: poker.ruleset.turn_actions_items
-    Value: "Khi \u0111\u1EBFn l\u01B0\u1EE3t c\u1EE7a m\xECnh, ng\u01B0\u1EDDi ch\u01A1i
-      c\xF3 th\u1EC3 d\xF9ng t\u1ED1i \u0111a {0} item, sau \u0111\xF3 ch\u1ECDn
-      C\u01B0\u1EE3c ti\u1EBFp (Call) ho\u1EB7c B\u1ECF b\xE0i (Fold)."
+    Value: "\u0110\u1EBFn l\u01B0\u1EE3t m\xECnh, ng\u01B0\u1EDDi ch\u01A1i c\xF3
+      th\u1EC3 d\xF9ng t\u1ED1i \u0111a {0} v\u1EADt ph\u1EA9m, r\u1ED3i Theo ho\u1EB7c
+      B\u1ECF b\xE0i."
   - Key: poker.ruleset.community_cards
-    Value: "Cu\u1ED1i m\u1ED7i l\u01B0\u1EE3t, l\u1EA7n l\u01B0\u1EE3t l\u1EADt {0}
-      l\xE1 b\xE0i chung (Community Card)."
+    Value: "Cu\u1ED1i m\u1ED7i v\xF2ng, {0} l\xE1 b\xE0i board \u0111\u01B0\u1EE3c
+      l\u1EADt theo th\u1EE9 t\u1EF1."
   - Key: poker.ruleset.all_in
-    Value: "Khi c\xF3 ng\u01B0\u1EDDi All in, m\u1ECDi ng\u01B0\u1EDDi ch\u01A1i
-      ch\u1EC9 c\xF3 th\u1EC3 ch\u1EA5p nh\u1EADn T\u1EA5t tay (All in) theo ng\u01B0\u1EDDi
-      b\u1EAFt \u0111\u1EA7u, ho\u1EB7c B\u1ECF b\xE0i (Fold). Sau \u0111\xF3 l\u1EADt
-      to\xE0n b\u1ED9 b\xE0i c\xF2n l\u1EA1i."
+    Value: "Khi c\xF3 ng\u01B0\u1EDDi T\u1EA5t tay, nh\u1EEFng ng\u01B0\u1EDDi ch\u01A1i
+      kh\xE1c ch\u1EC9 c\xF3 th\u1EC3 Theo ho\u1EB7c B\u1ECF b\xE0i. Sau \u0111\xF3,
+      t\u1EA5t c\u1EA3 l\xE1 b\xE0i board c\xF2n l\u1EA1i \u0111\u01B0\u1EE3c l\u1EADt."
   - Key: poker.ruleset.showdown
-    Value: "Sau khi l\u1EADt h\u1EBFt b\xE0i, ng\u01B0\u1EDDi ch\u01A1i c\xF3 Poker
-      Hand cao nh\u1EA5t chi\u1EBFn th\u1EAFng."
+    Value: "Khi t\u1EA5t c\u1EA3 l\xE1 b\xE0i board \u0111\xE3 \u0111\u01B0\u1EE3c
+      l\u1EADt, ng\u01B0\u1EDDi ch\u01A1i c\xF3 tay b\xE0i m\u1EA1nh nh\u1EA5t s\u1EBD
+      th\u1EAFng."
   - Key: poker.ruleset.winner_feeds
-    Value: "Ng\u01B0\u1EDDi chi\u1EBFn th\u1EAFng \u0111\u01B0\u1EE3c ch\u1ECDn m\u1ED9t
-      ng\u01B0\u1EDDi ch\u01A1i \u0111\u1EC3 \u0103n N\u1EA5m \u0110\u1ED9c."
+    Value: "Ng\u01B0\u1EDDi th\u1EAFng ch\u1ECDn m\u1ED9t ng\u01B0\u1EDDi ch\u01A1i
+      \u0111\u1EC3 \u0103n n\u1EA5m \u0111\u1ED9c."
   - Key: poker.ruleset.winner_feeds_item
-    Value: "Ng\u01B0\u1EDDi chi\u1EBFn th\u1EAFng \u0111\u01B0\u1EE3c ch\u1ECDn m\u1ED9t
-      ng\u01B0\u1EDDi ch\u01A1i \u0111\u1EC3 \u0103n N\u1EA5m \u0110\u1ED9c v\xE0
-      nh\u1EADn th\xEAm m\u1ED9t item."
+    Value: "Ng\u01B0\u1EDDi th\u1EAFng ch\u1ECDn m\u1ED9t ng\u01B0\u1EDDi ch\u01A1i
+      \u0111\u1EC3 \u0103n n\u1EA5m \u0111\u1ED9c. N\u1EBFu ng\u01B0\u1EDDi \u0111\xF3
+      s\u1ED1ng s\xF3t, h\u1ECD nh\u1EADn th\xEAm m\u1ED9t v\u1EADt ph\u1EA9m."
   - Key: poker.ruleset.losers_eat
-    Value: "Nh\u1EEFng ng\u01B0\u1EDDi ch\u01A1i thua cu\u1ED9c ph\u1EA3i \u0103n
-      h\u1EBFt l\u01B0\u1EE3ng n\u1EA5m m\xE0 m\xECnh \u0111\xE3 c\u01B0\u1EE3c."
+    Value: "Ng\u01B0\u1EDDi thua ph\u1EA3i \u0103n h\u1EBFt s\u1ED1 n\u1EA5m m\xE0
+      m\xECnh \u0111\xE3 c\u01B0\u1EE3c."
   - Key: poker.define.title
-    Value: "C\u01A1 ch\u1EBF \u1EA3o gi\xE1c & N\u1EA5m \u0111\u1ED9c"
+    Value: "\u1EA2o gi\xE1c & N\u1EA5m \u0111\u1ED9c"
   - Key: poker.define.meter_title
     Value: "Thanh \u1EA3o gi\xE1c"
   - Key: poker.define.meter_description
-    Value: "T\u0103ng 10% \u1EA3o gi\xE1c v\u1EDBi m\u1ED7i n\u1EA5m \u0103n ph\u1EA3i.
-      T\u1EF7 l\u1EC7 \u1EA3o gi\xE1c c\xE0ng cao c\xE0ng g\u1EB7p nhi\u1EC1u hi\u1EC7u
-      \u1EE9ng. Khi \u0111\u1EA1t 100%, \u0111\u1EA1t tr\u1EA1ng th\xE1i qu\xE1 li\u1EC1u
-      v\xE0 thua cu\u1ED9c."
+    Value: "M\u1ED7i c\xE2y n\u1EA5m b\u1EA1n \u0103n s\u1EBD t\u0103ng 10% t\u1EF7
+      l\u1EC7 \u1EA3o gi\xE1c. T\u1EF7 l\u1EC7 c\xE0ng cao, hi\u1EC7u \u1EE9ng c\xE0ng
+      m\u1EA1nh. \u0110\u1EA1t 100% b\u1EA1n s\u1EBD qu\xE1 li\u1EC1u v\xE0 b\u1ECB
+      lo\u1EA1i kh\u1ECFi tr\u1EADn."
   - Key: poker.define.poison_title
     Value: "N\u1EA5m \u0111\u1ED9c"
   - Key: poker.define.poison_description
-    Value: "Kh\xF4ng t\u0103ng t\u1EF7 l\u1EC7 \u1EA3o gi\xE1c m\xE0 th\u1EF1c hi\u1EC7n
-      Death Roll - quay ng\u1EABu nhi\xEAn kh\u1EA3 n\u0103ng qu\xE1 li\u1EC1u d\u1EF1a
-      tr\xEAn t\u1EF7 l\u1EC7 \u1EA3o gi\xE1c hi\u1EC7n t\u1EA1i."
+    Value: "Kh\xF4ng t\u0103ng \u1EA3o gi\xE1c. Thay v\xE0o \u0111\xF3, n\xF3 k\xEDch
+      ho\u1EA1t Death Roll: m\u1ED9t c\u01A1 h\u1ED9i ng\u1EABu nhi\xEAn b\u1ECB
+      qu\xE1 li\u1EC1u, d\u1EF1a tr\xEAn t\u1EF7 l\u1EC7 \u1EA3o gi\xE1c hi\u1EC7n
+      t\u1EA1i c\u1EE7a b\u1EA1n."
   - Key: poker.colorful.prompt_no_items
     Value: "Ai s\u1EBD \u0103n <Highlight>n\u1EA5m \u0111\u1ED9c</Highlight>?"
   - Key: poker.button.hallucination_effect
-    Value: "HI\u1EC6U \u1EE8NG B\u1EACT/T\u1EAET"
+    Value: "HI\u1EC6U \u1EE8NG \u1EA2O GI\xC1C ON/OFF"
   - Key: poker.kick.button
     Value: "\u0111u\u1ED5i"
   - Key: poker.kick.choosing
-    Value: "\u0111ang ch\u1ECDn..."
+    Value: "ch\u1ECDn..."

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Game.Runtime.Controller;
 using Game.Runtime.Lobby;
 using Game.Runtime.UI.Button;
@@ -9,6 +10,7 @@ using Game.Runtime.UI.Settings;
 using Sirenix.OdinInspector;
 using Unity.Netcode;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Game.Runtime.UI.MainMenu
 {
@@ -35,6 +37,10 @@ namespace Game.Runtime.UI.MainMenu
 		[Tooltip("What the play panels cover: the logo and the root entries.")]
 		[Required]
 		[SerializeField] private GameObject _rootMenu;
+
+		[Tooltip("The row above the root entries, left to right.")]
+		[Required]
+		[SerializeField] private UISelectionGroup _socialGroup;
 
 		[Header("Play Menu")]
 		[Tooltip("Start, Create Room and Join Room. Quick match is the popup's own panel, shown beside the group.")]
@@ -85,6 +91,8 @@ namespace Game.Runtime.UI.MainMenu
 		private void OnEnable()
 		{
 			_rootGroup.OnSubmitted += HandleRootSubmitted;
+			_rootGroup.OnSelectionChanged += HandleRootSelectionChanged;
+			_socialGroup.OnSelectionChanged += HandleSocialSelectionChanged;
 			_playGroup.OnSubmitted += HandlePlaySubmitted;
 			if (_playCloseButton) _playCloseButton.OnClick += ShowRootMenu;
 			_roomSettingUI.OnCloseRequested += ShowRootMenu;
@@ -99,6 +107,7 @@ namespace Game.Runtime.UI.MainMenu
 			if (_creditItem) _creditItem.Button.IsInteractable = false;
 			if (_quickMatchItem) _quickMatchItem.Button.IsInteractable = _matchmakingPopup;
 
+			LinkRootNavigation();
 			ShowRootMenu();
 		}
 
@@ -112,8 +121,10 @@ namespace Game.Runtime.UI.MainMenu
 			_roomSettingUI.OnBackRequested -= ShowPlayMenu;
 			_roomSettingUI.OnCloseRequested -= ShowRootMenu;
 			if (_playCloseButton) _playCloseButton.OnClick -= ShowRootMenu;
-			_rootGroup.OnSubmitted -= HandleRootSubmitted;
 			_playGroup.OnSubmitted -= HandlePlaySubmitted;
+			_socialGroup.OnSelectionChanged -= HandleSocialSelectionChanged;
+			_rootGroup.OnSelectionChanged -= HandleRootSelectionChanged;
+			_rootGroup.OnSubmitted -= HandleRootSubmitted;
 		}
 
 		// Subscribed once everything is awake rather than from OnEnable: the menu hides itself by going
@@ -176,6 +187,64 @@ namespace Game.Runtime.UI.MainMenu
 				_matchmakingPopup.OnClosed -= ShowPlayMenu;
 				_matchmakingPopup.OnOpened -= HandleMatchmakingOpened;
 			}
+		}
+
+		// Automatic navigation jumps a sideways move across a greyed entry up into the social row, so the two rows
+		// are linked by hand: left/right stay in a row, up/down cross it. A greyed entry is skipped: a pad cannot press it.
+		private void LinkRootNavigation()
+		{
+			var entries = PressableSelectables(new[] { _playItem, _optionItem, _creditItem, _quitItem });
+			var socials = PressableSelectables(_socialGroup.Items);
+
+			LinkRow(entries, socials, null);
+			LinkRow(socials, null, entries);
+		}
+
+		private static List<Selectable> PressableSelectables(IEnumerable<UISelectionItem> items)
+		{
+			var selectables = new List<Selectable>();
+
+			foreach (var item in items)
+			{
+				if (item && item.Button.IsInteractable) selectables.Add(item.GetComponent<Selectable>());
+			}
+
+			return selectables;
+		}
+
+		private static void LinkRow(List<Selectable> row, List<Selectable> above, List<Selectable> below)
+		{
+			for (var i = 0; i < row.Count; i++)
+			{
+				row[i].navigation = new Navigation
+				{
+					mode = Navigation.Mode.Explicit,
+					selectOnLeft = i > 0 ? row[i - 1] : null,
+					selectOnRight = i < row.Count - 1 ? row[i + 1] : null,
+					selectOnUp = SameSpotAlong(above, i, row.Count),
+					selectOnDown = SameSpotAlong(below, i, row.Count),
+				};
+			}
+		}
+
+		// Ends meet ends, so crossing from a row's edge lands on the other row's edge.
+		private static Selectable SameSpotAlong(List<Selectable> row, int index, int count)
+		{
+			if (row == null || row.Count == 0) return null;
+
+			return row[count > 1 ? Mathf.RoundToInt(index * (row.Count - 1f) / (count - 1)) : 0];
+		}
+
+		// One row lit at a time on every device: a group lets go of its own entry only on a pad.
+		private void HandleRootSelectionChanged(UISelectionItem item)
+		{
+			if (item) _socialGroup.Release();
+		}
+
+		private void HandleSocialSelectionChanged(UISelectionItem item)
+		{
+			if (item) _rootGroup.Release();
+			else _rootGroup.Resume();
 		}
 
 		private void HandleConnectFailed(ConnectFailure failure) => Show();

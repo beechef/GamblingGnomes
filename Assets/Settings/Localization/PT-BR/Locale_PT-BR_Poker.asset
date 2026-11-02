@@ -20,17 +20,17 @@ MonoBehaviour:
   - Key: poker.action.fold
     Value: DESISTIR
   - Key: poker.button.all_in
-    Value: '[ALL-IN]'
+    Value: '[ALL IN]'
   - Key: poker.button.fold
     Value: '[DESISTIR]'
   - Key: poker.button.choose
     Value: ESCOLHER
   - Key: poker.button.items
-    Value: ITENS ({0})
+    Value: ITEM ({0})
   - Key: poker.button.view_board
     Value: VER BOARD
   - Key: poker.button.lay_board
-    Value: BAIXAR BOARD
+    Value: BAIXAR O BOARD
   - Key: poker.button.helper
     Value: AJUDA
   - Key: poker.button.start
@@ -46,13 +46,13 @@ MonoBehaviour:
   - Key: poker.targeting.hint
     Value: Esc para guardar
   - Key: poker.helper.title
-    Value: "RANKING DE M\xC3OS"
+    Value: "RANKING DE M\xC3OS DE POKER"
   - Key: poker.helper.your_hand
-    Value: "SUA M\xC3O"
+    Value: SUAS CARTAS
   - Key: poker.helper.empty
-    Value: "Voc\xEA ainda n\xE3o tem cartas na m\xE3o."
+    Value: "Voc\xEA ainda n\xE3o tem cartas."
   - Key: poker.items.left_in_deck
-    Value: RESTAM NO BARALHO
+    Value: RESTANTES NO BARALHO
   - Key: poker.ranking.title
     Value: RESULTADO
   - Key: poker.ranking.place.st
@@ -64,8 +64,8 @@ MonoBehaviour:
   - Key: poker.ranking.place.th
     Value: "{0}\xBA"
   - Key: poker.colorful.prompt
-    Value: "Quem vai comer o <Highlight>cogumelo mortal</Highlight> e ganhar <Highlight>itens
-      \xD7{0}</Highlight>?"
+    Value: Quem vai comer o <Highlight>cogumelo venenoso</Highlight> e receber <Highlight>{0}
+      item</Highlight> se sobreviver?
   - Key: poker.turn.yours
     Value: SUA VEZ
   - Key: poker.turn.other
@@ -83,15 +83,15 @@ MonoBehaviour:
   - Key: poker.phase.looking
     Value: OLHANDO AS CARTAS
   - Key: poker.phase.eating
-    Value: HORA DE COMER
+    Value: COMENDO
   - Key: poker.phase.showdown
     Value: SHOWDOWN
   - Key: poker.phase.finished
-    Value: FIM
+    Value: FINALIZADO
   - Key: poker.phase.match_over
-    Value: FIM DE PARTIDA
+    Value: FIM DA PARTIDA
   - Key: poker.phase.all_in
-    Value: ALL-IN
+    Value: ALL IN
   - Key: poker.phase.ante
     Value: ANTE
   - Key: poker.start.ready
@@ -109,21 +109,21 @@ MonoBehaviour:
   - Key: poker.notice.item_bonus
     Value: ITENS +{0}
   - Key: poker.notice.item_reward
-    Value: 'SOBREVIVEU: ITENS +{0}'
+    Value: SOBREVIVEU +{0} ITEM
   - Key: poker.notice.items_lost
-    Value: 'PERDEU ITENS: {0}'
+    Value: '{0} ITEM PERDIDO'
   - Key: poker.notice.match_started
-    Value: PARTIDA INICIADA
+    Value: "IN\xCDCIO DA PARTIDA"
   - Key: poker.notice.match_players
     Value: '{0} JOGADORES'
   - Key: poker.notice.item_used
     Value: USOU {0}
   - Key: poker.notice.bet
-    Value: APOSTA
+    Value: APOSTAR
   - Key: poker.notice.fold
-    Value: DESISTE
+    Value: DESISTIR
   - Key: poker.notice.all_in
-    Value: VAI ALL-IN
+    Value: ALL IN
   - Key: config.title
     Value: "CONFIGURA\xC7\xD5ES DA PARTIDA"
   - Key: config.section.match
@@ -131,13 +131,13 @@ MonoBehaviour:
   - Key: config.section.items
     Value: Itens
   - Key: config.starting_health
-    Value: Vida inicial
+    Value: "Sa\xFAde inicial"
   - Key: config.items_per_hand
     Value: "Itens por m\xE3o"
   - Key: config.loser_bonus
     Value: "B\xF4nus do perdedor"
   - Key: config.item_capacity
-    Value: Limite de itens
+    Value: "Espa\xE7os de itens"
   - Key: bet_item.green
     Value: Verde
   - Key: bet_item.red
@@ -147,7 +147,7 @@ MonoBehaviour:
   - Key: bet_item.yellow
     Value: Amarelo
   - Key: bet_item.colorful
-    Value: Colorido
+    Value: Cogumelo venenoso
   - Key: poker.round.title
     Value: Rodada
   - Key: poker.helper.tab.helper
@@ -157,50 +157,53 @@ MonoBehaviour:
   - Key: poker.helper.tab.define
     Value: "Gloss\xE1rio"
   - Key: poker.helper.joker_title
-    Value: Coringa
+    Value: Joker
   - Key: poker.helper.joker_caption
-    Value: Vale qualquer carta
+    Value: Curinga
   - Key: poker.ruleset.deal_cards
-    Value: "No in\xEDcio da partida, cada jogador recebe {0} cartas fechadas s\xF3
-      suas."
+    Value: "No in\xEDcio de cada m\xE3o, cada jogador recebe {0} cartas privadas
+      (hole cards)."
   - Key: poker.ruleset.deal_cards_items
-    Value: "No in\xEDcio da partida, cada jogador recebe {0} cartas fechadas s\xF3
-      suas e {1} itens."
+    Value: "No in\xEDcio de cada m\xE3o, cada jogador recebe {0} cartas privadas
+      (hole cards) e {1} itens."
   - Key: poker.ruleset.turn_actions
-    Value: Na sua vez, o jogador pode Pagar, ir de All-in ou Desistir.
+    Value: Na sua vez, o jogador pode Pagar, dar All In ou Desistir.
   - Key: poker.ruleset.turn_actions_items
     Value: "Na sua vez, o jogador pode usar at\xE9 {0} itens e depois Pagar ou Desistir."
   - Key: poker.ruleset.community_cards
-    Value: "No fim de cada rodada, s\xE3o viradas em sequ\xEAncia {0} cartas comunit\xE1rias."
+    Value: "No fim de cada rodada, {0} cartas do board s\xE3o reveladas em ordem."
   - Key: poker.ruleset.all_in
-    Value: "Quando algu\xE9m vai de All-in, os outros s\xF3 podem acompanhar o All-in
-      ou Desistir. Depois, todas as cartas restantes s\xE3o viradas."
+    Value: "Quando algu\xE9m d\xE1 All In, os outros jogadores s\xF3 podem Pagar
+      ou Desistir. Depois, todas as cartas do board restantes s\xE3o reveladas."
   - Key: poker.ruleset.showdown
-    Value: "Com todas as cartas viradas, vence quem tiver a melhor m\xE3o."
+    Value: "Depois que todas as cartas do board s\xE3o reveladas, vence o jogador
+      com a melhor m\xE3o de poker."
   - Key: poker.ruleset.winner_feeds
-    Value: O vencedor escolhe um jogador para comer o Cogumelo Venenoso.
+    Value: O vencedor escolhe um jogador para comer o cogumelo venenoso.
   - Key: poker.ruleset.winner_feeds_item
-    Value: O vencedor escolhe um jogador para comer o Cogumelo Venenoso e ganha mais
-      um item.
+    Value: O vencedor escolhe um jogador para comer o cogumelo venenoso. Se sobreviver,
+      ele recebe mais um item.
   - Key: poker.ruleset.losers_eat
     Value: Os perdedores devem comer todos os cogumelos que apostaram.
   - Key: poker.define.title
-    Value: "Alucina\xE7\xE3o & Cogumelo Venenoso"
+    Value: "Alucina\xE7\xE3o e cogumelo venenoso"
   - Key: poker.define.meter_title
     Value: "Barra de alucina\xE7\xE3o"
   - Key: poker.define.meter_description
-    Value: "Cada cogumelo comido soma 10% de alucina\xE7\xE3o. Quanto maior a taxa,
-      mais efeitos voc\xEA sofre. Em 100% voc\xEA tem overdose e perde."
+    Value: "Cada cogumelo que voc\xEA come aumenta seu n\xEDvel de alucina\xE7\xE3o
+      em 10%. Quanto mais alto, mais fortes os efeitos. Em 100%, voc\xEA sofre uma
+      overdose e est\xE1 fora da partida."
   - Key: poker.define.poison_title
     Value: Cogumelo venenoso
   - Key: poker.define.poison_description
-    Value: "N\xE3o soma alucina\xE7\xE3o; em vez disso, faz uma Rolagem da Morte
-      - uma chance aleat\xF3ria de overdose baseada na taxa de alucina\xE7\xE3o atual."
+    Value: "N\xE3o aumenta a alucina\xE7\xE3o. Em vez disso, ativa uma Rolagem da
+      Morte: uma chance aleat\xF3ria de sofrer overdose, com base no seu n\xEDvel
+      de alucina\xE7\xE3o atual."
   - Key: poker.colorful.prompt_no_items
-    Value: Quem vai comer o <Highlight>cogumelo mortal</Highlight>?
+    Value: Quem vai comer o <Highlight>cogumelo venenoso</Highlight>?
   - Key: poker.button.hallucination_effect
-    Value: EFEITOS LIGA/DESL.
+    Value: "EFEITOS DE ALUCINA\xC7\xC3O ON/OFF"
   - Key: poker.kick.button
-    Value: expulsar
+    Value: remover
   - Key: poker.kick.choosing
-    Value: escolha...
+    Value: escolher...

@@ -373,6 +373,7 @@ namespace Game.Runtime
 		{
 			public const string Back = "menu.back";
 			public const string Credit = "menu.credit";
+			public const string Discord = "menu.discord";
 			public const string Find = "menu.find";
 			public const string Host = "menu.host";
 			public const string Option = "menu.option";
@@ -380,6 +381,7 @@ namespace Game.Runtime
 			public const string QuickMatch = "menu.quick_match";
 			public const string Quit = "menu.quit";
 			public const string Select = "menu.select";
+			public const string X = "menu.x";
 		}
 
 		public static class Mode

@@ -14,245 +14,246 @@ MonoBehaviour:
   m_EditorClassIdentifier: Localization::Localization.LocaleSection
   _entries:
   - Key: item.prompt.player
-    Value: ZEIG AUF EINEN SPIELER
+    Value: ZEIGE AUF EINEN SPIELER
   - Key: item.prompt.opponent_card
-    Value: ZEIG AUF DIE KARTE EINES ANDEREN
+    Value: ZEIGE AUF DIE KARTE EINES ANDEREN SPIELERS
   - Key: item.prompt.own_card
-    Value: ZEIG AUF EINE DEINER KARTEN
+    Value: ZEIGE AUF EINE DEINER KARTEN
   - Key: item.prompt.board_card
-    Value: ZEIG AUF EINE VERDECKTE BOARDKARTE
+    Value: ZEIGE AUF EINE VERDECKTE BOARDKARTE
   - Key: item.reason.not_dealt
-    Value: Dieser Tisch teilt das nicht aus.
+    Value: "Dieses Item ist in dieser Partie nicht verf\xFCgbar."
   - Key: item.reason.not_held
-    Value: Nicht auf deiner Hand.
+    Value: Du hast dieses Item nicht.
   - Key: item.reason.out_of_match
-    Value: Du bist aus diesem Match raus.
+    Value: Du bist aus dieser Partie raus.
   - Key: item.reason.street_only
-    Value: Nur in einer Setzrunde.
+    Value: "Nur w\xE4hrend einer Setzrunde."
   - Key: item.reason.turn_only
-    Value: Nur in deinem Zug.
+    Value: Nur wenn du dran bist.
   - Key: item.reason.locked_out
-    Value: Items sind diese Runde gesperrt.
+    Value: Items sind in dieser Runde gesperrt.
   - Key: item.reason.used_one
-    Value: Diese Runde schon ein Item gespielt.
+    Value: Du hast in dieser Runde bereits ein Item benutzt.
   - Key: item.reason.used_many
-    Value: Diese Runde schon {0} Items gespielt.
+    Value: Du hast in dieser Runde bereits {0} Items benutzt.
   - Key: item.reason.waiting_other
-    Value: Warte auf ein anderes Item.
+    Value: Warte darauf, dass ein anderes Item abgeschlossen wird.
   - Key: item.reason.not_in_hand
-    Value: Du bist nicht in dieser Hand.
+    Value: Du bist in dieser Hand nicht dabei.
   - Key: item.reason.hand_full
-    Value: Deine Hand ist voll.
+    Value: Deine Item-Slots sind voll.
   - Key: item.reason.deck_empty
     Value: Das Deck ist leer.
   - Key: item.reason.no_street_left
-    Value: In dieser Hand gibt es keine Setzrunde mehr.
+    Value: "In dieser Hand ist keine Runde mehr \xFCbrig."
   - Key: item.reason.no_board
-    Value: Dieser Tisch teilt kein Board aus.
+    Value: In dieser Partie gibt es kein Board.
   - Key: item.reason.last_board_seen
-    Value: "Die letzte Boardkarte liegt f\xFCr dich schon offen."
+    Value: Du hast die letzte Boardkarte schon gesehen.
   - Key: item.reason.board_seen
-    Value: "Alle Boardkarten liegen f\xFCr dich schon offen."
+    Value: Du hast alle Boardkarten schon gesehen.
   - Key: item.reason.board_full
     Value: Das Board ist voll.
   - Key: item.reason.no_card_to_lay
-    Value: Du hast keine Karte zum Auslegen.
+    Value: Du hast keine Karte zum Ablegen.
   - Key: item.reason.no_card_to_give
     Value: Du hast keine Karte mehr zum Abgeben.
   - Key: item.reason.all_face_up
-    Value: Alle Karten liegen schon offen.
+    Value: Alle Karten sind schon aufgedeckt.
   - Key: item.reason.cant_change
-    Value: "Keine deiner Karten l\xE4sst sich \xE4ndern."
+    Value: "Keine deiner Karten kann ver\xE4ndert werden."
   - Key: item.reason.already_under
-    Value: Du bist schon weggetreten.
+    Value: "Du hast bereits eine \xDCberdosis erlitten."
   - Key: item.reason.nobody_to_halve
-    Value: Niemand hat etwas zum Halbieren.
+    Value: "Niemand hat eine Halluzinationsrate, die sich halbieren l\xE4sst."
   - Key: item.reason.nobody_in_hand
     Value: Niemand sonst ist noch in der Hand.
   - Key: item.reason.nobody_to_shake
-    Value: "Keiner mehr zum Durchsch\xFCtteln \xFCbrig."
+    Value: "Es ist niemand mehr als Ziel \xFCbrig."
   - Key: item.reason.nobody_to_roll
-    Value: "Niemand sonst ist zum W\xFCrfeln \xFCbrig."
+    Value: "Niemand sonst ist noch f\xFCr einen Todeswurf \xFCbrig."
   - Key: item.reason.nobody_to_swap
     Value: Niemand sonst hat eine Karte zum Tauschen.
   - Key: item.copy_card.name
     Value: Kopie
   - Key: item.copy_card.description
-    Value: 35 % Chance, dass eine deiner Karten zur Kopie einer anderen Karte auf
-      deiner Hand wird.
+    Value: 35 % Chance, dass eine deiner Karten zur Kopie einer anderen deiner Karten
+      wird.
   - Key: item.copy_card.notice
     Value: VERSUCHT ZU KOPIEREN
   - Key: item.copy_card.copied
-    Value: KOPIERT ERFOLGREICH
+    Value: KOPIERT
   - Key: item.copy_card.failed
-    Value: KOPIERT ERFOLGLOS
+    Value: KOPIE FEHLGESCHLAGEN
   - Key: item.deck_count.name
-    Value: "Farbz\xE4hler"
+    Value: "Farbenz\xE4hler"
   - Key: item.deck_count.description
-    Value: Sieh, wie viele Karten jeder Farbe, und wie viele Joker (falls das Deck
-      welche hat), noch im Stapel sind. Nur du siehst die Zahl, und sie bleibt dir
-      bis zum Ende der Hand.
+    Value: "Sieh, wie viele Karten jeder Farbe noch im Deck sind, plus Joker, falls
+      das Deck welche enth\xE4lt. Nur du siehst die Z\xE4hlung, und du beh\xE4ltst
+      sie bis zum Ende der Hand."
   - Key: item.deck_count.notice
-    Value: "Z\xC4HLT NACH"
+    Value: "HAT DAS DECK GEZ\xC4HLT"
   - Key: item.extra_draw.name
     Value: Kotze
   - Key: item.extra_draw.description
-    Value: "Zieh eine Karte mehr vom Deck. Du kannst f\xFCr den Rest dieser Hand
+    Value: "Ziehe eine weitere Karte vom Deck. Du kannst f\xFCr den Rest dieser Hand
       nicht folden."
   - Key: item.extra_draw.notice
-    Value: ZIEHT EXTRA
+    Value: HAT EINE KARTE GEZOGEN
   - Key: item.half_dose.name
     Value: Spritze
   - Key: item.half_dose.description
-    Value: "W\xE4hle einen Spieler: Seine Todeschance wird halbiert, dann w\xFCrfelt
-      er gegen den Rest."
+    Value: "W\xE4hle einen Spieler: Seine Halluzinationsrate wird dauerhaft halbiert,
+      dann macht er einen Todeswurf."
   - Key: item.half_dose.notice
-    Value: ERLEICHTERT
+    Value: HAT DIE HALLUZINATION HALBIERT VON
   - Key: item.half_dose.prompt
-    Value: ZEIG AUF DEN, DESSEN DOSIS DU HALBIERST
+    Value: ZEIGE AUF DEN SPIELER, DESSEN HALLUZINATION DU HALBIERST
   - Key: item.joker_card.name
     Value: Springteufel
   - Key: item.joker_card.description
-    Value: "{0} % Chance, dass eine gew\xE4hlte Karte auf deiner Hand zum Joker wird.
-      Nur du erf\xE4hrst, ob es geklappt hat."
+    Value: "Eine Karte deiner Wahl wird mit {0} % Wahrscheinlichkeit zum Joker. Nur
+      du erf\xE4hrst das Ergebnis."
   - Key: item.joker_card.joker
-    Value: KRIEGT EINEN JOKER
+    Value: HAT EINEN JOKER BEKOMMEN
   - Key: item.joker_card.failed
-    Value: GEHT LEER AUS
+    Value: KEIN JOKER
   - Key: item.lock_fold.name
     Value: Schloss
   - Key: item.lock_fold.description
-    Value: "Niemand kann in der n\xE4chsten Runde folden, du auch nicht."
+    Value: "Niemand kann in der n\xE4chsten Runde folden, du eingeschlossen."
   - Key: item.lock_fold.notice
-    Value: "L\xC4SST KEINEN FOLDEN"
+    Value: FOLDEN GESPERRT
   - Key: item.mushroom_dose.name
-    Value: Doping
+    Value: Panscherei
   - Key: item.mushroom_dose.description
-    Value: "Die n\xE4chsten 2 Pilze eines gew\xE4hlten Spielers wirken gar nicht
-      oder doppelt so stark, 50/50."
+    Value: "Die n\xE4chsten 2 Pilze eines gew\xE4hlten Spielers haben entweder keine
+      Wirkung oder wirken doppelt so stark, 50/50."
   - Key: item.mushroom_dose.notice
-    Value: PANSCHT BEI
+    Value: HAT GEPANSCHT BEI
   - Key: item.mushroom_dose.prompt
-    Value: ZEIG AUF DEN, DESSEN PILZE DU PANSCHST
+    Value: ZEIGE AUF DEN SPIELER, DESSEN PILZE DU PANSCHST
   - Key: item.mutual_reveal.name
-    Value: Zeig her
+    Value: Gemeinsam aufdecken
   - Key: item.mutual_reveal.description
-    Value: "Du und ein gew\xE4hlter Spieler deckt bis zum Ende der Hand je eine Karte
-      f\xFCr den ganzen Tisch auf. Er w\xE4hlt selbst, welche seiner Karten."
+    Value: "Du und ein von dir gew\xE4hlter Spieler deckt jeweils eine Karte auf.
+      Sie bleibt bis zum Ende der Hand f\xFCr alle sichtbar. Der andere Spieler w\xE4hlt
+      selbst, welche."
   - Key: item.mutual_reveal.notice
-    Value: ZEIGT GEMEINSAM MIT
+    Value: DECKT AUF MIT
   - Key: item.mutual_reveal.prompt_own
-    Value: ZEIG AUF DIE KARTE, DIE DU ZEIGST
+    Value: ZEIGE AUF DIE KARTE, DIE DU AUFDECKST
   - Key: item.mutual_reveal.prompt_player
-    Value: ZEIG AUF DEN, DER MIT DIR ZEIGT
+    Value: ZEIGE AUF DEN SPIELER, DER MIT DIR AUFDECKT
   - Key: item.mutual_reveal.response
-    Value: 'WILL, DASS DU EINE KARTE ZEIGST: ZEIG AUF EINE'
+    Value: 'WILL, DASS DU EINE KARTE AUFDECKST: ZEIGE AUF EINE'
   - Key: item.pair_lock_fold.name
     Value: Handschellen
   - Key: item.pair_lock_fold.description
     Value: "Du und ein gew\xE4hlter Spieler k\xF6nnt in der n\xE4chsten Runde nicht
       folden."
   - Key: item.pair_lock_fold.notice
-    Value: KETTET SICH AN
+    Value: FESSELT
   - Key: item.pair_lock_items.name
     Value: Keine Items
   - Key: item.pair_lock_items.description
     Value: "Du und ein gew\xE4hlter Spieler k\xF6nnt in der n\xE4chsten Runde keine
-      Items spielen."
+      Items benutzen."
   - Key: item.pair_lock_items.notice
-    Value: ENTWAFFNET SICH UND
+    Value: HAT DIE ITEMS GESPERRT VON
   - Key: item.pair_lock.prompt
-    Value: ZEIG AUF DEN, DER MIT DIR GESPERRT WIRD
+    Value: ZEIGE AUF DEN SPIELER, DER MIT DIR GESPERRT WIRD
   - Key: item.peek_board.name
-    Value: Spatel
+    Value: Pfannenwender
   - Key: item.peek_board.description
-    Value: Sieh dir eine Boardkarte an, bevor sie aufgedeckt wird. Du kannst diese
-      Runde nicht folden.
+    Value: Sieh dir eine Boardkarte an, bevor sie aufgedeckt wird. In dieser Runde
+      kannst du nicht folden.
   - Key: item.peek_board.notice
-    Value: LINST VORAUS
+    Value: "HAT INS BOARD GESP\xC4HT"
   - Key: item.peek_board_main.description
-    Value: Sieh dir die letzte Boardkarte an, bevor sie aufgedeckt wird. Du kannst
-      diese Runde nicht folden.
+    Value: Sieh dir die letzte Boardkarte an, bevor sie aufgedeckt wird. In dieser
+      Runde kannst du nicht folden.
   - Key: item.peek_hand.name
-    Value: Spicken
+    Value: "Sp\xE4hen"
   - Key: item.peek_hand.description
     Value: "Sieh dir eine Karte eines Spielers an, der noch in der Hand ist. Er erf\xE4hrt,
       welche Karte du gesehen hast."
   - Key: item.peek_hand.notice
-    Value: "SP\xC4HT BEI"
+    Value: "HAT GESP\xC4HT BEI"
   - Key: item.place_on_board.name
     Value: Zigarette
   - Key: item.place_on_board.description
-    Value: "Leg eine deiner Karten offen f\xFCr alle aufs Board und zieh daf\xFCr
-      eine neue Karte vom Deck."
+    Value: Lege eine deiner Karten aufgedeckt aufs Board, sodass alle sie sehen,
+      und ziehe stattdessen eine neue Karte vom Deck.
   - Key: item.place_on_board.notice
-    Value: LEGT OFFEN AUS
+    Value: HAT EINE KARTE ABGELEGT
   - Key: item.place_on_board.prompt
-    Value: ZEIG AUF DIE KARTE, DIE DU AUFS BOARD LEGST
+    Value: ZEIGE AUF DIE KARTE, DIE DU AUFS BOARD LEGST
   - Key: item.raise_stakes.name
     Value: "Erh\xF6hen"
   - Key: item.raise_stakes.description
-    Value: "Jeder Einsatz in der n\xE4chsten Runde kostet einen Pilz mehr, deiner
-      auch."
+    Value: "Jeder Einsatz in der n\xE4chsten Runde erh\xF6ht sich um einen Pilz,
+      deiner eingeschlossen."
   - Key: item.raise_stakes.notice
-    Value: "ERH\xD6HT"
+    Value: "EINS\xC4TZE ERH\xD6HT"
   - Key: item.random_suit.name
     Value: "W\xFCrfel"
   - Key: item.random_suit.description
-    Value: "Eine deiner Karten beh\xE4lt ihren Wert und bekommt eine zuf\xE4llige
-      andere Farbe."
+    Value: "Eine deiner Karten beh\xE4lt ihren Wert und nimmt eine zuf\xE4llige andere
+      Farbe an."
   - Key: item.random_suit.notice
-    Value: MALT UM
+    Value: "FARBE GE\xC4NDERT"
   - Key: item.random_suit.prompt
-    Value: "ZEIG AUF DIE KARTE, DIE SICH \xC4NDERN SOLL"
+    Value: "ZEIGE AUF DIE KARTE, DIE GE\xC4NDERT WERDEN SOLL"
   - Key: item.rate_shift.name
-    Value: "H\xF6schen"
+    Value: Slip
   - Key: item.rate_shift.description
-    Value: "W\xE4hle einen Spieler: Seine Todeschance steigt oder sinkt zuf\xE4llig
-      um {0}."
+    Value: "W\xE4hle einen Spieler: Seine Halluzinationsrate steigt oder sinkt zuf\xE4llig
+      um {0} %."
   - Key: item.rate_shift.raised
-    Value: DOSIERT +{0} BEI
+    Value: "+{0} % HALLUZINATION F\xDCR"
   - Key: item.rate_shift.lowered
-    Value: DOSIERT -{0} BEI
+    Value: "-{0} % HALLUZINATION F\xDCR"
   - Key: item.rate_shift.prompt
-    Value: "ZEIG AUF DEN, DESSEN DOSIS DU DURCHSCH\xDCTTELST"
+    Value: "ZEIGE AUF DEN SPIELER, DESSEN HALLUZINATION DU VER\xC4NDERST"
   - Key: item.shared_roll.name
     Value: Bier
   - Key: item.shared_roll.description
-    Value: "Du und ein Spieler deiner Wahl w\xFCrfelt gleichzeitig, jeder gegen seine
-      eigene Todeschance."
+    Value: "Du und ein gew\xE4hlter Spieler macht gleichzeitig jeweils einen Todeswurf,
+      basierend auf eurer eigenen Halluzinationsrate."
   - Key: item.shared_roll.notice
-    Value: "W\xDCRFELT MIT"
+    Value: HAT EINEN TODESWURF GEMACHT MIT
   - Key: item.shared_roll.prompt
-    Value: "ZEIG AUF DEN, DER MIT DIR W\xDCRFELT"
+    Value: ZEIGE AUF DEN SPIELER, DER MIT DIR EINEN TODESWURF MACHT
   - Key: item.swap_board.name
     Value: Zigarette
   - Key: item.swap_board.description
     Value: "Eine verdeckte Boardkarte wird f\xFCr alle aufgedeckt und dann gegen
-      eine deiner Karten getauscht, die offen auf dem Board bleibt."
+      eine deiner Karten getauscht. Deine Karte bleibt aufgedeckt auf dem Board liegen."
   - Key: item.swap_board.notice
-    Value: TAUSCHT OFFEN
+    Value: HAT EINE BOARDKARTE GETAUSCHT
   - Key: item.swap_board.prompt
-    Value: ZEIG AUF DIE KARTE, DIE DU AUFS BOARD LEGST
+    Value: ZEIGE AUF DIE KARTE, DIE DU AUFS BOARD LEGST
   - Key: item.swap_hand.name
     Value: Messer
   - Key: item.swap_hand.description
-    Value: "Tausch eine deiner Karten mit einem Spieler, der noch in der Hand ist.
-      Er w\xE4hlt, welche seiner Karten er hergibt."
+    Value: "Tausche eine deiner Karten mit einem Spieler, der noch in der Hand ist.
+      Er w\xE4hlt, welche seiner Karten er gibt."
   - Key: item.swap_hand.notice
-    Value: TAUSCHT MIT
+    Value: HAT GETAUSCHT MIT
   - Key: item.swap_hand.prompt_own
-    Value: ZEIG AUF DIE KARTE, DIE DU HERGIBST
+    Value: ZEIGE AUF DIE KARTE, DIE DU GIBST
   - Key: item.swap_hand.prompt_player
-    Value: ZEIG AUF DEN, MIT DEM DU TAUSCHST
+    Value: ZEIGE AUF DEN SPIELER, MIT DEM DU TAUSCHST
   - Key: item.swap_hand.response
-    Value: "tauscht eine Karte mit dir - w\xE4hl eine zum Tauschen"
+    Value: "will Karten mit dir tauschen: w\xE4hle eine zum Geben"
   - Key: item.table_reveal.name
     Value: Megafon
   - Key: item.table_reveal.description
-    Value: "Jeder Spieler, der noch in der Hand ist, zeigt dem ganzen Tisch diese
-      Runde eine zuf\xE4llige Karte."
+    Value: "Jeder Spieler, der noch in der Hand ist, deckt in dieser Runde eine zuf\xE4llige
+      Karte f\xFCr alle auf."
   - Key: item.table_reveal.notice
-    Value: DECKT ALLE AUF
+    Value: HAT ALLE ZUM AUFDECKEN GEZWUNGEN
   - Key: item.reason.no_time
-    Value: "Zu wenig Zeit f\xFCr eine Antwort."
+    Value: Es bleibt nicht genug Zeit, damit er antworten kann.

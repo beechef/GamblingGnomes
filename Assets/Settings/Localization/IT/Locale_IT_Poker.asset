@@ -16,25 +16,25 @@ MonoBehaviour:
   - Key: poker.action.bet
     Value: PUNTA
   - Key: poker.action.call
-    Value: CHIAMA
+    Value: CALL
   - Key: poker.action.fold
-    Value: LASCIA
+    Value: FOLD
   - Key: poker.button.all_in
-    Value: '[ALL-IN]'
+    Value: '[ALL IN]'
   - Key: poker.button.fold
-    Value: '[LASCIA]'
+    Value: '[FOLD]'
   - Key: poker.button.choose
     Value: SCEGLI
   - Key: poker.button.items
-    Value: OGGETTI ({0})
+    Value: OGGETTO ({0})
   - Key: poker.button.view_board
-    Value: GUARDA BOARD
+    Value: VEDI BOARD
   - Key: poker.button.lay_board
-    Value: POSA BOARD
+    Value: POSA IL BOARD
   - Key: poker.button.helper
     Value: AIUTO
   - Key: poker.button.start
-    Value: INIZIA
+    Value: AVVIA
   - Key: poker.button.invite
     Value: INVITA
   - Key: poker.button.add_bot
@@ -44,15 +44,15 @@ MonoBehaviour:
   - Key: poker.button.match_settings
     Value: Impostazioni
   - Key: poker.targeting.hint
-    Value: Esc per riporlo
+    Value: "Esc per rimetterlo gi\xF9"
   - Key: poker.helper.title
-    Value: CLASSIFICA DELLE MANI
+    Value: CLASSIFICA DELLE MANI DI POKER
   - Key: poker.helper.your_hand
-    Value: LA TUA MANO
+    Value: LE TUE CARTE
   - Key: poker.helper.empty
-    Value: Non hai ancora carte in mano.
+    Value: Non hai ancora carte.
   - Key: poker.items.left_in_deck
-    Value: RIMASTI NEL MAZZO
+    Value: RIMASTE NEL MAZZO
   - Key: poker.ranking.title
     Value: RISULTATO
   - Key: poker.ranking.place.st
@@ -64,12 +64,12 @@ MonoBehaviour:
   - Key: poker.ranking.place.th
     Value: "{0}\xBA"
   - Key: poker.colorful.prompt
-    Value: "Chi manger\xE0 il <Highlight>fungo letale</Highlight> e ricever\xE0 <Highlight>oggetti
-      \xD7{0}</Highlight>?"
+    Value: "Chi manger\xE0 il <Highlight>Fungo Velenoso</Highlight> e ricever\xE0
+      <Highlight>{0} oggetto</Highlight> se sopravvive?"
   - Key: poker.turn.yours
-    Value: IL TUO TURNO
+    Value: TOCCA A TE
   - Key: poker.turn.other
-    Value: TURNO DI {0}
+    Value: TOCCA A {0}
   - Key: poker.player.fallback
     Value: Giocatore
   - Key: poker.phase.waiting
@@ -81,17 +81,17 @@ MonoBehaviour:
   - Key: poker.phase.second_street
     Value: SECONDO GIRO
   - Key: poker.phase.looking
-    Value: GUARDATE LE CARTE
+    Value: GUARDA LE CARTE
   - Key: poker.phase.eating
     Value: SI MANGIA
   - Key: poker.phase.showdown
     Value: SHOWDOWN
   - Key: poker.phase.finished
-    Value: FINE
+    Value: TERMINATO
   - Key: poker.phase.match_over
     Value: PARTITA FINITA
   - Key: poker.phase.all_in
-    Value: ALL-IN
+    Value: ALL IN
   - Key: poker.phase.ante
     Value: ANTE
   - Key: poker.start.ready
@@ -105,13 +105,13 @@ MonoBehaviour:
   - Key: poker.match_over.survivor
     Value: ULTIMO GNOMO IN PIEDI
   - Key: poker.match_over.nobody
-    Value: NESSUNO CE L'HA FATTA
+    Value: "NESSUNO \xC8 SOPRAVVISSUTO"
   - Key: poker.notice.item_bonus
     Value: OGGETTI +{0}
   - Key: poker.notice.item_reward
-    Value: 'SOPRAVVIVE: OGGETTI +{0}'
+    Value: SOPRAVVISSUTO +{0} OGGETTO
   - Key: poker.notice.items_lost
-    Value: 'PERDE OGGETTI: {0}'
+    Value: '{0} OGGETTO PERSO'
   - Key: poker.notice.match_started
     Value: INIZIO PARTITA
   - Key: poker.notice.match_players
@@ -121,9 +121,9 @@ MonoBehaviour:
   - Key: poker.notice.bet
     Value: PUNTA
   - Key: poker.notice.fold
-    Value: LASCIA
+    Value: FOLD
   - Key: poker.notice.all_in
-    Value: VA ALL-IN
+    Value: ALL IN
   - Key: config.title
     Value: IMPOSTAZIONI PARTITA
   - Key: config.section.match
@@ -137,7 +137,7 @@ MonoBehaviour:
   - Key: config.loser_bonus
     Value: Bonus perdente
   - Key: config.item_capacity
-    Value: "Capacit\xE0 oggetti"
+    Value: Slot oggetto
   - Key: bet_item.green
     Value: Verde
   - Key: bet_item.red
@@ -147,9 +147,9 @@ MonoBehaviour:
   - Key: bet_item.yellow
     Value: Giallo
   - Key: bet_item.colorful
-    Value: Multicolore
+    Value: Fungo Velenoso
   - Key: poker.round.title
-    Value: Round
+    Value: Giro
   - Key: poker.helper.tab.helper
     Value: Aiuto
   - Key: poker.helper.tab.ruleset
@@ -157,51 +157,53 @@ MonoBehaviour:
   - Key: poker.helper.tab.define
     Value: Glossario
   - Key: poker.helper.joker_title
-    Value: Jolly
+    Value: Joker
   - Key: poker.helper.joker_caption
-    Value: Carta matta
+    Value: Carta jolly
   - Key: poker.ruleset.deal_cards
-    Value: All'inizio della partita, ogni giocatore riceve {0} carte coperte personali.
+    Value: All'inizio di ogni mano, ogni giocatore riceve {0} carte private (hole
+      cards).
   - Key: poker.ruleset.deal_cards_items
-    Value: All'inizio della partita, ogni giocatore riceve {0} carte coperte personali
-      e {1} oggetti.
+    Value: All'inizio di ogni mano, ogni giocatore riceve {0} carte private (hole
+      cards) e {1} oggetti.
   - Key: poker.ruleset.turn_actions
-    Value: "Nel suo turno, un giocatore pu\xF2 Chiamare, andare All-in o Lasciare."
+    Value: "Al proprio turno, un giocatore pu\xF2 fare Call, All In o Fold."
   - Key: poker.ruleset.turn_actions_items
-    Value: "Nel suo turno, un giocatore pu\xF2 usare fino a {0} oggetti, poi Chiamare
-      o Lasciare."
+    Value: "Al proprio turno, un giocatore pu\xF2 usare fino a {0} oggetti, poi fare
+      Call o Fold."
   - Key: poker.ruleset.community_cards
-    Value: Alla fine di ogni giro si girano, una dopo l'altra, {0} carte comuni.
+    Value: Alla fine di ogni giro, {0} carte del board vengono rivelate in ordine.
   - Key: poker.ruleset.all_in
-    Value: Quando qualcuno va All-in, gli altri possono solo seguire l'All-in o Lasciare.
-      Poi si girano tutte le carte rimaste.
+    Value: "Quando qualcuno va All In, ogni altro giocatore pu\xF2 solo fare Call
+      o Fold. Poi tutte le carte del board rimanenti vengono rivelate."
   - Key: poker.ruleset.showdown
-    Value: "Girate tutte le carte, vince il giocatore con la combinazione pi\xF9
-      alta."
+    Value: Una volta rivelate tutte le carte del board, vince il giocatore con la
+      migliore mano di poker.
   - Key: poker.ruleset.winner_feeds
-    Value: Il vincitore sceglie chi deve mangiare il Fungo Velenoso.
+    Value: "Il vincitore sceglie un giocatore che dovr\xE0 mangiare il Fungo Velenoso."
   - Key: poker.ruleset.winner_feeds_item
-    Value: "Il vincitore sceglie chi deve mangiare il Fungo Velenoso e riceve un
-      oggetto in pi\xF9."
+    Value: "Il vincitore sceglie un giocatore che dovr\xE0 mangiare il Fungo Velenoso.
+      Se sopravvive, riceve un oggetto in pi\xF9."
   - Key: poker.ruleset.losers_eat
     Value: I perdenti devono mangiare tutti i funghi che hanno puntato.
   - Key: poker.define.title
-    Value: Allucinazione & Fungo Velenoso
+    Value: Allucinazione e Fungo Velenoso
   - Key: poker.define.meter_title
-    Value: Barra allucinazione
+    Value: Barra delle allucinazioni
   - Key: poker.define.meter_description
-    Value: "Ogni fungo mangiato aggiunge il 10% di allucinazione. Pi\xF9 \xE8 alta,
-      pi\xF9 effetti subisci. Al 100% vai in overdose e perdi."
+    Value: "Ogni fungo mangiato aggiunge il 10% al tuo livello di allucinazione.
+      Pi\xF9 sale, pi\xF9 gli effetti sono forti. Al 100% vai in overdose e sei fuori
+      dalla partita."
   - Key: poker.define.poison_title
-    Value: Fungo velenoso
+    Value: Fungo Velenoso
   - Key: poker.define.poison_description
-    Value: "Non aggiunge allucinazione: provoca invece un Tiro della Morte, una probabilit\xE0
-      casuale di overdose basata sull'allucinazione attuale."
+    Value: "Non aumenta l'allucinazione. Attiva invece un Tiro della morte: una probabilit\xE0
+      casuale di andare in overdose, in base al tuo livello di allucinazione attuale."
   - Key: poker.colorful.prompt_no_items
-    Value: "Chi manger\xE0 il <Highlight>fungo letale</Highlight>?"
+    Value: "Chi manger\xE0 il <Highlight>Fungo Velenoso</Highlight>?"
   - Key: poker.button.hallucination_effect
-    Value: EFFETTI ON/OFF
+    Value: EFFETTI ALLUCINAZIONE ON/OFF
   - Key: poker.kick.button
-    Value: espelli
+    Value: rimuovi
   - Key: poker.kick.choosing
     Value: scegli...

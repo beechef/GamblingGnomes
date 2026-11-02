@@ -18,39 +18,39 @@ MonoBehaviour:
   - Key: poker.action.call
     Value: "G\xD6R"
   - Key: poker.action.fold
-    Value: "\xC7EK\u0130L"
+    Value: PAS
   - Key: poker.button.all_in
-    Value: '[ALL-IN]'
+    Value: '[ALL IN]'
   - Key: poker.button.fold
-    Value: "[\xC7EK\u0130L]"
+    Value: '[PAS]'
   - Key: poker.button.choose
     Value: "SE\xC7"
   - Key: poker.button.items
     Value: "E\u015EYA ({0})"
   - Key: poker.button.view_board
-    Value: TAHTAYI KALDIR
+    Value: BOARD'A BAK
   - Key: poker.button.lay_board
-    Value: TAHTAYI YATIR
+    Value: BOARD'U BIRAK
   - Key: poker.button.helper
     Value: YARDIM
   - Key: poker.button.start
-    Value: "BA\u015ELA"
+    Value: "BA\u015ELAT"
   - Key: poker.button.invite
     Value: DAVET ET
   - Key: poker.button.add_bot
     Value: BOT EKLE
   - Key: poker.button.clear_bot
-    Value: "BOTLARI S\u0130L"
+    Value: BOTLARI KALDIR
   - Key: poker.button.match_settings
     Value: Ayarlar
   - Key: poker.targeting.hint
     Value: "Geri koymak i\xE7in Esc"
   - Key: poker.helper.title
-    Value: POKER EL SIRALAMASI
+    Value: "POKER EL\u0130 SIRALAMASI"
   - Key: poker.helper.your_hand
-    Value: "EL\u0130N"
+    Value: KARTLARIN
   - Key: poker.helper.empty
-    Value: "Hen\xFCz elinde kart yok."
+    Value: "Hen\xFCz kart\u0131n yok."
   - Key: poker.items.left_in_deck
     Value: DESTEDE KALAN
   - Key: poker.ranking.title
@@ -64,10 +64,10 @@ MonoBehaviour:
   - Key: poker.ranking.place.th
     Value: '{0}.'
   - Key: poker.colorful.prompt
-    Value: "<Highlight>\xD6l\xFCmc\xFCl mantar\u0131</Highlight> kim yiyip <Highlight>{0}
-      e\u015Fya</Highlight> alacak?"
+    Value: "<Highlight>Zehirli Mantar</Highlight>'\u0131 kim yiyecek ve hayatta kal\u0131rsa
+      <Highlight>{0} e\u015Fya</Highlight> alacak?"
   - Key: poker.turn.yours
-    Value: "SEN\u0130N SIRAN"
+    Value: SIRA SENDE
   - Key: poker.turn.other
     Value: 'SIRA: {0}'
   - Key: poker.player.fallback
@@ -83,15 +83,15 @@ MonoBehaviour:
   - Key: poker.phase.looking
     Value: KARTLARA BAKILIYOR
   - Key: poker.phase.eating
-    Value: "YEME VAKT\u0130"
+    Value: "YEN\u0130L\u0130YOR"
   - Key: poker.phase.showdown
-    Value: "KARTLAR A\xC7ILIYOR"
+    Value: SHOWDOWN
   - Key: poker.phase.finished
     Value: "B\u0130TT\u0130"
   - Key: poker.phase.match_over
     Value: "MA\xC7 B\u0130TT\u0130"
   - Key: poker.phase.all_in
-    Value: ALL-IN
+    Value: ALL IN
   - Key: poker.phase.ante
     Value: ANTE
   - Key: poker.start.ready
@@ -103,27 +103,27 @@ MonoBehaviour:
   - Key: poker.pot
     Value: 'Pot: {0}'
   - Key: poker.match_over.survivor
-    Value: "AYAKTA KALAN SON C\xDCCE"
+    Value: AYAKTA KALAN SON GNOM
   - Key: poker.match_over.nobody
-    Value: "K\u0130MSE HAYATTA KALMADI"
+    Value: "K\u0130MSE HAYATTA KALAMADI"
   - Key: poker.notice.item_bonus
     Value: "+{0} e\u015Fya"
   - Key: poker.notice.item_reward
-    Value: "hayatta kald\u0131, +{0} e\u015Fya"
+    Value: "HAYATTA KALDI +{0} E\u015EYA"
   - Key: poker.notice.items_lost
-    Value: "{0} e\u015Fya kaybetti"
+    Value: "{0} E\u015EYA KAYBED\u0130LD\u0130"
   - Key: poker.notice.match_started
-    Value: "ma\xE7 ba\u015Flad\u0131"
+    Value: "MA\xC7 BA\u015ELADI"
   - Key: poker.notice.match_players
-    Value: '{0} oyuncu'
+    Value: '{0} OYUNCU'
   - Key: poker.notice.item_used
-    Value: "{0} kulland\u0131"
+    Value: '{0} KULLANDI'
   - Key: poker.notice.bet
-    Value: "bahis yapt\u0131"
+    Value: "BAH\u0130S"
   - Key: poker.notice.fold
-    Value: "\xE7ekildi"
+    Value: PAS
   - Key: poker.notice.all_in
-    Value: all-in dedi
+    Value: ALL IN
   - Key: config.title
     Value: "MA\xC7 AYARLARI"
   - Key: config.section.match
@@ -137,7 +137,7 @@ MonoBehaviour:
   - Key: config.loser_bonus
     Value: Kaybeden Bonusu
   - Key: config.item_capacity
-    Value: "E\u015Fya Kapasitesi"
+    Value: "E\u015Fya Yuvalar\u0131"
   - Key: bet_item.green
     Value: "Ye\u015Fil"
   - Key: bet_item.red
@@ -147,7 +147,7 @@ MonoBehaviour:
   - Key: bet_item.yellow
     Value: "Sar\u0131"
   - Key: bet_item.colorful
-    Value: Rengarenk
+    Value: Zehirli Mantar
   - Key: poker.round.title
     Value: Tur
   - Key: poker.helper.tab.helper
@@ -155,56 +155,57 @@ MonoBehaviour:
   - Key: poker.helper.tab.ruleset
     Value: Kurallar
   - Key: poker.helper.tab.define
-    Value: Terimler
+    Value: "S\xF6zl\xFCk"
   - Key: poker.helper.joker_title
     Value: Joker
   - Key: poker.helper.joker_caption
     Value: "Her kart\u0131n yerine ge\xE7er"
   - Key: poker.ruleset.deal_cards
-    Value: "Ma\xE7\u0131n ba\u015F\u0131nda her oyuncuya {0} kapal\u0131 kart (el
-      kart\u0131) da\u011F\u0131t\u0131l\u0131r."
+    Value: "Her elin ba\u015F\u0131nda her oyuncuya {0} \xF6zel kart (hole card)
+      da\u011F\u0131t\u0131l\u0131r."
   - Key: poker.ruleset.deal_cards_items
-    Value: "Ma\xE7\u0131n ba\u015F\u0131nda her oyuncuya {0} kapal\u0131 kart (el
-      kart\u0131) ve {1} e\u015Fya da\u011F\u0131t\u0131l\u0131r."
+    Value: "Her elin ba\u015F\u0131nda her oyuncuya {0} \xF6zel kart (hole card)
+      ve {1} e\u015Fya da\u011F\u0131t\u0131l\u0131r."
   - Key: poker.ruleset.turn_actions
-    Value: "S\u0131ras\u0131 gelen oyuncu g\xF6rebilir, all-in yapabilir ya da \xE7ekilebilir."
+    Value: "S\u0131ras\u0131 geldi\u011Finde oyuncu G\xF6r, All In veya Pas se\xE7ebilir."
   - Key: poker.ruleset.turn_actions_items
-    Value: "S\u0131ras\u0131 gelen oyuncu en fazla {0} e\u015Fya kullanabilir, sonra
-      g\xF6rebilir ya da \xE7ekilebilir."
+    Value: "S\u0131ras\u0131 geldi\u011Finde oyuncu en fazla {0} e\u015Fya kullanabilir,
+      ard\u0131ndan G\xF6r veya Pas se\xE7ebilir."
   - Key: poker.ruleset.community_cards
-    Value: "Her turun sonunda s\u0131rayla {0} ortak kart (masa kart\u0131) a\xE7\u0131l\u0131r."
+    Value: "Her turun sonunda {0} board kart\u0131 s\u0131rayla a\xE7\u0131l\u0131r."
   - Key: poker.ruleset.all_in
-    Value: "Biri all-in yap\u0131nca di\u011Fer herkes ya o all-in'i g\xF6r\xFCr
-      ya da \xE7ekilir. Ard\u0131ndan kalan t\xFCm kartlar a\xE7\u0131l\u0131r."
+    Value: "Biri All In yapt\u0131\u011F\u0131nda di\u011Fer oyuncular yaln\u0131zca
+      G\xF6r veya Pas se\xE7ebilir. Ard\u0131ndan kalan t\xFCm board kartlar\u0131
+      a\xE7\u0131l\u0131r."
   - Key: poker.ruleset.showdown
-    Value: "T\xFCm kartlar a\xE7\u0131l\u0131nca en y\xFCksek poker eline sahip oyuncu
-      kazan\u0131r."
+    Value: "T\xFCm board kartlar\u0131 a\xE7\u0131ld\u0131\u011F\u0131nda en iyi
+      poker eline sahip oyuncu kazan\u0131r."
   - Key: poker.ruleset.winner_feeds
-    Value: "Kazanan, Zehirli Mantar\u0131 yiyecek bir oyuncu se\xE7er."
+    Value: "Kazanan, Zehirli Mantar'\u0131 yiyecek bir oyuncu se\xE7er."
   - Key: poker.ruleset.winner_feeds_item
-    Value: "Kazanan, Zehirli Mantar\u0131 yiyecek bir oyuncu se\xE7er ve bir e\u015Fya
-      daha al\u0131r."
+    Value: "Kazanan, Zehirli Mantar'\u0131 yiyecek bir oyuncu se\xE7er. Hayatta kal\u0131rsa
+      bir e\u015Fya daha al\u0131r."
   - Key: poker.ruleset.losers_eat
-    Value: "Kaybedenler, bahse koyduklar\u0131 t\xFCm mantarlar\u0131 yemek zorundad\u0131r."
+    Value: "Kaybedenler bahis yapt\u0131klar\u0131 t\xFCm mantarlar\u0131 yemek zorundad\u0131r."
   - Key: poker.define.title
-    Value: "Hal\xFCsinasyon & Zehirli Mantar"
+    Value: "Hal\xFCsinasyon ve Zehirli Mantar"
   - Key: poker.define.meter_title
-    Value: "Hal\xFCsinasyon \xE7ubu\u011Fu"
+    Value: "Hal\xFCsinasyon \xC7ubu\u011Fu"
   - Key: poker.define.meter_description
-    Value: "Yenen her mantar %10 hal\xFCsinasyon ekler. Oran y\xFCkseldik\xE7e daha
-      \xE7ok efektle kar\u015F\u0131la\u015F\u0131rs\u0131n. %100'de a\u015F\u0131r\u0131
-      doz al\u0131r ve kaybedersin."
+    Value: "Yedi\u011Fin her mantar hal\xFCsinasyon seviyeni %10 art\u0131r\u0131r.
+      Seviye y\xFCkseldik\xE7e etkiler g\xFC\xE7lenir. %100'e ula\u015Ft\u0131\u011F\u0131nda
+      a\u015F\u0131r\u0131 doz al\u0131r ve ma\xE7tan elenirsin."
   - Key: poker.define.poison_title
-    Value: Zehirli mantar
+    Value: Zehirli Mantar
   - Key: poker.define.poison_description
-    Value: "Hal\xFCsinasyon eklemez; bunun yerine \xD6l\xFCm Zar\u0131 at\u0131l\u0131r
-      - mevcut hal\xFCsinasyon oran\u0131na ba\u011Fl\u0131 rastgele bir a\u015F\u0131r\u0131
-      doz \u015Fans\u0131."
+    Value: "Hal\xFCsinasyonu art\u0131rmaz. Bunun yerine \xD6l\xFCm Zar\u0131 at\u0131l\u0131r:
+      mevcut hal\xFCsinasyon seviyene ba\u011Fl\u0131 rastgele bir a\u015F\u0131r\u0131
+      doz ihtimali."
   - Key: poker.colorful.prompt_no_items
-    Value: "<Highlight>\xD6l\xFCmc\xFCl mantar\u0131</Highlight> kim yiyecek?"
+    Value: "<Highlight>Zehirli Mantar</Highlight>'\u0131 kim yiyecek?"
   - Key: poker.button.hallucination_effect
-    Value: "EFEKT A\xC7/KAPAT"
+    Value: "HAL\xDCS\u0130NASYON EFEKTLER\u0130 ON/OFF"
   - Key: poker.kick.button
-    Value: at
+    Value: "\xE7\u0131kar"
   - Key: poker.kick.choosing
     Value: "se\xE7..."

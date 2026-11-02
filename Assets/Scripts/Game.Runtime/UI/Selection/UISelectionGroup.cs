@@ -193,9 +193,22 @@ namespace Game.Runtime.UI.Selection
 		{
 			if (!InputSchemeController.IsGamepad || Selected != item) return;
 
-			_lastSelected = item;
+			Release();
+		}
+
+		// For a neighbouring list taking the marker off this one, on any device. Remembers the entry for Resume.
+		public void Release()
+		{
+			if (Selected) _lastSelected = Selected;
+
 			_released = true;
 			Select(null);
+		}
+
+		public void Resume()
+		{
+			_released = false;
+			RequestPointerUpdate();
 		}
 
 		// Picking up a pad over a list with nothing marked gives the stick somewhere to start from.

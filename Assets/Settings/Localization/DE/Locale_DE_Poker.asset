@@ -16,21 +16,21 @@ MonoBehaviour:
   - Key: poker.action.bet
     Value: SETZEN
   - Key: poker.action.call
-    Value: CALLEN
+    Value: CALL
   - Key: poker.action.fold
-    Value: FOLDEN
+    Value: FOLD
   - Key: poker.button.all_in
-    Value: '[ALL-IN]'
+    Value: '[ALL IN]'
   - Key: poker.button.fold
-    Value: '[FOLDEN]'
+    Value: '[FOLD]'
   - Key: poker.button.choose
     Value: "W\xC4HLEN"
   - Key: poker.button.items
-    Value: ITEMS ({0})
+    Value: ITEM ({0})
   - Key: poker.button.view_board
     Value: BOARD ANSEHEN
   - Key: poker.button.lay_board
-    Value: BOARD HINLEGEN
+    Value: BOARD ABLEGEN
   - Key: poker.button.helper
     Value: HILFE
   - Key: poker.button.start
@@ -46,9 +46,9 @@ MonoBehaviour:
   - Key: poker.targeting.hint
     Value: "Esc zum Zur\xFCcklegen"
   - Key: poker.helper.title
-    Value: "RANGFOLGE DER H\xC4NDE"
+    Value: POKERHAND-RANGLISTE
   - Key: poker.helper.your_hand
-    Value: DEINE HAND
+    Value: DEINE KARTEN
   - Key: poker.helper.empty
     Value: Du hast noch keine Karten.
   - Key: poker.items.left_in_deck
@@ -64,8 +64,8 @@ MonoBehaviour:
   - Key: poker.ranking.place.th
     Value: '{0}.'
   - Key: poker.colorful.prompt
-    Value: "Wer isst den <Highlight>t\xF6dlichen Pilz</Highlight> & bekommt <Highlight>{0}
-      Item(s)</Highlight>?"
+    Value: "Wer isst den <Highlight>Giftpilz</Highlight> und erh\xE4lt <Highlight>{0}
+      Item</Highlight>, falls er \xFCberlebt?"
   - Key: poker.turn.yours
     Value: DU BIST DRAN
   - Key: poker.turn.other
@@ -77,21 +77,21 @@ MonoBehaviour:
   - Key: poker.phase.dealing
     Value: AUSTEILEN
   - Key: poker.phase.first_street
-    Value: ERSTE SETZRUNDE
+    Value: ERSTE RUNDE
   - Key: poker.phase.second_street
-    Value: ZWEITE SETZRUNDE
+    Value: ZWEITE RUNDE
   - Key: poker.phase.looking
-    Value: KARTEN CHECKEN
+    Value: KARTEN ANSEHEN
   - Key: poker.phase.eating
-    Value: FUTTERN
+    Value: ESSEN
   - Key: poker.phase.showdown
     Value: SHOWDOWN
   - Key: poker.phase.finished
     Value: BEENDET
   - Key: poker.phase.match_over
-    Value: MATCH VORBEI
+    Value: PARTIE VORBEI
   - Key: poker.phase.all_in
-    Value: ALL-IN
+    Value: ALL IN
   - Key: poker.phase.ante
     Value: ANTE
   - Key: poker.start.ready
@@ -103,41 +103,41 @@ MonoBehaviour:
   - Key: poker.pot
     Value: 'Pot: {0}'
   - Key: poker.match_over.survivor
-    Value: LETZTER ZWERG STEHT
+    Value: LETZTER GNOM AUF DEN BEINEN
   - Key: poker.match_over.nobody
-    Value: "KEINER HAT \xDCBERLEBT"
+    Value: "NIEMAND HAT \xDCBERLEBT"
   - Key: poker.notice.item_bonus
     Value: +{0} ITEM(S)
   - Key: poker.notice.item_reward
-    Value: "\xDCBERLEBT +{0} ITEM(S)"
+    Value: "\xDCBERLEBT +{0} ITEM"
   - Key: poker.notice.items_lost
-    Value: VERLIERT {0} ITEM(S)
+    Value: '{0} ITEM VERLOREN'
   - Key: poker.notice.match_started
-    Value: MATCH BEGINNT
+    Value: PARTIE BEGINNT
   - Key: poker.notice.match_players
-    Value: "\u2013 {0} DABEI"
+    Value: '{0} SPIELER'
   - Key: poker.notice.item_used
-    Value: NUTZT {0}
+    Value: '{0} BENUTZT'
   - Key: poker.notice.bet
-    Value: SETZT
+    Value: SETZEN
   - Key: poker.notice.fold
-    Value: FOLDET
+    Value: FOLD
   - Key: poker.notice.all_in
-    Value: GEHT ALL-IN
+    Value: ALL IN
   - Key: config.title
-    Value: MATCH-EINSTELLUNGEN
+    Value: PARTIE-EINSTELLUNGEN
   - Key: config.section.match
-    Value: Match
+    Value: Partie
   - Key: config.section.items
     Value: Items
   - Key: config.starting_health
-    Value: Startleben
+    Value: Start-Lebenspunkte
   - Key: config.items_per_hand
     Value: Items pro Hand
   - Key: config.loser_bonus
     Value: Verliererbonus
   - Key: config.item_capacity
-    Value: "Item-Kapazit\xE4t"
+    Value: Item-Slots
   - Key: bet_item.green
     Value: "Gr\xFCn"
   - Key: bet_item.red
@@ -147,7 +147,7 @@ MonoBehaviour:
   - Key: bet_item.yellow
     Value: Gelb
   - Key: bet_item.colorful
-    Value: Bunt
+    Value: Giftpilz
   - Key: poker.round.title
     Value: Runde
   - Key: poker.helper.tab.helper
@@ -159,50 +159,52 @@ MonoBehaviour:
   - Key: poker.helper.joker_title
     Value: Joker
   - Key: poker.helper.joker_caption
-    Value: Ersetzt jede Karte
+    Value: Wildcard
   - Key: poker.ruleset.deal_cards
-    Value: Zu Beginn des Matches bekommt jeder Spieler {0} verdeckte Karten (Hole
-      Cards).
+    Value: "Zu Beginn jeder Hand erh\xE4lt jeder Spieler {0} private Karten (Hole
+      Cards)."
   - Key: poker.ruleset.deal_cards_items
-    Value: Zu Beginn des Matches bekommt jeder Spieler {0} verdeckte Karten (Hole
-      Cards) und {1} Items.
+    Value: "Zu Beginn jeder Hand erh\xE4lt jeder Spieler {0} private Karten (Hole
+      Cards) und {1} Items."
   - Key: poker.ruleset.turn_actions
-    Value: In seinem Zug kann ein Spieler callen, All-in gehen oder folden.
+    Value: "Wer am Zug ist, kann Call, All In oder Fold w\xE4hlen."
   - Key: poker.ruleset.turn_actions_items
-    Value: In seinem Zug kann ein Spieler bis zu {0} Items nutzen und dann callen
-      oder folden.
+    Value: "Wer am Zug ist, kann bis zu {0} Items benutzen und dann Call oder Fold
+      w\xE4hlen."
   - Key: poker.ruleset.community_cards
-    Value: Am Ende jeder Runde werden nacheinander {0} offene Karten (Gemeinschaftskarten)
-      aufgedeckt.
+    Value: Am Ende jeder Runde werden {0} Boardkarten der Reihe nach aufgedeckt.
   - Key: poker.ruleset.all_in
-    Value: "Sobald jemand All-in geht, k\xF6nnen alle anderen nur mitgehen oder folden.
-      Dann werden alle restlichen Karten aufgedeckt."
+    Value: "Sobald jemand All In geht, k\xF6nnen alle anderen Spieler nur noch Call
+      oder Fold w\xE4hlen. Danach werden alle verbleibenden Boardkarten aufgedeckt."
   - Key: poker.ruleset.showdown
-    Value: Sind alle Karten aufgedeckt, gewinnt der Spieler mit der besten Pokerhand.
+    Value: Sobald alle Boardkarten aufgedeckt sind, gewinnt der Spieler mit der besten
+      Pokerhand.
   - Key: poker.ruleset.winner_feeds
-    Value: Der Gewinner bestimmt einen Spieler, der den Giftpilz essen muss.
+    Value: "Der Gewinner w\xE4hlt einen Spieler, der den Giftpilz essen muss."
   - Key: poker.ruleset.winner_feeds_item
-    Value: Der Gewinner bestimmt einen Spieler, der den Giftpilz essen muss, und
-      bekommt ein Item dazu.
+    Value: "Der Gewinner w\xE4hlt einen Spieler, der den Giftpilz essen muss. \xDCberlebt
+      dieser Spieler, erh\xE4lt er ein weiteres Item."
   - Key: poker.ruleset.losers_eat
-    Value: "Die Verlierer m\xFCssen jeden Pilz essen, den sie gesetzt haben."
+    Value: "Die Verlierer m\xFCssen alle Pilze essen, die sie gesetzt haben."
   - Key: poker.define.title
     Value: Halluzination & Giftpilz
   - Key: poker.define.meter_title
     Value: Halluzinationsleiste
   - Key: poker.define.meter_description
-    Value: "Jeder gegessene Pilz bringt 10 % Halluzination. Je h\xF6her der Wert,
-      desto mehr Effekte. Bei 100 % hast du eine \xDCberdosis und verlierst."
+    Value: "Jeder gegessene Pilz erh\xF6ht deine Halluzinationsrate um 10 %. Je h\xF6her
+      sie steigt, desto st\xE4rker die Effekte. Bei 100 % erleidest du eine \xDCberdosis
+      und scheidest aus der Partie aus."
   - Key: poker.define.poison_title
     Value: Giftpilz
   - Key: poker.define.poison_description
-    Value: "Bringt keine Halluzination, sondern l\xF6st einen Todeswurf aus - eine
-      zuf\xE4llige \xDCberdosis-Chance je nach aktuellem Halluzinationswert."
+    Value: "Erh\xF6ht die Halluzination nicht. Stattdessen l\xF6st er einen Todeswurf
+      aus: eine zuf\xE4llige Chance auf eine \xDCberdosis, abh\xE4ngig von deiner
+      aktuellen Halluzinationsrate."
   - Key: poker.colorful.prompt_no_items
-    Value: "Wer isst den <Highlight>t\xF6dlichen Pilz</Highlight>?"
+    Value: Wer isst den <Highlight>Giftpilz</Highlight>?
   - Key: poker.button.hallucination_effect
-    Value: EFFEKTE AN/AUS
+    Value: HALLUZINATIONSEFFEKTE AN/AUS
   - Key: poker.kick.button
-    Value: rauswerfen
+    Value: entfernen
   - Key: poker.kick.choosing
     Value: "w\xE4hlen..."
