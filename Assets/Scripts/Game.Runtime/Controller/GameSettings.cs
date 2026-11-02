@@ -13,6 +13,10 @@ namespace Game.Runtime.Controller
 	{
 		public const int UncappedFrameRate = -1;
 
+		private const float AspectTolerance = 0.02f;
+		private const int MinimumChoiceHeight = 600;
+		private const int MaximumReportedChoices = 5;
+
 		public static bool FirstTime
 		{
 			get => SettingController.Data.FirstTime;
@@ -82,6 +86,33 @@ namespace Game.Runtime.Controller
 
 			return largest;
 		}
+
+		// The presets on a display of their shape, so the common list stays short. Any other shape takes the sizes
+		// it reports itself, since a preset would be letterboxed there; the presets remain if it reports too few.
+		public static List<Vector2Int> ResolutionChoices(IEnumerable<Resolution> modes, Vector2Int native, IReadOnlyList<Vector2Int> presets)
+		{
+			var fitting = presets.Where(size => size.x <= native.x && size.y <= native.y).ToList();
+			var choices = fitting.Where(size => HasAspectOf(size, native)).ToList();
+
+			if (choices.Count < 2)
+			{
+				var reported = modes
+					.Select(mode => new Vector2Int(Mathf.Max(mode.width, mode.height), Mathf.Min(mode.width, mode.height)))
+					.Where(size => size.y >= MinimumChoiceHeight && size.x <= native.x && size.y <= native.y && HasAspectOf(size, native))
+					.Distinct()
+					.OrderByDescending(size => size.x)
+					.Take(MaximumReportedChoices)
+					.ToList();
+
+				choices = reported.Count >= 2 ? reported : fitting;
+			}
+
+			if (!choices.Contains(native)) choices.Add(native);
+			return choices;
+		}
+
+		private static bool HasAspectOf(Vector2Int size, Vector2Int other) =>
+			Mathf.Abs((float)size.x / size.y - (float)other.x / other.y) < AspectTolerance;
 
 		public static Vector2Int FitToDisplay(Vector2Int saved, Vector2Int native) =>
 			saved.x <= 0 || saved.y <= 0 || saved.x > native.x || saved.y > native.y ? native : saved;

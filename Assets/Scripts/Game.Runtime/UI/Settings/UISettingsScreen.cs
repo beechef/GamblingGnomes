@@ -20,7 +20,7 @@ namespace Game.Runtime.UI.Settings
 		private static readonly FullScreenMode[] WindowModes =
 			{ FullScreenMode.ExclusiveFullScreen, FullScreenMode.FullScreenWindow, FullScreenMode.Windowed };
 
-		// The common 16:9 sizes up to what the display can show, plus its own, rather than every mode it reports.
+		// The common 16:9 sizes, rather than every mode a display reports (GameSettings.ResolutionChoices).
 		private static readonly Vector2Int[] ResolutionPresets =
 			{ new(1280, 720), new(1600, 900), new(1920, 1080), new(2560, 1440), new(3840, 2160) };
 
@@ -168,9 +168,7 @@ namespace Game.Runtime.UI.Settings
 			_windowMode.SetOptions(_windowModes.Select(WindowModeLabel), Math.Max(0, _windowModes.IndexOf(GameSettings.WindowMode)));
 
 			_resolutions.Clear();
-			var native = GameSettings.NativeResolution;
-			_resolutions.AddRange(ResolutionPresets.Where(r => r.x <= native.x && r.y <= native.y));
-			if (!_resolutions.Contains(native)) _resolutions.Add(native);
+			_resolutions.AddRange(GameSettings.ResolutionChoices(Screen.resolutions, GameSettings.NativeResolution, ResolutionPresets));
 
 			var current = new Vector2Int(Screen.width, Screen.height);
 			// A window dragged to another size still shows what it is.
