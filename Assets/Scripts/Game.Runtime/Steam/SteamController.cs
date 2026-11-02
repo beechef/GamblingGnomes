@@ -6,6 +6,8 @@ namespace Game.Runtime.Steam
 {
 	public class SteamController : MonoBehaviour
 	{
+		private const uint ShortcutAppIdBit = 0x80000000;
+
 		[Tooltip("The app id used when Steam did not launch the game: the editor and a build started by hand. A build Steam launches uses the id Steam names.")]
 		[SerializeField] private uint _steamAppId = 480;
 
@@ -51,9 +53,12 @@ namespace Game.Runtime.Steam
 				return;
 			}
 
+			var launchedAs = Environment.GetEnvironmentVariable("SteamAppId");
+			var appId = ResolveAppId();
+
 			try
 			{
-				SteamClient.Init(ResolveAppId(), false);
+				SteamClient.Init(appId, false);
 				IsInitialized = true;
 
 				// Achievements and stats read as empty until the user's current stats have arrived.
@@ -66,7 +71,7 @@ namespace Game.Runtime.Steam
 			{
 				IsInitialized = false;
 				// Not an error on its own: Steam may simply not be running, and the lobby falls back to local rooms.
-				Debug.LogWarning($"[SteamController] SteamClient.Init failed: {e.Message}");
+				Debug.LogWarning($"[SteamController] SteamClient.Init({appId}) failed (launched as '{launchedAs}'): {e.Message}");
 				OnInitFailed?.Invoke(e.Message);
 			}
 		}
@@ -74,9 +79,10 @@ namespace Game.Runtime.Steam
 
 		// Steam names the app it launched in the environment, and SteamClient.Init overwrites that with whatever it
 		// is handed, so it is read first. Never in the editor: a previous Init in the same process left its own id there.
+		// A non-Steam shortcut's id has the top bit set and names no app Steamworks knows, so that launch counts as by hand.
 		private uint ResolveAppId()
 		{
-			if (!Application.isEditor && uint.TryParse(Environment.GetEnvironmentVariable("SteamAppId"), out var launched) && launched != 0)
+			if (!Application.isEditor && uint.TryParse(Environment.GetEnvironmentVariable("SteamAppId"), out var launched) && launched != 0 && launched < ShortcutAppIdBit)
 				return launched;
 
 			return _steamAppId;
