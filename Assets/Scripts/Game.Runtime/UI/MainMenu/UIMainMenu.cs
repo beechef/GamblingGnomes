@@ -162,6 +162,8 @@ namespace Game.Runtime.UI.MainMenu
 				_matchmakingPopup.OnOpened += HandleMatchmakingOpened;
 				_matchmakingPopup.OnClosed += ShowPlayMenu;
 			}
+
+			if (GameSettings.FirstTime) ShowFirstTimeLanguages();
 		}
 
 		private void OnDestroy()
@@ -367,10 +369,25 @@ namespace Game.Runtime.UI.MainMenu
 		{
 			if (!_settingsScreen) return;
 
+			StepAsideForSettings();
+			_settingsScreen.Open();
+		}
+
+		// A new player meets the list of languages before anything else, so one who cannot read the default finds theirs.
+		private void ShowFirstTimeLanguages()
+		{
+			if (!_settingsScreen) return;
+
+			GameSettings.FirstTime = false;
+			StepAsideForSettings();
+			_settingsScreen.OpenLanguages();
+		}
+
+		private void StepAsideForSettings()
+		{
 			_rootMenu.SetActive(false);
 			_playPanels.HideAll();
 			_settingsScreen.OnClosed += HandleSettingsClosed;
-			_settingsScreen.Open();
 		}
 
 		private void HandleSettingsClosed()

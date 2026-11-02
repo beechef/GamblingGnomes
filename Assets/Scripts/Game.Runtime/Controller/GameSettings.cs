@@ -9,6 +9,16 @@ namespace Game.Runtime.Controller
 	{
 		public const int UncappedFrameRate = -1;
 
+		public static bool FirstTime
+		{
+			get => SettingController.Data.FirstTime;
+			set
+			{
+				SettingController.Data.FirstTime = value;
+				SettingController.Save();
+			}
+		}
+
 		public static int TargetFrameRate
 		{
 			get => SettingController.Data.TargetFrameRate;

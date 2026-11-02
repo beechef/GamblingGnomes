@@ -88,6 +88,12 @@ namespace Game.Runtime.UI.Settings
 
 		public void Open() => gameObject.SetActive(true);
 
+		public void OpenLanguages()
+		{
+			Open();
+			ShowLanguages();
+		}
+
 		public void Close()
 		{
 			if (!gameObject.activeSelf) return;

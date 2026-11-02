@@ -16,6 +16,9 @@ namespace Game.Runtime.Controller
 			public float Volume;
 		}
 
+		// Set only by SettingController.CreateDefault, so a save from before this field reads false.
+		public bool FirstTime;
+
 		public int TargetFrameRate = 60;
 		public bool VSync;
 

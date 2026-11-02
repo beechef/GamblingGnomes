@@ -34,6 +34,13 @@ namespace Game.Runtime.Controller
 			OnChanged?.Invoke();
 		}
 
+		public static void Clear()
+		{
+			File.Delete(FilePath);
+			PlayerPrefs.DeleteKey(LegacyPrefsKey);
+			_data = null;
+		}
+
 		private static SettingData Load()
 		{
 			try
@@ -74,6 +81,7 @@ namespace Game.Runtime.Controller
 		// tell the regions apart), every later one in whatever the player chose.
 		private static SettingData CreateDefault() => new()
 		{
+			FirstTime = true,
 			Language = Application.systemLanguage switch
 			{
 				SystemLanguage.French => "fr",
