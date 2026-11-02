@@ -5,6 +5,7 @@ using Game.Runtime.Lobby;
 using Game.Runtime.UI.Button;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Game.Runtime.UI.FindLobby
 {
@@ -26,16 +27,34 @@ namespace Game.Runtime.UI.FindLobby
 
 		[SerializeField] private UIButton _joinButton;
 
+		[Tooltip("The whole row, the pad's one stop: pressing it presses Join.")]
+		[SerializeField] private UIButton _rowButton;
+
 		private ILobby _currentLobby;
+
+		public Selectable RowSelectable { get; private set; }
 
 		private void Awake()
 		{
 			_joinButton.OnClick += OnJoinButtonClicked;
+			if (_rowButton)
+			{
+				RowSelectable = _rowButton.GetComponent<Selectable>();
+				_rowButton.OnClick += HandleRowClicked;
+			}
 		}
 
 		private void OnDestroy()
 		{
+			if (_rowButton) _rowButton.OnClick -= HandleRowClicked;
 			_joinButton.OnClick -= OnJoinButtonClicked;
+		}
+
+		// Through the Join button itself, so a press on the row sounds and looks like a click on it.
+		private void HandleRowClicked()
+		{
+			_joinButton.Flash();
+			_joinButton.Submit();
 		}
 
 		public void SetData(ILobby lobby)

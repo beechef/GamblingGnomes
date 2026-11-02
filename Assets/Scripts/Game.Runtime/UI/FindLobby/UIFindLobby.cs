@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Game.Runtime.Controller;
 using Game.Runtime.Lobby;
 using Game.Runtime.GameMode;
@@ -7,6 +8,7 @@ using Game.Runtime.UI.Button;
 using Localization;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Game.Runtime.UI.FindLobby
 {
@@ -35,6 +37,7 @@ namespace Game.Runtime.UI.FindLobby
 		private bool _isRefreshing;
 		private bool _refreshAgain;
 		private bool _joiningLobby;
+		private readonly List<UIFindLobbyItem> _items = new();
 
 		private void OnEnable()
 		{
@@ -86,6 +89,8 @@ namespace Game.Runtime.UI.FindLobby
 					found++;
 				}
 
+				LinkNavigation();
+
 				ShowStatus(found == 0 ? LocalizationKeys.Lobby.Empty : null);
 			}
 			catch (OperationCanceledException)
@@ -125,6 +130,9 @@ namespace Game.Runtime.UI.FindLobby
 				item.OnJoinLobbyRequested -= OnJoinLobbyRequested;
 				Destroy(item.gameObject);
 			}
+
+			_items.Clear();
+			LinkNavigation();
 		}
 
 		private void AddItem(ILobby lobby)
@@ -132,6 +140,33 @@ namespace Game.Runtime.UI.FindLobby
 			var item = Instantiate(_itemPrefab, _itemContainer);
 			item.OnJoinLobbyRequested += OnJoinLobbyRequested;
 			item.SetData(lobby);
+			_items.Add(item);
+		}
+
+		// Automatic navigation sends a sideways move from the filter's arrows to whichever row is nearer than the
+		// next arrow, so the stops are linked by hand into one column: filter (left/right step its mode), Refresh,
+		// then the rows, up/down only. A full room is skipped: a pad cannot press it.
+		private void LinkNavigation()
+		{
+			var filter = _modeFilter.GetComponent<Selectable>();
+			var refresh = _refreshButton ? _refreshButton.GetComponent<Selectable>() : null;
+			var back = _backButton ? _backButton.GetComponent<Selectable>() : null;
+			var joinable = _items.FindAll(item => item.RowSelectable && item.RowSelectable.interactable);
+			var firstRow = joinable.Count > 0 ? joinable[0].RowSelectable : back;
+			var aboveRows = refresh ? refresh : filter;
+
+			filter.navigation = new Navigation { mode = Navigation.Mode.Explicit, selectOnDown = refresh ? refresh : firstRow };
+			if (refresh) refresh.navigation = new Navigation { mode = Navigation.Mode.Explicit, selectOnUp = filter, selectOnLeft = filter, selectOnDown = firstRow };
+
+			for (var i = 0; i < joinable.Count; i++)
+			{
+				joinable[i].RowSelectable.navigation = new Navigation
+				{
+					mode = Navigation.Mode.Explicit,
+					selectOnUp = i > 0 ? joinable[i - 1].RowSelectable : aboveRows,
+					selectOnDown = i < joinable.Count - 1 ? joinable[i + 1].RowSelectable : back,
+				};
+			}
 		}
 
 		private async void OnJoinLobbyRequested(ILobby lobby)
